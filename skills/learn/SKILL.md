@@ -1,120 +1,63 @@
 ---
 name: learn
-description: Extract lessons from conversation and persist to project configuration
-arguments: none
+description: Analyzes conversations to extract lessons learned (corrections, discoveries, workarounds) and persists them to CLAUDE.md and/or updates existing skills or creates new skills. Use after completing tasks that involved retries, debugging, finding workarounds, or discovering undocumented behavior.
 ---
 
 # Learn from Conversation
 
-Analyze the current conversation to extract lessons learned, mistakes made, or knowledge gaps discovered, then persist them to the project configuration.
+Analyze the conversation to extract lessons learned, then persist them to project configuration.
 
 ## Process
 
 ### 1. Analyze Conversation
 
-Review the entire conversation for:
+Scan for:
+- **Corrections**: Commands retried, assumptions proven wrong, missing prerequisites
+- **Discoveries**: Undocumented patterns, integration quirks, environment requirements
+- **Improvements**: Steps that should be automated or validated earlier
 
-**Mistakes & Corrections:**
-- Commands that failed and had to be retried
-- Missing prerequisites discovered mid-task
-- Incorrect assumptions about the codebase
-- Configuration issues encountered
+### 2. Categorize Each Learning
 
-**Knowledge Gaps:**
-- Information Claude didn't know but should have
-- Patterns that weren't documented
-- Dependencies between systems not captured
-- Environment setup requirements
+| Category | Destination | Examples |
+|----------|-------------|----------|
+| Project facts | CLAUDE.md | Conventions, patterns, architecture decisions |
+| Prerequisites | CLAUDE.md | Required state before running commands |
+| Environment | CLAUDE.md | Required env vars, services, configuration |
+| Automated workflow | New skill | Multi-step processes to suggest proactively |
 
-**Workarounds Discovered:**
-- Solutions to common problems
-- Non-obvious configuration requirements
-- Integration quirks between tools/libraries
+### 3. Present and Confirm
 
-**Process Improvements:**
-- Steps that should be automated
-- Checks that should happen earlier
-- Prerequisites that should be validated first
-
-### 2. Categorize Learnings
-
-For each learning, determine where it belongs:
-
-| Category | Destination | When to Use |
-|----------|-------------|-------------|
-| Project knowledge | CLAUDE.md | Facts about the codebase, patterns, conventions |
-| Prerequisites | CLAUDE.md | Things that must be true before actions |
-| Workflow automation | Skills | Multi-step processes Claude should suggest |
-| User-initiated flow | Commands | Explicit workflows users will request |
-
-### 3. Present Findings
-
-Format findings as:
-
+For each learning, show:
 ```
-## Lessons Learned
-
-### For CLAUDE.md
-1. **[Section]**: [What to add/update]
-   - Reason: [Why this was learned]
-   - Suggested text: [Actual content to add]
-
-### For Skills
-1. **[Skill name]**: [What it would do]
-   - Trigger: [When Claude should suggest it]
-   - Reason: [Why this would help]
-
-### For Commands
-1. **[Command name]**: [What it would do]
-   - Reason: [Why users would want this]
+**[Category]**: [Brief description]
+- Source: [What happened in conversation]
+- Proposed change: [Exact text or file to add]
 ```
 
-### 4. Confirm and Apply
+Ask for confirmation before applying each change.
 
-For each learning:
-1. Show the proposed change
-2. Ask for confirmation
-3. Apply the change if approved
+### 4. Apply Changes
 
-**For CLAUDE.md updates:**
-- Find the appropriate section
-- Add new content or update existing
-- Preserve existing structure and formatting
+**CLAUDE.md updates**: Find appropriate section, preserve existing structure.
 
-**For new skills/commands:**
-- Create the file in the appropriate directory
-- Follow existing patterns for format
-- Update CLAUDE.md to document the new skill/command
+**New skills**: Create in `skills/[name]/SKILL.md`, follow existing patterns.
 
-### 5. Summary
+### 5. Summarize
 
-After applying changes, show:
-- Files modified
-- New files created
-- Sections updated in CLAUDE.md
+List files modified and sections updated.
 
-## Examples of Learnable Patterns
+## Examples
 
-**Missing Prerequisites:**
-> "The e2e tests failed because the API wasn't running"
-→ Add to CLAUDE.md: "Before running e2e tests, ensure the API is running on the correct port"
-
-**Undocumented Dependency:**
-> "The Parse SDK doesn't work with Vite out of the box"
-→ Add to CLAUDE.md: Technical note about the workaround
-
-**Repeated Manual Process:**
-> "Every time I add a component, I have to create tests, run lint, run build..."
-→ Create skill: `add-component` that automates this
-
-**Environment Issue:**
-> "The build kept failing because NODE_ENV wasn't set"
-→ Add to CLAUDE.md: Required environment variables
+| Situation | Learning |
+|-----------|----------|
+| "e2e tests failed because API wasn't running" | Add prerequisite to CLAUDE.md |
+| "Parse SDK doesn't work with Vite out of the box" | Document workaround in CLAUDE.md |
+| "Build failed because NODE_ENV wasn't set" | Add required env var to CLAUDE.md |
+| "Every component needs tests, lint, build..." | Create `add-component` skill |
 
 ## Guidelines
 
-- **Be specific**: Include exact commands, file paths, and error messages
-- **Be actionable**: Write content that directly helps future Claude sessions
-- **Be minimal**: Only add what's truly useful, avoid over-documenting
-- **Preserve structure**: Fit new content into existing CLAUDE.md organization
-- **Avoid duplication**: Check if similar content already exists before adding
+- **Be specific**: Include exact commands, paths, error messages
+- **Be minimal**: Only add what genuinely helps future sessions
+- **Avoid duplication**: Check for existing similar content first
+- **Preserve structure**: Fit into existing CLAUDE.md organization
