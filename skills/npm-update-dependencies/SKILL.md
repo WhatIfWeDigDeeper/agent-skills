@@ -1,10 +1,9 @@
 ---
-skill: npm-update-dependencies
-description: Update npm packages to latest versions with validation and create PR
-arguments: specific packages, glob pattern, or '.' for all
+name: npm-update-dependencies
+description: Update npm packages to latest versions with validation and create PR. Use when the user wants to update dependencies, upgrade packages, or modernize their npm dependencies.
 ---
 
-# Update Dependencies: $ARGUMENTS
+# Update Dependencies
 
 Updates npm packages to their latest versions with automated testing and validation in an isolated worktree, then creates a pull request for review.
 

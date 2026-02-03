@@ -1,12 +1,17 @@
 ---
-skill: npm-audit-and-fix
-description: Security audit with automatic fixes for vulnerabilities across all package.json files
-arguments: package names, glob pattern, or '.' for all
+name: npm-audit-and-fix
+description: Security audit with automatic fixes for npm vulnerabilities. Use when the user asks to audit packages, fix security issues, address CVEs, or check for vulnerable dependencies.
 ---
 
-# Security Audit: $ARGUMENTS
+# Security Audit
 
 Scan for vulnerabilities and automatically fix them across all package.json files in an isolated worktree.
+
+## Arguments
+
+- **Specific packages**: `express jsonwebtoken`
+- **All packages**: `.`
+- **Glob patterns**: `@prisma/* express*`
 
 ## Process
 
