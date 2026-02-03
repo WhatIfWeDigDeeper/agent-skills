@@ -1,0 +1,27 @@
+{
+  "name": "whatifwedigdeeper-agent-skills",
+  "description": "Reusable Agent Skill definitions for Claude Code and other coding assistants",
+  "plugins": [
+    {
+      "name": "learn",
+      "description": "Analyzes conversations to extract lessons learned (corrections, discoveries, workarounds) and persists them to CLAUDE.md and/or updates existing skills or creates new skills. Use after completing tasks that involved retries, debugging, finding workarounds, or discovering undocumented behavior.",
+      "source": "./skills/learn",
+      "strict": false,
+      "skills": ["./"]
+    },
+    {
+      "name": "npm-audit-and-fix",
+      "description": "Security audit with automatic fixes for vulnerabilities across all package.json files",
+      "source": "./skills/npm-audit-and-fix",
+      "strict": false,
+      "skills": ["./"]
+    },
+    {
+      "name": "npm-update-dependencies",
+      "description": "Update npm packages to latest versions with validation and create PR",
+      "source": "./skills/npm-update-dependencies",
+      "strict": false,
+      "skills": ["./"]
+    }
+  ]
+}
