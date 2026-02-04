@@ -1,9 +1,9 @@
 ---
-name: npm-maintenance
+name: package-json-maintenance
 description: Maintain JavaScript/Node.js packages through security audits or dependency updates in an isolated git worktree. Supports npm, yarn, pnpm, and bun. Use for: (1) Security requests - audit, CVE, vulnerabilities, fix security issues, check for vulnerable dependencies; (2) Update requests - update dependencies, upgrade packages, get latest versions, modernize dependencies.
 ---
 
-# Package Maintenance
+# Package.json Maintenance
 
 Manages JavaScript package maintenance tasks in an isolated worktree, including security audits and dependency updates. Automatically detects and uses the project's package manager (npm, yarn, pnpm, or bun).
 
@@ -26,7 +26,7 @@ Based on user request:
 **Preferred: Worktree** (isolated, non-disruptive)
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-BRANCH_NAME="npm-maintenance-$TIMESTAMP"
+BRANCH_NAME="pkg-maintenance-$TIMESTAMP"
 WORKTREE_PATH="../$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 cd "$WORKTREE_PATH"
