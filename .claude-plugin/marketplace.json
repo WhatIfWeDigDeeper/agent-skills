@@ -10,16 +10,9 @@
       "skills": ["./"]
     },
     {
-      "name": "npm-audit-and-fix",
-      "description": "Security audit with automatic fixes for vulnerabilities across all package.json files",
-      "source": "./skills/npm-audit-and-fix",
-      "strict": false,
-      "skills": ["./"]
-    },
-    {
-      "name": "npm-update-dependencies",
-      "description": "Update npm packages to latest versions with validation and create PR",
-      "source": "./skills/npm-update-dependencies",
+      "name": "package-json-maintenance",
+      "description": "Maintain JavaScript/Node.js packages through security audits or dependency updates in an isolated git worktree. Supports npm, yarn, pnpm, and bun.",
+      "source": "./skills/package-json-maintenance",
       "strict": false,
       "skills": ["./"]
     }
