@@ -1,5 +1,7 @@
 # Security Audit Workflow
 
+Use the detected `$PM` package manager for all commands. See [package-managers.md](package-managers.md) for command mappings.
+
 ## Audit Execution
 
 ### Run Security Audit on Each Directory
@@ -7,8 +9,10 @@
 For each directory containing package.json:
 ```bash
 cd <directory>
-npm audit --json > audit-report-<dir-name>.json
+$PM audit --json > audit-report-<dir-name>.json
 ```
+
+Note: bun does not support audit. If using bun, skip audit and inform user.
 
 Collect all audit results into a consolidated report.
 
@@ -33,20 +37,21 @@ If multiple directories have vulnerabilities, process them in parallel using sep
 
 ### Update Packages
 
-For each vulnerable package in each directory:
+For each vulnerable package in each directory, use the appropriate install command from [package-managers.md](package-managers.md):
 ```bash
 cd <directory>
-npm install <package>@latest
+$PM install <package>@latest  # npm
+$PM add <package>@latest      # yarn, pnpm, bun
 ```
 
-Validate after each update using available scripts from package.json (see SKILL.md step 5 for common script names). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
+Validate after each update using available scripts from package.json (see SKILL.md step 6 for common script names). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
 
 ### Post-Audit Scan
 
 For each directory:
 ```bash
 cd <directory>
-npm audit
+$PM audit
 ```
 
 Compare before/after vulnerability counts per directory.

@@ -1,27 +1,34 @@
 # Dependency Update Workflow
 
+Use the detected `$PM` package manager for all commands. See [package-managers.md](package-managers.md) for command mappings.
+
 ## Version Checking and Updates
 
 ### Check and Update Versions
 
+Use the appropriate commands for your package manager (see [package-managers.md](package-managers.md)):
+
 ```bash
-# Check latest version
-npm view <package> version
+# Check latest version (npm/pnpm)
+$PM view <package> version
 
 # Prefer LTS when available
-npm view <package> dist-tags
+$PM view <package> dist-tags
 
 # Update packages
-npm install <package>@latest
+$PM install <package>@latest  # npm
+$PM add <package>@latest      # yarn, pnpm, bun
 ```
 
 ### Run Security Audit
 
 After updating, check for new vulnerabilities:
 ```bash
-npm audit
-npm audit fix
+$PM audit
+$PM audit fix  # npm only; others require manual fixes
 ```
+
+Note: bun does not support audit. If using bun, skip this step.
 
 ## Handle Results
 
@@ -34,11 +41,11 @@ npm audit fix
    ```
 3. Check for existing dependency update PRs:
    ```bash
-   gh pr list --search "chore: Update npm dependencies" --state open
+   gh pr list --search "chore: Update dependencies" --state open
    ```
 4. Create PR using gh CLI:
    ```bash
-   gh pr create --title "chore: Update npm dependencies" --body "$(cat <<'EOF'
+   gh pr create --title "chore: Update dependencies" --body "$(cat <<'EOF'
    ## Summary
    - Updated packages: [list major version changes]
    - Breaking changes fixed: [list code modifications]
@@ -72,7 +79,7 @@ npm audit fix
 | Category | Examples | Remediation |
 |----------|----------|-------------|
 | Build | Type errors, missing dependencies | Update @types/*, check changelogs |
-| Lint | Code style issues | Run `npm run lint -- --fix` |
+| Lint | Code style issues | Run `$PM run lint -- --fix` |
 | Test | Breaking API changes | Review migration guides |
 | Audit | Vulnerabilities | Manual remediation steps |
 
