@@ -33,14 +33,12 @@ See [references/assistant-configs.md](references/assistant-configs.md) for forma
 Scan for existing config files:
 
 ```bash
-[ -f "CLAUDE.md" ] && echo "claude"
-[ -f "GEMINI.md" ] && echo "gemini"
-[ -f "AGENTS.md" ] && echo "agents"
-[ -f ".cursorrules" ] && echo "cursor-legacy"
+for f in CLAUDE.md:claude GEMINI.md:gemini AGENTS.md:agents .cursorrules:cursor-legacy \
+  .github/copilot-instructions.md:copilot .windsurf/rules/rules.md:windsurf \
+  .continuerc.json:continue; do
+  [ -f "${f%:*}" ] && echo "${f#*:}"
+done
 [ -d ".cursor/rules" ] && echo "cursor"
-[ -f ".github/copilot-instructions.md" ] && echo "copilot"
-[ -f ".windsurf/rules/rules.md" ] && echo "windsurf"
-[ -f ".continuerc.json" ] && echo "continue"
 ```
 
 **Behavior based on detection:**
@@ -74,12 +72,10 @@ Before analyzing the conversation, check the state of target files and discover 
 For each detected config file, count lines:
 
 ```bash
-wc -l CLAUDE.md 2>/dev/null || echo "0"
-wc -l GEMINI.md 2>/dev/null || echo "0"
-wc -l AGENTS.md 2>/dev/null || echo "0"
-wc -l .cursorrules 2>/dev/null || echo "0"
-wc -l .github/copilot-instructions.md 2>/dev/null || echo "0"
-wc -l .windsurf/rules/rules.md 2>/dev/null || echo "0"
+for f in CLAUDE.md GEMINI.md AGENTS.md .cursorrules .github/copilot-instructions.md \
+  .windsurf/rules/rules.md; do
+  wc -l "$f" 2>/dev/null
+done
 ```
 
 #### Size Thresholds
@@ -101,7 +97,7 @@ Scan for skills that might relate to learnings:
 find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules
 
 # Extract skill names and descriptions for matching
-for skill in $(find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules); do
+find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | while read -r skill; do
   echo "=== $skill ==="
   head -20 "$skill" | grep -E "^(name:|description:)"
 done
@@ -294,8 +290,5 @@ List:
 
 ## Guidelines
 
-- **Be specific**: Include exact commands, paths, error messages
 - **Be minimal**: Only add what genuinely helps future sessions
 - **Avoid duplication**: Check for existing similar content in all selected configs
-- **Preserve structure**: Fit into existing config file organization
-- **Respect format**: Adapt content appropriately for each assistant's format
