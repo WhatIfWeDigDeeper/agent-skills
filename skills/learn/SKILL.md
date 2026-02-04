@@ -1,7 +1,6 @@
 ---
 name: learn
 description: Analyzes conversations to extract lessons learned (corrections, discoveries, workarounds) and persists them to AI assistant configuration files. Supports CLAUDE.md, GEMINI.md, AGENTS.md, Cursor rules, GitHub Copilot instructions, Windsurf rules, and Continue config. Use after completing tasks that involved retries, debugging, finding workarounds, or discovering undocumented behavior.
-arguments: Optional - specific assistant names to target (e.g., "claude cursor")
 license: MIT
 metadata:
   author: Gregory Murray
@@ -202,48 +201,7 @@ Choose an option:
 
 #### Option 2: Guided Refactoring
 
-If user selects refactoring:
-
-1. **Analyze existing content** - Identify extractable sections:
-   ```
-   Analyzing [filename]...
-
-   Found extractable sections:
-   - Lines 45-120: Testing workflow (75 lines) → Suggest: `testing-workflow` skill
-   - Lines 200-280: API patterns (80 lines) → Suggest: `api-patterns` skill
-   - Lines 300-350: Deployment steps (50 lines) → Suggest: `deployment` skill
-
-   Extracting these would reduce file to ~295 lines.
-   ```
-
-2. **Confirm extraction targets** - Ask user which to extract
-
-3. **Create skills** - For each confirmed extraction:
-   - Create `skills/[name]/SKILL.md` with extracted content
-   - Add reference to config file: `See [skill-name] skill for [topic]`
-
-4. **Remove extracted content** - Delete moved sections from config
-
-5. **Add new learning** - Now add the original learning
-
-#### Extraction Template
-
-When creating skills from extracted content:
-
-```markdown
----
-name: [extracted-topic]
-description: [Brief description derived from section header]
----
-
-# [Section Title]
-
-[Extracted content, reformatted as workflow if applicable]
-
-## Source
-
-Extracted from [config-file] during documentation maintenance.
-```
+See [references/size-management.md](references/size-management.md) for the step-by-step refactoring process and extraction template.
 
 ### 7. Apply Changes
 

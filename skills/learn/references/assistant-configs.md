@@ -1,32 +1,5 @@
 # Assistant Configuration Reference
 
-## Config File Locations
-
-| Assistant | Primary Location | Format |
-|-----------|-----------------|--------|
-| Claude Code | `CLAUDE.md` | Markdown |
-| Gemini | `GEMINI.md` | Markdown |
-| AGENTS.md | `AGENTS.md` | Markdown |
-| Cursor (legacy) | `.cursorrules` | Markdown |
-| Cursor (modern) | `.cursor/rules/*.mdc` | MDC (Markdown + frontmatter) |
-| GitHub Copilot | `.github/copilot-instructions.md` | Markdown |
-| Windsurf | `.windsurf/rules/rules.md` | Markdown |
-| Continue | `.continuerc.json` | JSON |
-
-## Detection Commands
-
-```bash
-# Check each config file
-[ -f "CLAUDE.md" ] && echo "claude"
-[ -f "GEMINI.md" ] && echo "gemini"
-[ -f "AGENTS.md" ] && echo "agents"
-[ -f ".cursorrules" ] && echo "cursor-legacy"
-[ -d ".cursor/rules" ] && echo "cursor"
-[ -f ".github/copilot-instructions.md" ] && echo "copilot"
-[ -f ".windsurf/rules/rules.md" ] && echo "windsurf"
-[ -f ".continuerc.json" ] && echo "continue"
-```
-
 ## Format Compatibility
 
 | Format | Assistants | Notes |

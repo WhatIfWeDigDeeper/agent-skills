@@ -94,3 +94,57 @@ When evaluating what to keep vs. extract:
 | Learning >30 lines | Prefer skill |
 | Learning <3 lines | Prefer config |
 | Small, universal learning | Add to config |
+
+## Guided Refactoring Process
+
+When a user chooses to extract existing content before adding new learnings:
+
+### 1. Analyze Existing Content
+
+Identify extractable sections:
+
+```
+Analyzing [filename]...
+
+Found extractable sections:
+- Lines 45-120: Testing workflow (75 lines) → Suggest: `testing-workflow` skill
+- Lines 200-280: API patterns (80 lines) → Suggest: `api-patterns` skill
+- Lines 300-350: Deployment steps (50 lines) → Suggest: `deployment` skill
+
+Extracting these would reduce file to ~295 lines.
+```
+
+### 2. Confirm Extraction Targets
+
+Ask user which sections to extract.
+
+### 3. Create Skills
+
+For each confirmed extraction, create `skills/[name]/SKILL.md` with extracted content and add reference to config file: `See [skill-name] skill for [topic]`
+
+### 4. Remove Extracted Content
+
+Delete moved sections from config.
+
+### 5. Add New Learning
+
+Now add the original learning.
+
+## Extraction Template
+
+When creating skills from extracted content:
+
+```markdown
+---
+name: [extracted-topic]
+description: [Brief description derived from section header]
+---
+
+# [Section Title]
+
+[Extracted content, reformatted as workflow if applicable]
+
+## Source
+
+Extracted from [config-file] during documentation maintenance.
+```
