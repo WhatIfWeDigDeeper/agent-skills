@@ -39,7 +39,7 @@ cd <directory>
 npm install <package>@latest
 ```
 
-Then validate (SKILL.md step 4).
+Validate after each update using available scripts from package.json (see SKILL.md step 4 for common script names). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
 
 ### Post-Audit Scan
 

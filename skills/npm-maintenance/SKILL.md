@@ -48,13 +48,15 @@ Store results as an array of directories to process.
 
 ### 4. Validate Changes
 
-Run in order after each update, continue on failure to collect all errors:
+Check `package.json` scripts for available validation commands:
 
-```bash
-npm run build
-npm run lint
-npm test
-```
+| Purpose | Common names |
+|---------|--------------|
+| Build | `build`, `compile`, `tsc` |
+| Lint | `lint`, `check`, `eslint` |
+| Test | `test`, `jest`, `vitest` |
+
+Run available scripts in order (build → lint → test), continuing on failure to collect all errors. Skip any that don't exist.
 
 If validation fails, revert to previous version before continuing.
 
