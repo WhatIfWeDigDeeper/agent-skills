@@ -21,17 +21,40 @@ Based on user request:
 
 ## Shared Process
 
-### 1. Create Isolated Worktree
+### 1. Create Isolated Environment
 
+**Preferred: Worktree** (isolated, non-disruptive)
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-WORKTREE_NAME="npm-maintenance-$TIMESTAMP"
-WORKTREE_PATH="../$WORKTREE_NAME"
-git worktree add "$WORKTREE_PATH" -b "$WORKTREE_NAME"
+BRANCH_NAME="npm-maintenance-$TIMESTAMP"
+WORKTREE_PATH="../$BRANCH_NAME"
+git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 cd "$WORKTREE_PATH"
+USE_WORKTREE=true
 ```
 
-### 2. Discover Package Locations
+**Fallback: Branch** (if worktree fails due to sandbox directory restrictions)
+
+Prompt user: "Worktree creation failed (sandbox may restrict creating directories outside the working directory). Run in current directory on a new branch instead? This will stash any uncommitted changes."
+
+If user accepts:
+```bash
+git stash --include-untracked
+git checkout -b "$BRANCH_NAME"
+USE_WORKTREE=false
+```
+
+### 2. Verify npm Registry Access
+
+```bash
+npm ping
+```
+
+If this fails, prompt user: "Cannot reach npm registry. Sandbox may be blocking network access. To allow npm in sandbox mode, update settings.json to permit npm commands."
+
+Do not proceed until connectivity is confirmed.
+
+### 3. Discover Package Locations
 
 Find all package.json files excluding node_modules:
 ```bash
@@ -40,13 +63,13 @@ find . -name "package.json" -not -path "*/node_modules/*" -type f
 
 Store results as an array of directories to process.
 
-### 3. Identify Packages
+### 4. Identify Packages
 
 - Parse `$ARGUMENTS` to determine packages
 - For globs, expand against package.json dependencies
 - For `.`, process all packages
 
-### 4. Validate Changes
+### 5. Validate Changes
 
 Check `package.json` scripts for available validation commands:
 
@@ -60,7 +83,7 @@ Run available scripts in order (build → lint → test), continuing on failure 
 
 If validation fails, revert to previous version before continuing.
 
-### 5. Update Documentation for Major Version Changes
+### 6. Update Documentation for Major Version Changes
 
 For major version upgrades (e.g., 18.x to 19.x):
 
@@ -69,17 +92,28 @@ For major version upgrades (e.g., 18.x to 19.x):
 3. Skip: `specs/*/research.md`, `specs/*/tasks.md`, archived files
 4. Include changes in report/PR description
 
-### 6. Cleanup
+### 7. Cleanup
 
+**If using worktree:**
 ```bash
+cd -
 git worktree remove "$WORKTREE_PATH"
 # Delete branch only if no PR was created
-git branch -d "$WORKTREE_NAME"
+git branch -d "$BRANCH_NAME"
+```
+
+**If using branch fallback:**
+```bash
+git checkout -
+git stash pop
+# Delete branch only if no PR was created
+git branch -d "$BRANCH_NAME"
 ```
 
 ## Edge Cases
 
-- No package.json: Error with clear message
-- Not a git repo: Error - worktree requires git
-- Package not found: Suggest checking package name
-- Glob matches nothing: Warn and list available packages
+- **No package.json**: Error with clear message
+- **Not a git repo**: Error - git required for branch/worktree isolation
+- **Package not found**: Suggest checking package name
+- **Glob matches nothing**: Warn and list available packages
+- **Network restricted**: npm commands require internet access; will fail in offline sandbox environments

@@ -39,7 +39,7 @@ cd <directory>
 npm install <package>@latest
 ```
 
-Validate after each update using available scripts from package.json (see SKILL.md step 4 for common script names). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
+Validate after each update using available scripts from package.json (see SKILL.md step 5 for common script names). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
 
 ### Post-Audit Scan
 
@@ -87,7 +87,7 @@ Collect results from all agents before generating final report.
 2. Create commit with security fixes
 3. Push branch to remote:
    ```bash
-   git push -u origin "$WORKTREE_NAME"
+   git push -u origin "$BRANCH_NAME"
    ```
 4. Create PR using gh CLI:
    ```bash

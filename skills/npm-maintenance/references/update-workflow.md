@@ -30,7 +30,7 @@ npm audit fix
 1. Create commit with version changes
 2. Push branch to remote:
    ```bash
-   git push -u origin "$WORKTREE_NAME"
+   git push -u origin "$BRANCH_NAME"
    ```
 3. Check for existing dependency update PRs:
    ```bash
