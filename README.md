@@ -11,7 +11,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 
 ## Installation
 
-### Using npx, supported by most coding assistants
+### Using [skills package](https://github.com/vercel-labs/skills?tab=readme-ov-file#skills) by Vercel, supported by most coding assistants
 
 ```bash
 npx skills add whatifwedigdeeper/agent-skills \
