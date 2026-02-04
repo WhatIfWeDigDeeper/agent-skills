@@ -154,8 +154,4 @@ description: [Brief description derived from section header]
 # [Section Title]
 
 [Extracted content, reformatted as workflow if applicable]
-
-## Source
-
-Extracted from [config-file] during documentation maintenance.
 ```

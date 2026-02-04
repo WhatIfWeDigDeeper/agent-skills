@@ -39,12 +39,9 @@ See [references/assistant-configs.md](references/assistant-configs.md) for forma
 Scan for existing config files:
 
 ```bash
-for f in CLAUDE.md:claude GEMINI.md:gemini AGENTS.md:agents .cursorrules:cursor-legacy \
-  .github/copilot-instructions.md:copilot .windsurf/rules/rules.md:windsurf \
-  .continuerc.json:continue; do
-  [ -f "${f%:*}" ] && echo "${f#*:}"
-done
-[ -d ".cursor/rules" ] && echo "cursor"
+ls -1 CLAUDE.md GEMINI.md AGENTS.md .cursorrules .github/copilot-instructions.md \
+  .windsurf/rules/rules.md .continuerc.json 2>/dev/null
+find .cursor/rules -name "*.mdc" 2>/dev/null
 ```
 
 **Behavior based on detection:**
