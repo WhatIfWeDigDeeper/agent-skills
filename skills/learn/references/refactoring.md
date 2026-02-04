@@ -1,9 +1,8 @@
-# Documentation Size Management
+# Config File Refactoring
 
 ## Contents
 
 - [Philosophy](#philosophy)
-- [Size Thresholds](#size-thresholds)
 - [What Belongs Where](#what-belongs-where)
 - [Refactoring Strategies](#refactoring-strategies)
 - [Measuring Content Value](#measuring-content-value)
@@ -22,18 +21,6 @@ Skills should contain:
 - Multi-step workflows
 - Situation-specific knowledge (applies only in certain contexts)
 - Detailed procedures that would clutter the main config
-
-## Size Thresholds
-
-| File Type | Healthy | Warning | Oversized |
-|-----------|---------|---------|-----------|
-| CLAUDE.md | < 400 | 400-500 | > 500 |
-| GEMINI.md | < 400 | 400-500 | > 500 |
-| AGENTS.md | < 400 | 400-500 | > 500 |
-| .cursorrules | < 300 | 300-400 | > 400 |
-| .cursor/rules/*.mdc | < 100 each | 100-150 | > 150 |
-| .github/copilot-instructions.md | < 400 | 400-500 | > 500 |
-| .windsurf/rules/rules.md | < 400 | 400-500 | > 500 |
 
 ## What Belongs Where
 
@@ -100,7 +87,7 @@ When evaluating what to keep vs. extract:
 |-----------|--------|
 | Multi-step workflow (>5 steps) | Create new skill |
 | Existing skill covers topic | Update that skill |
-| Config file >500 lines | Refactor first OR create skill |
+| Config file exceeds threshold | Refactor first OR create skill |
 | Situation-specific learning | Create skill |
 | Learning >30 lines | Prefer skill |
 | Learning <3 lines | Prefer config |

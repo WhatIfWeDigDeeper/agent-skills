@@ -34,14 +34,18 @@ See [references/assistant-configs.md](references/assistant-configs.md) for forma
 
 ## Process
 
-### 1. Detect Assistant Configurations
+### 1. Detect and Assess Configurations
 
-Scan for existing config files:
+Scan for config files and check their sizes:
 
 ```bash
-ls -1 CLAUDE.md GEMINI.md AGENTS.md .cursorrules .github/copilot-instructions.md \
-  .windsurf/rules/rules.md .continuerc.json 2>/dev/null
-find .cursor/rules -name "*.mdc" 2>/dev/null
+for f in CLAUDE.md GEMINI.md AGENTS.md .cursorrules .github/copilot-instructions.md \
+  .windsurf/rules/rules.md .continuerc.json; do
+  [ -f "$f" ] && wc -l "$f"
+done
+for f in .cursor/rules/*.mdc; do
+  [ -f "$f" ] && wc -l "$f"
+done
 ```
 
 **Behavior based on detection:**
@@ -50,39 +54,7 @@ find .cursor/rules -name "*.mdc" 2>/dev/null
 |----------|--------|
 | Single config found | Update it automatically |
 | Multiple configs found | Prompt user to select which to update |
-| No configs found | Guide user to initialize one first, then exit |
-
-**When no configs found**, display:
-```
-No AI assistant configuration files detected.
-
-Please initialize one first using your assistant's setup command:
-- Claude Code: claude /init
-- Cursor: Create .cursorrules or use Settings
-- Copilot: Create .github/copilot-instructions.md
-- Gemini: Create GEMINI.md
-- Universal: Create AGENTS.md
-
-Then run /learn again.
-```
-
-### 2. Assess Documentation Capacity
-
-Before analyzing the conversation, check the state of target files and discover relevant skills.
-
-#### Check Config File Sizes
-
-For each detected config file, count lines:
-
-```bash
-for f in CLAUDE.md GEMINI.md AGENTS.md .cursorrules .github/copilot-instructions.md \
-  .windsurf/rules/rules.md; do
-  [ -f "$f" ] && wc -l "$f"
-done
-for f in .cursor/rules/*.mdc; do
-  [ -f "$f" ] && wc -l "$f"
-done
-```
+| No configs found | Display init commands from [assistant-configs.md](references/assistant-configs.md), then exit |
 
 #### Size Thresholds
 
@@ -90,35 +62,27 @@ done
 |-------|--------|--------|
 | < 400 | Healthy | Add learnings directly |
 | 400-500 | Warning | Add carefully, suggest cleanup |
-| > 500 | Oversized | Refactor before adding new content |
-
-See [references/size-management.md](references/size-management.md) for detailed guidance.
+| > 500 | Oversized | [Refactor](references/refactoring.md) before adding new content |
 
 #### Discover Existing Skills
 
-Scan for skills that might relate to learnings:
+List skills for routing decisions:
 
 ```bash
-# Find all skills in the project
-find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules
-
-# Extract skill names and descriptions for matching
-find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | while read -r skill; do
-  echo "=== $skill ==="
-  head -20 "$skill" | grep -E "^(name:|description:)"
+find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
+  xargs grep -l "^name:" | while read -r f; do
+  grep -m1 "^name:" "$f" | sed 's/name: //'
 done
 ```
 
-Store discovered skills for routing decisions in Step 4.
-
-### 3. Analyze Conversation
+### 2. Analyze Conversation
 
 Scan for:
 - **Corrections**: Commands retried, assumptions proven wrong, missing prerequisites
 - **Discoveries**: Undocumented patterns, integration quirks, environment requirements
 - **Improvements**: Steps that should be automated or validated earlier
 
-### 4. Categorize and Route Each Learning
+### 3. Categorize and Route Each Learning
 
 | Category | Primary Destination | Fallback When Oversized |
 |----------|---------------------|------------------------|
@@ -133,7 +97,7 @@ Scan for:
 For each learning, evaluate in order:
 
 1. **Is this a multi-step automated workflow (>5 steps)?**
-   - YES → Create new skill (skip to step 7)
+   - YES → Create new skill (proceed to Step 5, Route C)
    - NO → Continue
 
 2. **Does an existing skill cover this topic?**
@@ -141,7 +105,7 @@ For each learning, evaluate in order:
    - NO → Continue
 
 3. **Is the target config file oversized (>500 lines)?**
-   - YES → Create new skill OR offer refactoring (see Step 6)
+   - YES → Create new skill OR offer refactoring (see Step 4)
    - NO → Continue
 
 4. **Is this learning situation-specific (applies to narrow context)?**
@@ -171,43 +135,35 @@ Match learnings to existing skills using these criteria:
 
 Also check skill `description` field for keyword overlap with the learning topic.
 
-### 5. Present and Confirm
+### 4. Present and Confirm
 
 For each learning, show:
 ```
 **[Category]**: [Brief description]
 - Source: [What happened in conversation]
 - Proposed change: [Exact text or file to add]
-- Destination(s): [List of config files to update]
+- Destination: [Config file] ([current] → [projected] lines)
+```
+
+#### Handle Size Threshold
+
+If adding the learning would push a config file over threshold:
+
+```
+Adding this learning would bring [filename] to [X] lines (threshold: [Y]).
+
+Options:
+1. Add learning anyway (not recommended)
+2. [Refactor](references/refactoring.md) existing content to skills first, then add
+3. Create a new skill for this learning instead
+4. Skip this config file
 ```
 
 Ask for confirmation before applying each change.
 
-### 6. Handle Oversized Config Files
+### 5. Apply Changes
 
-If a target config file exceeds 500 lines BEFORE adding new learnings:
-
-#### Prompt User
-
-```
-Config file [filename] has [X] lines (threshold: 500).
-
-Options:
-1. Add learning anyway (not recommended)
-2. Extract existing content to skills first, then add learning
-3. Create a new skill for this learning instead
-4. Skip this config file
-
-Choose an option:
-```
-
-#### Option 2: Guided Refactoring
-
-See [references/size-management.md](references/size-management.md) for the step-by-step refactoring process and extraction template.
-
-### 7. Apply Changes
-
-Apply changes based on routing decision from Step 4:
+Apply changes based on routing decision from Step 3:
 
 #### Route A: Add to Config File
 
@@ -259,7 +215,7 @@ description: [What this handles and when to use it - triggers belong here, not i
 [Details]
 ```
 
-### 8. Verify Changes
+### 6. Verify Changes
 
 After applying each change, confirm success by showing:
 ```
@@ -270,7 +226,7 @@ After applying each change, confirm success by showing:
 
 If a write failed, report the error and offer to retry or skip.
 
-### 9. Summarize
+### 7. Summarize
 
 List:
 - Config files modified (with full paths)
@@ -294,7 +250,7 @@ List:
 | Multiple configs found | Prompt user to select which to update |
 | Malformed config file | Warn and skip that file |
 | Duplicate content exists | Check before adding, warn if similar learning exists |
-| Config file already oversized | Offer refactoring before adding (Step 6) |
+| Config file already oversized | Offer refactoring before adding (Step 4) |
 | Learning matches multiple skills | Present options, let user choose which skill to update |
 | Skill file also oversized | Suggest creating sub-skills or reference files |
 | Learning is very small (<3 lines) | Prefer config file even if near threshold |
