@@ -1,7 +1,5 @@
 # Security Audit Workflow
 
-This reference extends the shared process in [../SKILL.md](../SKILL.md) with security-specific steps.
-
 ## Audit Execution
 
 ### Run Security Audit on Each Directory
@@ -41,7 +39,7 @@ cd <directory>
 npm install <package>@latest
 ```
 
-Then validate using the shared validation step.
+Then validate (SKILL.md step 4).
 
 ### Post-Audit Scan
 
@@ -81,16 +79,45 @@ Task({
 
 Collect results from all agents before generating final report.
 
-## Report and Prompt
+## Handle Results
 
-Generate consolidated security report with:
-- Vulnerabilities per directory (initial vs remaining)
-- Successfully updated packages per directory
-- Failed updates with reasons
-- Recommendations for remaining issues
-- Overall project security status
+### On Success
 
-Prompt user: merge fixes, keep for review, or discard.
+1. Generate consolidated security report
+2. Create commit with security fixes
+3. Push branch to remote:
+   ```bash
+   git push -u origin "$WORKTREE_NAME"
+   ```
+4. Create PR using gh CLI:
+   ```bash
+   gh pr create --title "fix: Security audit fixes" --body "$(cat <<'EOF'
+   ## Summary
+   - Vulnerabilities fixed: [count]
+   - Remaining vulnerabilities: [count with reasons]
+
+   ## Changes by Directory
+   [list directories and packages updated]
+
+   ## Validation Results
+   | Check | Status |
+   |-------|--------|
+   | Build | pass/fail |
+   | Lint | pass/fail |
+   | Tests | pass/fail |
+   | Security Audit | X remaining |
+
+   Generated with [Claude Code](https://claude.com/claude-code)
+   EOF
+   )"
+   ```
+5. Return the PR URL to the user
+
+### On Failure
+
+- Categorize by directory and package
+- Provide specific remediation steps for unfixable vulnerabilities
+- If partially successful, still create PR with remaining issues noted
 
 ## Example Output
 

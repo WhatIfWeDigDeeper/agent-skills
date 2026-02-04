@@ -1,12 +1,17 @@
 ---
 name: npm-maintenance
-description: Maintain npm packages through security audits or dependency updates. Use for security-related requests (audit, CVE, vulnerabilities, security issues) or update requests (update dependencies, upgrade packages, latest versions).
-arguments: Package names, glob patterns (e.g., `@prisma/*`), or `.` for all packages
+description: Maintain npm packages through security audits or dependency updates in an isolated git worktree. Use for: (1) Security requests - audit, CVE, vulnerabilities, fix security issues, check for vulnerable dependencies; (2) Update requests - update dependencies, upgrade packages, get latest versions, modernize npm dependencies.
 ---
 
 # NPM Maintenance
 
 Manages npm package maintenance tasks in an isolated worktree, including security audits and dependency updates.
+
+## Arguments
+
+- **Specific packages**: `jest @types/jest`
+- **All packages**: `.`
+- **Glob patterns**: `@testing-library/* jest*`
 
 ## Workflow Selection
 
@@ -55,39 +60,12 @@ If validation fails, revert to previous version before continuing.
 
 ### 5. Update Documentation for Major Version Changes
 
-When packages have major version upgrades (e.g., 18.x to 19.x, 4.x to 5.x):
+For major version upgrades (e.g., 18.x to 19.x):
 
-1. **Identify major version changes** from the update:
-   - Track packages that jumped major versions
-
-2. **Search for version references in documentation**:
-   ```bash
-   grep -r "React 18\|Next.js 14\|Express 4\|Prisma 5" --include="*.md" .
-   ```
-
-3. **Files to check** (prioritized):
-   - `CLAUDE.md` - Active technologies section
-   - `README.md` - Stack descriptions
-   - `docs/*.md` - Implementation docs with version tables
-   - `specs/*/plan.md` - Technical context sections
-
-4. **Skip historical documents** (don't update):
-   - `specs/*/research.md` - Original research notes
-   - `specs/*/tasks.md` - Completed task records
-   - Files with "historical" or "archive" in path
-
-5. **Update pattern**: Replace version references like:
-   - `React 18` to `React 19`
-   - `Express 4.18` to `Express 5.x`
-
-6. **Include in report/PR description**:
-   ```
-   Documentation Updates
-   ---------------------
-   Updated version references in:
-   - CLAUDE.md (React 18 to 19)
-   - docs/API_IMPLEMENTATION_SUMMARY.md (Express 4.18 to 5.x)
-   ```
+1. Search for version references: `grep -r "React 18\|Express 4" --include="*.md" .`
+2. Update in: `CLAUDE.md`, `README.md`, `docs/*.md`
+3. Skip: `specs/*/research.md`, `specs/*/tasks.md`, archived files
+4. Include changes in report/PR description
 
 ### 6. Cleanup
 

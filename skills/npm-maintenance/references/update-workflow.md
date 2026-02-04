@@ -1,7 +1,5 @@
 # Dependency Update Workflow
 
-This reference extends the shared process in [../SKILL.md](../SKILL.md) with update-specific steps.
-
 ## Version Checking and Updates
 
 ### Check and Update Versions
@@ -80,8 +78,4 @@ npm audit fix
 
 ## Cleanup Note
 
-After creating a PR, do not delete the branch - it's needed for the open PR:
-```bash
-git worktree remove "$WORKTREE_PATH"
-# Branch kept for PR
-```
+After creating a PR, do not delete the branch - it's needed for the open PR.
