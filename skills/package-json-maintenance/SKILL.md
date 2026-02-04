@@ -1,6 +1,11 @@
 ---
 name: package-json-maintenance
 description: Maintain JavaScript/Node.js packages through security audits or dependency updates in an isolated git worktree. Supports npm, yarn, pnpm, and bun. Use for: (1) Security requests - audit, CVE, vulnerabilities, fix security issues, check for vulnerable dependencies; (2) Update requests - update dependencies, upgrade packages, get latest versions, modernize dependencies.
+license: MIT
+metadata:
+  author: Gregory Murray
+  repository: github.com/whatifwedigdeeper/agent-skills
+  version: "0.1"
 ---
 
 # Package.json Maintenance

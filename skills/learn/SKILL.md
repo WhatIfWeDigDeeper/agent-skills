@@ -1,6 +1,11 @@
 ---
 name: learn
 description: Analyzes conversations to extract lessons learned (corrections, discoveries, workarounds) and persists them to CLAUDE.md and/or updates existing skills or creates new skills. Use after completing tasks that involved retries, debugging, finding workarounds, or discovering undocumented behavior.
+license: MIT
+metadata:
+  author: Gregory Murray
+  repository: github.com/whatifwedigdeeper/agent-skills
+  version: "0.1"
 ---
 
 # Learn from Conversation
