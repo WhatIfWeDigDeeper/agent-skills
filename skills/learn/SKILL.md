@@ -1,7 +1,13 @@
 ---
 name: learn
-description: Analyzes conversations to extract lessons learned (corrections, discoveries, workarounds) and persists them to AI assistant configuration files. Supports CLAUDE.md, GEMINI.md, AGENTS.md, Cursor rules, GitHub Copilot instructions, Windsurf rules, and Continue config. Use after completing tasks that involved retries, debugging, finding workarounds, or discovering undocumented behavior.
+description: >-
+  Extracts lessons learned from conversations and persists them to AI assistant
+  config files (CLAUDE.md, GEMINI.md, AGENTS.md, Cursor, Copilot, Windsurf,
+  Continue). Use when: debugging revealed issues, commands failed then succeeded,
+  assumptions proved wrong, workarounds were discovered, undocumented behavior
+  found, or user says "remember this".
 license: MIT
+compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
@@ -74,7 +80,10 @@ For each detected config file, count lines:
 ```bash
 for f in CLAUDE.md GEMINI.md AGENTS.md .cursorrules .github/copilot-instructions.md \
   .windsurf/rules/rules.md; do
-  wc -l "$f" 2>/dev/null
+  [ -f "$f" ] && wc -l "$f"
+done
+for f in .cursor/rules/*.mdc; do
+  [ -f "$f" ] && wc -l "$f"
 done
 ```
 
@@ -240,16 +249,12 @@ Create in `skills/[name]/SKILL.md` with this template:
 ```markdown
 ---
 name: [learning-topic]
-description: [One-line description of what this handles]
+description: [What this handles and when to use it - triggers belong here, not in body]
 ---
 
 # [Learning Topic]
 
 [Learning content structured as workflow]
-
-## When to Use
-
-[Context/triggers for this skill]
 
 ## Process
 
@@ -257,7 +262,18 @@ description: [One-line description of what this handles]
 [Details]
 ```
 
-### 8. Summarize
+### 8. Verify Changes
+
+After applying each change, confirm success by showing:
+```
+✓ Added to [file path]:
+  [Section name]
+  > [First 2-3 lines of added content...]
+```
+
+If a write failed, report the error and offer to retry or skip.
+
+### 9. Summarize
 
 List:
 - Config files modified (with full paths)
@@ -290,5 +306,4 @@ List:
 
 ## Guidelines
 
-- **Be minimal**: Only add what genuinely helps future sessions
-- **Avoid duplication**: Check for existing similar content in all selected configs
+See [references/guidelines.md](references/guidelines.md) for learning quality principles.

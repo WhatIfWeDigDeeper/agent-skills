@@ -1,5 +1,16 @@
 # Documentation Size Management
 
+## Contents
+
+- [Philosophy](#philosophy)
+- [Size Thresholds](#size-thresholds)
+- [What Belongs Where](#what-belongs-where)
+- [Refactoring Strategies](#refactoring-strategies)
+- [Measuring Content Value](#measuring-content-value)
+- [Quick Reference](#quick-reference)
+- [Guided Refactoring Process](#guided-refactoring-process)
+- [Extraction Template](#extraction-template)
+
 ## Philosophy
 
 Config files (CLAUDE.md, etc.) should contain:
