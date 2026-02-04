@@ -43,9 +43,7 @@ for f in CLAUDE.md GEMINI.md AGENTS.md .cursorrules .github/copilot-instructions
   .windsurf/rules/rules.md .continuerc.json; do
   [ -f "$f" ] && wc -l "$f"
 done
-for f in .cursor/rules/*.mdc; do
-  [ -f "$f" ] && wc -l "$f"
-done
+find .cursor/rules -name "*.mdc" -exec wc -l {} \; 2>/dev/null
 ```
 
 **Behavior based on detection:**
