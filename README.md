@@ -23,22 +23,6 @@ npx skills add whatifwedigdeeper/agent-skills \
 --skill package-json-maintenance
 ```
 
-### Using the Claude specific plugin marketplace
-
-```bash
-/plugin marketplace add whatifwedigdeeper/agent-skills
-```
-
-And then install the skill you want
-
-```bash
-/plugin install package-json-maintenance
-```
-
-```bash
-/plugin install learn
-```
-
 ### Manual installation by copying skill files
 
 Pull down the repo. You may of course fork the repo first.
