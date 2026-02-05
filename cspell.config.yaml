@@ -3,6 +3,8 @@ ignorePaths: []
 dictionaryDefinitions: []
 dictionaries: []
 words:
+  - continuerc
+  - cursorrules
   - elif
   - frontmatter
   - whatifwedigdeeper

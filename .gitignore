@@ -1,2 +1,6 @@
 .DS_Store
 __pycache__/
+.claude/skills/
+.agents/
+.claude/settings.local.json
+tests/learn/fixtures/

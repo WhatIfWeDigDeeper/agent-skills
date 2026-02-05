@@ -6,7 +6,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 
 | Skill | Description | Triggers |
 |-------|-------------|----------|
-| [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to CLAUDE.md | "learn from this", "save this pattern", "/learn" |
+| [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn" |
 | [package-json-maintenance](skills/package-json-maintenance/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/package-json-maintenance typescript" |
 
 ## Installation
@@ -45,4 +45,10 @@ cp -r skills/learn ~/.claude/skills/
 
 ## Contributing
 
-You may submit PRs to update existing skills. I would advise against adding new skills as I will most likely submit these skills as PRs to more popular skill distribution repos, assuming similar skills do not exist. That requires more substantial testing and use to refine the skills. If you do install and use these skills, opening an issue or PR would be very helpful in that process. Thanks!
+You are more than welcome to submit PRs to update existing skills. There are tests you can run for the learn skill.
+
+```bash
+uv run --with pytest pytest tests/ -v
+```
+
+I would advise against adding new skills as I will most likely submit these skills as PRs to more popular skill distribution repos, where similar skills do not exist. That requires more substantial testing and use to refine the skills. If you do install and use these skills, opening an issue or PR would be very helpful in that process. Thanks!
