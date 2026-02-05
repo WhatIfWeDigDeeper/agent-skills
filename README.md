@@ -6,7 +6,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 
 | Skill | Description | Triggers |
 |-------|-------------|----------|
-| [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) | "learn from this", "save this pattern", "/learn" |
+| [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn" |
 | [package-json-maintenance](skills/package-json-maintenance/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/package-json-maintenance typescript" |
 
 ## Installation
