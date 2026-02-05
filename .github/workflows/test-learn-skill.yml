@@ -2,7 +2,7 @@ name: Test Learn Skill
 
 on:
   push:
-    branches: [main, learn-generic]
+    branches: [main]
     paths:
       - 'skills/learn/**'
       - 'tests/learn/**'
