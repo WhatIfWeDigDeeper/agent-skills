@@ -1,7 +1,5 @@
 """Tests for SKILL.md discovery in learn skill."""
 
-import pytest
-
 from conftest import run_skill_discovery_script
 
 

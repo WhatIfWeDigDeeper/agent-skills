@@ -2,7 +2,7 @@
 
 import os
 import subprocess
-from pathlib import Path
+import sys
 
 import pytest
 
@@ -137,7 +137,10 @@ class TestLongFilenames:
 class TestPermissions:
     """Test handling of permission issues."""
 
-    @pytest.mark.skipif(os.geteuid() == 0, reason="Test requires non-root user")
+    @pytest.mark.skipif(
+        sys.platform == "win32" or (hasattr(os, "geteuid") and os.geteuid() == 0),
+        reason="Unix non-root only"
+    )
     def test_unreadable_file_handled(self, temp_dir):
         """Unreadable config file should be handled gracefully."""
         config = temp_dir / "CLAUDE.md"

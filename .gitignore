@@ -3,3 +3,4 @@ __pycache__/
 .claude/skills/
 .agents/
 .claude/settings.local.json
+tests/learn/fixtures/

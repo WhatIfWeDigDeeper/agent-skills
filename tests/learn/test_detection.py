@@ -1,7 +1,5 @@
 """Tests for config file detection in learn skill."""
 
-import pytest
-
 from conftest import run_detection_script
 
 

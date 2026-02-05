@@ -4,8 +4,6 @@ import json
 import re
 from pathlib import Path
 
-import pytest
-
 
 def validate_markdown(file_path: Path) -> tuple[bool, str]:
     """Validate markdown has expected structure."""
