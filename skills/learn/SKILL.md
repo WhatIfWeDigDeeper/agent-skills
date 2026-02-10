@@ -11,7 +11,7 @@ compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.3"
+  version: "0.4"
 ---
 
 # Learn from Conversation
@@ -79,6 +79,7 @@ Scan for:
 - **Corrections**: Commands retried, assumptions proven wrong, missing prerequisites
 - **Discoveries**: Undocumented patterns, integration quirks, environment requirements
 - **Improvements**: Steps that should be automated or validated earlier
+- **Instruction Violations**: Existing config file guidelines that were not followed during the conversation. If the user had to remind the assistant to do something already documented, flag which section was ignored and assess whether the wording needs to be more prominent or actionable
 
 ### 3. Categorize and Route Each Learning
 
@@ -239,6 +240,7 @@ List:
 | "Parse SDK doesn't work with Vite out of the box" | Document workaround in selected config(s) |
 | "Build failed because NODE_ENV wasn't set" | Add required env var to selected config(s) |
 | "Every component needs tests, lint, build..." | Create `add-component` skill |
+| "User asked to update README but config already requires it" | Flag instruction violation — fix wording or prominence, not add new rule |
 
 ## Edge Cases
 
