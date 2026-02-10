@@ -56,7 +56,7 @@ You are more than welcome to submit PRs to update existing skills. There are reg
 uv run --with pytest pytest tests/ -v
 ```
 
-You may also use Anthropic's `skill-creator` to review the existing skill
+You may also use Anthropic's [skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) to review the existing skill
 
 ```text
 /skill-creator review ship-it
