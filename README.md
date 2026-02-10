@@ -43,10 +43,10 @@ cp -r skills/learn ~/.claude/skills/
 
 ### ship-it
 
-- **Stages all changes** (`git add -A`). If you need selective staging, stage files manually before invoking the skill.
+- **Selective staging**: The skill reviews changed files and stages them individually, excluding secrets and build artifacts.
 - **Pre-push validation** is left to your git hooks (pre-commit, pre-push). The skill does not run build/lint/test itself — configure hooks to enforce those checks.
-- **Default branch detection** is automatic via `git remote show origin`. Works with `main`, `master`, or any custom default.
-- **Co-authorship attribution** is agent-dependent. Each agent appends its own co-author trailer (or not) per its conventions.
+- **Default branch detection** is automatic via local remote refs. Works with `main`, `master`, or any custom default.
+- **Co-authorship**: By default, agents append their own co-author trailer per their conventions. To skip this, include "no co-author" in your arguments (e.g., `/ship-it fix login, no co-author`).
 
 ## Contributing
 
