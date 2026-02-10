@@ -56,4 +56,11 @@ You are more than welcome to submit PRs to update existing skills. There are reg
 uv run --with pytest pytest tests/ -v
 ```
 
-I would advise against adding new skills as I will most likely submit these skills as PRs to more popular skill distribution repos, if similar skills do not exist. That requires more substantial testing and usage to refine the skills. If you do install and use these skills, opening an issue or PR would be very helpful in that process. Thanks!
+You may also use Anthropic's [skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) to review the existing skill
+
+```text
+/skill-creator review ship-it
+```
+
+If you are interested in adding new skills, you may want to consider adding them to more popular skill distribution repos.
+I may submit some of these skills as PRs to more popular skill distribution repos, if similar skills do not already exist. However, that requires more substantial testing and usage to refine the skills. If you do install and use these skills, opening an issue or PR would be very helpful in that process. Thanks!
