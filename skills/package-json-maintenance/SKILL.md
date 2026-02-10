@@ -9,7 +9,7 @@ license: MIT
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.1"
+  version: "0.2"
 ---
 
 # Package.json Maintenance
@@ -84,13 +84,23 @@ find . -name "package.json" -not -path "*/node_modules/*" -type f
 
 Store results as an array of directories to process.
 
-### 5. Identify Packages
+### 5. Install Dependencies
+
+Install dependencies in each discovered package directory so that `npm outdated` (and similar commands) can accurately compare installed versions against the registry. Without `node_modules`, exact-pinned packages (no `^` or `~`) won't appear in outdated reports.
+
+```bash
+for dir in "${PACKAGE_DIRS[@]}"; do
+  (cd "$dir" && $PM install)
+done
+```
+
+### 6. Identify Packages
 
 - Parse `$ARGUMENTS` to determine packages
 - For globs, expand against package.json dependencies
 - For `.`, process all packages
 
-### 6. Validate Changes
+### 7. Validate Changes
 
 Check `package.json` scripts for available validation commands:
 
@@ -104,7 +114,7 @@ Run available scripts using `$PM run <script>` in order (build → lint → test
 
 If validation fails, revert to previous version before continuing.
 
-### 7. Update Documentation for Major Version Changes
+### 8. Update Documentation for Major Version Changes
 
 For major version upgrades (e.g., 18.x to 19.x):
 
@@ -113,7 +123,7 @@ For major version upgrades (e.g., 18.x to 19.x):
 3. Skip: `specs/*/research.md`, `specs/*/tasks.md`, archived files
 4. Include changes in report/PR description
 
-### 8. Cleanup
+### 9. Cleanup
 
 **If using worktree:**
 ```bash

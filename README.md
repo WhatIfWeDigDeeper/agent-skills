@@ -45,10 +45,10 @@ cp -r skills/learn ~/.claude/skills/
 
 ## Contributing
 
-You are more than welcome to submit PRs to update existing skills. There are tests you can run for the learn skill.
+You are more than welcome to submit PRs to update existing skills. There are regression tests you can run for the skills.
 
 ```bash
 uv run --with pytest pytest tests/ -v
 ```
 
-I would advise against adding new skills as I will most likely submit these skills as PRs to more popular skill distribution repos, where similar skills do not exist. That requires more substantial testing and use to refine the skills. If you do install and use these skills, opening an issue or PR would be very helpful in that process. Thanks!
+I would advise against adding new skills as I will most likely submit these skills as PRs to more popular skill distribution repos, if similar skills do not exist. That requires more substantial testing and usage to refine the skills. If you do install and use these skills, opening an issue or PR would be very helpful in that process. Thanks!
