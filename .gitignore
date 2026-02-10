@@ -4,3 +4,6 @@ __pycache__/
 .agents/
 .claude/settings.local.json
 tests/learn/fixtures/
+tests/package-json-maintenance/fixtures/
+.venv/
+uv.lock
