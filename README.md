@@ -8,19 +8,15 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 |-------|-------------|----------|
 | [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn" |
 | [package-json-maintenance](skills/package-json-maintenance/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/package-json-maintenance typescript" |
+| [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "ship this", "/ship-it", "/ship-it fix login timeout" |
 
 ## Installation
 
 ### Using the [skills package](https://github.com/vercel-labs/skills?tab=readme-ov-file#skills), supported by most coding assistants
 
 ```bash
-npx skills add whatifwedigdeeper/agent-skills \
---skill learn
-```
-
-```bash
-npx skills add whatifwedigdeeper/agent-skills \
---skill package-json-maintenance
+# prompts for which skills to install
+npx skills add whatifwedigdeeper/agent-skills
 ```
 
 ### Manual installation by copying skill files
@@ -42,6 +38,15 @@ cp -r skills/package-json-maintenance {path to your directory}/.claude/skills/
 # User-level (available in all projects)
 cp -r skills/learn ~/.claude/skills/
 ```
+
+## Skill Notes
+
+### ship-it
+
+- **Selective staging**: The skill reviews changed files and stages them individually, excluding secrets and build artifacts.
+- **Pre-push validation** is left to your git hooks (pre-commit, pre-push). The skill does not run build/lint/test itself — configure hooks to enforce those checks.
+- **Default branch detection** is automatic via local remote refs. Works with `main`, `master`, or any custom default.
+- **Co-authorship**: By default, agents append their own co-author trailer per their conventions. To skip this, include "no co-author" in your arguments (e.g., `/ship-it fix login, no co-author`).
 
 ## Contributing
 
