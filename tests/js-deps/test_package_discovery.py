@@ -1,4 +1,4 @@
-"""Tests for package.json discovery in package-json-maintenance skill."""
+"""Tests for package.json discovery in js-deps skill."""
 
 from conftest import generate_package_json, run_package_discovery_script
 

@@ -7,7 +7,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 | Skill | Description | Triggers |
 |-------|-------------|----------|
 | [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn" |
-| [package-json-maintenance](skills/package-json-maintenance/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/package-json-maintenance typescript" |
+| [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps typescript" |
 | [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "ship this", "/ship-it", "/ship-it fix login timeout" |
 
 ## Installation
@@ -27,17 +27,33 @@ Pull down the repo. You may of course fork the repo first.
 git clone https://github.com/WhatIfWeDigDeeper/agent-skills.git
 ```
 
-Copy skill directories to your Claude or other assistant's skills folder:
+<details>
+<summary>Clone and Manually Copy</summary>
+
+Clone repo
 
 ```bash
-# Project-level (committed to version control)
-cp -r skills/package-json-maintenance {path to your directory}/.claude/skills/
+git clone https://github.com/WhatIfWeDigDeeper/agent-skills.git
+cd agent-skills
+```
+
+Copy skill directories to your Claude or other assistant's skills folder.
+
+```bash
+# Project-level  (committed to version control)
+# single skill
+cp -r skills/js-deps {path to your directory}/.claude/skills/
+
+# Copy all skills at once
+cp -r skills/* {path to your directory}/.claude/skills/
 ```
 
 ```bash
 # User-level (available in all projects)
-cp -r skills/learn ~/.claude/skills/
+cp -r skills/* ~/.claude/skills/
 ```
+
+</details>
 
 ## Skill Notes
 

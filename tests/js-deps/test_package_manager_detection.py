@@ -1,4 +1,4 @@
-"""Tests for package manager detection in package-json-maintenance skill."""
+"""Tests for package manager detection in js-deps skill."""
 
 from conftest import (
     detect_package_manager,
