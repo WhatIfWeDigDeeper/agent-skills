@@ -12,7 +12,7 @@ metadata:
   version: "0.2"
 ---
 
-# Package.json Maintenance
+# JS Deps
 
 Manages JavaScript package maintenance tasks in an isolated worktree, including security audits and dependency updates. Automatically detects and uses the project's package manager (npm, yarn, pnpm, or bun).
 
@@ -35,7 +35,7 @@ Based on user request:
 **Preferred: Worktree** (isolated, non-disruptive)
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-BRANCH_NAME="pkg-maintenance-$TIMESTAMP"
+BRANCH_NAME="js-deps-$TIMESTAMP"
 WORKTREE_PATH="../$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 cd "$WORKTREE_PATH"
