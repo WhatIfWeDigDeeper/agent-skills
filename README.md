@@ -12,7 +12,9 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 
 ## Installation
 
-### Using the [skills package](https://github.com/vercel-labs/skills?tab=readme-ov-file#skills), supported by most coding assistants
+### Using the skills package
+
+Vercel's [skills package](https://github.com/vercel-labs/skills?tab=readme-ov-file#skills) is supported by almost all coding assistants.
 
 ```bash
 # prompts for which skills to install
@@ -25,15 +27,6 @@ Pull down the repo. You may of course fork the repo first.
 
 ```bash
 git clone https://github.com/WhatIfWeDigDeeper/agent-skills.git
-```
-
-<details>
-<summary>Clone and Manually Copy</summary>
-
-Clone repo
-
-```bash
-git clone https://github.com/WhatIfWeDigDeeper/agent-skills.git
 cd agent-skills
 ```
 
@@ -42,7 +35,7 @@ Copy skill directories to your Claude or other assistant's skills folder.
 ```bash
 # Project-level  (committed to version control)
 # single skill
-cp -r skills/js-deps {path to your directory}/.claude/skills/
+cp -r skills/learn {path to your directory}/.claude/skills/
 
 # Copy all skills at once
 cp -r skills/* {path to your directory}/.claude/skills/
@@ -52,8 +45,6 @@ cp -r skills/* {path to your directory}/.claude/skills/
 # User-level (available in all projects)
 cp -r skills/* ~/.claude/skills/
 ```
-
-</details>
 
 ## Skill Notes
 
