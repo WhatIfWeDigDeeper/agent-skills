@@ -1,4 +1,4 @@
-"""Tests for argument parsing in package-json-maintenance skill."""
+"""Tests for argument parsing in js-deps skill."""
 
 import json
 

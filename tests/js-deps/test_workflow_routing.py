@@ -1,4 +1,4 @@
-"""Tests for workflow routing in package-json-maintenance skill."""
+"""Tests for workflow routing in js-deps skill."""
 
 import pytest
 

@@ -1,4 +1,4 @@
-"""Tests for edge cases in package-json-maintenance skill."""
+"""Tests for edge cases in js-deps skill."""
 
 import json
 import os

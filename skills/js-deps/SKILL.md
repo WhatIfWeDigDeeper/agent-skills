@@ -1,5 +1,5 @@
 ---
-name: package-json-maintenance
+name: js-deps
 description: >
   Maintain JavaScript/Node.js packages through security audits or dependency updates in an isolated git worktree.
   Supports npm, yarn, pnpm, and bun. Use for: (1) Security requests - audit, CVE, vulnerabilities, fix security issues,

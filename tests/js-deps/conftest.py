@@ -1,4 +1,4 @@
-"""Pytest fixtures for package-json-maintenance skill tests."""
+"""Pytest fixtures for js-deps skill tests."""
 
 import fnmatch
 import json
