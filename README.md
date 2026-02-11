@@ -25,24 +25,18 @@ Pull down the repo. You may of course fork the repo first.
 
 ```bash
 git clone https://github.com/WhatIfWeDigDeeper/agent-skills.git
+cd agent-skills
 ```
 
 <details>
-<summary>Clone and Manually Copy</summary>
-
-Clone repo
-
-```bash
-git clone https://github.com/WhatIfWeDigDeeper/agent-skills.git
-cd agent-skills
-```
+<summary>Copy skills</summary>
 
 Copy skill directories to your Claude or other assistant's skills folder.
 
 ```bash
 # Project-level  (committed to version control)
 # single skill
-cp -r skills/js-deps {path to your directory}/.claude/skills/
+cp -r skills/learn {path to your directory}/.claude/skills/
 
 # Copy all skills at once
 cp -r skills/* {path to your directory}/.claude/skills/
