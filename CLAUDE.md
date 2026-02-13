@@ -50,7 +50,7 @@ Workflow documentation with:
 
 ## Skill Design Patterns
 
-- **Isolation**: Use git worktrees or dedicated branches to test changes without affecting the main working directory
+- **Isolation**: Use dedicated branches to test changes without affecting the main working directory
 - **Validation**: Run build/lint/test after making changes
 - **Parallelization**: Use Task subagents for processing multiple items concurrently
 - **Documentation sync**: Update CLAUDE.md/README.md when major versions change

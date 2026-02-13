@@ -71,6 +71,28 @@ cp -r skills/* ~/.claude/skills/
   /js-deps skip 0 patch versions except for @types/* files
   ```
 
+## Updating Skills
+
+Usually you'd run the following, but as of 2026-02-13 this doesn't appear to pick up changes for me.
+
+```bash
+npx skills check
+# or update
+npx skills update
+```
+
+You can force installing the latest skill with `-y`.
+
+```bash
+npx skills add -y whatifwedigdeeper/agent-skills --skill ship-it
+```
+
+Alternatively you can remove and then re-add the skills(s)
+
+```bash
+npx skills rm whatifwedigdeeper/agent-skills --skill ship-it
+npx skills add whatifwedigdeeper/agent-skills --skill ship-it
+```
 
 ## Contributing
 
