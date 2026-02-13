@@ -74,6 +74,10 @@ Analyze the diff and generate a conventional commit message. If user provided `$
 git commit -m "type: description"
 ```
 
+**Commit fallbacks:**
+- If commit fails due to GPG signing errors (sandbox or keyring issues), retry with `--no-gpg-sign`
+- If heredoc syntax (`$(cat <<'EOF'...)`) fails with "can't create temp file", use multiple `-m` flags instead (e.g. `git commit -m "subject" -m "body"`)
+
 ### 4. Push
 
 ```bash

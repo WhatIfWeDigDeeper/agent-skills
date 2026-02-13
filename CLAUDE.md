@@ -48,6 +48,11 @@ Workflow documentation with:
 5. Add bash code blocks for commands that should be executed
 6. Include example outputs where helpful
 
+## Sandbox Workarounds
+
+- **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` as a fallback.
+- **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first.
+
 ## Skill Design Patterns
 
 - **Isolation**: Use dedicated branches to test changes without affecting the main working directory
