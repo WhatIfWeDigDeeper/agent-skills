@@ -139,3 +139,4 @@ Output:
 
 - Never commit files that look like secrets (.env, credentials, keys, tokens, private keys, build artifacts)
 - If there are merge conflicts with the default branch, warn the user before creating the PR
+- **No sandbox**: This skill uses branch-based isolation. Git and `gh` commands require access to the macOS keyring and credential helpers.
