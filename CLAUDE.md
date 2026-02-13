@@ -22,7 +22,12 @@ Each skill follows this structure:
 ---
 name: skill-name
 description: Brief description of what the skill does
-arguments: description of expected arguments (optional)
+license: MIT (optional)
+compatibility: Runtime or access requirements (optional)
+metadata: (optional)
+  author: Author Name
+  repository: github.com/org/repo
+  version: "1.0"
 ---
 
 # Skill Title

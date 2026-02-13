@@ -71,32 +71,6 @@ cp -r skills/* ~/.claude/skills/
   /js-deps skip 0 patch versions except for @types/* files
   ```
 
-- Since js-deps will create git worktrees, you may need to adjust your permission settings. It will vary based on the AI Coding Agent you are using. For Claude Code, try adding to your `settings.json` file these permissions:
-
-  ```json
-  "sandbox": {
-    "enabled": true,
-    "autoAllowBashIfSandboxed": true,
-    "network": {
-      "allowUnixSockets": [
-        "/var/run/docker.sock"
-      ],
-      "allowLocalBinding": true
-    },
-    "excludedCommands": [
-      "docker",
-      "gh",
-      "git",
-      "psql",
-      "mysql",
-      "mongosh",
-      "npm",
-      "npx",
-      "playwright",
-      "redis-cli"
-    ]
-  }
-  ```
 
 ## Contributing
 

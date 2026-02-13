@@ -4,12 +4,19 @@ description: >-
   Create branch, commit, push, and open a pull request.
   Use when: user says "ship it", "ship this", "create a PR", "open a PR",
   "push and PR", or wants to go from uncommitted changes to an open pull request.
-arguments: >-
-  optional text to derive branch name, commit message, or PR title
-  (e.g., "fix login timeout")
+license: MIT
+compatibility: Requires git and GitHub CLI (gh) with authentication
+metadata:
+  author: Gregory Murray
+  repository: github.com/whatifwedigdeeper/agent-skills
+  version: "0.2"
 ---
 
 # Ship: Branch, Commit, Push & PR
+
+## Arguments
+
+Optional text to derive branch name, commit message, or PR title (e.g. `fix login timeout`).
 
 ## Process
 

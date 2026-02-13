@@ -1,16 +1,22 @@
 ---
 name: js-deps
 description: >
-  Maintain JavaScript/Node.js packages through security audits or dependency updates in an isolated git worktree.
-  Supports npm, yarn, pnpm, and bun. Use for: (1) Security requests - audit, CVE, vulnerabilities, fix security issues,
-  check for vulnerable dependencies; (2) Update requests - update dependencies, upgrade packages, get latest versions,
-  modernize dependencies; (3) when user types "/js-deps" with or without specific package names or glob patterns.
-arguments: >
-  Specific package names (e.g., "jest @types/jest"), "." for all packages,
-  or glob patterns (e.g., "@testing-library/* jest*")
+  Maintain JavaScript/Node.js packages through security audits or dependency updates on a dedicated branch.
+  Supports npm, yarn, pnpm, and bun. Use for: security audits, CVE fixes, vulnerability checks,
+  dependency updates, package upgrades, or when user types "/js-deps" with or without specific package names or glob patterns.
+license: MIT
+compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or bun), and network access to package registries
+metadata:
+  author: Gregory Murray
+  repository: github.com/whatifwedigdeeper/agent-skills
+  version: "0.3"
 ---
 
 # JS Deps
+
+## Arguments
+
+Specific package names (e.g. `jest @types/jest`), `.` for all packages, or glob patterns (e.g. `@testing-library/*`).
 
 ## Workflow Selection
 
@@ -20,27 +26,14 @@ Based on user request:
 
 ## Shared Process
 
-### 1. Create Isolated Environment
+### 1. Create Branch
 
-**Preferred: Worktree** (isolated, non-disruptive)
+Stash uncommitted changes and create a dedicated branch:
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 BRANCH_NAME="js-deps-$TIMESTAMP"
-WORKTREE_PATH="../$BRANCH_NAME"
-git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
-cd "$WORKTREE_PATH"
-USE_WORKTREE=true
-```
-
-**Fallback: Branch** (if worktree fails due to sandbox directory restrictions)
-
-Prompt user: "Worktree creation failed (sandbox may restrict creating directories outside the working directory). Run in current directory on a new branch instead? This will stash any uncommitted changes."
-
-If user accepts:
-```bash
 git stash --include-untracked
 git checkout -b "$BRANCH_NAME"
-USE_WORKTREE=false
 ```
 
 ### 2. Detect Package Manager
@@ -89,24 +82,18 @@ For major version upgrades (e.g., 18.x to 19.x):
 
 ### 9. Cleanup
 
-**If using worktree:**
-```bash
-cd -
-git worktree remove "$WORKTREE_PATH"
-# Delete branch only if no PR was created
-git branch -d "$BRANCH_NAME"
-```
+If a PR was created, do not delete the branch — it's needed for the open PR.
 
-**If using branch fallback:**
 ```bash
 git checkout -
 git stash pop
-# Delete branch only if no PR was created
-git branch -d "$BRANCH_NAME"
+# Only delete branch if no PR was created
+if ! gh pr view "$BRANCH_NAME" --json url > /dev/null 2>&1; then
+  git branch -d "$BRANCH_NAME"
+fi
 ```
 
 ## Edge Cases
 
 - **Glob matches nothing**: Warn and list available packages
-- **Network restricted**: Package manager commands require internet access; will fail in offline sandbox environments
 - **Unsupported package manager**: Prompt user for guidance
