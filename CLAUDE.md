@@ -53,6 +53,10 @@ Workflow documentation with:
 - **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` as a fallback.
 - **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first.
 
+## Git Workflow
+
+- After merging a PR, delete the local and remote feature branch and switch to main with a pull.
+
 ## Skill Design Patterns
 
 - **Isolation**: Use dedicated branches to test changes without affecting the main working directory
