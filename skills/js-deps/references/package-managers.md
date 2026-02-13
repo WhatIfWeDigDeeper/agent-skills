@@ -24,16 +24,14 @@ If no lock file exists, default to npm.
 
 Use `$PM` as the detected package manager throughout the workflow.
 
-### Verify Connectivity
+### Verify CLI and Connectivity
 
-| Manager | Command |
-|---------|---------|
-| npm | `npm ping` |
-| yarn | `yarn --version` |
-| pnpm | `pnpm --version` |
-| bun | `bun --version` |
-
-Note: Only npm has a dedicated ping command. For others, verify the CLI works.
+| Manager | Command | Verifies |
+|---------|---------|----------|
+| npm | `npm ping` | Registry connectivity |
+| yarn | `yarn info yarn version` | CLI + registry connectivity |
+| pnpm | `pnpm view pnpm version` | CLI + registry connectivity |
+| bun | `bun --version` | CLI only (no registry ping) |
 
 ### Audit
 

@@ -140,11 +140,11 @@ class TestPackageManagerFieldEdgeCases:
 class TestNotGitRepo:
     """Test behavior outside a git repo."""
 
-    def test_worktree_fails_outside_git(self, temp_dir):
-        """git worktree should fail when not in a git repo."""
+    def test_branch_fails_outside_git(self, temp_dir):
+        """git branch should fail when not in a git repo."""
         (temp_dir / "package.json").write_text(generate_package_json("test"))
         result = subprocess.run(
-            ["git", "worktree", "list"],
+            ["git", "checkout", "-b", "test-branch"],
             cwd=temp_dir,
             capture_output=True,
             text=True,

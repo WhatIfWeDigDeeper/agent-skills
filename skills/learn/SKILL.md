@@ -3,9 +3,9 @@ name: learn
 description: >-
   Extracts lessons learned from conversations and persists them to AI assistant
   config files (CLAUDE.md, GEMINI.md, AGENTS.md, Cursor, Copilot, Windsurf,
-  Continue). Use when: debugging revealed issues, commands failed then succeeded,
-  assumptions proved wrong, workarounds were discovered, undocumented behavior
-  found, or user says "remember this".
+  Continue).
+  Use when: debugging revealed issues, commands failed then succeeded, assumptions proved wrong, workarounds were discovered, undocumented behavior found,
+  or user says "/learn" or "remember this".
 license: MIT
 compatibility: Requires bash shell and file system write access
 metadata:
@@ -61,6 +61,8 @@ find .cursor/rules -name "*.mdc" -exec wc -l {} \; 2>/dev/null
 | < 400 | Healthy | Add learnings directly |
 | 400-500 | Warning | Add carefully, suggest cleanup |
 | > 500 | Oversized | [Refactor](references/refactoring.md) before adding new content |
+
+Use these same thresholds throughout (routing decisions, present-and-confirm, edge cases).
 
 #### Discover Existing Skills
 
@@ -118,21 +120,6 @@ For each learning, evaluate in order:
 | < 3 lines | Config file (even if near threshold) |
 | 3-30 lines | Follow decision tree above |
 | > 30 lines | Strongly prefer skill creation |
-
-#### Skill Relevance Matching
-
-Match learnings to existing skills using these criteria:
-
-| Learning Topic | Matching Skill Indicators |
-|----------------|--------------------------|
-| Testing patterns | Skill name contains: test, spec, e2e, unit |
-| Build/compile issues | Skill name contains: build, compile, bundle |
-| Dependencies | Skill name contains: package, dependency, npm, yarn |
-| API patterns | Skill name contains: api, http, fetch, request |
-| Database | Skill name contains: db, database, migration, schema |
-| Deployment | Skill name contains: deploy, release, ci, cd |
-
-Also check skill `description` field for keyword overlap with the learning topic.
 
 ### 4. Present and Confirm
 
@@ -214,18 +201,7 @@ description: [What this handles and when to use it - triggers belong here, not i
 [Details]
 ```
 
-### 6. Verify Changes
-
-After applying each change, confirm success by showing:
-```
-✓ Added to [file path]:
-  [Section name]
-  > [First 2-3 lines of added content...]
-```
-
-If a write failed, report the error and offer to retry or skip.
-
-### 7. Summarize
+### 6. Summarize
 
 List:
 - Config files modified (with full paths)
@@ -253,10 +229,11 @@ List:
 | Config file already oversized | Offer refactoring before adding (Step 4) |
 | Learning matches multiple skills | Present options, let user choose which skill to update |
 | Skill file also oversized | Suggest creating sub-skills or reference files |
-| Learning is very small (<3 lines) | Prefer config file even if near threshold |
-| Learning is very large (>30 lines) | Strongly suggest skill creation |
 | No existing skills found | Skip skill matching, proceed with config or new skill |
 
 ## Guidelines
 
-See [references/guidelines.md](references/guidelines.md) for learning quality principles.
+- **Be minimal**: Only add what genuinely helps future sessions
+- **Avoid duplication**: Check for existing similar content before adding
+- **Prefer specificity**: "Run `npm run dev` before e2e tests" beats "ensure services are running"
+- **Focus on non-obvious**: Skip things Claude would naturally do; capture what surprised you

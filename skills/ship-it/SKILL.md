@@ -1,22 +1,22 @@
 ---
 name: ship-it
 description: >-
-  Create branch, commit, push, and open a pull request in one flow.
-  Use when: user says "ship it", "ship this", "send it", "create a PR",
-  "push and PR", or wants to go from uncommitted changes to an open
-  pull request in a single step.
+  Create branch, commit, push, and open a pull request.
+  Use when: user says "ship it", "ship this", "create a PR", "open a PR",
+  "push and PR", or wants to go from uncommitted changes to an open pull request.
 license: MIT
+compatibility: Requires git and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.1"
+  version: "0.2"
 ---
 
 # Ship: Branch, Commit, Push & PR
 
-Create a branch (if needed), commit all changes, push, and open a pull request in one flow.
+## Arguments
 
-`$ARGUMENTS`: optional text passed when invoking the skill (e.g., `/ship-it fix login timeout`). Used to derive branch name, commit message, or PR title.
+Optional text to derive branch name, commit message, or PR title (e.g. `fix login timeout`).
 
 ## Process
 
@@ -25,7 +25,11 @@ Create a branch (if needed), commit all changes, push, and open a pull request i
 ```bash
 git status
 git branch --show-current
-git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+# Fallback if origin/HEAD is unset
+if [ -z "$DEFAULT_BRANCH" ]; then
+  DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | sed 's/.*: //')
+fi
 git diff --stat
 git diff --stat --cached
 gh auth status
@@ -41,7 +45,7 @@ Determine:
 
 ### 2. Create Branch (if needed)
 
-**Already on a feature branch?** Skip this step entirely — use the current branch.
+Skip this step if already on a feature branch — use the current branch.
 
 If on the default branch or in detached HEAD, create and switch to a new branch:
 
@@ -57,32 +61,26 @@ git checkout -b <branch-name>
 
 ### 3. Stage & Commit
 
-Stage specific files rather than using `git add -A`. Review the changed files list and exclude:
-- Secret files: `.env`, `.env.*`, credentials, private keys, tokens
-- Large binaries or build artifacts
+Stage specific files rather than using `git add -A`.
 
 ```bash
 git add <file1> <file2> ...
 git diff --cached --name-only
 ```
 
-Review the staged file list before committing. If any files look like secrets or shouldn't be committed, unstage them and warn the user.
-
-Analyze the diff and generate a conventional commit message:
-
-**Format:** `type: concise description` (e.g., `feat: add OAuth login flow`)
+Analyze the diff and generate a conventional commit message. If user provided `$ARGUMENTS` that looks like a commit message, use it directly.
 
 ```bash
 git commit -m "type: description"
 ```
-
-If the agent supports co-authorship attribution (e.g., `Co-Authored-By`), append it per the agent's conventions. If user provided `$ARGUMENTS` that looks like a commit message, use it as the commit message.
 
 ### 4. Push
 
 ```bash
 git push -u origin <branch-name>
 ```
+
+If push fails due to branch protection or permissions, report the error to the user and stop.
 
 ### 5. Create Pull Request
 
@@ -96,10 +94,11 @@ git diff <default-branch>..HEAD --stat
 Check for an existing PR on this branch:
 
 ```bash
-gh pr view --json url 2>/dev/null
+if gh pr view --json url > /dev/null 2>&1; then
+  # PR already exists — report its URL, skip creation, jump to Step 6
+  gh pr view --json url -q '.url'
+fi
 ```
-
-**If a PR already exists:** report its URL, skip creation, and jump to Step 6.
 
 Otherwise, create the PR:
 
@@ -112,10 +111,12 @@ gh pr create --title "<title>" --body "$(cat <<'EOF'
 - [ ] [How to test these changes]
 
 ---
-🤖 Generated with [agent name and link, per agent conventions]
+Generated with [agent name and link, per agent conventions]
 EOF
 )"
 ```
+
+If `gh pr create` fails, report the error to the user (common causes: missing repo permissions, network issues, branch protection rules).
 
 **Title:** If user provided `$ARGUMENTS`, use as PR title. Otherwise generate from the commit(s).
 
@@ -128,8 +129,5 @@ Output:
 
 ## Rules
 
-- Keep commit subject line under 72 characters
-- Keep PR title under 70 characters
-- Use imperative mood ("add" not "added")
-- Never commit files that look like secrets (.env, credentials, keys)
+- Never commit files that look like secrets (.env, credentials, keys, tokens, private keys, build artifacts)
 - If there are merge conflicts with the default branch, warn the user before creating the PR

@@ -44,7 +44,7 @@ $PM install <package>@latest  # npm
 $PM add <package>@latest      # yarn, pnpm, bun
 ```
 
-Validate after each update using available scripts from package.json (see SKILL.md step 6 for common script names). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
+Validate after each update using available scripts from package.json (see SKILL.md step 7 for build/lint/test order). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
 
 ### Post-Audit Scan
 
@@ -124,30 +124,3 @@ Collect results from all agents before generating final report.
 - Provide specific remediation steps for unfixable vulnerabilities
 - If partially successful, still create PR with remaining issues noted
 
-## Example Output
-
-```
-Security Audit Report
-=====================
-
-Scanned Directories: 5
-- /api (Express + Prisma)
-- /koa-api (Koa + PostgreSQL)
-- /hono-api (Hono + Drizzle)
-- /parse-server-api (Parse Server)
-- /ui (React UI)
-
-Results by Directory:
----------------------
-
-/api: 2 vulnerabilities fixed
-  [x] express 4.17.1 -> 4.18.2 (moderate)
-  [x] jsonwebtoken 8.5.1 -> 9.0.0 (high)
-
-/ui: No vulnerabilities found
-
-/koa-api: 1 vulnerability (could not fix)
-  [ ] koa-router 10.0.0 (no fix available)
-
-Overall: 2/3 vulnerabilities fixed
-```
