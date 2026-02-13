@@ -98,11 +98,15 @@ git diff <default-branch>..HEAD --stat
 Check for an existing PR on this branch:
 
 ```bash
-if gh pr view --json url > /dev/null 2>&1; then
-  # PR already exists — report its URL, skip creation, jump to Step 6
-  gh pr view --json url -q '.url'
+if gh pr view --json url,title,body > /dev/null 2>&1; then
+  gh pr view --json url,title,body
 fi
 ```
+
+If a PR already exists:
+1. Compare the current PR title and body against all commits on the branch (`git log <default-branch>..HEAD --oneline`)
+2. If the title or body no longer reflects the full set of changes (e.g. new commits were added), update them with `gh pr edit <number> --title "<new title>" --body "<new body>"`
+3. Report the PR URL and any updates made, then jump to Step 6
 
 Otherwise, create the PR:
 
