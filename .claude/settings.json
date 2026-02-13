@@ -3,6 +3,7 @@
     "allow": [
       "Bash",
       "Read(*)",
+      "Edit(*)",
       "Search(*)",
       "Glob(*)",
       "Grep(*)"
@@ -32,16 +33,10 @@
       "allowLocalBinding": true
     },
     "excludedCommands": [
-      "docker",
       "gh",
       "git",
-      "psql",
-      "mysql",
-      "mongosh",
       "npm",
-      "npx",
-      "playwright",
-      "redis-cli"
+      "npx"
     ]
   }
 }
