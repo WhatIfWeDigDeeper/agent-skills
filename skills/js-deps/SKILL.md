@@ -86,7 +86,7 @@ If a PR was created, do not delete the branch — it's needed for the open PR.
 
 ```bash
 git checkout -
-git stash pop
+git stash list | grep -q . && git stash pop
 # Only delete branch if no PR was created
 if ! gh pr view "$BRANCH_NAME" --json url > /dev/null 2>&1; then
   git branch -d "$BRANCH_NAME"

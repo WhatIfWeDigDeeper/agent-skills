@@ -44,7 +44,7 @@ $PM install <package>@latest  # npm
 $PM add <package>@latest      # yarn, pnpm, bun
 ```
 
-Validate after each update using available scripts from package.json (see SKILL.md step 7 for common script names). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
+Validate after each update using available scripts from package.json (see SKILL.md step 7 for build/lint/test order). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
 
 ### Post-Audit Scan
 
