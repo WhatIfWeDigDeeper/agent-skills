@@ -4,23 +4,13 @@ description: >
   Maintain JavaScript/Node.js packages through security audits or dependency updates in an isolated git worktree.
   Supports npm, yarn, pnpm, and bun. Use for: (1) Security requests - audit, CVE, vulnerabilities, fix security issues,
   check for vulnerable dependencies; (2) Update requests - update dependencies, upgrade packages, get latest versions,
-  modernize dependencies.
-license: MIT
-metadata:
-  author: Gregory Murray
-  repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.2"
+  modernize dependencies; (3) when user types "/js-deps" with or without specific package names or glob patterns.
+arguments: >
+  Specific package names (e.g., "jest @types/jest"), "." for all packages,
+  or glob patterns (e.g., "@testing-library/* jest*")
 ---
 
 # JS Deps
-
-Manages JavaScript package maintenance tasks in an isolated worktree, including security audits and dependency updates. Automatically detects and uses the project's package manager (npm, yarn, pnpm, or bun).
-
-## Arguments
-
-- **Specific packages**: `jest @types/jest`
-- **All packages**: `.`
-- **Glob patterns**: `@testing-library/* jest*`
 
 ## Workflow Selection
 
@@ -55,44 +45,23 @@ USE_WORKTREE=false
 
 ### 2. Detect Package Manager
 
-Check for lock files to determine the package manager. See [references/package-managers.md](references/package-managers.md) for detection logic and command mappings.
-
-```bash
-if [ -f "bun.lockb" ]; then PM="bun"
-elif [ -f "pnpm-lock.yaml" ]; then PM="pnpm"
-elif [ -f "yarn.lock" ]; then PM="yarn"
-else PM="npm"
-fi
-```
-
-Also check `package.json` for `packageManager` field which takes precedence.
+Detect from lock files and `package.json` `packageManager` field (which takes precedence). See [references/package-managers.md](references/package-managers.md) for detection logic and command mappings.
 
 ### 3. Verify Registry Access
 
-Verify the package manager can reach its registry. See [references/package-managers.md](references/package-managers.md) for manager-specific commands.
+Verify the package manager CLI is available and, for npm, that it can reach the registry. See [references/package-managers.md](references/package-managers.md) for manager-specific verification commands.
 
-If this fails, prompt user: "Cannot reach package registry. Sandbox may be blocking network access. To allow package manager commands in sandbox mode, update settings.json."
+If verification fails, prompt user: "Cannot reach package registry. Sandbox may be blocking network access. To allow package manager commands in sandbox mode, update settings.json."
 
-Do not proceed until connectivity is confirmed.
+Do not proceed until verification passes.
 
 ### 4. Discover Package Locations
 
-Find all package.json files excluding node_modules:
-```bash
-find . -name "package.json" -not -path "*/node_modules/*" -type f
-```
-
-Store results as an array of directories to process.
+Find all `package.json` files excluding `node_modules`. Store results as an array of directories to process.
 
 ### 5. Install Dependencies
 
 Install dependencies in each discovered package directory so that `npm outdated` (and similar commands) can accurately compare installed versions against the registry. Without `node_modules`, exact-pinned packages (no `^` or `~`) won't appear in outdated reports.
-
-```bash
-for dir in "${PACKAGE_DIRS[@]}"; do
-  (cd "$dir" && $PM install)
-done
-```
 
 ### 6. Identify Packages
 
@@ -102,26 +71,21 @@ done
 
 ### 7. Validate Changes
 
-Check `package.json` scripts for available validation commands:
+Check `package.json` scripts for available validation commands. Run available scripts using `$PM run <script>` in order (build, lint, test), continuing on failure to collect all errors. Skip any that don't exist.
 
-| Purpose | Common names |
-|---------|--------------|
-| Build | `build`, `compile`, `tsc` |
-| Lint | `lint`, `check`, `eslint` |
-| Test | `test`, `jest`, `vitest` |
-
-Run available scripts using `$PM run <script>` in order (build → lint → test), continuing on failure to collect all errors. Skip any that don't exist.
-
-If validation fails, revert to previous version before continuing.
+If validation fails, revert the failing package to its previous version before continuing with remaining packages:
+```bash
+git checkout -- package.json package-lock.json  # or the equivalent lock file
+$PM install
+```
 
 ### 8. Update Documentation for Major Version Changes
 
 For major version upgrades (e.g., 18.x to 19.x):
 
-1. Search for version references: `grep -r "React 18\|Express 4" --include="*.md" .`
+1. Search for version references in markdown files
 2. Update in: `CLAUDE.md`, `README.md`, `docs/*.md`
-3. Skip: `specs/*/research.md`, `specs/*/tasks.md`, archived files
-4. Include changes in report/PR description
+3. Include changes in report/PR description
 
 ### 9. Cleanup
 
@@ -143,9 +107,6 @@ git branch -d "$BRANCH_NAME"
 
 ## Edge Cases
 
-- **No package.json**: Error with clear message
-- **Not a git repo**: Error - git required for branch/worktree isolation
-- **Package not found**: Suggest checking package name
 - **Glob matches nothing**: Warn and list available packages
 - **Network restricted**: Package manager commands require internet access; will fail in offline sandbox environments
-- **Unsupported package manager**: If using an unrecognized package manager, prompt user for guidance
+- **Unsupported package manager**: Prompt user for guidance

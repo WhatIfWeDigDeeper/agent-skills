@@ -7,7 +7,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 | Skill | Description | Triggers |
 |-------|-------------|----------|
 | [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn" |
-| [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps typescript" |
+| [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps", "/js-deps typescript" |
 | [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "ship this", "/ship-it", "/ship-it fix login timeout" |
 
 ## Installation
@@ -48,12 +48,55 @@ cp -r skills/* ~/.claude/skills/
 
 ## Skill Notes
 
-### ship-it
+### `learn`
+
+- You can tell Coding Agent to focus on a particular problem if you like. If it is a long conversation, it may result in "context rot" so it is more likely that it may miss a problem you want to avoid in the future.
+
+  ```text
+  /learn focus on API problem
+  ```
+
+### `ship-it`
 
 - **Selective staging**: The skill reviews changed files and stages them individually, excluding secrets and build artifacts.
 - **Pre-push validation** is left to your git hooks (pre-commit, pre-push). The skill does not run build/lint/test itself — configure hooks to enforce those checks.
 - **Default branch detection** is automatic via local remote refs. Works with `main`, `master`, or any custom default.
 - **Co-authorship**: By default, agents append their own co-author trailer per their conventions. To skip this, include "no co-author" in your arguments (e.g., `/ship-it fix login, no co-author`).
+
+### `js-deps`
+
+- You can tell your AI Coding Agent to skip zero patch releases `{major}.{minor}.0` until it becomes more stable.
+
+  ```text
+  /js-deps skip 0 patch versions except for @types/* files
+  ```
+
+- Since js-deps will create git worktrees, you may need to adjust your permission settings. It will vary based on the AI Coding Agent you are using. For Claude Code, try adding to your `settings.json` file these permissions:
+
+  ```json
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowUnixSockets": [
+        "/var/run/docker.sock"
+      ],
+      "allowLocalBinding": true
+    },
+    "excludedCommands": [
+      "docker",
+      "gh",
+      "git",
+      "psql",
+      "mysql",
+      "mongosh",
+      "npm",
+      "npx",
+      "playwright",
+      "redis-cli"
+    ]
+  }
+  ```
 
 ## Contributing
 
