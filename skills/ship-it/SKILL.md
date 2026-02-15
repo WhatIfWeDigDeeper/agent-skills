@@ -9,7 +9,7 @@ compatibility: Requires git and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.2"
+  version: "0.3"
 ---
 
 # Ship: Branch, Commit, Push & PR

@@ -11,7 +11,7 @@ compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.4"
+  version: "0.5"
 ---
 
 # Learn from Conversation
