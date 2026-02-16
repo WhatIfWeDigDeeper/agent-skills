@@ -18,7 +18,7 @@ metadata:
 
 Optional text to derive branch name, commit message, or PR title (e.g. `fix login timeout`).
 
-If `$ARGUMENTS` is `help` or `--help`, skip the workflow and read [references/options.md](references/options.md).
+If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [references/options.md](references/options.md).
 
 ## Process
 
