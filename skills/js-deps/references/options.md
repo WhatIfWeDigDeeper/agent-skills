@@ -1,6 +1,6 @@
 # Help Options
 
-Display the skill's `description` from frontmatter as a one-line summary, then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first.
+Read the skill's SKILL.md file and display its content as formatted documentation (title, arguments, workflows, process steps, and notes). Then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first.
 
 ## Question 1: Workflow type
 

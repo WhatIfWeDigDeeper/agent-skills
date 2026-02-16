@@ -1,6 +1,6 @@
 # Help Options
 
-Display the skill's `description` from frontmatter as a one-line summary, then present two questions using `AskUserQuestion`. After the user selects options, store their choices and apply them during the workflow.
+Read the skill's SKILL.md file and display its content as formatted documentation (title, supported assistants, routing logic, and process steps). Then present two questions using `AskUserQuestion`. After the user selects options, store their choices and apply them during the workflow.
 
 ## Question 1: Destination
 
