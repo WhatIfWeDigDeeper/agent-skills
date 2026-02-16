@@ -9,7 +9,7 @@ compatibility: Requires git and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.2"
+  version: "0.3"
 ---
 
 # Ship: Branch, Commit, Push & PR
@@ -17,6 +17,8 @@ metadata:
 ## Arguments
 
 Optional text to derive branch name, commit message, or PR title (e.g. `fix login timeout`).
+
+If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [references/options.md](references/options.md).
 
 ## Process
 

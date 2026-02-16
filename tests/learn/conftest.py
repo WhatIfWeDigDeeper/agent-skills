@@ -78,6 +78,14 @@ Do the first thing.
 """
 
 
+HELP_TRIGGERS = {"help", "--help", "-h", "?"}
+
+
+def is_help_request(args: str) -> bool:
+    """Check if arguments are a help request per SKILL.md."""
+    return args.strip().lower() in HELP_TRIGGERS if args and args.strip() else False
+
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_fixtures() -> Generator[Path, None, None]:
     """Create all test fixtures once per session."""

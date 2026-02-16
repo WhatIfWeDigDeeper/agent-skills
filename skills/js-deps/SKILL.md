@@ -3,13 +3,13 @@ name: js-deps
 description: >
   Maintain JavaScript/Node.js packages through security audits or dependency updates on a dedicated branch.
   Supports npm, yarn, pnpm, and bun. Use for: security audits, CVE fixes, vulnerability checks,
-  dependency updates, package upgrades, or when user types "/js-deps" with or without specific package names or glob patterns.
+  dependency updates, package upgrades, or when user types "/js-deps" with or without specific package names or glob patterns. Use "help" or "--help" to show update options.
 license: MIT
 compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or bun), and network access to package registries
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.3"
+  version: "0.4"
 ---
 
 # JS Deps
@@ -17,6 +17,8 @@ metadata:
 ## Arguments
 
 Specific package names (e.g. `jest @types/jest`), `.` for all packages, or glob patterns (e.g. `@testing-library/*`).
+
+If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [references/options.md](references/options.md).
 
 ## Workflow Selection
 

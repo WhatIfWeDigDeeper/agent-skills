@@ -11,12 +11,18 @@ compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.4"
+  version: "0.5"
 ---
 
 # Learn from Conversation
 
 Analyze the conversation to extract lessons learned, then persist them to AI assistant configuration files.
+
+## Arguments
+
+Optional text to narrow what to learn (e.g. `sandbox workaround`, `that build fix`).
+
+If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [references/options.md](references/options.md).
 
 ## Supported Assistants
 
