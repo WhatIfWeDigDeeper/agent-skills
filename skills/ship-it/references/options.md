@@ -18,6 +18,7 @@ Use `multiSelect: true`. These can be combined. Skip this question if the user s
 
 | Option | Description |
 |--------|-------------|
+| Standard PR (Recommended) | No extra options, just create the PR |
 | Draft PR | Create the pull request as a draft |
 | Self-merge | Create the PR and immediately merge it |
 
