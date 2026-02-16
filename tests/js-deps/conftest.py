@@ -97,6 +97,14 @@ def detect_package_manager(directory: Path) -> str:
     return run_pm_detection_script(directory)
 
 
+HELP_TRIGGERS = {"help", "--help", "-h", "?"}
+
+
+def is_help_request(args: str) -> bool:
+    """Check if arguments are a help request per SKILL.md."""
+    return args.strip().lower() in HELP_TRIGGERS if args and args.strip() else False
+
+
 def classify_workflow(request_text: str) -> str:
     """Classify user request as 'audit' or 'update' per SKILL.md workflow selection."""
     audit_keywords = {"audit", "cve", "vulnerabilities", "vulnerability", "security"}
