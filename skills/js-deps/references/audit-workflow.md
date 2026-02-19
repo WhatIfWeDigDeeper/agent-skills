@@ -44,7 +44,7 @@ $PM install <package>@latest  # npm
 $PM add <package>@latest      # yarn, pnpm, bun
 ```
 
-Validate after each update using available scripts from package.json (see SKILL.md step 7 for build/lint/test order). Continue on failure to collect all errors. If validation fails, revert to previous version before continuing.
+Validate after each update per SKILL.md step 7.
 
 ### Post-Audit Scan
 
@@ -94,9 +94,10 @@ Collect results from all agents before generating final report.
    ```bash
    git push -u origin "$BRANCH_NAME"
    ```
-4. Create PR using gh CLI:
+4. Create PR using gh CLI. Write the PR body to a temp file first (heredocs may fail in sandboxed environments):
    ```bash
-   gh pr create --title "fix: Security audit fixes" --body "$(cat <<'EOF'
+   BODY_FILE=$(mktemp)
+   cat > "$BODY_FILE" << 'PREOF'
    ## Summary
    - Vulnerabilities fixed: [count]
    - Remaining vulnerabilities: [count with reasons]
@@ -113,8 +114,9 @@ Collect results from all agents before generating final report.
    | Security Audit | X remaining |
 
    Generated with [Claude Code](https://claude.com/claude-code)
-   EOF
-   )"
+   PREOF
+   gh pr create --title "fix: Security audit fixes" --body-file "$BODY_FILE"
+   rm -f "$BODY_FILE"
    ```
 5. Return the PR URL to the user
 
@@ -124,3 +126,11 @@ Collect results from all agents before generating final report.
 - Provide specific remediation steps for unfixable vulnerabilities
 - If partially successful, still create PR with remaining issues noted
 
+### Upstream-Unfixable Vulnerabilities
+
+When transitive dependencies have vulnerabilities that no direct dependency update can resolve:
+
+1. Check if the project uses `audit-ci` or similar CI audit tools (look for `.auditconfig.json` or audit scripts in `package.json`)
+2. If so, add the advisory ID (e.g., `GHSA-xxxx-xxxx-xxxx`) to the `allowlist` array in each package's audit config
+3. Document the upstream blockers in the PR description — list which packages hold the vulnerable transitive dependency and why no fix is available
+4. Include the allowlist change in the same commit/PR as the fixable updates

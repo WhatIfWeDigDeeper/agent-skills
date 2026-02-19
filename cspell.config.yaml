@@ -7,6 +7,11 @@ words:
   - cursorrules
   - elif
   - frontmatter
+  - heredocs
+  - lockfiles
+  - mktemp
+  - PREOF
+  - sandboxed
   - whatifwedigdeeper
   - worktrees
 ignoreWords: []
