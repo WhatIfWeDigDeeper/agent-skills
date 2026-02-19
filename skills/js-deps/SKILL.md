@@ -2,8 +2,9 @@
 name: js-deps
 description: >
   Maintain JavaScript/Node.js packages through security audits or dependency updates on a dedicated branch.
-  Supports npm, yarn, pnpm, and bun. Use for: security audits, CVE fixes, vulnerability checks,
-  dependency updates, package upgrades, or when user types "/js-deps" with or without specific package names or glob patterns. Use "help" or "--help" to show update options.
+  Supports npm, yarn, pnpm, and bun. Use for: security audits, CVE fixes, vulnerability checks, dependency updates,
+  package upgrades, outdated packages, bump versions, fix npm vulnerabilities, modernize node_modules, or when user
+  types "/js-deps" with or without specific package names or glob patterns. Use "help" or "--help" to show options.
 license: MIT
 compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or bun), and network access to package registries
 metadata:
@@ -99,3 +100,6 @@ fi
 
 - **Glob matches nothing**: Warn and list available packages
 - **Unsupported package manager**: Prompt user for guidance
+- **Peer dep conflicts after major upgrades**: When a plugin doesn't declare support for the new major version of its host (e.g., `eslint-plugin-react-hooks` not supporting eslint 10), add `"overrides"` to `package.json` rather than using `--legacy-peer-deps`. Example: `"overrides": { "eslint-plugin-react-hooks": { "eslint": "$eslint" } }`. The `$eslint` syntax references the version already declared in the package's own dependencies
+- **Lockfile sync**: After all package.json changes, run `$PM install` in every modified directory and commit lockfiles — CI tools like `npm ci` require exact sync between package.json and the lockfile
+- **Verify devDependencies placement**: After bulk installs across directories, verify that linting/testing/build packages (eslint, typescript, vite, etc.) ended up in `devDependencies`, not `dependencies` — easy to misplace when running install commands across many directories
