@@ -39,6 +39,8 @@ Workflow documentation with:
 - Example outputs
 ```
 
+Valid frontmatter fields: `name`, `description` (required), `license`, `compatibility`, `metadata` (optional). The skill-creator skill may suggest limiting to `name` and `description`, but all fields shown above are part of the skills spec and should not be flagged as violations.
+
 ## Adding New Skills
 
 1. Create directory: `skills/<skill-name>/`
