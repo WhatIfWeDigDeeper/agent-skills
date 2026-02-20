@@ -1,0 +1,6 @@
+[project]
+name = "tool-only"
+version = "0.1.0"
+
+[tool.ruff]
+line-length = 88

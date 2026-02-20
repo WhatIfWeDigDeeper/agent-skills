@@ -1,0 +1,36 @@
+name: Test uv-deps Skill
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/uv-deps/**'
+      - 'tests/uv-deps/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/uv-deps/**'
+      - 'tests/uv-deps/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Run tests
+        run: uv run --with pytest pytest tests/uv-deps/ -v
+
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-fixtures
+          path: tests/uv-deps/fixtures/
+          retention-days: 5

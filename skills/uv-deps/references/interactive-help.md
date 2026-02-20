@@ -1,0 +1,46 @@
+# Interactive Help
+
+Display the following help summary to the user, then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first.
+
+---
+
+**uv-deps** — Maintain Python packages (uv-based projects) through security audits or dependency updates on a dedicated branch.
+
+**Arguments:** Specific package names (e.g. `fastapi asyncpg`), `.` for all packages, or glob patterns (e.g. `django-*`).
+
+**Workflows:**
+- **Security audit** — Scan for CVEs, fix vulnerable packages, create PR with security report
+- **Dependency updates** — Upgrade outdated packages with optional version and severity filters
+
+---
+
+## Question 1: Workflow type
+
+Use `multiSelect: false`.
+
+| Option | Description |
+|--------|-------------|
+| Update dependencies | Update Python packages to newer versions |
+| Security fixes only | Only fix packages with known vulnerabilities |
+
+## Question 2a: Update filters (if "Update dependencies" was selected)
+
+Use `multiSelect: true`. Only selected version types are included in the update.
+
+| Option | Description |
+|--------|-------------|
+| Major | Include major version upgrades (e.g. 2.x to 3.x) |
+| Minor | Include minor version updates (e.g. 2.1 to 2.2) |
+| Patch | Include patch-level updates (e.g. 2.1.3 to 2.1.4) |
+| Skip x.y.0 releases (Recommended) | Skip x.y.0 releases, wait for x.y.1+ bugfix releases |
+
+## Question 2b: Severity filter (if "Security fixes only" was selected)
+
+Use `multiSelect: true`. Select one or more severity levels to filter. Leave all unselected to include all severities.
+
+| Option | Description |
+|--------|-------------|
+| All vulnerabilities (Recommended) | Fix all reported vulnerabilities regardless of severity |
+| Critical | Only fix critical severity vulnerabilities |
+| High | Include high severity vulnerabilities |
+| Moderate | Include moderate severity vulnerabilities |
