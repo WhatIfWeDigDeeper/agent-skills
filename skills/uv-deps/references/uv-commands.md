@@ -33,6 +33,8 @@
 
 pip-audit is run via `uvx` to avoid installing it as a project dependency. Because Python 3.14's `ensurepip` is incompatible with pip-audit's internal venv creation, always use the `uv export` pipeline pattern:
 
+> **Version pinning:** `uvx pip-audit` runs the latest release unpinned. If your security policy requires pinning, use `uvx 'pip-audit>=2,<3'` and update the bound on major releases.
+
 ```bash
 uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps
 ```
