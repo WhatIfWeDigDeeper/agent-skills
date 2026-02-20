@@ -7,8 +7,9 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 | Skill&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description | Triggers |
 |-------------|-------------|----------|
 | [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn", "/learn help" |
-| [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps", "/js-deps typescript", "/js-deps help" |
 | [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "/ship-it" "/ship-it fix login timeout", "/ship-it help" |
+| [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps", "/js-deps typescript", "/js-deps help" |
+| [uv-deps](skills/uv-deps/SKILL.md) | Security audits and dependency updates for Python projects using uv | "audit Python packages", "update pyproject.toml", "fix Python CVEs", "/uv-deps", "/uv-deps fastapi", "/uv-deps help" |
 
 All skills support `help`, `--help`, `-h`, or `?` as arguments to show interactive options before running.
 
@@ -56,7 +57,7 @@ cp -r skills/* ~/.claude/skills/
 - You can tell Coding Agent to focus on a particular problem if you like. If it is a long conversation, it may result in "context rot" so it is more likely that it may miss a problem you want to avoid in the future.
 
   ```text
-  /learn focus on API problem
+  /learn tests were not run
   ```
 
 ### `ship-it`
@@ -81,6 +82,21 @@ cp -r skills/* ~/.claude/skills/
   ```text
   /js-deps typescript
   ```
+
+### `uv-deps`
+
+- Use `/uv-deps help` to choose between updating dependencies or fixing security vulnerabilities, then pick version filters or vulnerability severity levels.
+- Targets `pyproject.toml`-based projects managed by `uv`. Projects using only `requirements.txt`, `setup.py`, poetry, or pipenv are out of scope.
+- Pass specific package names, `.` for all packages, or glob patterns:
+
+  ```text
+  /uv-deps fastapi asyncpg
+  /uv-deps django-*
+  /uv-deps .
+  ```
+
+- Requires `uv` and `uvx` to be installed and accessible. All git and `gh` commands run with sandbox disabled for keyring access.
+
 
 ## Updating Skills
 
