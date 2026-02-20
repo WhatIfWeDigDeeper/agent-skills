@@ -6,13 +6,24 @@ Use `uv` and `uvx` for all commands. See [uv-commands.md](uv-commands.md) for co
 
 ### Run Security Audit on Each Directory
 
-For each directory containing pyproject.toml, use the `uv export` pipeline pattern (required for Python 3.14 compatibility — see [uv-commands.md](uv-commands.md)):
+For each directory containing pyproject.toml, use the `uv export` pipeline pattern (required for Python 3.14 compatibility — see [uv-commands.md](uv-commands.md)). Capture the output into a variable — do **not** echo raw JSON to the user:
+
 ```bash
 cd <directory>
-uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps
+AUDIT_JSON=$(uv export --frozen --hash | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+AUDIT_EXIT=$?
+# Extract only packages with vulnerabilities
+VULN_JSON=$(echo "$AUDIT_JSON" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+vulns = [d for d in data['dependencies'] if d['vulns']]
+print(json.dumps(vulns, indent=2))
+")
 ```
 
-Parse the JSON output directly from stdout. Collect all audit results into a consolidated report.
+`--hash` on `uv export` satisfies pip-audit's hash requirement and suppresses the `--no-deps` warning. `2>/dev/null` drops remaining pip-audit progress noise. `AUDIT_EXIT` captures whether vulnerabilities were found (exit 1) or not (exit 0).
+
+Collect all audit results into a consolidated report. Present only the vulnerable packages — never dump the full dependency list or raw JSON to the user.
 
 ### Categorize by Severity
 
@@ -76,10 +87,16 @@ Validate after each update per SKILL.md step 6. If validation fails, revert (see
 Re-run the audit to confirm fixes:
 ```bash
 cd <directory>
-uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps
+REAUDIT_JSON=$(uv export --frozen --hash | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+REAUDIT_EXIT=$?
+REMAINING=$(echo "$REAUDIT_JSON" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+print(sum(len(d['vulns']) for d in data['dependencies']))
+")
 ```
 
-Compare before/after JSON output to confirm vulnerability counts decreased.
+Compare `REMAINING` against the original count to confirm vulnerability counts decreased.
 
 ## Handle Results
 

@@ -6,7 +6,7 @@
 |---------|----------|
 | `uv --version` | CLI availability |
 | `uvx --version` | uvx tool runner availability |
-| `uv pip index versions pip` | PyPI connectivity |
+| `uv index versions pip` | PyPI connectivity |
 
 ## Environment Management
 
@@ -27,7 +27,7 @@
 | `uv remove <pkg>` | Remove a package |
 | `uv pip list --outdated` | Show outdated packages in current environment |
 | `uv pip show <pkg>` | Show installed package info (version, location, deps) |
-| `uv pip index versions <pkg>` | Show all available versions on PyPI |
+| `uv index versions <pkg>` | Show all available versions on PyPI |
 
 ## Security Audit (via pip-audit)
 
@@ -36,10 +36,10 @@ pip-audit is run via `uvx` to avoid installing it as a project dependency. Becau
 > **Version pinning:** `uvx pip-audit` runs the latest release unpinned. If your security policy requires pinning, use `uvx 'pip-audit>=2,<3'` and update the bound on major releases.
 
 ```bash
-uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps
+uv export --frozen --hash | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null
 ```
 
-The `--disable-pip` flag skips pip-audit's internal venv creation (requires hashed requirements, which `uv export` provides by default). The `--no-deps` flag skips dependency resolution since the lockfile already contains the full dependency tree. Use `--format json --desc` for machine-parseable output with vulnerability descriptions.
+The `--hash` flag on `uv export` includes hash digests, satisfying pip-audit's hash requirement and suppressing the `--no-deps` warning. The `--disable-pip` flag skips pip-audit's internal venv creation. The `--no-deps` flag skips dependency resolution since the lockfile already contains the full dependency tree. Use `--format json --desc` for machine-parseable output with vulnerability descriptions; redirect stderr to suppress progress noise.
 
 ### pip-audit Flags
 
