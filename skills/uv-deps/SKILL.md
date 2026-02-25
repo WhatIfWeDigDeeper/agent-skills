@@ -11,7 +11,7 @@ compatibility: Requires git, uv, Python 3.12+, and network access to PyPI
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.1"
+  version: "0.2"
 ---
 
 # UV Deps
@@ -100,6 +100,7 @@ git add pyproject.toml
 [ "$UV_LOCK_IGNORED" = "false" ] && git add uv.lock
 # For workspaces, also add member pyproject.toml files
 git commit -m "<commit message from workflow>"
+# If commit fails due to GPG keyring access, retry with --no-gpg-sign
 ```
 
 Commit message format:

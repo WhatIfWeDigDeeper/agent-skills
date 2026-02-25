@@ -15,7 +15,7 @@ uv pip list --outdated
 
 For specific packages, check available versions:
 ```bash
-uv pip index versions <package>
+uv index versions <package>
 ```
 
 ### Apply Version Filters
@@ -48,7 +48,7 @@ Update both pyproject.toml and the lockfile. First, check the project's existing
 cd <directory>
 
 # Check latest version
-uv pip index versions <package>
+uv index versions <package>
 
 # For exact-pinned projects:
 uv add <package>==<latest_version>
@@ -82,8 +82,12 @@ For uv workspaces (`[tool.uv.workspace]` in root `pyproject.toml`), run all `uv 
 After updating, check for new vulnerabilities (see [uv-commands.md](uv-commands.md) for details on this pattern):
 ```bash
 cd <directory>
-uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps
+AUDIT_JSON=$(uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+AUDIT_EXIT=$?
+VULN_COUNT=$(echo "$AUDIT_JSON" | python3 -c "import json,sys; data=json.load(sys.stdin); print(sum(len(d['vulns']) for d in data['dependencies']))" 2>/dev/null || echo "unknown")
 ```
+
+Report a clean/vulnerable summary (e.g. "0 vulnerabilities" or "2 vulnerabilities found") — do not print raw JSON.
 
 ## Handle Results
 

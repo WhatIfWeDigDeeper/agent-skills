@@ -10,7 +10,7 @@ For each directory containing pyproject.toml, use the `uv export` pipeline patte
 
 ```bash
 cd <directory>
-AUDIT_JSON=$(uv export --frozen --hash | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+AUDIT_JSON=$(uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
 AUDIT_EXIT=$?
 # Extract only packages with vulnerabilities
 VULN_JSON=$(echo "$AUDIT_JSON" | python3 -c "
@@ -21,7 +21,7 @@ print(json.dumps(vulns, indent=2))
 ")
 ```
 
-`--hash` on `uv export` satisfies pip-audit's hash requirement and suppresses the `--no-deps` warning. `2>/dev/null` drops remaining pip-audit progress noise. `AUDIT_EXIT` captures whether vulnerabilities were found (exit 1) or not (exit 0).
+`uv export` includes hashes by default, which satisfies pip-audit's hash requirement. `2>/dev/null` drops remaining pip-audit progress noise. `AUDIT_EXIT` captures whether vulnerabilities were found (exit 1) or not (exit 0).
 
 Collect all audit results into a consolidated report. Present only the vulnerable packages — never dump the full dependency list or raw JSON to the user.
 
@@ -87,7 +87,7 @@ Validate after each update per SKILL.md step 6. If validation fails, revert (see
 Re-run the audit to confirm fixes:
 ```bash
 cd <directory>
-REAUDIT_JSON=$(uv export --frozen --hash | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+REAUDIT_JSON=$(uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
 REAUDIT_EXIT=$?
 REMAINING=$(echo "$REAUDIT_JSON" | python3 -c "
 import json, sys

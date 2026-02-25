@@ -55,6 +55,10 @@ Valid frontmatter fields: `name`, `description` (required), `license`, `compatib
 - **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` as a fallback.
 - **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first.
 
+## Spell Checking
+
+This repo uses cspell. When a technical term triggers a false-positive spelling warning (e.g. `pyproject`, `uvx`, `subagent`), add it to the `words` list in `cspell.config.yaml` rather than ignoring or suppressing the warning.
+
 ## Git Workflow
 
 - After merging a PR, delete the local and remote feature branch and switch to main with a pull.
