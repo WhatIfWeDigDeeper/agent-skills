@@ -36,10 +36,10 @@ pip-audit is run via `uvx` to avoid installing it as a project dependency. Becau
 > **Version pinning:** `uvx pip-audit` runs the latest release unpinned. If your security policy requires pinning, use `uvx 'pip-audit>=2,<3'` and update the bound on major releases.
 
 ```bash
-uv export --frozen --hash | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null
+uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null
 ```
 
-The `--hash` flag on `uv export` includes hash digests, satisfying pip-audit's hash requirement and suppressing the `--no-deps` warning. The `--disable-pip` flag skips pip-audit's internal venv creation. The `--no-deps` flag skips dependency resolution since the lockfile already contains the full dependency tree. Use `--format json --desc` for machine-parseable output with vulnerability descriptions; redirect stderr to suppress progress noise.
+`uv export` includes hashes by default — no extra flag needed. `2>/dev/null` suppresses pip-audit progress noise.
 
 ### pip-audit Flags
 

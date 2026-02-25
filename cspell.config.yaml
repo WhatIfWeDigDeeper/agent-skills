@@ -11,7 +11,9 @@ words:
   - lockfiles
   - mktemp
   - PREOF
+  - pyproject
   - sandboxed
+  - venv
   - whatifwedigdeeper
   - worktrees
 ignoreWords: []
