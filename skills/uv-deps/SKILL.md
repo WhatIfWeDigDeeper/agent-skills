@@ -1,7 +1,7 @@
 ---
 name: uv-deps
 description: >
-  Maintain Python packages through security audits or dependency updates on a dedicated branch using uv.
+  Maintain Python packages through security audits or dependency updates using an isolated git worktree and uv.
   Use for: security audits, CVE fixes, vulnerability checks, dependency updates, package upgrades,
   outdated packages, bump versions, fix Python vulnerabilities, check for Python CVEs, audit Python packages,
   update pyproject.toml dependencies, modernize Python deps, or when user types "/uv-deps" with or without
@@ -11,7 +11,7 @@ compatibility: Requires git, uv, Python 3.12+, and network access to PyPI
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.2"
+  version: "0.3"
 ---
 
 # UV Deps
@@ -31,18 +31,22 @@ Based on user request:
 
 ## Shared Process
 
-### 1. Create Branch
+### 1. Create Worktree
 
-Stash uncommitted changes and create a dedicated branch. Track whether a stash was actually created:
+Create an isolated git worktree so the main working directory is never modified:
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 BRANCH_NAME="py-uv-deps-$TIMESTAMP"
-STASH_BEFORE=$(git stash list | wc -l)
-git stash --include-untracked
-STASH_AFTER=$(git stash list | wc -l)
-STASH_CREATED=$( [ "$STASH_AFTER" -gt "$STASH_BEFORE" ] && echo true || echo false )
-git checkout -b "$BRANCH_NAME"
+WORKTREE_PATH="${TMPDIR:-/tmp}/$BRANCH_NAME"
+git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
+
+If `git worktree add` fails (e.g., sandbox permission error), prompt the user:
+> `git worktree` requires write access to `$TMPDIR`. Choose an option:
+> 1. Add `$TMPDIR` to your sandbox allowlist in `settings.json` (recommended)
+> 2. Fall back to branch+stash approach
+
+**All subsequent steps operate within `$WORKTREE_PATH`.** Discovery, syncs, edits, and commits all happen there. Paths like `cd <directory>` in reference files are relative to `$WORKTREE_PATH`.
 
 ### 2. Verify Tool Access
 
@@ -56,7 +60,7 @@ Do not proceed until verification passes.
 
 This skill targets `pyproject.toml`-based projects managed by uv. Projects using only `requirements.txt`, `setup.py`, or other package managers (poetry, pipenv) are out of scope.
 
-Find all directories containing `pyproject.toml` with a `[project.dependencies]`, `[project.optional-dependencies]`, or `[dependency-groups]` section, excluding `.venv`, `.tox`, `build`, and `dist` directories. Store results as an array of directories to process. If none found, report to user and skip to cleanup.
+Find all directories containing `pyproject.toml` within `$WORKTREE_PATH` with a `[project.dependencies]`, `[project.optional-dependencies]`, or `[dependency-groups]` section, excluding `.venv`, `.tox`, `build`, and `dist` directories. Store results as an array of directories to process. If none found, report to user and skip to cleanup.
 
 For workspaces (`[tool.uv.workspace]` in root `pyproject.toml`), run `uv sync` and `uv lock` from the workspace root — the root `uv.lock` covers all members.
 
@@ -83,6 +87,7 @@ Run available validation tools per [references/uv-commands.md](references/uv-com
 
 If validation fails for a specific package update, revert before continuing with remaining packages (replace `<directory>` with the actual project path):
 ```bash
+# Run from within $WORKTREE_PATH/<directory>
 git checkout -- pyproject.toml
 git checkout -- uv.lock 2>/dev/null || true  # uv.lock may not be committed
 uv sync  # run from project directory
@@ -93,6 +98,7 @@ uv sync  # run from project directory
 After all updates are validated, check whether `uv.lock` is tracked in git, then commit:
 
 ```bash
+# Run from $WORKTREE_PATH
 # Check if uv.lock is gitignored
 git check-ignore uv.lock && UV_LOCK_IGNORED=true || UV_LOCK_IGNORED=false
 
@@ -109,16 +115,17 @@ Commit message format:
 
 ### 8. Cleanup
 
-If a PR was created, do not delete the branch — it's needed for the open PR.
+Remove the worktree. The main working directory was never modified, so no stash restore is needed.
 
 ```bash
-git checkout -
-[ "$STASH_CREATED" = "true" ] && (git stash pop || echo "Stash pop had conflicts, resolve manually")
+git worktree remove "$WORKTREE_PATH" --force
 # Only delete branch if no PR was created (requires dangerouslyDisableSandbox: true)
 if ! gh pr list --head "$BRANCH_NAME" --json url --jq '.[0].url' | grep -q .; then
   git branch -d "$BRANCH_NAME"
 fi
 ```
+
+`--force` handles cases where the skill failed mid-run with uncommitted changes in the worktree.
 
 ## Edge Cases
 
@@ -126,3 +133,4 @@ fi
 - **Resolver conflicts after major upgrades**: When upgrading causes dependency conflicts (e.g., package A requires `foo<2.0` but package B needs `foo>=2.0`), document the conflict, offer to skip or add a version constraint, and continue with remaining packages
 - **Dev dependency placement**: After adding dev packages, verify they landed in `[project.optional-dependencies]` or `[dependency-groups]`, not `[project.dependencies]`
 - **Lockfile sync**: After all pyproject.toml changes, run `uv sync` to regenerate `uv.lock` and commit both files
+- **Worktree creation fails**: If `git worktree add` fails due to sandbox permissions, prompt the user to either add `$TMPDIR` to their sandbox allowlist or fall back to the branch+stash approach
