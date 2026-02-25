@@ -8,31 +8,36 @@ Ensure dependencies are installed first (SKILL.md step 5) so that `$PM outdated`
 
 ## Version Checking and Updates
 
+### Discover What Needs Updating
+
+Run the outdated check to get a list of packages to update. See [package-managers.md](package-managers.md) for the correct command per package manager.
+
+Filter the results based on the version types selected by the user (major/minor/patch) if `help`/options were used.
+
 ### Check and Update Versions
 
 Use the appropriate commands for your package manager (see [package-managers.md](package-managers.md)):
 
 ```bash
-# Check latest version (npm/pnpm)
-$PM view <package> version
+# Check latest version
+$PM view <package> version   # npm, pnpm, yarn
+bunx npm-view <package> version  # bun
 
 # Prefer LTS when available
-$PM view <package> dist-tags
-
-# Update packages
-$PM install <package>@latest  # npm
-$PM add <package>@latest      # yarn, pnpm, bun
+$PM view <package> dist-tags  # npm, pnpm, yarn
 ```
+
+Use the install command from the **Install/Update** table in [package-managers.md](package-managers.md) — the command verb differs by manager (`npm install` vs `yarn/pnpm/bun add`).
 
 ### Run Security Audit
 
 After updating, check for new vulnerabilities:
 ```bash
 $PM audit
-$PM audit fix  # npm only; others require manual fixes
+$PM audit fix  # npm only
 ```
 
-Note: bun does not support audit. If using bun, skip this step.
+For yarn, pnpm, and bun: `audit fix` is not available — fix remaining vulnerabilities manually using the steps in [audit-workflow.md](audit-workflow.md). Note: bun does not support audit at all; skip this step when using bun.
 
 ## Handle Results
 
@@ -45,7 +50,7 @@ Note: bun does not support audit. If using bun, skip this step.
    ```
 3. Check for existing dependency update PRs:
    ```bash
-   gh pr list --search "chore: Update dependencies" --state open
+   gh pr list --search "chore: update dependencies" --state open
    ```
 4. Create PR using gh CLI. Write the PR body to a temp file first (heredocs may fail in sandboxed environments):
    ```bash
@@ -68,7 +73,7 @@ Note: bun does not support audit. If using bun, skip this step.
 
    Generated with [Claude Code](https://claude.com/claude-code)
    PREOF
-   gh pr create --title "chore: Update dependencies" --body-file "$BODY_FILE"
+   gh pr create --title "chore: update dependencies" --body-file "$BODY_FILE"
    rm -f "$BODY_FILE"
    ```
 5. Return the PR URL to the user
@@ -89,6 +94,3 @@ Note: bun does not support audit. If using bun, skip this step.
 | Test | Breaking API changes | Review migration guides |
 | Audit | Vulnerabilities | Manual remediation steps |
 
-## Cleanup Note
-
-After creating a PR, do not delete the branch - it's needed for the open PR.

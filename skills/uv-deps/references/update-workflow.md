@@ -67,6 +67,12 @@ uv sync
 #   [dependency-groups] (PEP 735)   → uv sync --group dev
 ```
 
+If `uv add <pkg>==<latest_version>` fails due to version constraints, try letting uv resolve the best compatible version:
+```bash
+uv add <package>  # no version pin — uv picks latest compatible with existing constraints
+```
+If that also fails, document the constraint conflict in the PR description and skip this package.
+
 Validate after each update per SKILL.md step 6. If validation fails, revert (see SKILL.md step 6) before continuing.
 
 ### Update Documentation for Major Version Changes
@@ -100,8 +106,9 @@ Report a clean/vulnerable summary (e.g. "0 vulnerabilities" or "2 vulnerabilitie
    ```
 3. Check for existing dependency update PRs:
    ```bash
-   gh pr list --search "chore: Update Python dependencies" --state open
+   gh pr list --search "chore: update Python dependencies" --state open
    ```
+   If an open PR exists on the **current branch**, update it with `gh pr edit` instead of creating a new one. If it's on a different branch, create a new PR as usual.
 4. Create PR using gh CLI. Write the PR body to a temp file first (subshell heredocs `$(cat <<'EOF'...)` fail in sandbox):
    ```bash
    BODY_FILE=$(mktemp)
@@ -123,7 +130,7 @@ Report a clean/vulnerable summary (e.g. "0 vulnerabilities" or "2 vulnerabilitie
 
    Generated with [Claude Code](https://claude.com/claude-code)
    PREOF
-   gh pr create --title "chore: Update Python dependencies" --body-file "$BODY_FILE"
+   gh pr create --title "chore: update Python dependencies" --body-file "$BODY_FILE"
    rm -f "$BODY_FILE"
    ```
 5. Return the PR URL to the user

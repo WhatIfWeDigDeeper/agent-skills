@@ -1,5 +1,7 @@
 # Interactive Help
 
+> **Note:** If package arguments were provided (e.g. `/uv-deps fastapi asyncpg`), they are already set. The workflow will target only those packages.
+
 Display the following help summary to the user, then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first.
 
 ---
@@ -43,4 +45,8 @@ Use `multiSelect: true`. Select one or more severity levels to filter. Leave all
 | All vulnerabilities (Recommended) | Fix all reported vulnerabilities regardless of severity |
 | Critical | Only fix critical severity vulnerabilities |
 | High | Include high severity vulnerabilities |
-| Moderate | Include moderate severity vulnerabilities |
+| Moderate | Include moderate/low severity vulnerabilities |
+
+## After Selection
+
+If no package arguments were provided, set `$ARGUMENTS` to `.` (process all packages). Proceed with the selected workflow.

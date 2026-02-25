@@ -1,10 +1,6 @@
 ---
 name: js-deps
-description: >
-  Maintain JavaScript/Node.js packages through security audits or dependency updates using an isolated git worktree.
-  Supports npm, yarn, pnpm, and bun. Use for: security audits, CVE fixes, vulnerability checks, dependency updates,
-  package upgrades, outdated packages, bump versions, fix npm vulnerabilities, modernize node_modules, or when user
-  types "/js-deps" with or without specific package names or glob patterns. Use "help" or "--help" to show options.
+description: Maintain JavaScript/Node.js packages through security audits or dependency updates using an isolated git worktree. Supports npm, yarn, pnpm, and bun. Use for security audits, CVE fixes, vulnerability checks, dependency updates, package upgrades, outdated packages, bump versions, fix npm vulnerabilities, modernize node_modules, or when user types "/js-deps" with or without specific package names or glob patterns.
 license: MIT
 compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or bun), and network access to package registries
 metadata:
@@ -26,6 +22,8 @@ If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [r
 Based on user request:
 - **Security audit** (audit, CVE, vulnerabilities, security): Read [references/audit-workflow.md](references/audit-workflow.md)
 - **Dependency updates** (update, upgrade, latest, modernize): Read [references/update-workflow.md](references/update-workflow.md)
+
+If the user expresses version preferences (e.g., "only minor and patch", "skip major versions", "only critical CVEs"), apply the filters defined in [references/options.md](references/options.md) without requiring an explicit `--help` invocation.
 
 ## Shared Process
 
@@ -66,7 +64,9 @@ Find all `package.json` files within `$WORKTREE_PATH` excluding `node_modules`. 
 
 ### 5. Install Dependencies
 
-Install dependencies in each discovered package directory so that `npm outdated` (and similar commands) can accurately compare installed versions against the registry. Without `node_modules`, exact-pinned packages (no `^` or `~`) won't appear in outdated reports.
+**Skip this step for security audit workflows** — `$PM audit` reads from lock files and does not require `node_modules`.
+
+For dependency update workflows only: install dependencies so that `$PM outdated` can accurately compare installed vs. registry versions. Without `node_modules`, exact-pinned packages (no `^` or `~`) won't appear in outdated reports. If `$ARGUMENTS` specifies particular packages (not `.`), only install in directories where those packages appear in `package.json`.
 
 ### 6. Identify Packages
 
@@ -76,12 +76,17 @@ Install dependencies in each discovered package directory so that `npm outdated`
 
 ### 7. Validate Changes
 
-Check `package.json` scripts for available validation commands. Run available scripts using `$PM run <script>` in order (build, lint, test), continuing on failure to collect all errors. Skip any that don't exist.
+Run validation **per directory** after each package update. Check `package.json` scripts and run available commands using `$PM run <script>` in order: build, lint, test. Skip any that don't exist.
 
-If validation fails, revert the failing package to its previous version before continuing with remaining packages:
+- **Build failure** is a hard failure: revert the package before continuing.
+- **Lint or test failure** is a soft failure: report it but continue with remaining packages.
+
+Continue running all validators even on failure to collect the full error set before reporting.
+
+If a build fails for a specific package, revert before continuing with remaining packages:
 ```bash
 # Run from within $WORKTREE_PATH/<directory>
-git checkout -- package.json package-lock.json  # or the equivalent lock file
+git checkout -- .  # revert all tracked changes in this directory (package.json + lock file)
 $PM install
 ```
 
@@ -114,4 +119,3 @@ fi
 - **Peer dep conflicts after major upgrades**: When a plugin doesn't declare support for the new major version of its host (e.g., `eslint-plugin-react-hooks` not supporting eslint 10), add `"overrides"` to `package.json` rather than using `--legacy-peer-deps`. Example: `"overrides": { "eslint-plugin-react-hooks": { "eslint": "$eslint" } }`. The `$eslint` syntax references the version already declared in the package's own dependencies
 - **Lockfile sync**: After all package.json changes, run `$PM install` in every modified directory and commit lockfiles — CI tools like `npm ci` require exact sync between package.json and the lockfile
 - **Verify devDependencies placement**: After bulk installs across directories, verify that linting/testing/build packages (eslint, typescript, vite, etc.) ended up in `devDependencies`, not `dependencies` — easy to misplace when running install commands across many directories
-- **Worktree creation fails**: If `git worktree add` fails due to sandbox permissions, prompt the user to either add `$TMPDIR` to their sandbox allowlist or fall back to the branch+stash approach

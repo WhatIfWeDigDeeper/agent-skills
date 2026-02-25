@@ -2,7 +2,16 @@
 
 ## Detection
 
-Check for lock files in order of precedence:
+Check in this order (first match wins):
+
+**1. `packageManager` field in `package.json`** — this is the authoritative declaration:
+```json
+{
+  "packageManager": "pnpm@8.6.0"
+}
+```
+
+**2. Lock files** — if no `packageManager` field:
 
 | Lock file | Package manager |
 |-----------|-----------------|
@@ -11,14 +20,7 @@ Check for lock files in order of precedence:
 | `yarn.lock` | yarn |
 | `package-lock.json` | npm |
 
-Also check `package.json` for `packageManager` field:
-```json
-{
-  "packageManager": "pnpm@8.6.0"
-}
-```
-
-If no lock file exists, default to npm.
+**3. Default** — if neither, use npm.
 
 ## Command Reference
 
@@ -38,9 +40,19 @@ Use `$PM` as the detected package manager throughout the workflow.
 | Manager | Command | JSON output |
 |---------|---------|-------------|
 | npm | `npm audit` | `npm audit --json` |
+| npm | `npm audit fix` | _(auto-fixes; no JSON mode)_ |
 | yarn | `yarn audit` | `yarn audit --json` |
 | pnpm | `pnpm audit` | `pnpm audit --json` |
 | bun | Not supported | - |
+
+### Check Outdated Packages
+
+| Manager | Command |
+|---------|---------|
+| npm | `npm outdated` |
+| yarn | `yarn outdated` |
+| pnpm | `pnpm outdated` |
+| bun | `bun outdated` |
 
 ### View Package Info
 

@@ -1,6 +1,18 @@
 # Help Options
 
-Read the skill's SKILL.md file and display its content as formatted documentation (title, arguments, workflows, process steps, and notes). Then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first.
+Display the following help summary to the user, then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first.
+
+---
+
+**js-deps** — Maintain JavaScript/Node.js packages through security audits or dependency updates using an isolated git worktree. Supports npm, yarn, pnpm, and bun.
+
+**Arguments:** Specific package names (e.g. `jest @types/jest`), `.` for all packages, or glob patterns (e.g. `@testing-library/*`).
+
+**Workflows:**
+- **Security audit** — Scan for CVEs, fix vulnerable packages, create PR with security report
+- **Dependency updates** — Upgrade outdated packages with optional version and severity filters
+
+---
 
 ## Question 1: Workflow type
 
