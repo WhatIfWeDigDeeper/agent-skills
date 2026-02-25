@@ -62,6 +62,13 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 ## Git Workflow
 
 - After merging a PR, delete the local and remote feature branch and switch to main with a pull.
+- After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
+  ```bash
+  # Get thread IDs
+  gh api graphql -f query='{ repository(owner: "OWNER", name: "REPO") { pullRequest(number: N) { reviewThreads(first: 20) { nodes { id isResolved comments(first: 1) { nodes { path line } } } } } } }'
+  # Resolve each thread
+  gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'
+  ```
 
 ## Skill Design Patterns
 

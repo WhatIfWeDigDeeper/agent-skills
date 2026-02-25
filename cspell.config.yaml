@@ -7,13 +7,17 @@ words:
   - cursorrules
   - elif
   - frontmatter
+  - GHSA
   - heredocs
   - lockfiles
   - mktemp
   - PREOF
   - pyproject
   - sandboxed
+  - startswith
+  - subshell
   - venv
+  - vulns
   - whatifwedigdeeper
   - worktrees
 ignoreWords: []
