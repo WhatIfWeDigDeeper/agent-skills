@@ -105,7 +105,7 @@ Remove the worktree. The main working directory was never modified, so no stash 
 ```bash
 git worktree remove "$WORKTREE_PATH" --force
 # Only delete branch if no PR was created
-if ! gh pr view "$BRANCH_NAME" --json url > /dev/null 2>&1; then
+if [ -z "$(gh pr list --head "$BRANCH_NAME" --json url --jq '.[0].url' 2>/dev/null)" ]; then
   git branch -d "$BRANCH_NAME"
 fi
 ```

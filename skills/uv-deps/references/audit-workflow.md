@@ -6,7 +6,7 @@ Use `uv` and `uvx` for all commands. See [uv-commands.md](uv-commands.md) for co
 
 ### Run Security Audit on Each Directory
 
-For each directory containing pyproject.toml, use the `uv export` pipeline pattern (required for Python 3.14 compatibility — see [uv-commands.md](uv-commands.md)). Capture the output into a variable — do **not** echo raw JSON to the user.
+For each directory containing pyproject.toml, use the `uv export` pipeline pattern (required for pip-audit compatibility across all Python versions — see [uv-commands.md](uv-commands.md)). Capture the output into a variable — do **not** echo raw JSON to the user.
 
 `<directory>` is relative to `$WORKTREE_PATH` (use `"$WORKTREE_PATH"` directly for a root project).
 
@@ -77,8 +77,8 @@ for pkg in data:
                 print(alias)
 " | while read GHSA_ID; do
   SEVERITY=$(gh api /advisories/$GHSA_ID --jq '.severity' 2>/dev/null || echo "high")
-  # Normalize GitHub API's "medium" to "moderate" to match severity option labels
-  SEVERITY=$(echo "$SEVERITY" | sed 's/^medium$/moderate/')
+  # Normalize GitHub API's "medium"/"low" to "moderate" to match severity option labels
+  SEVERITY=$(echo "$SEVERITY" | sed -E 's/^(medium|low)$/moderate/')
   echo "$GHSA_ID: $SEVERITY" >> "$SEVERITY_MAP_FILE"
 done
 SEVERITY_MAP=$(cat "$SEVERITY_MAP_FILE")
@@ -95,12 +95,12 @@ If the user selected specific severity levels (not "All vulnerabilities"), build
 # SELECTED_SEVERITIES: space-separated list from user selection (e.g. "critical high")
 # Leave empty to include all severities
 if [ -n "$SELECTED_SEVERITIES" ]; then
-  VULN_JSON=$(echo "$VULN_JSON" | python3 -c "
-import json, sys
-selected = set('$SELECTED_SEVERITIES'.lower().split())
+  VULN_JSON=$(echo "$VULN_JSON" | SELECTED_SEVERITIES="$SELECTED_SEVERITIES" SEVERITY_MAP="$SEVERITY_MAP" python3 -c "
+import json, sys, os
+selected = set(os.environ.get('SELECTED_SEVERITIES', '').lower().split())
 # severity_map built from GHSA lookups: {'GHSA-xxxx-xxxx-xxxx': 'high', ...}
 severity_map = {}
-for line in '''$SEVERITY_MAP'''.strip().split('\n'):
+for line in os.environ.get('SEVERITY_MAP', '').strip().split('\n'):
     if ': ' in line:
         ghsa_id, sev = line.split(': ', 1)
         severity_map[ghsa_id.strip()] = sev.strip().lower()
@@ -131,7 +131,7 @@ print(sum(len(p['vulns']) for p in data))
 
 Always update packages **sequentially within a directory** to avoid lock file races.
 
-Parallelize **across directories** only: if multiple directories have vulnerabilities, launch a separate Task subagent (general-purpose, background) per directory. Each subagent handles package updates and validation for its directory only — **do not commit from subagents**. The main agent commits all changes after all subagents complete.
+Parallelize **across directories** only: if multiple directories have vulnerabilities, launch a separate Task subagent (general-purpose, background) per directory. Each subagent handles package updates and validation for its directory only — **do not commit from subagents**. The main agent commits all changes after all subagents complete. Include `ORIGINAL_COUNT`, `WORKTREE_PATH`, and `BRANCH_NAME` in each subagent's task prompt so it can run the post-audit scan and report progress.
 
 When consolidating results:
 - Collect vulnerability counts (before/after), packages fixed, and validation status from each subagent
@@ -141,7 +141,7 @@ When consolidating results:
 
 For each vulnerable package, pin to the fix version:
 ```bash
-cd <directory>
+cd "$WORKTREE_PATH/<directory>"
 uv add <package>==<fix_version>
 uv sync  # add --extra dev or --group dev as appropriate — see uv-commands.md
 ```
@@ -154,12 +154,16 @@ Validate after each update per SKILL.md step 6. If validation fails, revert (see
 
 Re-run the audit to confirm fixes:
 ```bash
-cd <directory>
+cd "$WORKTREE_PATH/<directory>"
 REAUDIT_JSON=$(uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
 REMAINING=$(echo "$REAUDIT_JSON" | python3 -c "
 import json, sys
-data = json.load(sys.stdin)
-print(sum(len(d['vulns']) for d in data['dependencies']))
+try:
+    data = json.load(sys.stdin)
+    remaining = sum(len(d['vulns']) for d in data['dependencies'])
+except (json.JSONDecodeError, KeyError):
+    remaining = 0
+print(remaining)
 ")
 echo "Fixed $((ORIGINAL_COUNT - REMAINING)) of $ORIGINAL_COUNT vulnerabilities ($REMAINING remaining)"
 ```

@@ -108,7 +108,7 @@ Report a clean/vulnerable summary (e.g. "0 vulnerabilities" or "2 vulnerabilitie
    ```bash
    gh pr list --search "chore: update Python dependencies" --state open
    ```
-   If an open PR exists on the **current branch**, update it with `gh pr edit` instead of creating a new one. If it's on a different branch, create a new PR as usual.
+   If an open PR exists for this branch (`$BRANCH_NAME`), update it with `gh pr edit` instead of creating a new one. If it's on a different branch, create a new PR as usual.
 4. Create PR using gh CLI. Write the PR body to a temp file first (subshell heredocs `$(cat <<'EOF'...)` fail in sandbox):
    ```bash
    BODY_FILE=$(mktemp)
