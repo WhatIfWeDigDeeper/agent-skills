@@ -52,7 +52,7 @@ Use `multiSelect: true`. Nothing selected by default means all severities are in
 - **Minor selected**: Include packages where the new minor version differs (but major is the same).
 - **Patch selected**: Include packages where only the patch version differs.
 - **None selected**: If no version types are selected, default to including all (major, minor, and patch).
-- **Skip .0 patches**: A modifier applied on top of the selected version filters. If the latest version has patch=0 and minor>0 (e.g. `2.1.0`), skip it — wait for `x.y.1+`. Do **not** apply this filter to `x.0.0` releases (e.g. `3.0.0`) — those are governed by the Major filter. This modifier only activates when a Patch-type update would otherwise be applied.
+- **Skip .0 patches**: A modifier applied on top of the selected version filters. If the latest version has patch=0 and minor>0 (e.g. `2.1.0`), skip it — wait for `x.y.1+`. Do **not** apply this filter to `x.0.0` releases (e.g. `3.0.0`) — those are governed by the Major filter. This modifier only activates when a Patch-type update would otherwise be applied. Note: for packages where `major=0` (pre-1.0), treat this filter with caution — in semver, breaking changes in pre-1.0 packages may increment minor rather than major, so `0.y.0` releases may be significant.
 
 **Security fixes path:**
 - Run `$PM audit` to identify vulnerable packages.

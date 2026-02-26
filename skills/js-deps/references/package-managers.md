@@ -54,7 +54,7 @@ Use `$PM` as the detected package manager throughout the workflow.
 |---------|---------|
 | npm | `npm outdated` |
 | yarn 1.x | `yarn outdated` |
-| yarn 2+/berry | `yarn upgrade-interactive` (interactive) or `yarn up --dry-run` |
+| yarn 2+/berry | `yarn outdated` (v4+) or `yarn upgrade-interactive` (interactive, v2+); v2/v3 have no non-interactive outdated report |
 | pnpm | `pnpm outdated` |
 | bun | `bun outdated` |
 

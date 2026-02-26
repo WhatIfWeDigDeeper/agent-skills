@@ -59,7 +59,7 @@ This skill targets `pyproject.toml`-based projects managed by uv. Projects using
 
 Find all directories containing `pyproject.toml` within `$WORKTREE_PATH` with a `[project.dependencies]`, `[project.optional-dependencies]`, or `[dependency-groups]` section, excluding `.venv`, `.tox`, `build`, and `dist` directories. Store results as an array of directories to process. If none found, report to user and skip to cleanup.
 
-For **uv workspaces** (root `pyproject.toml` contains `[tool.uv.workspace]`): treat the workspace root as the single project directory and do not process member subdirectories individually — the root `uv.lock` covers all members. Run `uv sync` and `uv lock` from the workspace root only. To identify workspace members to exclude: after the initial glob, if the root `pyproject.toml` contains `[tool.uv.workspace]`, remove any discovered paths whose `pyproject.toml` is listed under `[tool.uv.workspace.members]` (match by directory path), keeping only the workspace root in the `$DISCOVERED_DIRS` array.
+For **uv workspaces** (root `pyproject.toml` contains `[tool.uv.workspace]`): treat the workspace root as the single project directory and do not process member subdirectories individually — the root `uv.lock` covers all members. Run `uv sync` and `uv lock` from the workspace root only. To identify workspace members to exclude: after the initial glob, if the root `pyproject.toml` contains `[tool.uv.workspace]`, remove member directories from the discovered list, keeping only the workspace root in the `$DISCOVERED_DIRS` array. Note: `members` entries are glob patterns (e.g. `packages/*`), not literal paths — expand them to concrete paths before matching (e.g. `python3 -c "import glob, os; [print(p) for g in members for p in glob.glob(g, root_dir='$WORKTREE_PATH')]"` or run `uv workspace list --no-sync` from the root to enumerate members).
 
 ### 4. Sync Dependencies
 
@@ -84,7 +84,7 @@ See [references/uv-commands.md](references/uv-commands.md) for full command refe
 
 ### 6. Validate Changes
 
-Detect available validators by checking `pyproject.toml` for `mypy`, `ruff`, and `pytest` in any dependency section. Run whichever are present via `uv run` (see [references/uv-commands.md](references/uv-commands.md) for commands). Prefer project task runners (Makefile, tox, nox) if present.
+Detect available validators by checking `pyproject.toml` for `mypy`, `ruff`, and `pytest` in any dependency section. Run whichever are present via `uv run` (see [references/uv-commands.md](references/uv-commands.md) for commands). Prefer project task runners if present — check for `Makefile`, `tox.ini`, or `noxfile.py` files in the project directory (not just `pyproject.toml`).
 
 - **On overall validation failure**: continue running validation to collect all errors before reporting
 - **On per-package failure after update**: revert that package before continuing with the next package (revert commands below)
@@ -109,16 +109,19 @@ if git diff HEAD --quiet -- '*.toml' '*.lock' 2>/dev/null; then
   # skip to cleanup
 else
   # Stage all modified pyproject.toml files (root and workspace members)
-  # Use 'git diff HEAD' to capture both staged and unstaged changes
+  # 'git diff HEAD --name-only' covers both root and subdirectory files
   git diff HEAD --name-only | grep 'pyproject\.toml$' | xargs git add 2>/dev/null || true
-  git add pyproject.toml 2>/dev/null || true  # ensure root is staged
 
   # Stage uv.lock files only if already tracked in git (root and per-subdirectory)
   git diff HEAD --name-only | grep 'uv\.lock$' | while read -r lockfile; do
     git ls-files --error-unmatch "$lockfile" > /dev/null 2>&1 && git add "$lockfile" || true
   done
 
-  git commit -m "<commit message from workflow>"
+  # Select commit message based on workflow type:
+  #   Security audit:    fix: patch vulnerable Python dependencies
+  #   Dependency update: chore: update Python dependencies
+  COMMIT_MSG="<select from above>"
+  git commit -m "$COMMIT_MSG"
   # If commit fails due to GPG keyring access, retry with --no-gpg-sign
 fi
 ```

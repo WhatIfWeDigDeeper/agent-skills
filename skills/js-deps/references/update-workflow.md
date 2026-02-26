@@ -12,6 +12,8 @@ Ensure dependencies are installed first (SKILL.md step 5) so that `$PM outdated`
 
 Run the outdated check to get a list of packages to update. See [package-managers.md](package-managers.md) for the correct command per package manager.
 
+**Note for npm monorepos:** If the root `package.json` has a `workspaces` field, run `npm outdated --workspaces` from the root instead of checking member directories individually.
+
 Filter the results based on any version preferences expressed by the user — whether from the interactive help flow or from inline request phrasing (e.g., "only patch updates", "skip major versions").
 
 ### Check and Update Versions
@@ -38,16 +40,27 @@ Use the install command from the **Install/Update** table in [package-managers.m
 After updating, check for new vulnerabilities:
 ```bash
 $PM audit
-npm audit fix  # npm only — do not run for yarn, pnpm, or bun
+# Run auto-fix if available for the detected package manager:
+if [ "$PM" = "npm" ]; then
+  npm audit fix
+elif [ "$PM" = "pnpm" ]; then
+  pnpm audit --fix  # pnpm 8+ only; older pnpm requires manual fixes
+fi
+# yarn does not support audit fix; bun does not support audit
 ```
 
-For yarn and pnpm: `audit fix` is not available — fix remaining vulnerabilities manually using the steps in [audit-workflow.md](audit-workflow.md). Note: bun does not support audit at all; skip this step when using bun.
+For yarn: `audit fix` is not available — fix remaining vulnerabilities manually using the steps in [audit-workflow.md](audit-workflow.md). Note: bun does not support audit at all; skip this step when using bun.
 
 ## Handle Results
 
 ### On Success
 
-1. Create commit with version changes
+1. Commit changes:
+   ```bash
+   git -C "$WORKTREE_PATH" add -A
+   git -C "$WORKTREE_PATH" commit -m "chore: update dependencies"
+   # If commit fails due to GPG signing, retry with --no-gpg-sign
+   ```
 2. Push branch to remote:
    ```bash
    git push -u origin "$BRANCH_NAME"

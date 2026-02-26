@@ -17,6 +17,8 @@ Note: bun does not support audit. If using bun, skip audit and inform user.
 
 **Note:** Installation (SKILL.md step 5) is not required before running `$PM audit` — the audit reads from lock files and package.json, not `node_modules`.
 
+**Note for npm monorepos:** If the root `package.json` has a `workspaces` field, run `npm audit --workspaces` from the root instead of auditing member directories individually.
+
 Collect all audit results into a consolidated report.
 
 ### Scope to Requested Packages
@@ -56,6 +58,8 @@ npm audit fix
 ```
 This handles transitive dependency chains automatically. Only proceed to manual updates below if `npm audit fix` reports remaining vulnerabilities.
 
+> **Note:** `npm audit fix` fixes all vulnerabilities regardless of `$ARGUMENTS` scope. If specific packages were requested, verify afterwards that only those packages were modified and revert any unintended changes using the revert block in SKILL.md step 7.
+
 For pnpm 8+, automated fix is also available:
 ```bash
 cd "$WORKTREE_PATH/<directory>"
@@ -63,6 +67,8 @@ pnpm audit --fix
 ```
 
 For yarn and older pnpm, proceed directly to manual updates below.
+
+#### Fallback: Manual Updates
 
 For each vulnerable package in each directory, use the appropriate install command from [package-managers.md](package-managers.md):
 ```bash
@@ -92,7 +98,12 @@ Compare before/after vulnerability counts per directory.
 ### On Success
 
 1. Generate consolidated security report
-2. Create commit with security fixes
+2. Commit changes:
+   ```bash
+   git -C "$WORKTREE_PATH" add -A
+   git -C "$WORKTREE_PATH" commit -m "fix: resolve security vulnerabilities"
+   # If commit fails due to GPG signing, retry with --no-gpg-sign
+   ```
 3. Push branch to remote:
    ```bash
    git push -u origin "$BRANCH_NAME"

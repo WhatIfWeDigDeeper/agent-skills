@@ -27,7 +27,7 @@ Use `multiSelect: false`.
 
 ## Question 2a: Update filters (if "Update dependencies" was selected)
 
-Use `multiSelect: true`. Only selected version types are included in the update.
+Use `multiSelect: true`. Only selected version types are included in the update. If no version types are selected (Major/Minor/Patch all unselected), all version types will be included by default.
 
 | Option | Description |
 |--------|-------------|

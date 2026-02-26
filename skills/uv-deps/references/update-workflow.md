@@ -27,7 +27,7 @@ Compare each outdated package's current and latest versions to determine its upd
 - **Major selected**: Include packages where the new major version differs from the current.
 - **Minor selected**: Include packages where the new minor version differs (major is the same).
 - **Patch selected**: Include packages where only the patch version differs.
-- **None selected**: Default to including all (major, minor, and patch).
+- **None of Major/Minor/Patch selected**: Default to including all version types. The "Skip x.y.0" option is an independent modifier and applies regardless of which version types are selected.
 - **Skip x.y.0 releases**: If the latest version has patch=0 **and minor>0** (e.g. `2.1.0`), skip it — wait for `x.y.1+`. Do **not** apply this filter to `x.0.0` major releases (e.g. `3.0.0`) — those are governed by the Major filter.
 
   Implementation check:
@@ -116,11 +116,11 @@ Report a clean/vulnerable summary (e.g. "0 vulnerabilities" or "2 vulnerabilitie
    ```bash
    git push -u origin "$BRANCH_NAME"
    ```
-3. Check for existing dependency update PRs:
+3. Check for existing dependency update PRs on this branch:
    ```bash
-   gh pr list --search "chore: update Python dependencies" --state open
+   gh pr list --head "$BRANCH_NAME" --state open
    ```
-   If an open PR exists for this branch (`$BRANCH_NAME`), update it with `gh pr edit` instead of creating a new one. If it's on a different branch, create a new PR as usual.
+   If an open PR exists for this branch, update it with `gh pr edit` instead of creating a new one.
 4. Create PR using gh CLI. Write the PR body to a temp file first (subshell heredocs `$(cat <<'EOF'...)` fail in sandbox):
    ```bash
    BODY_FILE=$(mktemp)

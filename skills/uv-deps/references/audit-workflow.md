@@ -33,7 +33,21 @@ fi
 
 `uv export` includes hashes by default, which satisfies pip-audit's hash requirement. `2>/dev/null` drops remaining pip-audit progress noise. pip-audit exits 1 if vulnerabilities are found, 0 if the environment is clean. `uv export --frozen` requires a `uv.lock` to exist — this is ensured by running `uv sync` in SKILL.md step 4.
 
-> **Note on `--strict`:** This flag causes pip-audit to exit non-zero on warnings (e.g., packages with no OSV/PyPI safety DB entry). If the audit exits non-zero but `VULN_JSON` parses as empty, the warning above will fire. As a fallback, retry without `--strict` to distinguish true vulnerabilities from database-coverage warnings.
+> **Note on `--strict`:** This flag causes pip-audit to exit non-zero on warnings (e.g., packages with no OSV/PyPI safety DB entry). If the audit exits non-zero but `VULN_JSON` parses as empty, the warning above will fire. Retry without `--strict` to distinguish true vulnerabilities from database-coverage warnings:
+> ```bash
+> AUDIT_JSON=$(uv export --frozen | uvx pip-audit --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+> AUDIT_EXIT=$?
+> VULN_JSON=$(echo "$AUDIT_JSON" | python3 -c "
+> import json, sys
+> try:
+>     data = json.load(sys.stdin)
+>     vulns = [d for d in data['dependencies'] if d['vulns']]
+>     print(json.dumps(vulns, indent=2))
+> except (json.JSONDecodeError, KeyError):
+>     print('[]')
+> ")
+> ```
+> If this also exits non-zero with non-empty `VULN_JSON`, the packages have genuine vulnerabilities.
 
 Use `AUDIT_EXIT` to skip further processing when a directory is clean:
 ```bash
@@ -128,9 +142,10 @@ fi
 
 `SEVERITY_MAP` is built by the GHSA lookup above and is ready for use here.
 
-Capture the original vulnerability count before making any fixes:
+Capture the vulnerability count within the selected filter before making any fixes:
 ```bash
-ORIGINAL_COUNT=$(echo "$VULN_JSON" | python3 -c "
+# TARGET_COUNT: count of vulnerabilities matching the selected severity filter (not total audit count)
+TARGET_COUNT=$(echo "$VULN_JSON" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 print(sum(len(p['vulns']) for p in data))
@@ -141,10 +156,16 @@ print(sum(len(p['vulns']) for p in data))
 
 Always update packages **sequentially within a directory** to avoid lock file races.
 
-Parallelize **across directories** only: if multiple directories have vulnerabilities, launch a separate Task subagent (general-purpose, background) per directory. Each subagent handles package updates and validation for its directory only — **do not commit from subagents**. The main agent commits all changes after all subagents complete. Include `ORIGINAL_COUNT`, `WORKTREE_PATH`, and `BRANCH_NAME` in each subagent's task prompt so it can run the post-audit scan and report progress.
+Parallelize **across directories** only: if multiple directories have vulnerabilities, launch a separate Task subagent (general-purpose, background) per directory. Each subagent handles package updates and validation for its directory only — **do not commit from subagents**. The main agent commits all changes after all subagents complete. Include `TARGET_COUNT`, `WORKTREE_PATH`, `BRANCH_NAME`, and the target directory path in each subagent's task prompt.
+
+Each subagent must return a structured summary containing:
+- List of files modified (relative to `$WORKTREE_PATH`) so the main agent can stage them
+- Vulnerability counts before and after fixes
+- Packages fixed with old → new versions
+- Validation results (pass/fail per tool)
 
 When consolidating results:
-- Collect vulnerability counts (before/after), packages fixed, and validation status from each subagent
+- Use the returned file lists to stage changes: `git add <files>` before committing
 - Merge into a single report; if any subagent fails, still include partial results for the others
 
 ### Update Packages
@@ -181,7 +202,7 @@ except (json.JSONDecodeError, KeyError):
 if [ "$REMAINING" = "unknown" ]; then
   echo "Warning: re-audit output could not be parsed — fix status unknown" >&2
 else
-  echo "Fixed $((ORIGINAL_COUNT - REMAINING)) of $ORIGINAL_COUNT vulnerabilities ($REMAINING remaining)"
+  echo "Fixed $((TARGET_COUNT - REMAINING)) of $TARGET_COUNT vulnerabilities ($REMAINING remaining)"
 fi
 ```
 

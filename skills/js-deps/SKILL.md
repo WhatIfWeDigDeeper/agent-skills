@@ -55,7 +55,9 @@ Detect from lock files and `package.json` `packageManager` field (which takes pr
 
 Verify the package manager CLI is available and, for npm, that it can reach the registry. See [references/package-managers.md](references/package-managers.md) for manager-specific verification commands.
 
-If verification fails, prompt user: "Cannot reach package registry. Sandbox may be blocking network access. To allow package manager commands in sandbox mode, update settings.json."
+If verification fails, prompt user with a message appropriate to what was checked:
+- **npm or pnpm** (registry connectivity verified): "Cannot reach package registry. Sandbox may be blocking network access. To allow package manager commands in sandbox mode, update settings.json."
+- **yarn or bun** (CLI availability only): "Package manager CLI not found or not executable. Ensure yarn/bun is installed and available in PATH."
 
 Do not proceed until verification passes.
 
@@ -67,7 +69,7 @@ Find all `package.json` files within `$WORKTREE_PATH` excluding `node_modules`, 
 
 **Skip this step for security audit workflows** — `$PM audit` reads from lock files and does not require `node_modules`.
 
-For dependency update workflows only: install dependencies so that `$PM outdated` can accurately compare installed vs. registry versions. Without `node_modules`, exact-pinned packages (no `^` or `~`) won't appear in outdated reports. If `$ARGUMENTS` specifies particular packages (not `.`), only install in directories where those packages appear in `package.json`.
+For dependency update workflows only: install dependencies so that `$PM outdated` can accurately compare installed vs. registry versions. Without `node_modules`, exact-pinned packages (no `^` or `~`) won't appear in outdated reports. If `$ARGUMENTS` specifies particular packages (not `.`), only install in directories where those packages appear in `package.json`. Check `dependencies`, `devDependencies`, `optionalDependencies`, and `peerDependencies` fields when scanning for package presence. For glob arguments, expand against all four fields before filtering directories.
 
 ### 6. Identify Packages
 
