@@ -67,6 +67,6 @@ Detect available tools from `pyproject.toml` dependencies and run via `uv run`:
 | `uv run ruff check <paths>` | ruff | Linting and formatting checks |
 | `uv run pytest` | pytest | Unit and integration tests |
 
-Determine `<paths>` by checking `pyproject.toml` tool config sections (e.g., `[tool.mypy]` `files` or `packages` key, `[tool.ruff]` `include` key). Fall back to `src/` if it exists, otherwise the project root (`.`).
+Determine `<paths>` by checking `pyproject.toml` tool config sections (e.g., `[tool.mypy]` `files` or `packages` key). For ruff, pass `.` or `src/` — ruff auto-detects project layout and the `[tool.ruff]` `include` key is a glob pattern list, not a directory path. Fall back to `src/` if it exists, otherwise the project root (`.`).
 
 If the project uses a task runner (e.g., `Makefile`, `tox.ini`, `noxfile.py`, or `[project.scripts]` in pyproject.toml), prefer those instead.

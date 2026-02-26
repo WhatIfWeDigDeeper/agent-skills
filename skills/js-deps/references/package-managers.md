@@ -15,7 +15,8 @@ Check in this order (first match wins):
 
 | Lock file | Package manager |
 |-----------|-----------------|
-| `bun.lockb` | bun |
+| `bun.lock` | bun (Bun 1.1+, plain text) |
+| `bun.lockb` | bun (legacy binary format) |
 | `pnpm-lock.yaml` | pnpm |
 | `yarn.lock` | yarn |
 | `package-lock.json` | npm |
@@ -31,8 +32,8 @@ Use `$PM` as the detected package manager throughout the workflow.
 | Manager | Command | Verifies |
 |---------|---------|----------|
 | npm | `npm ping` | Registry connectivity |
-| yarn | `yarn info yarn version` | CLI + registry connectivity |
-| pnpm | `pnpm view pnpm version` | CLI + registry connectivity |
+| yarn | `yarn --version` | CLI availability |
+| pnpm | `pnpm ping` | CLI + registry connectivity |
 | bun | `bun --version` | CLI only (no registry ping) |
 
 ### Audit
@@ -41,8 +42,10 @@ Use `$PM` as the detected package manager throughout the workflow.
 |---------|---------|-------------|
 | npm | `npm audit` | `npm audit --json` |
 | npm | `npm audit fix` | _(auto-fixes; no JSON mode)_ |
-| yarn | `yarn audit` | `yarn audit --json` |
+| yarn 1.x | `yarn audit` | `yarn audit --json` |
+| yarn 2+/berry | `yarn npm audit` | `yarn npm audit --json` |
 | pnpm | `pnpm audit` | `pnpm audit --json` |
+| pnpm 8+ | `pnpm audit --fix` | _(auto-fixes; no JSON mode)_ |
 | bun | Not supported | - |
 
 ### Check Outdated Packages
@@ -50,7 +53,8 @@ Use `$PM` as the detected package manager throughout the workflow.
 | Manager | Command |
 |---------|---------|
 | npm | `npm outdated` |
-| yarn | `yarn outdated` |
+| yarn 1.x | `yarn outdated` |
+| yarn 2+/berry | `yarn outdated` (v4+) or `yarn upgrade-interactive` (interactive, v2+); v2/v3 have no non-interactive outdated report |
 | pnpm | `pnpm outdated` |
 | bun | `bun outdated` |
 
@@ -59,9 +63,10 @@ Use `$PM` as the detected package manager throughout the workflow.
 | Manager | Latest version | Dist tags |
 |---------|----------------|-----------|
 | npm | `npm view <pkg> version` | `npm view <pkg> dist-tags` |
-| yarn | `yarn info <pkg> version` | `yarn info <pkg> dist-tags` |
+| yarn 1.x | `yarn info <pkg> version` | `yarn info <pkg> dist-tags` |
+| yarn 2+/berry | `yarn info <pkg> --json` | `yarn info <pkg> --json` |
 | pnpm | `pnpm view <pkg> version` | `pnpm view <pkg> dist-tags` |
-| bun | `bunx npm-view <pkg> version` | - |
+| bun | `bunx npm-view <pkg> version` | - (not supported natively) |
 
 ### Install/Update Package
 

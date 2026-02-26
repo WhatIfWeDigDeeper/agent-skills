@@ -27,7 +27,7 @@ Use `multiSelect: false`.
 
 ## Question 2a: Update filters (if "Update dependencies" was selected)
 
-Use `multiSelect: true`. Only selected version types are included in the update.
+Use `multiSelect: true`. Only selected version types are included in the update. If no version types are selected (Major/Minor/Patch all unselected), all version types will be included by default.
 
 | Option | Description |
 |--------|-------------|
@@ -47,6 +47,8 @@ Use `multiSelect: true`. Select one or more severity levels to filter. Leave all
 | High | Include high severity vulnerabilities |
 | Moderate | Include moderate/low severity vulnerabilities |
 
+**Resolution rule:** If "All vulnerabilities" is selected, ignore any other severity selections and treat all severities as in scope.
+
 ## After Selection
 
-If no package arguments were provided, set `$ARGUMENTS` to `.` (process all packages). Proceed with the selected workflow.
+If no package arguments were provided, treat the package scope as `.` (all packages) when executing the selected workflow. Proceed with the workflow.

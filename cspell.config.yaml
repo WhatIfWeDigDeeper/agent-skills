@@ -11,11 +11,16 @@ words:
   - heredocs
   - lockfiles
   - mktemp
+  - mypy
   - PREOF
   - pyproject
+  - PYSEC
+  - pytest
+  - REAUDIT
   - sandboxed
   - startswith
   - subshell
+  - unupgradable
   - venv
   - vulns
   - whatifwedigdeeper

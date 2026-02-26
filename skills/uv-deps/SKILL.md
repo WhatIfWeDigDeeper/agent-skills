@@ -2,11 +2,11 @@
 name: uv-deps
 description: Maintain Python packages through security audits or dependency updates using an isolated git worktree and uv. Use for security audits, CVE fixes, vulnerability checks, dependency updates, package upgrades, outdated packages, bump versions, fix Python vulnerabilities, check for Python CVEs, audit Python packages, update pyproject.toml dependencies, modernize Python deps, or when user types /uv-deps with or without specific package names or glob patterns.
 license: MIT
-compatibility: Requires git, uv, and network access to PyPI
+compatibility: Requires git, uv, python3, and network access to PyPI
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.3"
+  version: "0.4"
 ---
 
 # UV Deps
@@ -36,6 +36,8 @@ WORKTREE_PATH="${TMPDIR:-/tmp}/$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
 
+`git worktree add` writes to `$TMPDIR` and requires `dangerouslyDisableSandbox: true` (filesystem access). `gh`, `git push`, and `git commit` also require it (keyring access for auth).
+
 If `git worktree add` fails (e.g., sandbox permission error), prompt the user:
 > `git worktree` requires write access to `$TMPDIR`. Choose an option:
 > 1. Add `$TMPDIR` to your sandbox allowlist in `settings.json` (recommended)
@@ -57,14 +59,16 @@ This skill targets `pyproject.toml`-based projects managed by uv. Projects using
 
 Find all directories containing `pyproject.toml` within `$WORKTREE_PATH` with a `[project.dependencies]`, `[project.optional-dependencies]`, or `[dependency-groups]` section, excluding `.venv`, `.tox`, `build`, and `dist` directories. Store results as an array of directories to process. If none found, report to user and skip to cleanup.
 
-For **uv workspaces** (root `pyproject.toml` contains `[tool.uv.workspace]`): treat the workspace root as the single project directory and do not process member subdirectories individually — the root `uv.lock` covers all members. Run `uv sync` and `uv lock` from the workspace root only.
+For **uv workspaces** (root `pyproject.toml` contains `[tool.uv.workspace]`): treat the workspace root as the single project directory and do not process member subdirectories individually — the root `uv.lock` covers all members. Run `uv sync` and `uv lock` from the workspace root only. To identify workspace members to exclude: after the initial glob, if the root `pyproject.toml` contains `[tool.uv.workspace]`, remove member directories from the discovered list, keeping only the workspace root in the `$DISCOVERED_DIRS` array. Note: `members` entries are glob patterns (e.g. `packages/*`), not literal paths — expand them to concrete paths before matching (e.g. `python3 -c "import glob, os; [print(p) for g in members for p in glob.glob(g, root_dir='$WORKTREE_PATH')]"` or run `uv workspace list --no-sync` from the root to enumerate members).
 
 ### 4. Sync Dependencies
 
 Sync before identifying packages so that version checks are accurate. For each discovered project directory: Check `pyproject.toml` to determine which dev dependency pattern the project uses:
-- If `[project.optional-dependencies]` has a `dev` key: use `uv sync --extra dev`
-- If `[dependency-groups]` has a `dev` key (PEP 735): use `uv sync --group dev`
+- If `[dependency-groups]` has a `dev` key (PEP 735): use `uv sync --group dev` ← preferred (newer standard)
+- Else if `[project.optional-dependencies]` has a `dev` key: use `uv sync --extra dev`
 - If neither exists: use `uv sync`
+
+If both `[dependency-groups]` and `[project.optional-dependencies]` have a `dev` key (migration scenario), prefer `[dependency-groups]` as it is the PEP 735 standard.
 
 If `uv sync` fails (e.g., resolver conflicts, missing packages, unsupported Python version), report the error, skip this project directory, and continue with the remaining directories.
 
@@ -80,7 +84,7 @@ See [references/uv-commands.md](references/uv-commands.md) for full command refe
 
 ### 6. Validate Changes
 
-Detect available validators by checking `pyproject.toml` for `mypy`, `ruff`, and `pytest` in any dependency section. Run whichever are present via `uv run` (see [references/uv-commands.md](references/uv-commands.md) for commands). Prefer project task runners (Makefile, tox, nox) if present.
+Detect available validators by checking `pyproject.toml` for `mypy`, `ruff`, and `pytest` in any dependency section. Run whichever are present via `uv run` (see [references/uv-commands.md](references/uv-commands.md) for commands). Prefer project task runners if present — check for `Makefile`, `tox.ini`, or `noxfile.py` files in the project directory (not just `pyproject.toml`).
 
 - **On overall validation failure**: continue running validation to collect all errors before reporting
 - **On per-package failure after update**: revert that package before continuing with the next package (revert commands below)
@@ -95,19 +99,31 @@ uv sync  # run from project directory
 
 ### 7. Commit Changes
 
-After all updates are validated, check whether `uv.lock` is tracked in git, then commit:
+After all updates are validated, check whether there are changes to commit, then commit:
 
 ```bash
 # Run from $WORKTREE_PATH
-# Check if uv.lock is tracked by git (if not, don't add it)
-git ls-files --error-unmatch uv.lock > /dev/null 2>&1 && UV_LOCK_TRACKED=true || UV_LOCK_TRACKED=false
+# Check if there are any changes before committing
+if git diff HEAD --quiet -- '*.toml' '*.lock' 2>/dev/null; then
+  echo "No changes to commit — all updates were reverted or no updates applied."
+  # skip to cleanup
+else
+  # Stage all modified pyproject.toml files (root and workspace members)
+  # 'git diff HEAD --name-only' covers both root and subdirectory files
+  git diff HEAD --name-only | grep 'pyproject\.toml$' | xargs git add 2>/dev/null || true
 
-git add pyproject.toml
-[ "$UV_LOCK_TRACKED" = "true" ] && git add uv.lock
-# For workspaces, also stage any changed member pyproject.toml files
-git diff --name-only | grep 'pyproject\.toml$' | xargs git add 2>/dev/null || true
-git commit -m "<commit message from workflow>"
-# If commit fails due to GPG keyring access, retry with --no-gpg-sign
+  # Stage uv.lock files only if already tracked in git (root and per-subdirectory)
+  git diff HEAD --name-only | grep 'uv\.lock$' | while read -r lockfile; do
+    git ls-files --error-unmatch "$lockfile" > /dev/null 2>&1 && git add "$lockfile" || true
+  done
+
+  # Select commit message based on workflow type:
+  #   Security audit:    fix: patch vulnerable Python dependencies
+  #   Dependency update: chore: update Python dependencies
+  COMMIT_MSG="<select from above>"
+  git commit -m "$COMMIT_MSG"
+  # If commit fails due to GPG keyring access, retry with --no-gpg-sign
+fi
 ```
 
 Commit message format:
@@ -121,9 +137,14 @@ Remove the worktree. The main working directory was never modified, so no stash 
 ```bash
 git worktree remove "$WORKTREE_PATH" --force
 # Only delete branch if no PR was created (requires dangerouslyDisableSandbox: true)
+# If gh fails (network issue, sandbox, etc.), PR_URL will be empty — preserve branch on ambiguity
 PR_URL=$(gh pr list --head "$BRANCH_NAME" --json url --jq '.[0].url' 2>/dev/null)
-if [ -z "$PR_URL" ]; then
+GH_EXIT=$?
+if [ $GH_EXIT -eq 0 ] && [ -z "$PR_URL" ]; then
+  # gh succeeded and returned no PR — safe to delete
   git branch -d "$BRANCH_NAME" 2>/dev/null || git branch -D "$BRANCH_NAME"
+else
+  echo "Branch '$BRANCH_NAME' preserved (PR exists or gh check was inconclusive)."
 fi
 ```
 

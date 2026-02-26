@@ -12,19 +12,25 @@ Ensure dependencies are installed first (SKILL.md step 5) so that `$PM outdated`
 
 Run the outdated check to get a list of packages to update. See [package-managers.md](package-managers.md) for the correct command per package manager.
 
-Filter the results based on the version types selected by the user (major/minor/patch) if `help`/options were used.
+**Note for npm monorepos:** If the root `package.json` has a `workspaces` field, run `npm outdated --workspaces` from the root instead of checking member directories individually.
+
+Filter the results based on any version preferences expressed by the user — whether from the interactive help flow or from inline request phrasing (e.g., "only patch updates", "skip major versions").
 
 ### Check and Update Versions
 
 Use the appropriate commands for your package manager (see [package-managers.md](package-managers.md)):
 
 ```bash
-# Check latest version
-$PM view <package> version   # npm, pnpm, yarn
-bunx npm-view <package> version  # bun
+# Check latest version — command differs by package manager (see package-managers.md View table)
+npm view <package> version           # npm
+yarn info <package> version          # yarn 1.x (use 'yarn info <pkg> --json' for yarn 2+)
+pnpm view <package> version          # pnpm
+bunx npm-view <package> version      # bun
 
-# Prefer LTS when available
-$PM view <package> dist-tags  # npm, pnpm, yarn
+# Prefer LTS when available (dist-tags not supported by bun natively)
+npm view <package> dist-tags         # npm
+yarn info <package> dist-tags        # yarn 1.x
+pnpm view <package> dist-tags        # pnpm
 ```
 
 Use the install command from the **Install/Update** table in [package-managers.md](package-managers.md) — the command verb differs by manager (`npm install` vs `yarn/pnpm/bun add`).
@@ -34,25 +40,32 @@ Use the install command from the **Install/Update** table in [package-managers.m
 After updating, check for new vulnerabilities:
 ```bash
 $PM audit
-$PM audit fix  # npm only
+# Run auto-fix if available for the detected package manager:
+if [ "$PM" = "npm" ]; then
+  npm audit fix
+elif [ "$PM" = "pnpm" ]; then
+  pnpm audit --fix  # pnpm 8+ only; older pnpm requires manual fixes
+fi
+# yarn does not support audit fix; bun does not support audit
 ```
 
-For yarn, pnpm, and bun: `audit fix` is not available — fix remaining vulnerabilities manually using the steps in [audit-workflow.md](audit-workflow.md). Note: bun does not support audit at all; skip this step when using bun.
+For yarn: `audit fix` is not available — fix remaining vulnerabilities manually using the steps in [audit-workflow.md](audit-workflow.md). Note: bun does not support audit at all; skip this step when using bun.
 
 ## Handle Results
 
 ### On Success
 
-1. Create commit with version changes
+1. Commit changes:
+   ```bash
+   git -C "$WORKTREE_PATH" add -A
+   git -C "$WORKTREE_PATH" commit -m "chore: update dependencies"
+   # If commit fails due to GPG signing, retry with --no-gpg-sign
+   ```
 2. Push branch to remote:
    ```bash
    git push -u origin "$BRANCH_NAME"
    ```
-3. Check for existing dependency update PRs:
-   ```bash
-   gh pr list --search "chore: update dependencies" --state open
-   ```
-4. Create PR using gh CLI. Write the PR body to a temp file first (heredocs may fail in sandboxed environments):
+3. Create PR using gh CLI. Write the PR body to a temp file first (heredocs may fail in sandboxed environments):
    ```bash
    BODY_FILE=$(mktemp)
    cat > "$BODY_FILE" << 'PREOF'
@@ -76,7 +89,7 @@ For yarn, pnpm, and bun: `audit fix` is not available — fix remaining vulnerab
    gh pr create --title "chore: update dependencies" --body-file "$BODY_FILE"
    rm -f "$BODY_FILE"
    ```
-5. Return the PR URL to the user
+4. Return the PR URL to the user
 
 ### On Failure
 

@@ -8,13 +8,16 @@ Use the detected `$PM` package manager for all commands. See [package-managers.m
 
 For each directory containing package.json:
 ```bash
-cd <directory>
-$PM audit --json > audit-report-<dir-name>.json
+cd "$WORKTREE_PATH/<directory>"
+AUDIT_JSON=$($PM audit --json 2>/dev/null)
+# Write to temp file if you need to inspect: echo "$AUDIT_JSON" > "$TMPDIR/audit-report-<dir-name>.json"
 ```
 
 Note: bun does not support audit. If using bun, skip audit and inform user.
 
 **Note:** Installation (SKILL.md step 5) is not required before running `$PM audit` — the audit reads from lock files and package.json, not `node_modules`.
+
+**Note for npm monorepos:** If the root `package.json` has a `workspaces` field, run `npm audit --workspaces` from the root instead of auditing member directories individually.
 
 Collect all audit results into a consolidated report.
 
@@ -46,19 +49,34 @@ When consolidating results:
 
 ### Update Packages
 
-#### Preferred: Use audit fix (npm only)
+#### Preferred: Use audit fix (npm and pnpm 8+)
 
 For npm, try automated fix first:
 ```bash
+cd "$WORKTREE_PATH/<directory>"
 npm audit fix
 ```
-This handles transitive dependency chains automatically. Only proceed to manual updates below if `npm audit fix` reports remaining vulnerabilities or if using yarn/pnpm/bun.
+This handles transitive dependency chains automatically. Only proceed to manual updates below if `npm audit fix` reports remaining vulnerabilities.
+
+> **Note:** `npm audit fix` fixes all vulnerabilities regardless of `$ARGUMENTS` scope. If specific packages were requested, verify afterwards that only those packages were modified and revert any unintended changes using the revert block in SKILL.md step 7.
+
+For pnpm 8+, automated fix is also available:
+```bash
+cd "$WORKTREE_PATH/<directory>"
+pnpm audit --fix
+```
+
+For yarn and older pnpm, proceed directly to manual updates below.
+
+#### Fallback: Manual Updates
 
 For each vulnerable package in each directory, use the appropriate install command from [package-managers.md](package-managers.md):
 ```bash
-cd <directory>
-$PM install <package>@<patched-version>  # npm
-$PM add <package>@<patched-version>      # yarn, pnpm, bun
+cd "$WORKTREE_PATH/<directory>"
+# npm:
+npm install <package>@<patched-version>
+# yarn, pnpm, bun:
+$PM add <package>@<patched-version>
 ```
 
 Use the minimum patched version from the audit report's `fixAvailable.version` field. Only fall back to `@latest` if the audit report explicitly recommends it as the fix.
@@ -69,7 +87,7 @@ Validate after each update per SKILL.md step 7.
 
 For each directory:
 ```bash
-cd <directory>
+cd "$WORKTREE_PATH/<directory>"
 $PM audit
 ```
 
@@ -80,7 +98,12 @@ Compare before/after vulnerability counts per directory.
 ### On Success
 
 1. Generate consolidated security report
-2. Create commit with security fixes
+2. Commit changes:
+   ```bash
+   git -C "$WORKTREE_PATH" add -A
+   git -C "$WORKTREE_PATH" commit -m "fix: resolve security vulnerabilities"
+   # If commit fails due to GPG signing, retry with --no-gpg-sign
+   ```
 3. Push branch to remote:
    ```bash
    git push -u origin "$BRANCH_NAME"
@@ -106,7 +129,7 @@ Compare before/after vulnerability counts per directory.
 
    Generated with [Claude Code](https://claude.com/claude-code)
    PREOF
-   gh pr create --title "fix: Security audit fixes" --body-file "$BODY_FILE"
+   gh pr create --title "fix: resolve security vulnerabilities" --body-file "$BODY_FILE"
    rm -f "$BODY_FILE"
    ```
 5. Return the PR URL to the user
@@ -121,7 +144,7 @@ Compare before/after vulnerability counts per directory.
 
 When transitive dependencies have vulnerabilities that no direct dependency update can resolve:
 
-1. Check if the project uses `audit-ci` or similar CI audit tools (look for `.auditconfig.json` or audit scripts in `package.json`)
+1. Check if the project uses `audit-ci` or similar CI audit tools (look for `audit-ci.json`, `audit-ci.jsonc`, or audit scripts in `package.json`)
 2. If so, add the advisory ID (e.g., `GHSA-xxxx-xxxx-xxxx`) to the `allowlist` array in each package's audit config
 3. Document the upstream blockers in the PR description — list which packages hold the vulnerable transitive dependency and why no fix is available
 4. Include the allowlist change in the same commit/PR as the fixable updates
