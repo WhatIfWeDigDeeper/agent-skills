@@ -15,7 +15,8 @@ Check in this order (first match wins):
 
 | Lock file | Package manager |
 |-----------|-----------------|
-| `bun.lockb` | bun |
+| `bun.lock` | bun (Bun 1.1+, plain text) |
+| `bun.lockb` | bun (legacy binary format) |
 | `pnpm-lock.yaml` | pnpm |
 | `yarn.lock` | yarn |
 | `package-lock.json` | npm |
@@ -31,8 +32,8 @@ Use `$PM` as the detected package manager throughout the workflow.
 | Manager | Command | Verifies |
 |---------|---------|----------|
 | npm | `npm ping` | Registry connectivity |
-| yarn | `yarn info yarn version` | CLI + registry connectivity |
-| pnpm | `pnpm view pnpm version` | CLI + registry connectivity |
+| yarn | `yarn --version` | CLI availability |
+| pnpm | `pnpm ping` | CLI + registry connectivity |
 | bun | `bun --version` | CLI only (no registry ping) |
 
 ### Audit
@@ -50,7 +51,8 @@ Use `$PM` as the detected package manager throughout the workflow.
 | Manager | Command |
 |---------|---------|
 | npm | `npm outdated` |
-| yarn | `yarn outdated` |
+| yarn 1.x | `yarn outdated` |
+| yarn 2+/berry | `yarn upgrade-interactive` (interactive) or `yarn up --dry-run` |
 | pnpm | `pnpm outdated` |
 | bun | `bun outdated` |
 
@@ -59,9 +61,10 @@ Use `$PM` as the detected package manager throughout the workflow.
 | Manager | Latest version | Dist tags |
 |---------|----------------|-----------|
 | npm | `npm view <pkg> version` | `npm view <pkg> dist-tags` |
-| yarn | `yarn info <pkg> version` | `yarn info <pkg> dist-tags` |
+| yarn 1.x | `yarn info <pkg> version` | `yarn info <pkg> dist-tags` |
+| yarn 2+/berry | `yarn info <pkg> --json` | `yarn info <pkg> --json` |
 | pnpm | `pnpm view <pkg> version` | `pnpm view <pkg> dist-tags` |
-| bun | `bunx npm-view <pkg> version` | - |
+| bun | `bunx npm-view <pkg> version` | - (not supported natively) |
 
 ### Install/Update Package
 

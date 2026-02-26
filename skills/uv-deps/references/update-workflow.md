@@ -7,9 +7,11 @@ Use `uv` for all commands. See [uv-commands.md](uv-commands.md) for command refe
 ### Check Outdated Packages
 
 ```bash
-cd <directory>
+cd "$WORKTREE_PATH/<directory>"
 uv pip list --outdated
 ```
+
+> **Prerequisite:** `uv sync` must have run first (SKILL.md step 4) so the environment is populated and `uv pip list --outdated` can compare installed vs. PyPI versions.
 
 > **Note:** `uv pip list --outdated` compares installed versions to PyPI latest and does not account for version range constraints in `pyproject.toml`. A package may appear outdated but be unupgradable given its constraints — the update step handles this.
 
@@ -26,7 +28,17 @@ Compare each outdated package's current and latest versions to determine its upd
 - **Minor selected**: Include packages where the new minor version differs (major is the same).
 - **Patch selected**: Include packages where only the patch version differs.
 - **None selected**: Default to including all (major, minor, and patch).
-- **Skip x.y.0 releases**: If the latest version has patch=0 (e.g. `2.1.0`, `3.0.0`), skip it and keep the current version — wait for the first bugfix release (x.y.1+).
+- **Skip x.y.0 releases**: If the latest version has patch=0 **and minor>0** (e.g. `2.1.0`), skip it — wait for `x.y.1+`. Do **not** apply this filter to `x.0.0` major releases (e.g. `3.0.0`) — those are governed by the Major filter.
+
+  Implementation check:
+  ```python
+  # latest_version is a tuple (major, minor, patch)
+  should_skip = (
+      skip_x_y_0_selected
+      and latest_version[2] == 0   # patch is 0
+      and latest_version[1] > 0    # minor > 0 (not a major release)
+  )
+  ```
 
 ### Determine Strategy
 
@@ -41,11 +53,11 @@ If multiple directories have outdated packages, process them in parallel using s
 Update both pyproject.toml and the lockfile. First, check the project's existing version specifier style in `pyproject.toml`:
 
 - **Exact pins** (`==1.2.3`): Use `uv add <pkg>==<latest_version>`
-- **Range constraints** (`>=1.2,<2.0` or `~=1.2`): Edit `pyproject.toml` manually to update the range bounds, then run `uv lock --upgrade-package <pkg>` and `uv sync`
+- **Range constraints** (`>=1.2,<2.0` or `~=1.2`): Edit `pyproject.toml` using file editing tools to update the range bounds, then run `uv lock --upgrade-package <pkg>` and `uv sync`
 - **Unpinned** (`requests` with no specifier): Use `uv add <pkg>` (no version) to pull latest and let uv resolve
 
 ```bash
-cd <directory>
+cd "$WORKTREE_PATH/<directory>"
 
 # Check latest version
 uv index versions <package>
@@ -87,7 +99,7 @@ For uv workspaces (`[tool.uv.workspace]` in root `pyproject.toml`), run all `uv 
 
 After updating, check for new vulnerabilities (see [uv-commands.md](uv-commands.md) for details on this pattern):
 ```bash
-cd <directory>
+cd "$WORKTREE_PATH/<directory>"
 AUDIT_JSON=$(uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
 AUDIT_EXIT=$?
 VULN_COUNT=$(echo "$AUDIT_JSON" | python3 -c "import json,sys; data=json.load(sys.stdin); print(sum(len(d['vulns']) for d in data['dependencies']))" 2>/dev/null || echo "unknown")

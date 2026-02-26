@@ -6,7 +6,7 @@ compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or b
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.5"
+  version: "0.6"
 ---
 
 # JS Deps
@@ -22,6 +22,7 @@ If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [r
 Based on user request:
 - **Security audit** (audit, CVE, vulnerabilities, security): Read [references/audit-workflow.md](references/audit-workflow.md)
 - **Dependency updates** (update, upgrade, latest, modernize): Read [references/update-workflow.md](references/update-workflow.md)
+- **Ambiguous** (no clear intent, or invoked with no args and no context): Read [references/options.md](references/options.md) to present the interactive help flow.
 
 If the user expresses version preferences (e.g., "only minor and patch", "skip major versions", "only critical CVEs"), apply the filters defined in [references/options.md](references/options.md) without requiring an explicit `--help` invocation.
 
@@ -60,7 +61,7 @@ Do not proceed until verification passes.
 
 ### 4. Discover Package Locations
 
-Find all `package.json` files within `$WORKTREE_PATH` excluding `node_modules`. Store results as an array of directories to process.
+Find all `package.json` files within `$WORKTREE_PATH` excluding `node_modules`, `dist`, `.cache`, `coverage`, `.next`, and `.nuxt` directories. Store results as an array of directories to process.
 
 ### 5. Install Dependencies
 
@@ -78,6 +79,8 @@ For dependency update workflows only: install dependencies so that `$PM outdated
 
 Run validation **per directory** after each package update. Check `package.json` scripts and run available commands using `$PM run <script>` in order: build, lint, test. Skip any that don't exist.
 
+**For audit workflows only:** if `node_modules` does not exist in the directory being validated (step 5 skips installation for audits), run `$PM install` before executing validation scripts. This is a validation-only install and does not affect the audit results already collected.
+
 - **Build failure** is a hard failure: revert the package before continuing.
 - **Lint or test failure** is a soft failure: report it but continue with remaining packages.
 
@@ -86,17 +89,30 @@ Continue running all validators even on failure to collect the full error set be
 If a build fails for a specific package, revert before continuing with remaining packages:
 ```bash
 # Run from within $WORKTREE_PATH/<directory>
-git checkout -- .  # revert all tracked changes in this directory (package.json + lock file)
+# Revert only the dependency manifest and lock file — not the entire directory
+git checkout -- package.json
+# Revert the lock file for the detected package manager:
+git checkout -- package-lock.json 2>/dev/null || \
+  git checkout -- yarn.lock 2>/dev/null || \
+  git checkout -- pnpm-lock.yaml 2>/dev/null || \
+  git checkout -- bun.lock 2>/dev/null || \
+  git checkout -- bun.lockb 2>/dev/null || true
 $PM install
 ```
+
+When running parallel subagents across directories, scope all `git checkout` calls to the subagent's specific directory path (e.g., `git checkout -- <dir>/package.json <dir>/<lockfile>`) to avoid affecting sibling directories.
 
 ### 8. Update Documentation for Major Version Changes
 
 For major version upgrades (e.g., 18.x to 19.x):
 
-1. Search for version references in markdown files
-2. Update in: `CLAUDE.md`, `README.md`, `docs/*.md`
+1. Search for version references using patterns like `grep -r "v<old-major>" --include="*.md"` across `CLAUDE.md`, `README.md`, `docs/*.md`
+2. Also check the `engines` field in `package.json` (e.g., `"engines": { "node": ">=18" }`) and update if needed
 3. Include changes in report/PR description
+
+### 8.5. Commit, Push, and PR
+
+Handled by the reference workflow. See the **On Success** section of [references/audit-workflow.md](references/audit-workflow.md) or [references/update-workflow.md](references/update-workflow.md) for commit message format, push command, and PR creation steps.
 
 ### 9. Cleanup
 
@@ -104,9 +120,9 @@ Remove the worktree. The main working directory was never modified, so no stash 
 
 ```bash
 git worktree remove "$WORKTREE_PATH" --force
-# Only delete branch if no PR was created
+# Only delete branch if no PR was created (requires dangerouslyDisableSandbox: true)
 if [ -z "$(gh pr list --head "$BRANCH_NAME" --json url --jq '.[0].url' 2>/dev/null)" ]; then
-  git branch -d "$BRANCH_NAME"
+  git branch -D "$BRANCH_NAME"
 fi
 ```
 
@@ -116,6 +132,6 @@ fi
 
 - **Glob matches nothing**: Warn and list available packages
 - **Unsupported package manager**: Prompt user for guidance
-- **Peer dep conflicts after major upgrades**: When a plugin doesn't declare support for the new major version of its host (e.g., `eslint-plugin-react-hooks` not supporting eslint 10), add `"overrides"` to `package.json` rather than using `--legacy-peer-deps`. Example: `"overrides": { "eslint-plugin-react-hooks": { "eslint": "$eslint" } }`. The `$eslint` syntax references the version already declared in the package's own dependencies
+- **Peer dep conflicts after major upgrades**: When a plugin doesn't declare support for the new major version of its host (e.g., `eslint-plugin-react-hooks` not supporting eslint 10), add an override rather than using `--legacy-peer-deps`. The field name and syntax differ by package manager: npm/bun use `"overrides": { "eslint-plugin-react-hooks": { "eslint": "$eslint" } }` (the `$<pkg>` shorthand is npm-specific); yarn uses `"resolutions"`; pnpm uses `"pnpm": { "overrides": ... }`
 - **Lockfile sync**: After all package.json changes, run `$PM install` in every modified directory and commit lockfiles — CI tools like `npm ci` require exact sync between package.json and the lockfile
 - **Verify devDependencies placement**: After bulk installs across directories, verify that linting/testing/build packages (eslint, typescript, vite, etc.) ended up in `devDependencies`, not `dependencies` — easy to misplace when running install commands across many directories

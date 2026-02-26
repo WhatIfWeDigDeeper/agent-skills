@@ -47,6 +47,8 @@ Use `multiSelect: true`. Select one or more severity levels to filter. Leave all
 | High | Include high severity vulnerabilities |
 | Moderate | Include moderate/low severity vulnerabilities |
 
+**Resolution rule:** If "All vulnerabilities" is selected, ignore any other severity selections and treat all severities as in scope.
+
 ## After Selection
 
-If no package arguments were provided, set `$ARGUMENTS` to `.` (process all packages). Proceed with the selected workflow.
+If no package arguments were provided, treat the package scope as `.` (all packages) when executing the selected workflow. Proceed with the workflow.
