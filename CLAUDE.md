@@ -12,6 +12,8 @@ This is a collection of reusable skill definitions for Claude Code and other cod
 skills/
   <skill-name>/
     SKILL.md     # Skill definition with frontmatter + workflow
+specs/
+  <N>-<topic>/  # Design specs: plan.md and tasks.md for planned changes
 ```
 
 ## Skill Definition Format
@@ -69,6 +71,11 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
   # Resolve each thread
   gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'
   ```
+
+## Testing
+
+- After modifying skill and reference files run `uv run --with pytest pytest tests/` to verify changes don't break existing assertions.
+- Consider whether new tests are needed to cover the changed behavior.
 
 ## Skill Design Patterns
 

@@ -22,13 +22,13 @@ uv index versions <package>
 
 ### Apply Version Filters
 
-Compare each outdated package's current and latest versions to determine its update type, then include only packages matching the selected filters:
+Compare each outdated package's current and latest versions to determine its update type, then include only packages matching the Q2a version scope:
 
-- **Major selected**: Include packages where the new major version differs from the current.
-- **Minor selected**: Include packages where the new minor version differs (major is the same).
-- **Patch selected**: Include packages where only the patch version differs.
-- **None of Major/Minor/Patch selected**: Default to including all version types. The "Skip x.y.0" option is an independent modifier and applies regardless of which version types are selected.
-- **Skip x.y.0 releases**: If the latest version has patch=0 **and minor>0** (e.g. `2.1.0`), skip it — wait for `x.y.1+`. Do **not** apply this filter to `x.0.0` major releases (e.g. `3.0.0`) — those are governed by the Major filter.
+- **"Patch only"**: Include packages where only the patch version differs (major and minor are the same).
+- **"Patch + Minor" (default)**: Include packages where the patch or minor version differs (major is the same).
+- **"Patch + Minor + Major"**: Include all updates regardless of which version component changed.
+
+**Skip x.y.0 releases (Q3):** This option is only presented when Q2a was "Patch + Minor" or "Patch + Minor + Major" (i.e. when minor updates are in scope). If the user selected "Yes, skip x.y.0", exclude any package whose latest version has patch=0 **and minor>0** (e.g. `2.1.0`) — wait for `x.y.1+`. Do **not** apply this filter to `x.0.0` major releases (e.g. `3.0.0`).
 
   Implementation check:
   ```python

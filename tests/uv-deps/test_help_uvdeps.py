@@ -125,15 +125,15 @@ class TestInteractiveHelpStructure:
         q1_section = help_content.split("## Question 2")[0]
         assert "multiSelect: false" in q1_section
 
-    def test_q2a_is_multi_select(self, help_content):
-        """Question 2a (update filters) should use multiSelect: true."""
+    def test_q2a_is_single_select(self, help_content):
+        """Question 2a (version scope) should use multiSelect: false."""
         q2a_start = help_content.index("## Question 2a")
         q2b_start = help_content.index("## Question 2b")
         q2a_section = help_content[q2a_start:q2b_start]
-        assert "multiSelect: true" in q2a_section
+        assert "multiSelect: false" in q2a_section
 
-    def test_q2b_is_multi_select(self, help_content):
-        """Question 2b (severity filter) should use multiSelect: true."""
+    def test_q2b_is_single_select(self, help_content):
+        """Question 2b (severity scope) should use multiSelect: false."""
         q2b_start = help_content.index("## Question 2b")
         q2b_section = help_content[q2b_start:]
-        assert "multiSelect: true" in q2b_section
+        assert "multiSelect: false" in q2b_section

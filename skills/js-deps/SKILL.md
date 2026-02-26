@@ -6,7 +6,7 @@ compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or b
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.6"
+  version: "0.7"
 ---
 
 # JS Deps
@@ -15,16 +15,16 @@ metadata:
 
 Specific package names (e.g. `jest @types/jest`), `.` for all packages, or glob patterns (e.g. `@testing-library/*`).
 
-If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [references/options.md](references/options.md).
+If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [references/interactive-help.md](references/interactive-help.md).
 
 ## Workflow Selection
 
 Based on user request:
 - **Security audit** (audit, CVE, vulnerabilities, security): Read [references/audit-workflow.md](references/audit-workflow.md)
 - **Dependency updates** (update, upgrade, latest, modernize): Read [references/update-workflow.md](references/update-workflow.md)
-- **Ambiguous** (no clear intent, or invoked with no args and no context): Read [references/options.md](references/options.md) to present the interactive help flow.
+- **Ambiguous** (no clear intent, or invoked with no args and no context): Read [references/interactive-help.md](references/interactive-help.md) to present the interactive help flow.
 
-If the user expresses version preferences (e.g., "only minor and patch", "skip major versions", "only critical CVEs"), apply the filters defined in [references/options.md](references/options.md) without requiring an explicit `--help` invocation.
+If the user expresses version preferences (e.g., "only minor and patch", "skip major versions", "only critical CVEs"), apply the filters defined in [references/interactive-help.md](references/interactive-help.md) without requiring an explicit `--help` invocation.
 
 ## Shared Process
 
