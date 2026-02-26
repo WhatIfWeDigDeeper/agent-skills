@@ -43,8 +43,8 @@ Use `multiSelect: false`.
 
 | Option | Description |
 |--------|-------------|
-| Yes, skip x.y.0 — wait for x.y.1+ bug fixes (Recommended) | Skip x.y.0 releases and wait for the first bug-fix release |
-| No, include x.y.0 releases | Include x.y.0 releases as soon as they are available |
+| Yes, skip x.y.0 — wait for x.y.1+ bugfix releases (Recommended) | Skip x.y.0 releases and wait for x.y.1+ bugfix releases |
+| No, include x.y.0 releases | Include all minor releases including x.y.0 |
 
 ## Question 2b: Severity scope (if "Security fixes only" was selected)
 

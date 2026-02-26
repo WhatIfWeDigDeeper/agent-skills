@@ -2,7 +2,7 @@
 
 > **Note:** If package arguments were provided (e.g. `/js-deps react lodash`), they are already set. The workflow will target only those packages.
 
-Display the following help summary to the user, then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first.
+Display the following help summary to the user, then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first, and the third depends on the answer to the second.
 
 ---
 
@@ -67,6 +67,10 @@ The selected answers map to filter behavior as follows:
 
 **Security fixes path:**
 - Run `$PM audit` to identify vulnerable packages.
-- Filter audit results to the selected severity levels before applying fixes.
+- Apply a severity filter based on the selected option from Question 2b:
+  - **Critical + High (Recommended)**: include only Critical and High vulnerabilities.
+  - **Critical only**: include only Critical vulnerabilities.
+  - **Critical + High + Moderate**: include Critical, High, and Moderate vulnerabilities; exclude Low.
+  - **All: Critical + High + Moderate + Low**: include all vulnerabilities regardless of severity.
 
 If no package arguments were provided, treat the package scope as `.` (all packages) when executing the selected workflow. Proceed with the workflow.

@@ -29,7 +29,7 @@ Tasks 1a and 1b are independent and can be done in either order.
 
 ### Task 2a: Create `skills/js-deps/references/interactive-help.md`
 New file mirroring the uv-deps structure but adapted for JS (npm/yarn/pnpm/bun).
-- Same 3-question flow as the new uv-deps interactive-help.md
+- Same branching flow with up to 3 questions as the new uv-deps interactive-help.md
 - Swap Python/uv references for JS/package manager equivalents
 - Include the note: if package arguments were provided, they are already set
 
