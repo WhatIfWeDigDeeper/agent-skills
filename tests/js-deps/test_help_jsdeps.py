@@ -85,40 +85,40 @@ class TestHelpVsPackageParsing:
         assert result == ["help"]
 
 
-class TestOptionsFileStructure:
-    """Validate the options.md reference file has correct structure."""
+class TestInteractiveHelpStructure:
+    """Validate interactive-help.md has correct structure for AskUserQuestion."""
 
     @pytest.fixture(scope="class")
-    def options_content(self):
-        return (SKILL_DIR / "references" / "options.md").read_text()
+    def help_content(self):
+        return (SKILL_DIR / "references" / "interactive-help.md").read_text()
 
-    def test_options_file_exists(self):
-        assert (SKILL_DIR / "references" / "options.md").exists()
+    def test_file_exists(self):
+        assert (SKILL_DIR / "references" / "interactive-help.md").exists()
 
-    def test_has_question_1(self, options_content):
-        assert "## Question 1" in options_content
+    def test_has_question_1(self, help_content):
+        assert "## Question 1" in help_content
 
-    def test_has_conditional_question_2(self, options_content):
+    def test_has_conditional_questions(self, help_content):
         """js-deps has conditional Q2a and Q2b."""
-        assert "## Question 2a" in options_content
-        assert "## Question 2b" in options_content
+        assert "## Question 2a" in help_content
+        assert "## Question 2b" in help_content
 
-    def test_has_how_to_apply(self, options_content):
-        assert "## How to Apply" in options_content
+    def test_has_question_3(self, help_content):
+        """js-deps has Q3 (skip x.y.0 releases) conditional on Q2a selection."""
+        assert "## Question 3" in help_content
 
     @pytest.mark.parametrize("question_header,max_options", [
         ("## Question 1", 4),
         ("## Question 2a", 4),
         ("## Question 2b", 4),
+        ("## Question 3", 4),
     ])
-    def test_option_count_within_limit(self, options_content, question_header, max_options):
+    def test_option_count_within_limit(self, help_content, question_header, max_options):
         """Each question must have at most 4 options (AskUserQuestion limit)."""
-        # Extract section between this header and the next ## header
         pattern = re.escape(question_header) + r".*?\n(.*?)(?=\n## |\Z)"
-        match = re.search(pattern, options_content, re.DOTALL)
+        match = re.search(pattern, help_content, re.DOTALL)
         assert match, f"Could not find section {question_header}"
         section = match.group(1)
-        # Count table rows (lines starting with |, excluding header and separator)
         table_rows = [
             line for line in section.split("\n")
             if line.startswith("|") and not line.startswith("|--") and not line.startswith("| Option")
@@ -130,20 +130,27 @@ class TestOptionsFileStructure:
             f"{question_header} has {len(table_rows)} options, need at least 2"
         )
 
-    def test_q1_is_single_select(self, options_content):
+    def test_q1_is_single_select(self, help_content):
         """Question 1 should use multiSelect: false."""
-        q1_section = options_content.split("## Question 2")[0]
+        q1_section = help_content.split("## Question 2")[0]
         assert "multiSelect: false" in q1_section
 
-    def test_q2a_is_multi_select(self, options_content):
-        """Question 2a (update filters) should use multiSelect: true."""
-        q2a_start = options_content.index("## Question 2a")
-        q2b_start = options_content.index("## Question 2b")
-        q2a_section = options_content[q2a_start:q2b_start]
-        assert "multiSelect: true" in q2a_section
+    def test_q2a_is_single_select(self, help_content):
+        """Question 2a (version scope) should use multiSelect: false."""
+        q2a_start = help_content.index("## Question 2a")
+        q2b_start = help_content.index("## Question 2b")
+        q2a_section = help_content[q2a_start:q2b_start]
+        assert "multiSelect: false" in q2a_section
 
-    def test_q2b_is_multi_select(self, options_content):
-        """Question 2b (severity filter) should use multiSelect: true."""
-        q2b_start = options_content.index("## Question 2b")
-        q2b_section = options_content[q2b_start:]
-        assert "multiSelect: true" in q2b_section
+    def test_q3_is_single_select(self, help_content):
+        """Question 3 (skip x.y.0 releases) should use multiSelect: false."""
+        q3_start = help_content.index("## Question 3")
+        q2b_start = help_content.index("## Question 2b")
+        q3_section = help_content[q3_start:q2b_start]
+        assert "multiSelect: false" in q3_section
+
+    def test_q2b_is_single_select(self, help_content):
+        """Question 2b (severity scope) should use multiSelect: false."""
+        q2b_start = help_content.index("## Question 2b")
+        q2b_section = help_content[q2b_start:]
+        assert "multiSelect: false" in q2b_section
