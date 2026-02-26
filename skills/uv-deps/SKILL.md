@@ -6,7 +6,7 @@ compatibility: Requires git, uv, python3, and network access to PyPI
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.4"
+  version: "0.5"
 ---
 
 # UV Deps

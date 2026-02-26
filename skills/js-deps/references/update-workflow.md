@@ -16,6 +16,13 @@ Run the outdated check to get a list of packages to update. See [package-manager
 
 Filter the results based on any version preferences expressed by the user — whether from the interactive help flow or from inline request phrasing (e.g., "only patch updates", "skip major versions").
 
+The tiered filter model works as follows:
+
+- **"Patch only"**: include packages where only the patch version differs (major and minor are the same).
+- **"Patch + Minor"** (default): include packages where the patch or minor version differs (major is the same).
+- **"Patch + Minor + Major"**: include all packages with any version difference.
+- **Skip x.y.0**: a separate question shown only when minor updates are in scope ("Patch + Minor" or "Patch + Minor + Major"). If the latest version has patch=0 and minor>0 (e.g. `2.1.0`), skip it — wait for `x.y.1+`. Does not apply to `x.0.0` major releases (e.g. `3.0.0`); those are governed by the major version filter.
+
 ### Check and Update Versions
 
 Use the appropriate commands for your package manager (see [package-managers.md](package-managers.md)):
