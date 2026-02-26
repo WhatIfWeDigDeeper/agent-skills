@@ -57,4 +57,4 @@ Use `multiSelect: true`. Nothing selected by default means all severities are in
 **Security fixes path:**
 - Run `$PM audit` to identify vulnerable packages.
 - Filter audit results by the selected severity levels before applying fixes.
-- Use the audit fix commands from [package-managers.md](package-managers.md). For npm, `npm audit fix` can auto-remediate. For yarn and pnpm, fix manually. Bun does not support audit.
+- Use the audit fix commands from [package-managers.md](package-managers.md). For npm, `npm audit fix` can auto-remediate. For pnpm 8+, `pnpm audit --fix` can auto-remediate. For yarn and older pnpm, fix manually. Bun does not support audit.

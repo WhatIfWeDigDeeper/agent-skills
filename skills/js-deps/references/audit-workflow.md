@@ -47,14 +47,22 @@ When consolidating results:
 
 ### Update Packages
 
-#### Preferred: Use audit fix (npm only)
+#### Preferred: Use audit fix (npm and pnpm 8+)
 
 For npm, try automated fix first:
 ```bash
 cd "$WORKTREE_PATH/<directory>"
 npm audit fix
 ```
-This handles transitive dependency chains automatically. Only proceed to manual updates below if `npm audit fix` reports remaining vulnerabilities or if using yarn/pnpm/bun.
+This handles transitive dependency chains automatically. Only proceed to manual updates below if `npm audit fix` reports remaining vulnerabilities.
+
+For pnpm 8+, automated fix is also available:
+```bash
+cd "$WORKTREE_PATH/<directory>"
+pnpm audit --fix
+```
+
+For yarn and older pnpm, proceed directly to manual updates below.
 
 For each vulnerable package in each directory, use the appropriate install command from [package-managers.md](package-managers.md):
 ```bash

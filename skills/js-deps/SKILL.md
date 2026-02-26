@@ -88,19 +88,18 @@ Continue running all validators even on failure to collect the full error set be
 
 If a build fails for a specific package, revert before continuing with remaining packages:
 ```bash
-# Run from within $WORKTREE_PATH/<directory>
+# Replace <directory> with the actual path relative to $WORKTREE_PATH
+DIR="$WORKTREE_PATH/<directory>"
 # Revert only the dependency manifest and lock file — not the entire directory
-git checkout -- package.json
+git checkout -- "$DIR/package.json"
 # Revert the lock file for the detected package manager:
-git checkout -- package-lock.json 2>/dev/null || \
-  git checkout -- yarn.lock 2>/dev/null || \
-  git checkout -- pnpm-lock.yaml 2>/dev/null || \
-  git checkout -- bun.lock 2>/dev/null || \
-  git checkout -- bun.lockb 2>/dev/null || true
-$PM install
+git checkout -- "$DIR/package-lock.json" 2>/dev/null || \
+  git checkout -- "$DIR/yarn.lock" 2>/dev/null || \
+  git checkout -- "$DIR/pnpm-lock.yaml" 2>/dev/null || \
+  git checkout -- "$DIR/bun.lock" 2>/dev/null || \
+  git checkout -- "$DIR/bun.lockb" 2>/dev/null || true
+cd "$DIR" && $PM install
 ```
-
-When running parallel subagents across directories, scope all `git checkout` calls to the subagent's specific directory path (e.g., `git checkout -- <dir>/package.json <dir>/<lockfile>`) to avoid affecting sibling directories.
 
 ### 8. Update Documentation for Major Version Changes
 
@@ -110,11 +109,11 @@ For major version upgrades (e.g., 18.x to 19.x):
 2. Also check the `engines` field in `package.json` (e.g., `"engines": { "node": ">=18" }`) and update if needed
 3. Include changes in report/PR description
 
-### 8.5. Commit, Push, and PR
+### 9. Commit, Push, and PR
 
 Handled by the reference workflow. See the **On Success** section of [references/audit-workflow.md](references/audit-workflow.md) or [references/update-workflow.md](references/update-workflow.md) for commit message format, push command, and PR creation steps.
 
-### 9. Cleanup
+### 10. Cleanup
 
 Remove the worktree. The main working directory was never modified, so no stash restore is needed.
 
@@ -135,3 +134,4 @@ fi
 - **Peer dep conflicts after major upgrades**: When a plugin doesn't declare support for the new major version of its host (e.g., `eslint-plugin-react-hooks` not supporting eslint 10), add an override rather than using `--legacy-peer-deps`. The field name and syntax differ by package manager: npm/bun use `"overrides": { "eslint-plugin-react-hooks": { "eslint": "$eslint" } }` (the `$<pkg>` shorthand is npm-specific); yarn uses `"resolutions"`; pnpm uses `"pnpm": { "overrides": ... }`
 - **Lockfile sync**: After all package.json changes, run `$PM install` in every modified directory and commit lockfiles — CI tools like `npm ci` require exact sync between package.json and the lockfile
 - **Verify devDependencies placement**: After bulk installs across directories, verify that linting/testing/build packages (eslint, typescript, vite, etc.) ended up in `devDependencies`, not `dependencies` — easy to misplace when running install commands across many directories
+- **Monorepo workspace root**: If a discovered `package.json` has a `workspaces` field but no `dependencies` or `devDependencies`, it is a workspace root acting only as an orchestrator. Run `$PM audit` or `$PM outdated` from the root (which covers all workspaces) rather than processing member directories individually. For npm 7+, use `npm audit --workspaces` and `npm install --workspaces` to operate on all workspaces at once.

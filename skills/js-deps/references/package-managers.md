@@ -42,8 +42,10 @@ Use `$PM` as the detected package manager throughout the workflow.
 |---------|---------|-------------|
 | npm | `npm audit` | `npm audit --json` |
 | npm | `npm audit fix` | _(auto-fixes; no JSON mode)_ |
-| yarn | `yarn audit` | `yarn audit --json` |
+| yarn 1.x | `yarn audit` | `yarn audit --json` |
+| yarn 2+/berry | `yarn npm audit` | `yarn npm audit --json` |
 | pnpm | `pnpm audit` | `pnpm audit --json` |
+| pnpm 8+ | `pnpm audit --fix` | _(auto-fixes; no JSON mode)_ |
 | bun | Not supported | - |
 
 ### Check Outdated Packages

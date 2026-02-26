@@ -151,5 +151,5 @@ Report a clean/vulnerable summary (e.g. "0 vulnerabilities" or "2 vulnerabilitie
 
 - Categorize errors (type check/lint/test/audit)
 - Provide specific remediation steps
-- Offer options: isolate problem, revert specific updates, or abandon
-- If partially successful, still create PR with failing checks noted
+- If partially successful (some packages updated successfully): push the branch and create PR with failing checks noted in the PR description
+- If nothing was successfully updated: offer options (isolate problem, revert specific updates, or abandon) rather than creating an empty PR

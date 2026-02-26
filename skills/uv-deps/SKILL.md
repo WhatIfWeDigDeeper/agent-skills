@@ -2,7 +2,7 @@
 name: uv-deps
 description: Maintain Python packages through security audits or dependency updates using an isolated git worktree and uv. Use for security audits, CVE fixes, vulnerability checks, dependency updates, package upgrades, outdated packages, bump versions, fix Python vulnerabilities, check for Python CVEs, audit Python packages, update pyproject.toml dependencies, modernize Python deps, or when user types /uv-deps with or without specific package names or glob patterns.
 license: MIT
-compatibility: Requires git, uv, and network access to PyPI
+compatibility: Requires git, uv, python3, and network access to PyPI
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
