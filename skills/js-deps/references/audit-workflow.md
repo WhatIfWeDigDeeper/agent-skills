@@ -25,6 +25,10 @@ Collect all audit results into a consolidated report.
 
 If `$ARGUMENTS` contains specific package names or glob patterns (not `.` or empty), filter the vulnerability list to only those packages before applying fixes.
 
+### Early Exit: No Vulnerabilities
+
+After collecting audit results across all directories, if the total vulnerability count is zero, report that the project is clean and exit — do not commit, push, or create a PR.
+
 ### Categorize by Severity
 
 Parse audit results for each directory:
@@ -59,6 +63,8 @@ npm audit fix
 This handles transitive dependency chains automatically. Only proceed to manual updates below if `npm audit fix` reports remaining vulnerabilities.
 
 > **Note:** `npm audit fix` fixes all vulnerabilities regardless of `$ARGUMENTS` scope. If specific packages were requested, verify afterwards that only those packages were modified and revert any unintended changes using the revert block in SKILL.md step 7.
+>
+> **Never use `npm audit fix --force`.** The `--force` flag installs breaking major version upgrades non-interactively, bypassing the validation logic in SKILL.md step 7. If `npm audit fix` leaves remaining vulnerabilities, fall back to manual updates below.
 
 For pnpm 8+, automated fix is also available:
 ```bash

@@ -16,6 +16,8 @@ Run the outdated check to get a list of packages to update. See [package-manager
 
 Filter the results based on any version preferences expressed by the user — whether from the interactive help flow or from inline request phrasing (e.g., "only patch updates", "skip major versions").
 
+If no packages are outdated after filtering, report that all packages are up to date and exit — do not commit, push, or create a PR.
+
 The tiered filter model works as follows:
 
 - **"Patch only"**: include packages where only the patch version differs (major and minor are the same).
@@ -62,9 +64,11 @@ For yarn: `audit fix` is not available — fix remaining vulnerabilities manuall
 
 ### On Success
 
-1. Commit changes:
+1. Commit changes. If any packages had major version bumps (e.g., 18.x → 19.x), note them in the commit message:
    ```bash
    git -C "$WORKTREE_PATH" add -A
+   # Use "chore: update dependencies" for patch/minor only,
+   # or "chore: update dependencies (major: pkg1 vX→Y, pkg2 vX→Y)" if major bumps were included
    git -C "$WORKTREE_PATH" commit -m "chore: update dependencies"
    # If commit fails due to GPG signing, retry with --no-gpg-sign
    ```
@@ -93,6 +97,7 @@ For yarn: `audit fix` is not available — fix remaining vulnerabilities manuall
 
    Generated with [Claude Code](https://claude.com/claude-code)
    PREOF
+   # Match PR title to commit message (include major version info if applicable)
    gh pr create --title "chore: update dependencies" --body-file "$BODY_FILE"
    rm -f "$BODY_FILE"
    ```
