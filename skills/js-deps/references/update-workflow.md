@@ -64,12 +64,12 @@ For yarn: `audit fix` is not available — fix remaining vulnerabilities manuall
 
 ### On Success
 
-1. Commit changes. If any packages had major version bumps (e.g., 18.x → 19.x), note them in the commit message:
+1. Commit changes. Choose the message based on what was updated:
+   - Patch/minor only: `"chore: update dependencies"`
+   - Major bumps included: `"chore: update dependencies (major: pkg1 vX→Y, pkg2 vX→Y)"`
    ```bash
    git -C "$WORKTREE_PATH" add -A
-   # Use "chore: update dependencies" for patch/minor only,
-   # or "chore: update dependencies (major: pkg1 vX→Y, pkg2 vX→Y)" if major bumps were included
-   git -C "$WORKTREE_PATH" commit -m "chore: update dependencies"
+   git -C "$WORKTREE_PATH" commit -m "<message from above>"
    # If commit fails due to GPG signing, retry with --no-gpg-sign
    ```
 2. Push branch to remote:
@@ -97,8 +97,8 @@ For yarn: `audit fix` is not available — fix remaining vulnerabilities manuall
 
    Generated with [Claude Code](https://claude.com/claude-code)
    PREOF
-   # Match PR title to commit message (include major version info if applicable)
-   gh pr create --title "chore: update dependencies" --body-file "$BODY_FILE"
+   # Use the same title as the commit message chosen above
+   gh pr create --title "<commit message from step 1>" --body-file "$BODY_FILE"
    rm -f "$BODY_FILE"
    ```
 4. Return the PR URL to the user
