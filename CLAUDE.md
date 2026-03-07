@@ -51,6 +51,9 @@ Valid frontmatter fields: `name`, `description` (required), `license`, `compatib
 4. Document the workflow with numbered process steps
 5. Add bash code blocks for commands that should be executed
 6. Include example outputs where helpful
+7. Update `README.md` — add the skill to the table and add a notes section
+
+When substantially modifying an existing skill, also update its entry in `README.md`.
 
 ## Sandbox Workarounds
 
@@ -79,6 +82,7 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 
 ## Skill Design Patterns
 
+- **Naming perspective**: Name skills from the user's action/role, not the underlying operation. E.g., `pr-comments` (author addressing feedback on their PR) not `pr-review` (which implies being the reviewer).
 - **Isolation**: Use dedicated branches to test changes without affecting the main working directory
 - **Validation**: Run build/lint/test after making changes
 - **Parallelization**: Use Task subagents for processing multiple items concurrently

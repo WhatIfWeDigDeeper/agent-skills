@@ -10,6 +10,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 | [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "/ship-it" "/ship-it fix login timeout", "/ship-it help" |
 | [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps", "/js-deps typescript", "/js-deps help" |
 | [uv-deps](skills/uv-deps/SKILL.md) | Security audits and dependency updates for Python projects using uv | "audit Python packages", "update pyproject.toml", "fix Python CVEs", "/uv-deps", "/uv-deps fastapi", "/uv-deps help" |
+| [pr-comments](skills/pr-comments/SKILL.md) | Address review comments on your own PR: implement valid suggestions, reply to invalid ones, resolve threads, and credit commenters in commits | "address PR comments", "implement PR feedback", "respond to review comments", "/pr-comments", "/pr-comments 42" |
 
 All skills support `help`, `--help`, `-h`, or `?` as arguments to show interactive options before running.
 
@@ -97,6 +98,14 @@ cp -r skills/* ~/.claude/skills/
 
 - Requires `uv` and `uvx` to be installed and accessible. All git and `gh` commands run with sandbox disabled for keyring access.
 
+
+### `pr-comments`
+
+- Pass a PR number to target a specific PR (e.g., `/pr-comments 42`), or omit it to detect from the current branch.
+- The skill presents a plan for your approval before making any changes — you can override its judgment on which comments to implement vs. decline.
+- Implemented comments are committed with `Co-authored-by` trailers crediting each reviewer.
+- Resolved threads are closed via the GitHub GraphQL API; declined threads remain open so reviewers can follow up.
+- Requires `gh` CLI with repo access. Runs with sandbox disabled for keyring access.
 
 ## Updating Skills
 
