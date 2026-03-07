@@ -1,11 +1,11 @@
 ---
-name: pr-review
+name: pr-comments
 description: >-
-  Review PR comments and implement valid ones, reply to invalid ones, and
-  resolve threads on GitHub pull requests. Use when: user says "address PR
-  comments", "implement PR feedback", "respond to PR review", "handle review
-  comments", "process PR review", or asks you to work through open review
-  threads on a pull request. Gives credit to commenters in commit messages.
+  Address review comments on your own pull request: implement valid suggestions,
+  reply to invalid ones, and resolve threads. Use when: user says "address PR
+  comments", "implement PR feedback", "respond to review comments", "handle
+  review feedback", "process PR review comments", or wants to work through open
+  review threads on their pull request. Gives credit to commenters in commit messages.
 license: MIT
 compatibility: Requires git and GitHub CLI (gh) with authentication
 metadata:
