@@ -34,13 +34,13 @@ Create an isolated git worktree so the main working directory is never modified:
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 BRANCH_NAME="js-deps-$TIMESTAMP"
-WORKTREE_PATH="${TMPDIR:-/tmp}/$BRANCH_NAME"
+WORKTREE_PATH="$(git rev-parse --show-toplevel)/../$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
 
 If `git worktree add` fails (e.g., sandbox permission error), prompt the user:
-> `git worktree` requires write access to `$TMPDIR`. Choose an option:
-> 1. Add `$TMPDIR` to your sandbox allowlist in `settings.json` (recommended)
+> `git worktree` requires write access outside the project root. Choose an option:
+> 1. Add the parent directory (one level above the repo root) to your sandbox allowlist in `settings.json` (recommended)
 > 2. Fall back to branch+stash approach
 
 **All subsequent steps operate within `$WORKTREE_PATH`.** Discovery, installs, edits, and commits all happen there. Paths like `cd <directory>` in reference files are relative to `$WORKTREE_PATH`.
@@ -137,3 +137,10 @@ fi
 - **Lockfile sync**: After all package.json changes, run `$PM install` in every modified directory and commit lockfiles — CI tools like `npm ci` require exact sync between package.json and the lockfile
 - **Verify devDependencies placement**: After bulk installs across directories, verify that linting/testing/build packages (eslint, typescript, vite, etc.) ended up in `devDependencies`, not `dependencies` — easy to misplace when running install commands across many directories
 - **Monorepo workspace root**: If a discovered `package.json` has a `workspaces` field but no `dependencies` or `devDependencies`, it is a workspace root acting only as an orchestrator. Run `$PM audit` or `$PM outdated` from the root (which covers all workspaces) rather than processing member directories individually. For npm 7+, use `npm audit --workspaces` and `npm install --workspaces` to operate on all workspaces at once.
+- **Corrupted npm lockfile (temp paths)**: If `package-lock.json` contains absolute temp paths (e.g. `/private/tmp/...` or `/var/folders/...`) and many `"extraneous": true` entries after `npm install`, `npm ci` will fail in CI with platform errors (e.g. `EBADPLATFORM`). Detect and fix after each install:
+  ```bash
+  if grep -qE '/private/tmp|/var/folders' "$DIR/package-lock.json" 2>/dev/null; then
+    rm -rf "$DIR/node_modules" "$DIR/package-lock.json"
+    cd "$DIR" && npm install
+  fi
+  ```

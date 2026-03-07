@@ -133,7 +133,7 @@ You may also use Anthropic's [skill-creator](https://github.com/anthropics/skill
 
 ```bash
 # if you haven't already installed it
-npx skills add anthropics/skills/ --skill skill-creator
+npx skills add -y anthropics/skills/ --skill skill-creator
 ```
 
 Ask to review a particular skill or skills

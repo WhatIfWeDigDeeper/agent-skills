@@ -3,15 +3,19 @@ ignorePaths: []
 dictionaryDefinitions: []
 dictionaries: []
 words:
+  - anthropics
+  - asyncpg
   - continuerc
   - cursorrules
   - elif
+  - fastapi
   - frontmatter
   - GHSA
   - heredocs
   - lockfiles
   - mktemp
   - mypy
+  - pipenv
   - PREOF
   - pyproject
   - PYSEC
