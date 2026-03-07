@@ -51,13 +51,20 @@ Also get the repo's owner/name for API calls:
 gh repo view --json nameWithOwner --jq '.nameWithOwner'
 ```
 
+**Ensure the working tree is on the PR's head branch.** If the current branch doesn't match `headRefName`, check it out now — otherwise file reads and edits will operate on the wrong code:
+
+```bash
+gh pr checkout <number>
+```
+
 ### 2. Fetch Inline Review Comments
 
 Pull all review comments on the PR using the REST endpoint:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/comments \
-  --jq '[.[] | {id, body, path, line, original_line, diff_hunk, in_reply_to_id, author: .user.login}]'
+gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate \
+  --jq '.[] | {id, body, path, line, original_line, diff_hunk, in_reply_to_id, author: .user.login}' \
+  | jq -s '.'
 ```
 
 Filter to top-level comments only (`in_reply_to_id` is null) — replies are context, not action items. Read any reply chains to understand the full discussion thread.
@@ -71,7 +78,8 @@ gh api graphql -f query='
 {
   repository(owner: "OWNER", name: "REPO") {
     pullRequest(number: PR_NUMBER) {
-      reviewThreads(first: 50) {
+      reviewThreads(first: 100) {
+        pageInfo { hasNextPage endCursor }
         nodes {
           id
           isResolved
@@ -87,6 +95,8 @@ gh api graphql -f query='
 ```
 
 This gives you a mapping from REST `comment.id` (= `databaseId`) → GraphQL `thread.id` + `isResolved`. Discard threads that are already resolved.
+
+If `pageInfo.hasNextPage` is true, repeat the query with `reviewThreads(first: 100, after: "END_CURSOR")` until all threads are fetched.
 
 ### 4. Read Code Context
 
