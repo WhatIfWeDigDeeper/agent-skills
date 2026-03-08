@@ -63,21 +63,23 @@ Pull all review comments on the PR using the REST endpoint:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate \
-  --jq '.[] | {id, body, path, line, original_line, diff_hunk, in_reply_to_id, author: .user.login}' \
+  --jq '.[] | {id, body, path, line, original_line, start_line, original_start_line, side, start_side, position, original_position, diff_hunk, in_reply_to_id, author: .user.login}' \
   | jq -s '.'
 ```
 
-Filter to top-level comments only (`in_reply_to_id` is null) — replies are context, not action items. Read any reply chains to understand the full discussion thread.
+When deciding on action items, focus on top-level comments (where `in_reply_to_id` is null); treat replies as context. Filter for these after fetching (for example, with `jq 'select(.in_reply_to_id == null)'`) and still read reply chains to understand the full discussion thread.
 
 ### 3. Fetch Thread Resolution State
 
 The REST API doesn't expose whether a thread is resolved. Use a focused GraphQL query to get that, along with the node IDs you'll need for resolution later:
 
 ```bash
-gh api graphql -f query='
-{
-  repository(owner: "OWNER", name: "REPO") {
-    pullRequest(number: PR_NUMBER) {
+gh api graphql \
+  -f owner=OWNER -f name=REPO -F number=PR_NUMBER \
+  -f query='
+query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
       reviewThreads(first: 100) {
         pageInfo { hasNextPage endCursor }
         nodes {
