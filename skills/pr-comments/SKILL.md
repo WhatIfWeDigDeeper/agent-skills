@@ -63,22 +63,24 @@ Pull all review comments on the PR using the REST endpoint:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate \
-  --jq '.[] | {id, body, path, line, original_line, diff_hunk, in_reply_to_id, author: .user.login}' \
+  --jq '.[] | {id, body, path, line, original_line, start_line, original_start_line, side, start_side, position, original_position, diff_hunk, in_reply_to_id, author: .user.login}' \
   | jq -s '.'
 ```
 
-Filter to top-level comments only (`in_reply_to_id` is null) — replies are context, not action items. Read any reply chains to understand the full discussion thread.
+When deciding on action items, focus on top-level comments (where `in_reply_to_id` is null); treat replies as context. Filter for these after fetching (for example, with `jq 'map(select(.in_reply_to_id == null))'`) and still read reply chains to understand the full discussion thread.
 
 ### 3. Fetch Thread Resolution State
 
 The REST API doesn't expose whether a thread is resolved. Use a focused GraphQL query to get that, along with the node IDs you'll need for resolution later:
 
 ```bash
-gh api graphql -f query='
-{
-  repository(owner: "OWNER", name: "REPO") {
-    pullRequest(number: PR_NUMBER) {
-      reviewThreads(first: 100) {
+gh api graphql \
+  -f owner=OWNER -f name=REPO -F number=PR_NUMBER \
+  -f query='
+query($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      reviewThreads(first: 100, after: $after) {
         pageInfo { hasNextPage endCursor }
         nodes {
           id
@@ -96,7 +98,7 @@ gh api graphql -f query='
 
 This gives you a mapping from REST `comment.id` (= `databaseId`) → GraphQL `thread.id` + `isResolved`. Discard threads that are already resolved.
 
-If `pageInfo.hasNextPage` is true, repeat the query with `reviewThreads(first: 100, after: "END_CURSOR")` until all threads are fetched.
+If `pageInfo.hasNextPage` is true, repeat the query passing `-f after=END_CURSOR` until all threads are fetched.
 
 ### 4. Read Code Context
 
