@@ -32,7 +32,7 @@ Different operations require different `gh` commands:
 |------|---------|-----|
 | PR metadata | `gh pr view --json` | High-level; handles branch detection |
 | List review comments | `gh api repos/{owner}/{repo}/pulls/{number}/comments` | REST; simpler than GraphQL for reads |
-| Reply to a comment | `gh api repos/{owner}/{repo}/pulls/comments/{id}/replies` | REST; direct reply-to-comment endpoint |
+| Reply to a comment | `gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{id}/replies` | REST; direct reply-to-comment endpoint |
 | Get thread node IDs | `gh api graphql` | Thread node IDs only exist in GraphQL |
 | Resolve a thread | `gh api graphql` mutation | No REST equivalent for resolution |
 
@@ -176,7 +176,7 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 For each declined comment, post a reply using the replies REST endpoint:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/replies \
+gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies \
   --method POST \
   --field body="Thanks for the suggestion. [Explanation of why not implementing]"
 ```
