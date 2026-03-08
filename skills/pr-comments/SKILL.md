@@ -67,7 +67,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate \
   | jq -s '.'
 ```
 
-When deciding on action items, focus on top-level comments (where `in_reply_to_id` is null); treat replies as context. Filter for these after fetching (for example, with `jq 'select(.in_reply_to_id == null)'`) and still read reply chains to understand the full discussion thread.
+When deciding on action items, focus on top-level comments (where `in_reply_to_id` is null); treat replies as context. Filter for these after fetching (for example, with `jq 'map(select(.in_reply_to_id == null))'`) and still read reply chains to understand the full discussion thread.
 
 ### 3. Fetch Thread Resolution State
 
@@ -77,10 +77,10 @@ The REST API doesn't expose whether a thread is resolved. Use a focused GraphQL 
 gh api graphql \
   -f owner=OWNER -f name=REPO -F number=PR_NUMBER \
   -f query='
-query($owner: String!, $name: String!, $number: Int!) {
+query($owner: String!, $name: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
-      reviewThreads(first: 100) {
+      reviewThreads(first: 100, after: $after) {
         pageInfo { hasNextPage endCursor }
         nodes {
           id
@@ -98,7 +98,7 @@ query($owner: String!, $name: String!, $number: Int!) {
 
 This gives you a mapping from REST `comment.id` (= `databaseId`) → GraphQL `thread.id` + `isResolved`. Discard threads that are already resolved.
 
-If `pageInfo.hasNextPage` is true, repeat the query with `reviewThreads(first: 100, after: "END_CURSOR")` until all threads are fetched.
+If `pageInfo.hasNextPage` is true, repeat the query passing `-f after=END_CURSOR` until all threads are fetched.
 
 ### 4. Read Code Context
 
