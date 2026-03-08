@@ -66,7 +66,7 @@ For yarn: `audit fix` is not available — fix remaining vulnerabilities manuall
 
 1. Commit changes. Choose the message based on what was updated:
    - Patch/minor only: `"chore: update dependencies"`
-   - Major bumps included: `"chore: update dependencies (major: pkg1 vX→Y, pkg2 vX→Y)"`
+   - Major bumps included: `"chore: update dependencies (major: pkg1 vX->Y, pkg2 vX->Y)"`
    ```bash
    git -C "$WORKTREE_PATH" add -A
    git -C "$WORKTREE_PATH" commit -m "<message from above>"

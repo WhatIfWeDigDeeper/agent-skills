@@ -34,7 +34,7 @@ Create an isolated git worktree so the main working directory is never modified:
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 BRANCH_NAME="js-deps-$TIMESTAMP"
-WORKTREE_PATH="$(git rev-parse --show-toplevel)/../$BRANCH_NAME"
+WORKTREE_PATH="$(dirname "$(git rev-parse --show-toplevel)")/$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
 
@@ -141,6 +141,6 @@ fi
   ```bash
   if grep -qE '/private/tmp|/var/folders' "$DIR/package-lock.json" 2>/dev/null; then
     rm -rf "$DIR/node_modules" "$DIR/package-lock.json"
-    cd "$DIR" && npm install
+    (cd "$DIR" && npm install)
   fi
   ```

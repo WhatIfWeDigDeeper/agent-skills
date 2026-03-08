@@ -7,7 +7,7 @@ description: >-
   review feedback", "process PR review comments", or wants to work through open
   review threads on their pull request. Gives credit to commenters in commit messages.
 license: MIT
-compatibility: Requires git and GitHub CLI (gh) with authentication
+compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
