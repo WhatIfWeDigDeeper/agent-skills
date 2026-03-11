@@ -18,7 +18,11 @@ metadata:
 
 Optional text used as the commit message subject, branch name prefix, and PR title (e.g. `fix login timeout`). All three are derived from the same string — it's one input, not three separate options.
 
-If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [references/options.md](references/options.md).
+**Special argument keywords** (checked before treating `$ARGUMENTS` as a title):
+- `help`, `--help`, `-h`, `?` → skip the workflow and read [references/options.md](references/options.md)
+- `draft` or `--draft` → create a draft PR (equivalent to the Draft PR option). If additional text follows (e.g. `draft fix login timeout`), use the remainder as the title/branch prefix.
+
+If the user's message contains "draft" (e.g. "create a draft pr", "ship it as draft"), treat it the same way — enable draft mode and derive the title from any remaining description.
 
 ## Process
 
@@ -130,8 +134,10 @@ If a PR already exists:
 
 Otherwise, create the PR:
 
+Add `--draft` if draft mode was requested (via argument keyword or user phrasing).
+
 ```bash
-gh pr create --title "<title>" --body "$(cat <<'EOF'
+gh pr create --base "$DEFAULT_BRANCH" --title "<title>" --body "$(cat <<'EOF'
 ## Summary
 - [2-3 bullet points describing the changes]
 
@@ -144,7 +150,25 @@ EOF
 )"
 ```
 
-If `gh pr create` fails, report the error to the user (common causes: missing repo permissions, network issues, branch protection rules).
+**If the heredoc fails** ("can't create temp file"), write the body to a temp file and use `--body-file` instead:
+
+```bash
+PR_BODY_FILE=$(mktemp)
+cat > "$PR_BODY_FILE" << 'EOF'
+## Summary
+- [2-3 bullet points describing the changes]
+
+## Test Plan
+- [ ] [How to test these changes]
+
+---
+🤖 Generated with [agent name and link, per agent conventions]
+EOF
+gh pr create --base "$DEFAULT_BRANCH" --title "<title>" --body-file "$PR_BODY_FILE"
+rm -f "$PR_BODY_FILE"
+```
+
+If `gh pr create` fails for other reasons, report the error to the user (common causes: missing repo permissions, network issues, branch protection rules).
 
 **Title:** Use `$ARGUMENTS` if provided. Otherwise, if there's one commit, use the commit subject. If there are multiple commits, write a short summary that captures the overall intent of the branch — don't just list commit subjects.
 
@@ -155,7 +179,7 @@ If `gh pr create` fails, report the error to the user (common causes: missing re
 Output:
 - Branch name
 - Commit hash and message
-- PR URL
+- PR URL (note if draft; note if self-merged and branch deleted)
 
 ## Rules
 

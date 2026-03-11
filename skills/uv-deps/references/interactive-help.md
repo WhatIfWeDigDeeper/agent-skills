@@ -2,7 +2,7 @@
 
 > **Note:** If package arguments were provided (e.g. `/uv-deps fastapi asyncpg`), they are already set. The workflow will target only those packages.
 
-Display the following help summary to the user, then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first, and the third depends on the answer to the second.
+Display the following help summary to the user, then present the questions below using `AskUserQuestion` (Claude Code) or an equivalent interactive prompt. The second question depends on the answer to the first, and the third depends on the answer to the second.
 
 ---
 

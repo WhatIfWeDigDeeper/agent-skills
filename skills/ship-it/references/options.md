@@ -1,6 +1,6 @@
 # Help Options
 
-Read the skill's SKILL.md file and display its content as formatted documentation (title, arguments, process steps, and notes). Then present two questions using `AskUserQuestion`. After the user selects options, store their choices and apply them during the workflow.
+Display a brief summary of what the skill does and its available options, then present two questions using `AskUserQuestion`. After the user selects options, store their choices and apply them during the workflow.
 
 ## Question 1: Workflow scope
 

@@ -1,0 +1,90 @@
+[
+  {
+    "query": "ship it",
+    "should_trigger": true
+  },
+  {
+    "query": "ok this looks good, ship it",
+    "should_trigger": true
+  },
+  {
+    "query": "alright the auth fix is done, let's get this into a PR so the team can review",
+    "should_trigger": true
+  },
+  {
+    "query": "can you branch, commit my changes, push, and open a PR? the branch should be called fix/null-user-session",
+    "should_trigger": true
+  },
+  {
+    "query": "push and pr",
+    "should_trigger": true
+  },
+  {
+    "query": "i'm done with these changes to src/api/payments.ts — open a draft pr for me",
+    "should_trigger": true
+  },
+  {
+    "query": "ready to ship — can you handle the github stuff? the changes are in components/Sidebar.tsx and styles/sidebar.css",
+    "should_trigger": true
+  },
+  {
+    "query": "create a pr for the refactor I just did",
+    "should_trigger": true
+  },
+  {
+    "query": "time to send this for review. open a pr",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to go from these uncommitted changes to an open pull request — can you handle that whole flow?",
+    "should_trigger": true
+  },
+  {
+    "query": "/ship-it draft",
+    "should_trigger": true
+  },
+  {
+    "query": "create a draft pr for the wip feature I have in src/features/onboarding/",
+    "should_trigger": true
+  },
+  {
+    "query": "commit these changes to main and push",
+    "should_trigger": false
+  },
+  {
+    "query": "just do a quick commit so i don't lose my work, don't push anything",
+    "should_trigger": false
+  },
+  {
+    "query": "can you review this code before I ship it? specifically the error handling in db/migrations.go",
+    "should_trigger": false
+  },
+  {
+    "query": "what's the status of my open PRs on github?",
+    "should_trigger": false
+  },
+  {
+    "query": "merge PR #47 into main",
+    "should_trigger": false
+  },
+  {
+    "query": "update the description on PR #15 — add a note about the DB migration",
+    "should_trigger": false
+  },
+  {
+    "query": "fix the failing CI check on my PR, looks like it's a lint error",
+    "should_trigger": false
+  },
+  {
+    "query": "git push origin main — I already have the branch and commit, just need to push",
+    "should_trigger": false
+  },
+  {
+    "query": "close PR #23, we're not doing that feature anymore",
+    "should_trigger": false
+  },
+  {
+    "query": "help me resolve the merge conflicts on the feat/checkout-redesign branch and push when done",
+    "should_trigger": false
+  }
+]
