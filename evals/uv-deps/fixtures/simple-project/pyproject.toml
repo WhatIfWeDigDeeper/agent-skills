@@ -1,0 +1,19 @@
+[project]
+name = "simple-project"
+version = "0.1.0"
+requires-python = ">=3.9"
+description = "Eval fixture for uv-deps skill testing"
+dependencies = [
+  # requests: CVE-2023-32681 (proxy auth header leak) fixed in 2.31.0
+  "requests==2.32.5",
+  "tomli==2.4.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=7.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
