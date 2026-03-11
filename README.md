@@ -132,7 +132,19 @@ npx skills add whatifwedigdeeper/agent-skills --skill ship-it
 
 ## Contributing
 
-You are more than welcome to submit PRs to update existing skills. There are regression tests you can run for the skills.
+You are more than welcome to submit PRs to update existing skills. If you are interested in adding new skills, you may want to consider adding them to more popular skill distribution repos. I may submit some of these skills as PRs to more popular skill distribution repos, if similar skills do not already exist. However, that requires more substantial testing and usage to refine the skills. If you do install and use these skills, opening an issue or PR would be very helpful in that process. Thanks!
+
+### Local Setup
+
+After cloning, create symlinks so Claude Code can discover the skills from this repo directly:
+
+```bash
+for d in skills/*/; do ln -sf "../../$d" ".claude/skills/$(basename $d)"; done
+```
+
+This links each `skills/<name>/` into `.claude/skills/<name>` using relative paths. The `.claude/skills/` directory is gitignored, so this is a one-time local setup step.
+
+There are regression tests you can run for the skills.
 
 ```bash
 uv run --with pytest pytest tests/ -v
@@ -150,7 +162,3 @@ Ask to review a particular skill or skills
 ```text
 /skill-creator review ship-it
 ```
-
-**Note** as of 2026-02-13 the Anthropic `skill-creator` incorrectly identifies license, compatibility, and metadata as invalid frontmatter even though they are part of the standard.
-
-If you are interested in adding new skills, you may want to consider adding them to more popular skill distribution repos. I may submit some of these skills as PRs to more popular skill distribution repos, if similar skills do not already exist. However, that requires more substantial testing and usage to refine the skills. If you do install and use these skills, opening an issue or PR would be very helpful in that process. Thanks!
