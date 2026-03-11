@@ -1,0 +1,95 @@
+{
+  "skill_name": "ship-it",
+  "evals": [
+    {
+      "id": 1,
+      "name": "bug-fix-null-check",
+      "prompt": "ship it",
+      "expected_output": "Creates a fix/ branch, writes a conventional commit message, and generates a PR body with Summary and Test Plan sections. The commit and branch should reflect the nature of the null-check bug fix.",
+      "context": "User has a bug fix — a null check added to getUser() in src/api/users.js",
+      "files": [],
+      "assertions": [
+        {
+          "id": "branch-uses-fix-prefix",
+          "text": "Branch name starts with 'fix/' prefix"
+        },
+        {
+          "id": "commit-is-conventional",
+          "text": "Commit message follows conventional format: 'type: description' (e.g. 'fix: handle null user in getUser')"
+        },
+        {
+          "id": "pr-body-has-summary",
+          "text": "PR body contains a '## Summary' section with at least one bullet point"
+        },
+        {
+          "id": "pr-body-has-test-plan",
+          "text": "PR body contains a '## Test Plan' section with at least one item"
+        },
+        {
+          "id": "no-secrets-committed",
+          "text": "No .env or credential files were staged or committed"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "draft-pr-wip-feature",
+      "prompt": "i'm done prototyping these onboarding changes — open a draft pr for me",
+      "expected_output": "Creates a feat/ branch, commits the WIP feature files, and would create a PR with --draft flag. PR body should acknowledge this is a WIP/draft.",
+      "context": "User has a partially-complete new feature across several files in src/features/onboarding/",
+      "files": [],
+      "assertions": [
+        {
+          "id": "branch-uses-feat-prefix",
+          "text": "Branch name starts with 'feat/' prefix"
+        },
+        {
+          "id": "commit-is-conventional",
+          "text": "Commit message follows conventional format: 'type: description'"
+        },
+        {
+          "id": "draft-mode-detected",
+          "text": "The word 'draft' appears in the gh pr create command or the agent explicitly notes draft mode should be used"
+        },
+        {
+          "id": "pr-body-has-summary",
+          "text": "PR body contains a '## Summary' section with at least one bullet point"
+        },
+        {
+          "id": "pr-body-has-test-plan",
+          "text": "PR body contains a '## Test Plan' section with at least one item"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "refactor-with-branch-name",
+      "prompt": "the auth refactor is done — ship it, call the branch refactor/auth-service",
+      "expected_output": "Uses the user-specified branch name 'refactor/auth-service' exactly (not renamed), writes a refactor: commit message, and generates a PR body summarizing the auth module refactor.",
+      "context": "User refactored auth across 3 files: src/auth/index.js, src/auth/session.js, src/middleware/auth.js",
+      "files": [],
+      "assertions": [
+        {
+          "id": "uses-specified-branch-name",
+          "text": "Branch name is exactly 'refactor/auth-service' as specified by the user"
+        },
+        {
+          "id": "commit-is-conventional",
+          "text": "Commit message follows conventional format: 'type: description'"
+        },
+        {
+          "id": "pr-body-has-summary",
+          "text": "PR body contains a '## Summary' section with at least one bullet point"
+        },
+        {
+          "id": "pr-body-has-test-plan",
+          "text": "PR body contains a '## Test Plan' section"
+        },
+        {
+          "id": "pr-title-matches-intent",
+          "text": "PR title reflects auth refactor (not a generic title like 'chore: changes')"
+        }
+      ]
+    }
+  ]
+}
