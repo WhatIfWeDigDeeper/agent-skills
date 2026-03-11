@@ -4,7 +4,7 @@ Use the detected `$PM` package manager for all commands. See [package-managers.m
 
 ## Prerequisites
 
-Ensure dependencies are installed first (SKILL.md step 5) so that `$PM outdated` can accurately compare installed vs. registry versions.
+Ensure dependencies are installed first (SKILL.md step 6) so that `$PM outdated` can accurately compare installed vs. registry versions.
 
 ## Version Checking and Updates
 
