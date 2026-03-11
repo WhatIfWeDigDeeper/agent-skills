@@ -40,6 +40,8 @@ Compare each outdated package's current and latest versions to determine its upd
   )
   ```
 
+**Non-semver versions:** Some packages use CalVer (`2024.1.0`), pre-releases (`3.0a1`), or post-releases (`1.0.post1`). Version tuple comparisons won't work reliably for these. If a package's current or latest version can't be parsed as `(major, minor, patch)` integers, skip the version-scope filter and include it if `uv pip list --outdated` reports it as outdated — let uv resolve whether an upgrade is possible.
+
 ### Determine Strategy
 
 Per directory:
@@ -102,6 +104,24 @@ After updating, check for new vulnerabilities (see [uv-commands.md](uv-commands.
 cd "$WORKTREE_PATH/<directory>"
 AUDIT_JSON=$(uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
 AUDIT_EXIT=$?
+
+# Retry without --strict only when strict run found no real vulns
+# (distinguishes database-coverage warning from actual vulnerabilities)
+if [ "$AUDIT_EXIT" -ne 0 ]; then
+  STRICT_VULN_COUNT=$(echo "$AUDIT_JSON" | python3 -c "
+import json, sys
+try:
+    data = json.load(sys.stdin)
+    print(sum(len(d['vulns']) for d in data['dependencies']))
+except Exception:
+    print(-1)
+" 2>/dev/null)
+  if [ "$STRICT_VULN_COUNT" = "0" ] || [ "$STRICT_VULN_COUNT" = "-1" ]; then
+    AUDIT_JSON=$(uv export --frozen | uvx pip-audit --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+    AUDIT_EXIT=0
+  fi
+fi
+
 VULN_COUNT=$(echo "$AUDIT_JSON" | python3 -c "import json,sys; data=json.load(sys.stdin); print(sum(len(d['vulns']) for d in data['dependencies']))" 2>/dev/null || echo "unknown")
 ```
 

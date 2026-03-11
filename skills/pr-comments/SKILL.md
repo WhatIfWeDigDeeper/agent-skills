@@ -137,27 +137,26 @@ When in doubt, lean toward implementing — reviewers raise things for a reason.
 
 ### 6. Present Plan and Confirm
 
-Before touching anything, show the user a clear summary:
+Before touching anything, show the user a clear summary as a table:
 
 ```
 ## PR Review Plan
 
-### Will accept suggestion (N):
-- [path:line] @username: "brief quote of suggestion"
-
-### Will implement (N):
-- [path:line] @username: "brief quote"
-  → What you'll change
-
-### Will decline (N):
-- [path:line] @username: "brief quote"
-  → Reason (this becomes your reply)
-
-### Skipping — outdated (N):
-- [path:line] @username: "brief quote"
+| # | File | Summary | Action | Note |
+|---|------|---------|--------|------|
+| 1 | path/file.ts:42 | One-line description of what the comment says | `fix` | |
+| 2 | path/other.ts:10 | One-line description | `accept suggestion` | |
+| 3 | path/lib.ts:99 | One-line description | `decline` | Reason for declining |
+| 4 | path/old.ts:5 | One-line description | `skip` | outdated thread |
 
 Proceed?
 ```
+
+**Action values:**
+- `fix` — implement the change manually
+- `accept suggestion` — apply the reviewer's inline `suggestion` block verbatim
+- `decline` — post a reply explaining why; the Note column becomes the reply
+- `skip` — outdated thread; no action taken
 
 Wait for the user's go-ahead. They know the codebase and may want to override your judgment.
 
@@ -242,7 +241,7 @@ If the branch hasn't been pushed (manual commit only), mention: "Run `git push` 
 
 ## Notes
 
-- **No sandbox**: `gh` requires macOS keyring access. Run with sandbox disabled.
+- **Keyring access required**: `gh` needs OS keyring/credential helper access. Lift any sandbox restrictions that block this (in Claude Code: `dangerouslyDisableSandbox: true`).
 - **Review threads vs. PR comments**: This skill handles inline code review threads. General PR body comments (top-level review text) are out of scope.
 - **Multiple reviewers raised the same issue**: Give all of them credit in the commit message.
 - **Draft PRs**: Treat comments the same as on open PRs.

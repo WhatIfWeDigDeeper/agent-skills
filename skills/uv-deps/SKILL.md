@@ -15,6 +15,8 @@ metadata:
 
 Specific package names (e.g. `fastapi asyncpg`), `.` for all packages, or glob patterns (e.g. `django-*`).
 
+The text following the skill invocation is available as `$ARGUMENTS` (e.g. in Claude Code, `/uv-deps fastapi asyncpg` sets `$ARGUMENTS` to `fastapi asyncpg`; other assistants pass arguments similarly). If invoked with no arguments, `$ARGUMENTS` is empty.
+
 If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [references/interactive-help.md](references/interactive-help.md).
 
 ## Workflow Selection
@@ -36,20 +38,18 @@ WORKTREE_PATH="${TMPDIR:-/tmp}/$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
 
-`git worktree add` writes to `$TMPDIR` and requires `dangerouslyDisableSandbox: true` (filesystem access). `gh`, `git push`, and `git commit` also require it (keyring access for auth).
+`git worktree add` writes to `$TMPDIR` and requires filesystem access outside the default sandbox. `gh`, `git push`, and `git commit` require OS keyring/credential helper access. Both may need sandbox restrictions lifted (in Claude Code: `dangerouslyDisableSandbox: true`).
 
-If `git worktree add` fails (e.g., sandbox permission error), prompt the user:
-> `git worktree` requires write access to `$TMPDIR`. Choose an option:
-> 1. Add `$TMPDIR` to your sandbox allowlist in `settings.json` (recommended)
-> 2. Fall back to branch+stash approach
+If `git worktree add` fails due to a sandbox permission error:
+> `git worktree` requires write access to `$TMPDIR`. Grant that access in your assistant's settings (in Claude Code: add `$TMPDIR` to the sandbox allowlist in `settings.json`) and retry.
 
-**All subsequent steps operate within `$WORKTREE_PATH`.** Discovery, syncs, edits, and commits all happen there. Paths like `cd <directory>` in reference files are relative to `$WORKTREE_PATH`.
+**All subsequent steps operate within `$WORKTREE_PATH`.** Discovery, syncs, edits, and commits all happen there. Code blocks in reference files that show `cd "$WORKTREE_PATH/<directory>"` must run that `cd` explicitly — the working directory does not carry over between blocks.
 
 ### 2. Verify Tool Access
 
 Verify that `uv` and `uvx` are available and can reach PyPI. See [references/uv-commands.md](references/uv-commands.md) for verification commands and troubleshooting.
 
-All `uv`, `uvx`, `gh`, `git push`, and `git commit` commands require `dangerouslyDisableSandbox: true`.
+All `uv`, `uvx`, `gh`, `git push`, and `git commit` commands require network and keyring access — lift any sandbox restrictions before running them (in Claude Code: `dangerouslyDisableSandbox: true`).
 
 Do not proceed until verification passes.
 
@@ -136,7 +136,7 @@ Remove the worktree. The main working directory was never modified, so no stash 
 
 ```bash
 git worktree remove "$WORKTREE_PATH" --force
-# Only delete branch if no PR was created (requires dangerouslyDisableSandbox: true)
+# Only delete branch if no PR was created (requires keyring/network access)
 # If gh fails (network issue, sandbox, etc.), PR_URL will be empty — preserve branch on ambiguity
 PR_URL=$(gh pr list --head "$BRANCH_NAME" --json url --jq '.[0].url' 2>/dev/null)
 GH_EXIT=$?
@@ -153,4 +153,5 @@ fi
 ## Edge Cases
 
 - **Resolver conflicts after major upgrades**: When upgrading causes dependency conflicts (e.g., package A requires `foo<2.0` but package B needs `foo>=2.0`), document the conflict, offer to skip or add a version constraint, and continue with remaining packages
-- **Dev dependency placement**: After adding dev packages, verify they landed in `[project.optional-dependencies]` or `[dependency-groups]`, not `[project.dependencies]`
+- **Push failure**: If `git push -u origin "$BRANCH_NAME"` fails, report the branch name and latest commit hash so the user can push manually. Do not delete the worktree branch — preserve it for the user.
+- **Non-semver versions**: If a package uses CalVer (`2024.1.0`), pre-releases (`3.0a1`), or post-releases (`1.0.post1`), version tuple comparisons will not work reliably. Skip version-scope filtering for these packages and include them as-is if they appear outdated.

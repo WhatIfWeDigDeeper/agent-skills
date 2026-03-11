@@ -1,0 +1,93 @@
+{
+  "skill_name": "pr-comments",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I've got some review comments on my PR. Can you go through them and address whatever makes sense?",
+      "expected_output": "The skill fetches review comments via gh CLI, assesses each comment, presents a plan (accept/implement/decline), implements valid feedback with a commit crediting reviewers, replies to declined comments, and resolves addressed threads.",
+      "files": [],
+      "assertions": [
+        {"id": "fetches-rest-comments", "text": "The agent fetches inline review comments via the REST API (gh api repos/.../pulls/.../comments)"},
+        {"id": "fetches-graphql-threads", "text": "The agent fetches thread resolution state via GraphQL to filter out already-resolved threads"},
+        {"id": "presents-plan", "text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes"},
+        {"id": "waits-for-confirmation", "text": "The agent waits for user confirmation before proceeding with changes"},
+        {"id": "coauthored-by-credit", "text": "Implemented changes are committed with Co-authored-by credit to the reviewer(s)"},
+        {"id": "replies-to-declined", "text": "Declined comments receive a reply via gh api with the POST method to the replies endpoint"},
+        {"id": "resolves-threads", "text": "Resolved threads are marked via GraphQL resolveReviewThread mutation"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Please address the review comments on PR #47. A few of them have suggested changes I want applied.",
+      "expected_output": "The skill uses the explicit PR number 47, fetches comments, correctly identifies suggestion blocks, applies them as local edits, commits with reviewer credit, and resolves threads.",
+      "files": [],
+      "assertions": [
+        {"id": "explicit-pr-number", "text": "The agent passes the explicit PR number 47 to gh pr view"},
+        {"id": "identifies-suggestion-blocks", "text": "The agent identifies comments containing suggestion fenced code blocks as suggested changes"},
+        {"id": "applies-suggestions-locally", "text": "Suggested changes are applied as local file edits (not via a batch API)"},
+        {"id": "commit-credits-reviewers", "text": "The commit message includes bullet points describing each change with the reviewer's handle"},
+        {"id": "checks-out-head-branch", "text": "The agent checks out the PR's head branch if the current branch does not match"},
+        {"id": "skips-outdated-threads", "text": "Outdated threads (isOutdated=true) are skipped without posting a reply"},
+        {"id": "filters-resolved-threads", "text": "Already-resolved threads are filtered out before presenting the plan"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Can you handle the PR review? Some comments I agree with, but there's one about rewriting the entire auth module that's way out of scope for this PR.",
+      "expected_output": "The skill processes comments, declines out-of-scope ones with a clear explanation, implements in-scope ones, posts a polite but direct reply to the declined comment, and does NOT resolve the declined thread.",
+      "files": [],
+      "assertions": [
+        {"id": "fetches-comments-and-threads", "text": "The agent fetches review comments and thread state before making any decisions"},
+        {"id": "plan-includes-decline-reason", "text": "The plan presented to the user includes a 'Will decline' section with a reason for the out-of-scope comment"},
+        {"id": "replies-to-declined", "text": "The agent posts a reply to the declined comment explaining it is out of scope"},
+        {"id": "declined-thread-not-resolved", "text": "Declined threads are NOT resolved (left open for reviewer to see the reply)"},
+        {"id": "addressed-threads-resolved", "text": "Addressed (implemented) threads ARE resolved via GraphQL resolveReviewThread"},
+        {"id": "in-scope-committed", "text": "In-scope comments are implemented and committed"},
+        {"id": "coauthored-by-trailers", "text": "The commit includes Co-authored-by trailers for each reviewer whose feedback was implemented"},
+        {"id": "report-distinguishes-outcomes", "text": "The final report distinguishes between implemented, declined, and skipped items"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have a pull request open on a GitHub repo. There are several review comments: one reviewer suggested renaming a variable for clarity (valid), another left a comment about extracting a magic number to a constant (valid), and a third said to rewrite the whole module in a different language (out of scope/invalid). There's also a GitHub suggested change block proposing a one-line fix to a null check. Please address my PR review comments.",
+      "expected_output": "The skill identifies and plans: accept the suggestion, implement the two valid regular comments, decline the out-of-scope one. Presents plan, waits for confirmation. Applies suggestion block and makes manual code changes. Commits with Co-authored-by. Replies to declined comment. Resolves addressed threads. Reports what was done.",
+      "files": [],
+      "assertions": [
+        {"id": "plan-four-categories", "text": "The agent presents a plan categorizing comments as 'accept suggestion', 'implement', and 'decline' before making any changes"},
+        {"id": "graphql-thread-state", "text": "The agent uses the gh api GraphQL endpoint to fetch thread resolution state and node IDs"},
+        {"id": "applies-suggestion-locally", "text": "The agent applies the suggested change locally from the suggestion code block in the comment body"},
+        {"id": "coauthored-by-trailers", "text": "The agent commits with Co-authored-by trailers for the reviewers whose suggestions were implemented"},
+        {"id": "replies-to-out-of-scope", "text": "The agent posts a reply to the declined out-of-scope comment explaining why it won't be done"},
+        {"id": "resolves-implemented-threads", "text": "The agent calls the GraphQL resolveReviewThread mutation to resolve implemented threads"},
+        {"id": "declined-thread-not-resolved", "text": "The agent does NOT resolve the declined comment's thread"}
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Address my PR review comments. My PR has 4 open threads: one is marked as outdated (the code has since changed), one has a valid suggestion to add error handling, one has a GitHub-style suggested change for a doc string fix, and one suggests refactoring something that was already fixed in a subsequent commit (also outdated). Please work through them.",
+      "expected_output": "The skill recognizes outdated threads and skips them without posting replies. Implements valid error handling comment, applies suggested docstring change locally. Commits both with commenter credit, resolves the two addressed threads, skips the two outdated ones. Final report lists what was skipped vs done.",
+      "files": [],
+      "assertions": [
+        {"id": "skips-outdated-no-reply", "text": "The agent skips outdated threads (isOutdated=true) without posting replies to them"},
+        {"id": "plan-shows-outdated-category", "text": "The agent distinguishes outdated threads from regular ones in the plan summary"},
+        {"id": "implements-error-handling", "text": "The agent implements the valid error handling suggestion and commits the change"},
+        {"id": "applies-docstring-suggestion", "text": "The agent applies the suggested change from the docstring suggestion block"},
+        {"id": "only-resolves-addressed", "text": "The agent only resolves threads that were actually addressed, not the outdated ones"},
+        {"id": "report-categorizes-actions", "text": "The final report categorizes actions: implemented, skipped-outdated, etc."}
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I need to address the review comments on my pull request. There are 5 threads: two reviewers left the same comment about adding a missing type annotation (both @alice and @bob), one reviewer suggested a performance improvement (valid), one asked a clarifying question (should be answered but not resolved), and one thread is already resolved. Please address the PR comments.",
+      "expected_output": "The skill skips the already-resolved thread. Deduplicates co-authors so @alice and @bob each appear once in the commit. Implements the type annotation fix and performance improvement. Replies to the clarifying question without resolving that thread. Commits with Co-authored-by for all reviewers who had implemented suggestions.",
+      "files": [],
+      "assertions": [
+        {"id": "skips-resolved-thread", "text": "The agent skips threads that are already resolved (isResolved=true)"},
+        {"id": "deduplicates-coauthors", "text": "When two reviewers flagged the same issue, both get Co-authored-by credit in the commit (deduplicated — one entry each)"},
+        {"id": "replies-clarifying-question", "text": "The agent replies to the clarifying question comment without resolving that thread"},
+        {"id": "fetches-thread-state", "text": "The agent uses gh api to fetch thread resolution state before deciding on actions"},
+        {"id": "commit-attributes-reviewers", "text": "The commit message lists which changes were suggested by which reviewers"}
+      ]
+    }
+  ]
+}

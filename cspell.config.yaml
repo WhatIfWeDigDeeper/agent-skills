@@ -9,6 +9,7 @@ words:
   - continuerc
   - cursorrules
   - elif
+  - evals
   - fastapi
   - frontmatter
   - GHSA
@@ -16,6 +17,7 @@ words:
   - lockfiles
   - mktemp
   - mypy
+  - oneline
   - osascript
   - pipenv
   - PREOF
