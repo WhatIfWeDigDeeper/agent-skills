@@ -87,6 +87,28 @@
     },
     {
       "id": 3,
+      "name": "branch-name-collision",
+      "prompt": "ship it",
+      "expected_output": "Detects that the auto-generated branch name already exists on the remote and appends a suffix (e.g. -2) to avoid collision, then proceeds to commit and open the PR on the suffixed branch.",
+      "context": "User has a small docs fix. The natural branch name 'docs/update-readme' already exists on origin.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-ls-remote-branch-check",
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote"
+        },
+        {
+          "id": "branch-name-suffixed",
+          "text": "When the desired branch name is already taken on remote, a suffix like '-2' is appended to the branch name"
+        },
+        {
+          "id": "pr-created-on-suffixed-branch",
+          "text": "The PR is created on the suffixed branch (e.g. docs/update-readme-2), not the original colliding name"
+        }
+      ]
+    },
+    {
+      "id": 4,
       "name": "refactor-with-branch-name",
       "prompt": "the auth refactor is done — ship it, call the branch refactor/auth-service",
       "expected_output": "Uses the user-specified branch name 'refactor/auth-service' exactly (not renamed), writes a refactor: commit message, and generates a PR body summarizing the auth module refactor.",

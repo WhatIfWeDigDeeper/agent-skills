@@ -153,7 +153,8 @@ EOF
 **If the heredoc fails** ("can't create temp file"), write the body to a temp file and use `--body-file` instead:
 
 ```bash
-cat > /tmp/pr-body.md << 'EOF'
+PR_BODY_FILE=$(mktemp)
+cat > "$PR_BODY_FILE" << 'EOF'
 ## Summary
 - [2-3 bullet points describing the changes]
 
@@ -163,7 +164,8 @@ cat > /tmp/pr-body.md << 'EOF'
 ---
 🤖 Generated with [agent name and link, per agent conventions]
 EOF
-gh pr create --base "$DEFAULT_BRANCH" --title "<title>" --body-file /tmp/pr-body.md
+gh pr create --base "$DEFAULT_BRANCH" --title "<title>" --body-file "$PR_BODY_FILE"
+rm -f "$PR_BODY_FILE"
 ```
 
 If `gh pr create` fails for other reasons, report the error to the user (common causes: missing repo permissions, network issues, branch protection rules).

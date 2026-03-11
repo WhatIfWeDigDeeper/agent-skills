@@ -95,9 +95,13 @@ for pkg in data:
         for alias in vuln.get('aliases', []):
             if alias.startswith('GHSA-'):
                 print(alias)
-" | while read GHSA_ID; do
+" | while read -r GHSA_ID; do
+  # Validate GHSA ID format to prevent shell injection from malformed aliases
+  if ! printf '%s\n' "$GHSA_ID" | grep -Eq '^GHSA-[0-9A-Za-z]{4}-[0-9A-Za-z]{4}-[0-9A-Za-z]{4}$'; then
+    continue
+  fi
   # Use jq's '//' operator to default null to "high" (handles rate-limit responses that return null)
-  SEVERITY=$(gh api /advisories/$GHSA_ID --jq '.severity // "high"' 2>/dev/null || echo "high")
+  SEVERITY=$(gh api "/advisories/$GHSA_ID" --jq '.severity // "high"' 2>/dev/null || echo "high")
   # Normalize "low" and "medium" to "moderate" to match the filter option labels
   # (GitHub Advisory API returns: low, medium, moderate, high, critical)
   SEVERITY=$(echo "$SEVERITY" | sed -E 's/^low$/moderate/; s/^medium$/moderate/')

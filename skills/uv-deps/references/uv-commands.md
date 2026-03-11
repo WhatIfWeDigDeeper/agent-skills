@@ -27,7 +27,7 @@
 | `uv remove <pkg>` | Remove a package |
 | `uv pip list --outdated` | Show outdated packages in current environment |
 | `uv pip show <pkg>` | Show installed package info (version, location, deps) |
-| `curl -s https://pypi.org/pypi/<pkg>/json \| python3 -c "import json,sys; d=json.load(sys.stdin); print(sorted(d['releases'].keys())[-1])"` | Show latest version on PyPI |
+| `curl -s https://pypi.org/pypi/<pkg>/json \| python3 -c "import json,sys; d=json.load(sys.stdin); print(d['info']['version'])"` | Show latest version on PyPI |
 | `uv workspace list --no-sync` | List workspace members without syncing (for workspace detection) |
 
 ## Security Audit (via pip-audit)
