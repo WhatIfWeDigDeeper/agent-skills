@@ -21,6 +21,8 @@ specs/
 
 Evals live under `evals/` at the repo root, not inside `skills/` — they are development artifacts and should not be bundled when a skill is distributed.
 
+**Eval fixtures with intentionally old/pinned versions** (e.g. `evals/uv-deps/fixtures/`) may conflict when a skill like `uv-deps` runs on main and updates those same files. During a merge, keep `--ours` to preserve the intentionally pinned versions.
+
 ## Skill Definition Format
 
 Each skill follows this structure:
@@ -72,7 +74,8 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 
 ## Git Workflow
 
-- After merging a PR, delete the local and remote feature branch and switch to main with a pull.
+- This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI).
+- After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge.
 - After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
   ```bash
   # Get thread IDs
