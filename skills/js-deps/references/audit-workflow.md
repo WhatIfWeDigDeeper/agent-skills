@@ -29,9 +29,18 @@ If `$ARGUMENTS` contains specific package names or glob patterns (not `.` or emp
 
 After collecting audit results across all directories, if the total vulnerability count is zero, report that the project is clean and exit — do not commit, push, or create a PR.
 
-### Categorize by Severity
+### Apply Severity Filter
 
-Parse audit results for each directory:
+If the user specified a severity scope (either through the interactive help flow or inline in their request), apply it now to limit which vulnerabilities to fix:
+
+| Selection | Severities to fix |
+|-----------|-------------------|
+| Critical only | Critical |
+| Critical + High (default) | Critical, High |
+| Critical + High + Moderate | Critical, High, Moderate |
+| All | Critical, High, Moderate, Low |
+
+If no severity preference was expressed, default to **Critical + High**.
 
 | Severity | Action |
 |----------|--------|
