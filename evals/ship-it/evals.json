@@ -28,6 +28,18 @@
         {
           "id": "no-secrets-committed",
           "text": "No .env or credential files were staged or committed"
+        },
+        {
+          "id": "runs-divergence-check",
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch"
+        },
+        {
+          "id": "runs-ls-remote-branch-check",
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote"
+        },
+        {
+          "id": "gh-pr-create-uses-base-flag",
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)"
         }
       ]
     },
@@ -58,6 +70,18 @@
         {
           "id": "pr-body-has-test-plan",
           "text": "PR body contains a '## Test Plan' section with at least one item"
+        },
+        {
+          "id": "runs-divergence-check",
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch"
+        },
+        {
+          "id": "runs-ls-remote-branch-check",
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote"
+        },
+        {
+          "id": "gh-pr-create-uses-base-flag",
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)"
         }
       ]
     },
@@ -88,6 +112,18 @@
         {
           "id": "pr-title-matches-intent",
           "text": "PR title reflects auth refactor (not a generic title like 'chore: changes')"
+        },
+        {
+          "id": "runs-divergence-check",
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch"
+        },
+        {
+          "id": "runs-ls-remote-branch-check",
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote"
+        },
+        {
+          "id": "gh-pr-create-uses-base-flag",
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)"
         }
       ]
     }
