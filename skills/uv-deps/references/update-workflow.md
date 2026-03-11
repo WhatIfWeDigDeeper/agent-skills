@@ -44,11 +44,9 @@ Compare each outdated package's current and latest versions to determine its upd
 
 ### Determine Strategy
 
-Per directory:
-- **1-3 packages**: Update sequentially
-- **4+ packages**: Use parallel Task subagents (2 packages per agent)
+Always update packages **sequentially within a directory** — parallel updates cause `uv.lock` contention.
 
-If multiple directories have outdated packages, process them in parallel using separate Task subagents (general-purpose), running in background. Collect results from all agents before generating the final report.
+Parallelize **across directories** only: if multiple directories have outdated packages, process them in parallel using separate Task subagents (general-purpose), running in background. Collect results from all agents before generating the final report.
 
 ### Update Packages
 
@@ -102,7 +100,7 @@ For uv workspaces (`[tool.uv.workspace]` in root `pyproject.toml`), run all `uv 
 After updating, check for new vulnerabilities (see [uv-commands.md](uv-commands.md) for details on this pattern):
 ```bash
 cd "$WORKTREE_PATH/<directory>"
-AUDIT_JSON=$(uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+AUDIT_JSON=$(uv export --frozen --no-emit-project | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
 AUDIT_EXIT=$?
 
 # Retry without --strict only when strict run found no real vulns
@@ -117,7 +115,7 @@ except Exception:
     print(-1)
 " 2>/dev/null)
   if [ "$STRICT_VULN_COUNT" = "0" ] || [ "$STRICT_VULN_COUNT" = "-1" ]; then
-    AUDIT_JSON=$(uv export --frozen | uvx pip-audit --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+    AUDIT_JSON=$(uv export --frozen --no-emit-project | uvx pip-audit --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
     AUDIT_EXIT=0
   fi
 fi
@@ -131,7 +129,7 @@ Report a clean/vulnerable summary (e.g. "0 vulnerabilities" or "2 vulnerabilitie
 
 ### On Success
 
-1. Commit changes per SKILL.md step 7
+1. Set `COMMIT_MSG="chore: update Python dependencies"` and commit per SKILL.md step 7
 2. Push branch to remote:
    ```bash
    git push -u origin "$BRANCH_NAME"

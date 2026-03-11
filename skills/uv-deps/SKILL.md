@@ -117,10 +117,7 @@ else
     git ls-files --error-unmatch "$lockfile" > /dev/null 2>&1 && git add "$lockfile" || true
   done
 
-  # Select commit message based on workflow type:
-  #   Security audit:    fix: patch vulnerable Python dependencies
-  #   Dependency update: chore: update Python dependencies
-  COMMIT_MSG="<select from above>"
+  # $COMMIT_MSG is set by the calling workflow before this step.
   git commit -m "$COMMIT_MSG"
   # If commit fails due to GPG keyring access, retry with --no-gpg-sign
 fi

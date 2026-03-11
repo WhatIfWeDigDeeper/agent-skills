@@ -1,0 +1,125 @@
+{
+  "skill_name": "uv-deps",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "run a security audit on my Python project",
+      "expected_output": "Creates an isolated worktree, verifies uv/uvx are available, finds pyproject.toml projects, syncs dependencies, runs `uv export --frozen | uvx pip-audit` pipeline, categorizes vulnerabilities by severity (default Critical+High), applies fixes where possible, commits, opens PR with security report",
+      "assertions": [
+        {
+          "name": "creates-worktree",
+          "description": "Creates a git worktree on a dedicated branch (py-uv-deps-<timestamp>) before making any changes"
+        },
+        {
+          "name": "reads-audit-workflow",
+          "description": "Reads references/audit-workflow.md to get the security audit workflow"
+        },
+        {
+          "name": "uses-uv-export-pipeline",
+          "description": "Uses the `uv export --frozen | uvx pip-audit` pipeline pattern (not a direct pip-audit invocation)"
+        },
+        {
+          "name": "default-critical-high-filter",
+          "description": "Applies Critical+High severity filter by default since no severity was specified by the user"
+        },
+        {
+          "name": "cleans-up-worktree",
+          "description": "Removes the worktree at the end (success or failure)"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/uv-deps help",
+      "expected_output": "Shows the uv-deps help summary (description, argument syntax, workflow options) and presents the workflow selection question via AskUserQuestion without creating a worktree or starting any workflow",
+      "assertions": [
+        {
+          "name": "shows-help-summary",
+          "description": "Displays the uv-deps help summary including workflows (security audit and dependency updates)"
+        },
+        {
+          "name": "asks-workflow-question",
+          "description": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion"
+        },
+        {
+          "name": "no-worktree-created",
+          "description": "Does not create a worktree or start any workflow before the user answers"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "update my Python packages to the latest versions",
+      "expected_output": "Creates worktree, syncs deps, runs `uv pip list --outdated`, applies Patch+Minor+Major scope (user said 'latest versions'), updates packages, runs available validators (mypy/ruff/pytest), commits with chore message, opens PR",
+      "assertions": [
+        {
+          "name": "creates-worktree",
+          "description": "Creates a git worktree on a dedicated branch"
+        },
+        {
+          "name": "reads-update-workflow",
+          "description": "Reads references/update-workflow.md to get the update workflow"
+        },
+        {
+          "name": "runs-outdated-check",
+          "description": "Runs `uv pip list --outdated` to identify outdated packages"
+        },
+        {
+          "name": "major-version-scope",
+          "description": "Applies Patch+Minor+Major scope (all updates) because user said 'latest versions'"
+        },
+        {
+          "name": "sequential-within-directory",
+          "description": "Updates packages sequentially within a directory (not parallel) to avoid uv.lock contention"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "/uv-deps requests tomli",
+      "expected_output": "Creates worktree, targets only requests and tomli (not all packages), checks for their outdated versions, presents AskUserQuestion for version scope since none was specified, updates them, validates, creates PR",
+      "assertions": [
+        {
+          "name": "creates-worktree",
+          "description": "Creates a git worktree on a dedicated branch"
+        },
+        {
+          "name": "targets-specific-packages",
+          "description": "Only targets requests and tomli — not all packages in the project"
+        },
+        {
+          "name": "asks-version-scope",
+          "description": "Asks the user about version scope (patch/minor/major) via AskUserQuestion or interactive-help since no scope was specified"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "fix critical Python security vulnerabilities only",
+      "expected_output": "Creates worktree, runs pip-audit, applies Critical-only filter (inferred from 'critical only' in prompt), fixes those packages, creates PR",
+      "assertions": [
+        {
+          "name": "creates-worktree",
+          "description": "Creates a git worktree on a dedicated branch"
+        },
+        {
+          "name": "critical-only-filter",
+          "description": "Applies Critical-only severity filter without asking — user specified 'critical' inline"
+        },
+        {
+          "name": "skips-high-moderate-low",
+          "description": "Does not attempt to fix High, Moderate, or Low severity vulnerabilities"
+        },
+        {
+          "name": "reads-audit-workflow",
+          "description": "Reads references/audit-workflow.md (not update-workflow.md) since this is a security task"
+        }
+      ],
+      "files": []
+    }
+  ]
+}

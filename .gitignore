@@ -8,3 +8,4 @@ tests/learn/fixtures/
 tests/js-deps/fixtures/
 .venv/
 uv.lock
+!evals/**/uv.lock

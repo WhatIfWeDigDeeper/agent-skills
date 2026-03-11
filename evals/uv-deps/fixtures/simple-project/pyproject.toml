@@ -1,0 +1,21 @@
+[project]
+name = "simple-project"
+version = "0.1.0"
+requires-python = ">=3.9"
+description = "Eval fixture for uv-deps skill testing"
+dependencies = [
+  # Pinned to old versions intentionally for eval testing:
+  # - requests 2.28.0: CVE-2023-32681 (proxy auth header leak) fixed in 2.31.0
+  # - tomli 2.0.1: outdated (current: 2.2+), no known CVEs
+  "requests==2.28.0",
+  "tomli==2.0.1",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==7.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

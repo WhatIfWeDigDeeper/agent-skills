@@ -6,7 +6,7 @@
 |---------|----------|
 | `uv --version` | CLI availability |
 | `uvx --version` | uvx tool runner availability |
-| `uv index versions pip` | PyPI connectivity |
+| `uv pip install --dry-run pip` | PyPI connectivity |
 
 ## Environment Management
 
@@ -27,7 +27,8 @@
 | `uv remove <pkg>` | Remove a package |
 | `uv pip list --outdated` | Show outdated packages in current environment |
 | `uv pip show <pkg>` | Show installed package info (version, location, deps) |
-| `uv index versions <pkg>` | Show all available versions on PyPI |
+| `curl -s https://pypi.org/pypi/<pkg>/json \| python3 -c "import json,sys; d=json.load(sys.stdin); print(sorted(d['releases'].keys())[-1])"` | Show latest version on PyPI |
+| `uv workspace list --no-sync` | List workspace members without syncing (for workspace detection) |
 
 ## Security Audit (via pip-audit)
 
@@ -36,10 +37,10 @@ pip-audit is run via `uvx` to avoid installing it as a project dependency. Becau
 > **Version pinning:** `uvx pip-audit` runs the latest release unpinned. If your security policy requires pinning, use `uvx 'pip-audit>=2,<3'` and update the bound on major releases.
 
 ```bash
-uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null
+uv export --frozen --no-emit-project | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null
 ```
 
-`uv export` includes hashes by default — no extra flag needed. `2>/dev/null` suppresses pip-audit progress noise.
+`uv export` includes hashes by default — no extra flag needed. `--no-emit-project` omits the editable project entry (which has no hash and causes pip-audit to fail on projects without a source directory). `2>/dev/null` suppresses pip-audit progress noise.
 
 ### pip-audit Flags
 
@@ -54,7 +55,7 @@ uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin -
 
 Multiple `--ignore-vuln` flags can be combined:
 ```bash
-uv export --frozen | uvx pip-audit --strict -r /dev/stdin --disable-pip --no-deps --ignore-vuln PYSEC-2024-001 --ignore-vuln GHSA-xxxx-xxxx-xxxx
+uv export --frozen --no-emit-project | uvx pip-audit --strict -r /dev/stdin --disable-pip --no-deps --ignore-vuln PYSEC-2024-001 --ignore-vuln GHSA-xxxx-xxxx-xxxx
 ```
 
 ## Validation
