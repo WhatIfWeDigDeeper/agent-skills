@@ -89,6 +89,13 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 - After modifying skill and reference files run `uv run --with pytest pytest tests/` to verify changes don't break existing assertions.
 - Consider whether new tests are needed to cover the changed behavior.
 
+## Evals and Benchmarking
+
+- Each skill with an `evals/` directory should have a corresponding `evals/<skill-name>/benchmark.json`.
+- **After running evals for a skill, always update `evals/<skill-name>/benchmark.json`** with the new results. Do not leave stale benchmark data.
+- The benchmark.json format mirrors `evals/ship-it/benchmark.json`: a `metadata` block, a `runs` array (one entry per eval × configuration), and a `run_summary` with mean/stddev/min/max stats plus a `delta` section comparing `with_skill` vs `without_skill`.
+- **After updating benchmark.json, also update the `Eval Δ` column in the `README.md` Available Skills table** to reflect the new pass-rate delta (e.g. `+62%`).
+
 ## Portability
 
 Skills in this repo should work with any coding assistant, not just Claude Code. Keep workflow instructions in assistant-neutral language. When a step has a Claude Code-specific mechanic, note it with a qualifier rather than stating it as a universal requirement:

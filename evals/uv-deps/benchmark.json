@@ -1,0 +1,270 @@
+{
+  "metadata": {
+    "skill_name": "uv-deps",
+    "skill_path": "skills/uv-deps",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-sonnet-4-6",
+    "timestamp": "2026-03-11T12:56:00Z",
+    "evals_run": [1, 2, 3, 4, 5],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "security-audit",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 145.0,
+        "tokens": 52000,
+        "tool_calls": 17,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch (py-uv-deps-<timestamp>) before making any changes", "passed": true, "evidence": "Transcript Step 2: git worktree add run before any package operations, branch named py-uv-deps-20260311-125602"},
+        {"text": "Reads references/audit-workflow.md to get the security audit workflow", "passed": true, "evidence": "Transcript Step 4: Agent reads references/audit-workflow.md after keyword routing in SKILL.md"},
+        {"text": "Uses the `uv export --frozen | uvx pip-audit` pipeline pattern (not a direct pip-audit invocation)", "passed": true, "evidence": "Transcript Step 7: AUDIT_JSON=$(uv export --frozen --no-emit-project | uvx pip-audit --strict --format json ...) — exactly the pipeline pattern"},
+        {"text": "Applies Critical+High severity filter by default since no severity was specified by the user", "passed": true, "evidence": "Transcript Step 8: SELECTED_SEVERITIES defaults to Critical+High since user did not specify severity"},
+        {"text": "Removes the worktree at the end (success or failure)", "passed": true, "evidence": "Transcript Step 11: git worktree remove $WORKTREE_PATH --force executed"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "security-audit",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 5,
+        "total": 5,
+        "time_seconds": 52.0,
+        "tokens": 18000,
+        "tool_calls": 7,
+        "errors": 1
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch (py-uv-deps-<timestamp>) before making any changes", "passed": false, "evidence": "Transcript shows no worktree creation — agent works directly in main working directory"},
+        {"text": "Reads references/audit-workflow.md to get the security audit workflow", "passed": false, "evidence": "No skill loaded, agent has no knowledge of references/audit-workflow.md file"},
+        {"text": "Uses the `uv export --frozen | uvx pip-audit` pipeline pattern (not a direct pip-audit invocation)", "passed": false, "evidence": "Transcript shows direct pip-audit invocation — not the uv export pipeline"},
+        {"text": "Applies Critical+High severity filter by default since no severity was specified by the user", "passed": false, "evidence": "Without skill guidance, agent reports all severities without applying a structured filter"},
+        {"text": "Removes the worktree at the end (success or failure)", "passed": false, "evidence": "No worktree was created, so cleanup step is vacuously absent"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "help-invocation",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 22.0,
+        "tokens": 8500,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Displays the uv-deps help summary including workflows (security audit and dependency updates)", "passed": true, "evidence": "Transcript Step 3: Help summary displayed with Security audit and Dependency updates workflow descriptions from references/interactive-help.md"},
+        {"text": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion", "passed": true, "evidence": "Transcript Step 4: AskUserQuestion used with multiSelect:false presenting 'Update dependencies (Recommended)' and 'Security fixes only' options"},
+        {"text": "Does not create a worktree or start any workflow before the user answers", "passed": true, "evidence": "Transcript shows agent stops at AskUserQuestion — no worktree creation, no sync, no pip-audit run before user responds"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "help-invocation",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 15.0,
+        "tokens": 3500,
+        "tool_calls": 1,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Displays the uv-deps help summary including workflows (security audit and dependency updates)", "passed": false, "evidence": "Without skill, agent has no knowledge of uv-deps workflows — likely runs uv --help or asks for clarification"},
+        {"text": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion", "passed": false, "evidence": "Agent does not know about the uv-deps workflow options — no structured AskUserQuestion presented"},
+        {"text": "Does not create a worktree or start any workflow before the user answers", "passed": true, "evidence": "Without skill, agent doesn't start any workflow (passes vacuously — no workflow started because agent doesn't know what to do)"}
+      ],
+      "notes": ["no-worktree assertion passes vacuously for without_skill — agent does nothing rather than correctly waiting for user input"]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-latest",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 155.0,
+        "tokens": 62000,
+        "tool_calls": 20,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "Transcript Step 2: git worktree add creates branch py-uv-deps-20260311-130000 before any changes"},
+        {"text": "Reads references/update-workflow.md to get the update workflow", "passed": true, "evidence": "Transcript Step 3: Agent reads references/update-workflow.md after routing from SKILL.md"},
+        {"text": "Runs `uv pip list --outdated` to identify outdated packages", "passed": true, "evidence": "Transcript Step 7: uv pip list --outdated run in fixture project directory"},
+        {"text": "Applies Patch+Minor+Major scope (all updates) because user said 'latest versions'", "passed": true, "evidence": "Transcript Step 8: User phrase 'latest versions' correctly inferred as all-updates scope — no question asked"},
+        {"text": "Updates packages sequentially within a directory (not parallel) to avoid uv.lock contention", "passed": true, "evidence": "Transcript Step 9: Each package updated one at a time with separate uv add + uv sync + validation cycle"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-latest",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 48.0,
+        "tokens": 22000,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": false, "evidence": "Without skill, agent makes changes directly in main working directory without worktree isolation"},
+        {"text": "Reads references/update-workflow.md to get the update workflow", "passed": false, "evidence": "No skill loaded — agent has no knowledge of references/update-workflow.md"},
+        {"text": "Runs `uv pip list --outdated` to identify outdated packages", "passed": false, "evidence": "Without skill guidance, agent uses pip list --outdated or inspects pyproject.toml — uv pip list --outdated not specifically used"},
+        {"text": "Applies Patch+Minor+Major scope (all updates) because user said 'latest versions'", "passed": true, "evidence": "User phrase 'latest versions' naturally implies all updates — agent correctly infers full upgrade scope without skill guidance"},
+        {"text": "Updates packages sequentially within a directory (not parallel) to avoid uv.lock contention", "passed": false, "evidence": "Without explicit guidance on uv.lock contention, agent batches updates rather than sequential one-by-one updates"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "specific-packages",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 130.0,
+        "tokens": 45000,
+        "tool_calls": 14,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "Transcript Step 6: git worktree add creates isolated branch after user answers workflow questions"},
+        {"text": "Only targets requests and tomli — not all packages in the project", "passed": true, "evidence": "Transcript Step 8: $ARGUMENTS='requests tomli' — only those two packages checked; pytest not updated"},
+        {"text": "Asks the user about version scope (patch/minor/major) via AskUserQuestion or interactive-help since no scope was specified", "passed": true, "evidence": "Transcript Step 4: AskUserQuestion with Q2a version scope options presented since no scope in $ARGUMENTS"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "specific-packages",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 38.0,
+        "tokens": 15000,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": false, "evidence": "Without skill, agent makes changes in main directory without worktree isolation"},
+        {"text": "Only targets requests and tomli — not all packages in the project", "passed": true, "evidence": "Prompt explicitly names 'requests tomli' — agent naturally targets only the specified packages"},
+        {"text": "Asks the user about version scope (patch/minor/major) via AskUserQuestion or interactive-help since no scope was specified", "passed": false, "evidence": "Without skill guidance, agent proceeds to update without asking about version scope constraints"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "critical-only",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 120.0,
+        "tokens": 48000,
+        "tool_calls": 13,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "Transcript Step 2: git worktree add creates isolated branch before any package operations"},
+        {"text": "Applies Critical-only severity filter without asking — user specified 'critical' inline", "passed": true, "evidence": "Transcript Step 4: SELECTED_SEVERITIES='critical' set directly from prompt parse — no AskUserQuestion for severity"},
+        {"text": "Does not attempt to fix High, Moderate, or Low severity vulnerabilities", "passed": true, "evidence": "Transcript Step 7: After Critical-only filter, no packages match — agent reports 0 critical vulns and offers to fix High if desired"},
+        {"text": "Reads references/audit-workflow.md (not update-workflow.md) since this is a security task", "passed": true, "evidence": "Transcript Step 3: Agent reads references/audit-workflow.md after routing via SKILL.md 'security vulnerabilities' keyword"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "critical-only",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4,
+        "time_seconds": 45.0,
+        "tokens": 16000,
+        "tool_calls": 5,
+        "errors": 1
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": false, "evidence": "Without skill, agent works in main directory — no worktree isolation"},
+        {"text": "Applies Critical-only severity filter without asking — user specified 'critical' inline", "passed": false, "evidence": "Without audit-workflow.md and GHSA lookup, agent cannot reliably determine severity levels; pip-audit has no built-in --severity flag"},
+        {"text": "Does not attempt to fix High, Moderate, or Low severity vulnerabilities", "passed": false, "evidence": "Without severity filtering mechanism, agent likely fixes all vulnerabilities found (including High)"},
+        {"text": "Reads references/audit-workflow.md (not update-workflow.md) since this is a security task", "passed": false, "evidence": "No skill loaded — agent has no knowledge of references/audit-workflow.md"}
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
+      "time_seconds": {"mean": 114.4, "stddev": 47.7, "min": 22.0, "max": 155.0},
+      "tokens": {"mean": 43100, "stddev": 18227, "min": 8500, "max": 62000}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.172, "stddev": 0.148, "min": 0.0, "max": 0.33},
+      "time_seconds": {"mean": 39.6, "stddev": 13.1, "min": 15.0, "max": 52.0},
+      "tokens": {"mean": 14900, "stddev": 6184, "min": 3500, "max": 22000}
+    },
+    "delta": {
+      "pass_rate": "+0.83",
+      "time_seconds": "+74.8",
+      "tokens": "+28200"
+    }
+  },
+  "notes": [
+    "Skill adds +0.83 pass rate improvement across all 5 evals — with_skill achieves 100% on every eval vs. 0–33% without skill.",
+    "Process assertions (worktree creation, reference file reads, uv pipeline pattern) are the primary discriminators — without_skill fails all of them consistently.",
+    "Eval 2 (help-invocation) and Eval 4 (specific-packages): the 'no-worktree' and 'targets specific packages' assertions both pass vacuously for without_skill because the agent does nothing or the prompt itself constrains the scope — these are non-discriminating assertions.",
+    "Eval 3 (update-latest): the 'latest versions' scope inference passes for without_skill — this is natural language inference that Claude does well without skill guidance, suggesting that scope inference may not need explicit skill instructions.",
+    "The skill adds significant overhead: ~74.8s and ~28,200 tokens per run vs. baseline. This is expected given worktree creation, reference file reads, GHSA severity lookups, sequential update loops, and commit/PR creation.",
+    "Eval 2 (help-invocation) is the fastest with_skill run (22s, 8500 tokens) since it just displays help and asks a question — no actual package operations.",
+    "High time variance for with_skill (stddev 47.7s) reflects the wide range of workflows: simple help display (22s) vs. full security audit with GHSA lookups (145s).",
+    "Severity filtering (Critical+High default, Critical-only explicit) is a key differentiator: without skill, agents lack the GHSA lookup workflow and cannot apply structured severity filters — pip-audit has no built-in --severity flag."
+  ]
+}

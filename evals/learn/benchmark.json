@@ -1,0 +1,336 @@
+{
+  "metadata": {
+    "skill_name": "learn",
+    "skill_path": "skills/learn",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-sonnet-4-6",
+    "timestamp": "2026-03-11T00:00:00Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "eval_name": "docker-networking-to-config",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 58.2,
+        "tokens": 16949,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "CLAUDE.md was modified",
+          "passed": true,
+          "evidence": "Transcript Step 6 states 'Lines: 17 \u2192 22'. The output CLAUDE.md in outputs/ confirms new content was added, bringing the file from 17 to 22 lines."
+        },
+        {
+          "text": "The added content mentions 'host.docker.internal'",
+          "passed": true,
+          "evidence": "The new Docker section reads: 'use `host.docker.internal` instead (e.g. `http://host.docker.internal:3000`)'. The exact term appears in outputs/CLAUDE.md."
+        },
+        {
+          "text": "The added content captures that localhost doesn't work inside containers",
+          "passed": true,
+          "evidence": "The added line explicitly states: 'containers cannot reach the host via `localhost`' and '`curl localhost:3000` inside a container will always fail.'"
+        },
+        {
+          "text": "Learning is placed in a relevant section rather than appended randomly",
+          "passed": true,
+          "evidence": "The skill created a new '## Docker' section \u2014 a purpose-specific heading \u2014 rather than appending to an unrelated section or the bottom of the file."
+        },
+        {
+          "text": "Skill summarizes what was added and where",
+          "passed": true,
+          "evidence": "Step 6 of the transcript provides a clear summary: 'Config files modified: CLAUDE.md', 'Added new section: ## Docker', 'Lines: 17 \u2192 22', 'Skills created: None', 'Skills updated: None'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "eval_name": "docker-networking-to-config",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 27.3,
+        "tokens": 636,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "CLAUDE.md was modified",
+          "passed": true,
+          "evidence": "Input CLAUDE.md has 15 lines; output CLAUDE.md has 20 lines (added a ## Docker section with 3 lines of content plus spacing)."
+        },
+        {
+          "text": "The added content mentions 'host.docker.internal'",
+          "passed": true,
+          "evidence": "Output CLAUDE.md contains 'host.docker.internal' in both bullet points: 'Use `host.docker.internal` instead (e.g. `http://host.docker.internal:3000`).' and 'use `curl host.docker.internal:3000`'."
+        },
+        {
+          "text": "The added content captures that localhost doesn't work inside containers",
+          "passed": true,
+          "evidence": "Output CLAUDE.md states: '`curl localhost:3000` from inside a container will always fail on macOS' and 'containers cannot reach the host machine via `localhost`'."
+        },
+        {
+          "text": "Learning is placed in a relevant section rather than appended randomly",
+          "passed": true,
+          "evidence": "A dedicated '## Docker' section was created, consistent with the existing heading structure. The transcript notes this was chosen because the file already had a Docker Compose entry in Tech Stack, making a Docker section a natural fit for operational gotchas."
+        },
+        {
+          "text": "Skill summarizes what was added and where",
+          "passed": true,
+          "evidence": "The transcript explicitly describes what was added ('## Docker section with two bullet points'), where it was placed ('new ## Docker section'), and the reasoning for placement ('natural fit \u2014 consistent with the existing heading structure')."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "deployment-workflow-to-skill",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 75.7,
+        "tokens": 18382,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A new skill file is created rather than just appending the full workflow to CLAUDE.md",
+          "passed": true,
+          "evidence": "The skill file was created at outputs/skills/deploy/SKILL.md with a complete skill definition. CLAUDE.md was also updated, but the workflow content went into the skill file, not CLAUDE.md. The transcript confirms: 'Skills created: /Users/greg/code/agent-skills/learn-workspace/iteration-1/eval-1-deploy-workflow/with_skill/skills/deploy/SKILL.md'."
+        },
+        {
+          "text": "Created skill includes the key workflow steps",
+          "passed": true,
+          "evidence": "The SKILL.md contains 5 numbered steps: '### 1. Build for Production', '### 2. Run Database Migrations', '### 3. Deploy', '### 4. Verify Health', '### 5. Troubleshoot 503'. The 4 original workflow items are all covered (the skill adds a 5th step for 503 troubleshooting which was mentioned in the input). The numbered format matches the requirement."
+        },
+        {
+          "text": "Created skill has valid YAML frontmatter with name and description fields",
+          "passed": true,
+          "evidence": "SKILL.md lines 1-7 contain valid YAML frontmatter with 'name: deploy' and a multi-line 'description' field using the block scalar '>' syntax. The frontmatter is properly delimited by '---' markers."
+        },
+        {
+          "text": "build:prod, db:migrate:prod, and /healthz check all appear in the created skill",
+          "passed": true,
+          "evidence": "All three appear in SKILL.md: (1) 'npm run build:prod' in step 1 bash block; (2) 'DATABASE_URL=<prod-database-url> npm run db:migrate:prod' in step 2 bash block; (3) 'curl -f https://<host>/healthz' in step 4 bash block."
+        },
+        {
+          "text": "CloudWatch log group /app/prod troubleshooting tip is included",
+          "passed": true,
+          "evidence": "In SKILL.md step 5 (Troubleshoot 503): '- Log group: `/app/prod`' with the context 'If `/healthz` returns 503, check CloudWatch logs first'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "deployment-workflow-to-skill",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 40.5,
+        "tokens": 12763,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A new skill file is created rather than just appending the full workflow to CLAUDE.md",
+          "passed": true,
+          "evidence": "File outputs/skills/deploy/SKILL.md was created. Transcript confirms: 'Files Created: outputs/skills/deploy/SKILL.md \u2014 new skill defining the full deployment workflow'. The executor also updated CLAUDE.md but created a separate skill file."
+        },
+        {
+          "text": "Created skill includes the key workflow steps",
+          "passed": true,
+          "evidence": "SKILL.md contains 5 numbered steps (### 1. Build for Production, ### 2. Run Database Migrations, ### 3. Deploy, ### 4. Verify Health, ### 5. Troubleshoot 503 Errors). All 4 user-provided workflow items are covered: build:prod, db migration, /healthz check, and CloudWatch troubleshooting. The 5th step is an expansion of item 4 (troubleshooting) into its own step."
+        },
+        {
+          "text": "Created skill has valid YAML frontmatter with name and description fields",
+          "passed": true,
+          "evidence": "SKILL.md lines 1-4: '---\\nname: deploy\\ndescription: Deploy the Node.js application to production, including build, database migration, and health verification steps.\\n---'. Both required fields are present and valid."
+        },
+        {
+          "text": "build:prod, db:migrate:prod, and /healthz check all appear in the created skill",
+          "passed": true,
+          "evidence": "All three are present in SKILL.md: 'npm run build:prod' in Step 1 (line 16), 'npm run db:migrate:prod' in Step 2 (line 26), and '/healthz' in Step 4 (lines 39, 46)."
+        },
+        {
+          "text": "CloudWatch log group /app/prod troubleshooting tip is included",
+          "passed": true,
+          "evidence": "SKILL.md Step 5 (lines 44-54) contains: 'If /healthz returns 503 Service Unavailable, check the CloudWatch logs first: Log group: /app/prod' with an aws logs tail command."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "multi-learning-route-and-ask",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 84.9,
+        "tokens": 19112,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript shows both CLAUDE.md and copilot-instructions.md were detected before any files were modified",
+          "passed": false,
+          "evidence": "Transcript Step 1 confirms detection of both files: 'CLAUDE.md \u2014 10 lines' and '.github/copilot-instructions.md \u2014 4 lines'. However, the skill did not ask which to update. It states 'Multiple configs detected. Per task instructions, selected CLAUDE.md as the primary config target for non-interactive execution.' No user prompt or question was presented \u2014 the selection was made unilaterally."
+        },
+        {
+          "text": "The 5-step 'add endpoint' workflow is routed to a new skill, not appended to a config file",
+          "passed": true,
+          "evidence": "Transcript Step 3 routing table shows 'Add API endpoint workflow | 5 | No | No | Route C \u2192 New skill'. The output confirms creation of skills/add-api-endpoint/SKILL.md containing all 5 steps (Create handler, Register route, Add tests, Verify tests, Update docs). CLAUDE.md was not modified to include this workflow."
+        },
+        {
+          "text": "The conftest.py discovery rule is captured somewhere",
+          "passed": true,
+          "evidence": "The output CLAUDE.md contains a new Testing section: 'pytest fixtures must be in `conftest.py` at the project root, not inside individual test directories \u2014 otherwise pytest will not discover them'. This matches the original learning verbatim."
+        },
+        {
+          "text": "The 'run docker compose up db before tests' prerequisite is captured",
+          "passed": true,
+          "evidence": "The output CLAUDE.md Commands section contains: 'Run `docker compose up db` before running any tests \u2014 tests fail with connection refused if the database is not running'. This directly captures the prerequisite."
+        },
+        {
+          "text": "Transcript shows a plan or summary of proposed changes (what will be added, where) before any file write operations occur",
+          "passed": false,
+          "evidence": "Transcript Step 4 does present all proposed changes before applying them (listing each change, destination, and line count impact). However, it then immediately states 'Non-interactive mode: applied all changes.' without waiting for or soliciting confirmation. The expectation requires asking for confirmation; none was asked."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "multi-learning-route-and-ask",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 48.0,
+        "tokens": 13878,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript shows both CLAUDE.md and copilot-instructions.md were detected before any files were modified",
+          "passed": false,
+          "evidence": "The transcript shows the agent automatically updated both files without asking. Under 'Decisions Made', it states: 'All three learnings are relevant to both Claude Code and Copilot, so both config files were updated.' No question was posed to the user about which files to update."
+        },
+        {
+          "text": "The 5-step 'add endpoint' workflow is routed to a new skill, not appended to a config file",
+          "passed": false,
+          "evidence": "The 5-step workflow was appended directly to both CLAUDE.md (under '## Adding a New API Endpoint') and .github/copilot-instructions.md. The transcript's 'Decisions Made' table explicitly shows 'New API endpoint workflow | Yes (new section) | Yes (new section)'. No new skill file was created anywhere in the outputs."
+        },
+        {
+          "text": "The conftest.py discovery rule is captured somewhere",
+          "passed": true,
+          "evidence": "Captured in both config files. CLAUDE.md Testing section: 'pytest fixtures must be placed in `conftest.py` at the project root, not inside individual test subdirectories \u2014 otherwise pytest will not discover them.' Identical content in copilot-instructions.md Testing Setup section."
+        },
+        {
+          "text": "The 'run docker compose up db before tests' prerequisite is captured",
+          "passed": true,
+          "evidence": "Captured in both config files. CLAUDE.md Testing section: 'Always run `docker compose up db` before running tests \u2014 tests will fail with \"connection refused\" if the database is not running.' Also in Commands section and in copilot-instructions.md."
+        },
+        {
+          "text": "Transcript shows a plan or summary of proposed changes (what will be added, where) before any file write operations occur",
+          "passed": false,
+          "evidence": "The transcript presents the final state of modified files only as a summary after decisions were made \u2014 not as a preview before editing. There is no evidence of a confirmation step or any user interaction where the agent paused to ask before making changes. The 'Decisions Made' section reads as a retrospective, not a prospective proposal."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.8667,
+        "stddev": 0.2309,
+        "min": 0.6,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 72.9333,
+        "stddev": 13.5633,
+        "min": 58.2,
+        "max": 84.9
+      },
+      "tokens": {
+        "mean": 18147.6667,
+        "stddev": 1100.3755,
+        "min": 16949,
+        "max": 19112
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8,
+        "stddev": 0.3464,
+        "min": 0.4,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 38.6,
+        "stddev": 10.48,
+        "min": 27.3,
+        "max": 48.0
+      },
+      "tokens": {
+        "mean": 9092.3333,
+        "stddev": 7344.5889,
+        "min": 636,
+        "max": 13878
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.07",
+      "time_seconds": "+34.3",
+      "tokens": "+9055"
+    }
+  },
+  "notes": [
+    "Evals 0 and 1 (single config, simple routing): both with_skill and without_skill pass all 5 assertions \u2014 Claude naturally persists learnings and creates skills for multi-step workflows even without explicit guidance.",
+    "Eval 2 (multi-config, mixed routing, confirmation step): with_skill scores 3/5, without_skill scores 2/5 \u2014 the skill provides a meaningful improvement on the hardest scenarios.",
+    "The skill's primary value is in eval 2: it correctly routes the 5-step workflow to a new skill file, whereas without_skill appends it to CLAUDE.md. Both configurations fail on detection-before-modification and shows-plan-before-applying assertions.",
+    "Assertion 'detects-multiple-configs' (eval 2): both configurations detected both files, but neither paused to ask the user which to update before proceeding \u2014 the skill selected CLAUDE.md unilaterally, without_skill updated both automatically.",
+    "The skill adds ~34s and ~9000 tokens overhead per run, primarily from reading SKILL.md and following the structured detection/routing/confirmation process.",
+    "Token variance in without_skill is high (stddev ~7300) because the without_skill eval 0 run used only 636 tokens \u2014 reflecting that without structure, the agent may acknowledge learnings verbally without persisting them to disk."
+  ]
+}

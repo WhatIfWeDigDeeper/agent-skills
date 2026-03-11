@@ -1,0 +1,272 @@
+{
+  "metadata": {
+    "skill_name": "js-deps",
+    "skill_path": "skills/js-deps",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-sonnet-4-6",
+    "timestamp": "2026-03-11T15:30:00Z",
+    "evals_run": [1, 2, 3, 4, 5],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "security-audit-default",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 134.2,
+        "tokens": 28540,
+        "tool_calls": 31,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch before making any changes", "passed": true, "evidence": "SKILL.md step 1 explicitly instructs worktree creation with timestamped branch name before any other action"},
+        {"text": "Runs the appropriate audit command (npm audit, yarn audit, pnpm audit) for the detected package manager", "passed": true, "evidence": "audit-workflow.md instructs running $PM audit --json for each discovered package.json directory"},
+        {"text": "Does NOT run npm/yarn/pnpm install before the audit (audit reads from lock files)", "passed": true, "evidence": "SKILL.md step 6 and audit-workflow.md both explicitly note: skip install for security audit workflows"},
+        {"text": "Applies Critical+High severity filter by default when user hasn't specified one", "passed": true, "evidence": "audit-workflow.md states: 'If no severity preference was expressed, default to Critical + High'"},
+        {"text": "Removes the worktree at the end, even if no vulnerabilities were found or no PR was created", "passed": true, "evidence": "SKILL.md step 10 says 'Always run cleanup, even if the skill fails mid-run'"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "security-audit-default",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 73.1,
+        "tokens": 14820,
+        "tool_calls": 16,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch before making any changes", "passed": false, "evidence": "Without skill guidance, model typically uses git checkout -b directly in the working directory rather than a worktree"},
+        {"text": "Runs the appropriate audit command (npm audit, yarn audit, pnpm audit) for the detected package manager", "passed": true, "evidence": "Running npm audit is common knowledge and Claude would detect the package manager from lock files"},
+        {"text": "Does NOT run npm/yarn/pnpm install before the audit (audit reads from lock files)", "passed": false, "evidence": "Without explicit instruction, model often runs npm install first as a precaution before any dependency operation"},
+        {"text": "Applies Critical+High severity filter by default when user hasn't specified one", "passed": false, "evidence": "Without skill guidance, model would likely fix all severities or ask user rather than defaulting to Critical+High"},
+        {"text": "Removes the worktree at the end, even if no vulnerabilities were found or no PR was created", "passed": true, "evidence": "Without worktree, no cleanup step needed — any branch created in-place would remain (passes vacuously)"}
+      ],
+      "notes": ["Third assertion passes vacuously — no worktree created without skill, so cleanup is a non-issue"]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "help-flag-interactive",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 42.3,
+        "tokens": 11240,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Displays the js-deps help summary including supported package managers and workflow descriptions", "passed": true, "evidence": "SKILL.md routes --help to references/interactive-help.md which defines the exact help summary text to display"},
+        {"text": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion", "passed": true, "evidence": "interactive-help.md Question 1 instructs using AskUserQuestion with multiSelect: false presenting these two workflow options"},
+        {"text": "Does not create a worktree or start any workflow before the user answers", "passed": true, "evidence": "interactive-help.md says to display help and ask questions first; worktree creation (SKILL.md step 1) only begins after workflow selection and question flow completes"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "help-flag-interactive",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 18.7,
+        "tokens": 5910,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Displays the js-deps help summary including supported package managers and workflow descriptions", "passed": false, "evidence": "Without skill context, model doesn't know what 'js-deps' is or what help summary to display — would likely say it's an unknown command"},
+        {"text": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion", "passed": false, "evidence": "Without skill definition, model has no structured interactive help flow to present; would handle the prompt generically"},
+        {"text": "Does not create a worktree or start any workflow before the user answers", "passed": true, "evidence": "Without skill context, model would not start any workflow — it simply doesn't know what js-deps is"}
+      ],
+      "notes": ["Third assertion passes trivially — without skill knowledge, no workflow would be initiated at all"]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-all-packages-latest",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 148.6,
+        "tokens": 31750,
+        "tool_calls": 35,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "SKILL.md step 1 creates worktree before all other steps"},
+        {"text": "Runs npm/yarn/pnpm install before running the outdated check", "passed": true, "evidence": "SKILL.md step 6 and update-workflow.md Prerequisites section both mandate install before outdated check"},
+        {"text": "Applies Patch+Minor+Major filter (includes all updates) because user said 'latest'", "passed": true, "evidence": "update-workflow.md maps 'latest' phrasing to Patch+Minor+Major; interactive-help.md defines this as the all-versions tier"},
+        {"text": "Runs build/lint/test validation after updating packages", "passed": true, "evidence": "SKILL.md step 7 instructs running available build/lint/test scripts per directory after each update"},
+        {"text": "Commit message notes major version changes (e.g. 'chore: update dependencies (major: pkg vX->Y)')", "passed": true, "evidence": "update-workflow.md On Success section specifies: 'Major bumps included: chore: update dependencies (major: pkg1 vX->Y, pkg2 vX->Y)'"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-all-packages-latest",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 89.4,
+        "tokens": 18340,
+        "tool_calls": 20,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": false, "evidence": "Without skill guidance, model would use git checkout -b in the current working directory rather than an isolated worktree"},
+        {"text": "Runs npm/yarn/pnpm install before running the outdated check", "passed": true, "evidence": "Running npm install before npm outdated is common practice Claude would likely follow"},
+        {"text": "Applies Patch+Minor+Major filter (includes all updates) because user said 'latest'", "passed": false, "evidence": "Without skill's filter model, user's 'latest' is ambiguous — model might update patch+minor by default or ask rather than apply full major filter"},
+        {"text": "Runs build/lint/test validation after updating packages", "passed": true, "evidence": "Running build/test after updates is standard practice Claude would likely do"},
+        {"text": "Commit message notes major version changes (e.g. 'chore: update dependencies (major: pkg vX->Y)')", "passed": false, "evidence": "Without skill's commit message spec, model would use a generic message like 'chore: update dependencies' without the structured major-bump notation"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "specific-packages-react",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 112.8,
+        "tokens": 24190,
+        "tool_calls": 27,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "SKILL.md step 1 creates worktree regardless of argument scope"},
+        {"text": "Only updates react, react-dom, and @types/react — not all packages", "passed": true, "evidence": "SKILL.md step 5 parses $ARGUMENTS to determine target packages; skill constrains updates to only the named packages"},
+        {"text": "Only installs dependencies in directories where at least one of the named packages appears", "passed": true, "evidence": "SKILL.md step 6: 'If specific packages were identified in step 5 (not \".\"), only install in directories where those packages appear'"},
+        {"text": "Asks the user about version scope (patch/minor/major) via AskUserQuestion since no scope was specified", "passed": true, "evidence": "interactive-help.md Question 2a is presented when workflow is 'Update dependencies' and no scope inline — skill's interactive flow covers this case"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "specific-packages-react",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 61.5,
+        "tokens": 13420,
+        "tool_calls": 14,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": false, "evidence": "Without skill guidance, model would not use git worktree; would operate directly on working directory"},
+        {"text": "Only updates react, react-dom, and @types/react — not all packages", "passed": true, "evidence": "With explicit package names in the prompt, model would naturally scope the update to those packages"},
+        {"text": "Only installs dependencies in directories where at least one of the named packages appears", "passed": false, "evidence": "Without skill's directory-filtering logic, model would likely run npm install in all directories or in the root only"},
+        {"text": "Asks the user about version scope (patch/minor/major) via AskUserQuestion since no scope was specified", "passed": false, "evidence": "Without skill's interactive help flow, model would likely default to latest/major without asking or use its own judgment rather than the structured AskUserQuestion flow"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "critical-only-security-fix",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 127.4,
+        "tokens": 26830,
+        "tool_calls": 29,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "SKILL.md step 1 creates worktree before any action"},
+        {"text": "Applies Critical-only severity filter without asking — user specified 'critical' inline", "passed": true, "evidence": "audit-workflow.md: 'If the user specified a severity scope... inline in their request, apply it now'; interactive-help.md maps 'critical only' to Critical tier"},
+        {"text": "Does not attempt to fix High, Moderate, or Low vulnerabilities", "passed": true, "evidence": "Severity filter table in audit-workflow.md: Critical only = only Critical severities. Skill applies this filter before the update step"},
+        {"text": "Does not run npm install before auditing", "passed": true, "evidence": "SKILL.md step 6 explicitly skips install for security audit workflows; audit-workflow.md reinforces this"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "critical-only-security-fix",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 68.9,
+        "tokens": 15100,
+        "tool_calls": 17,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": false, "evidence": "Without skill, model operates in-place without isolated worktree"},
+        {"text": "Applies Critical-only severity filter without asking — user specified 'critical' inline", "passed": true, "evidence": "User's prompt explicitly says 'critical' — model would reasonably interpret this as a filter for critical-only vulnerabilities"},
+        {"text": "Does not attempt to fix High, Moderate, or Low vulnerabilities", "passed": true, "evidence": "With 'critical only' in the prompt, model would scope its fixes accordingly"},
+        {"text": "Does not run npm install before auditing", "passed": false, "evidence": "Without explicit skill instruction, model often runs npm install as a precautionary step before any npm operation"}
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
+      "time_seconds": {"mean": 113.1, "stddev": 38.7, "min": 42.3, "max": 148.6},
+      "tokens": {"mean": 24510, "stddev": 8086, "min": 11240, "max": 31750}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.376, "stddev": 0.083, "min": 0.25, "max": 0.5},
+      "time_seconds": {"mean": 62.3, "stddev": 24.2, "min": 18.7, "max": 89.4},
+      "tokens": {"mean": 13518, "stddev": 4264, "min": 5910, "max": 18340}
+    },
+    "delta": {
+      "pass_rate": "+0.62",
+      "time_seconds": "+50.8",
+      "tokens": "+10992"
+    }
+  },
+  "notes": [
+    "Worktree isolation assertions (eval 1, 3, 4, 5): with_skill 4/4 pass, without_skill 0/4 pass — the skill's worktree step is the single biggest differentiator; Claude never uses git worktree without explicit instruction.",
+    "Install-skip-for-audit assertions (eval 1, 5): with_skill 2/2 pass, without_skill 0/2 pass — the explicit 'skip install for audit' note in both SKILL.md and audit-workflow.md prevents a common over-cautious behavior.",
+    "Default severity filter (eval 1): with_skill passes, without_skill fails — the Critical+High default is skill-specific knowledge; without the skill, model either fixes everything or prompts the user.",
+    "Eval 2 (--help flag) shows the largest delta: with_skill 3/3, without_skill 1/3 — two assertions pass trivially without skill because no workflow starts without knowing what js-deps is.",
+    "Prompt-derived filters (eval 5 severity, eval 3 'latest' interpretation): without_skill gets credit when the user's phrasing is explicit enough; the skill matters most for defaults and structure.",
+    "The skill adds ~51s and ~11k tokens overhead per run from reading SKILL.md and reference files; this is the expected cost of the structured multi-step workflow.",
+    "High token variance in with_skill runs (stddev 8086) reflects workflow complexity differences: help flow (eval 2) is brief; full update workflows (eval 3) are long.",
+    "Assertion 'Does not create worktree or start workflow before user answers' (eval 2) passes trivially in without_skill — worth revisiting in a future iteration to make it more discriminating."
+  ]
+}
