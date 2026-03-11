@@ -190,7 +190,7 @@ Co-authored-by: alice <alice@users.noreply.github.com>
 Co-authored-by: bob <bob@users.noreply.github.com>
 ```
 
-Deduplicate co-authors — one entry per person regardless of how many suggestions they made. Suggestions accepted via the batch API (Step 7) don't need to be listed here — they're already in a separate commit.
+Deduplicate co-authors — one entry per person regardless of how many suggestions they made. Suggestions accepted in Step 7 are applied locally along with your other edits and are typically included in the same commit.
 
 **Commit fallbacks:**
 - If GPG signing fails, retry with `--no-gpg-sign`

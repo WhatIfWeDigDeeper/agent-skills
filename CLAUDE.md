@@ -74,6 +74,7 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 
 ## Git Workflow
 
+- **Never commit directly to `main`.** Always create a feature branch and open a PR for review.
 - This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI).
 - After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge.
 - After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
