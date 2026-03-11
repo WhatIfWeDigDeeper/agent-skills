@@ -137,27 +137,26 @@ When in doubt, lean toward implementing — reviewers raise things for a reason.
 
 ### 6. Present Plan and Confirm
 
-Before touching anything, show the user a clear summary:
+Before touching anything, show the user a clear summary as a table:
 
 ```
 ## PR Review Plan
 
-### Will accept suggestion (N):
-- [path:line] @username: "brief quote of suggestion"
-
-### Will implement (N):
-- [path:line] @username: "brief quote"
-  → What you'll change
-
-### Will decline (N):
-- [path:line] @username: "brief quote"
-  → Reason (this becomes your reply)
-
-### Skipping — outdated (N):
-- [path:line] @username: "brief quote"
+| # | File | Summary | Action | Note |
+|---|------|---------|--------|------|
+| 1 | path/file.ts:42 | One-line description of what the comment says | `fix` | |
+| 2 | path/other.ts:10 | One-line description | `accept suggestion` | |
+| 3 | path/lib.ts:99 | One-line description | `decline` | Reason for declining |
+| 4 | path/old.ts:5 | One-line description | `skip` | outdated thread |
 
 Proceed?
 ```
+
+**Action values:**
+- `fix` — implement the change manually
+- `accept suggestion` — apply the reviewer's inline `suggestion` block verbatim
+- `decline` — post a reply explaining why; the Note column becomes the reply
+- `skip` — outdated thread; no action taken
 
 Wait for the user's go-ahead. They know the codebase and may want to override your judgment.
 

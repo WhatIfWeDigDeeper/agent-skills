@@ -139,7 +139,7 @@ gh pr create --title "<title>" --body "$(cat <<'EOF'
 - [ ] [How to test these changes]
 
 ---
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+🤖 Generated with [agent name and link, per agent conventions]
 EOF
 )"
 ```

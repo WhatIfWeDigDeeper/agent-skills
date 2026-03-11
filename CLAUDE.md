@@ -56,7 +56,8 @@ Valid frontmatter fields: `name`, `description` (required), `license`, `compatib
 4. Document the workflow with numbered process steps
 5. Add bash code blocks for commands that should be executed
 6. Include example outputs where helpful
-7. Update `README.md` — add the skill to the table and add a notes section
+7. Create a symlink so Claude Code can discover it: `ln -s ../../skills/<skill-name> .claude/skills/<skill-name>`
+8. Update `README.md` — add the skill to the table and add a notes section
 
 When substantially modifying an existing skill, also update its entry in `README.md`.
 

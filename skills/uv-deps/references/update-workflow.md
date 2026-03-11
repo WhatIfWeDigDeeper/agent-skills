@@ -105,10 +105,10 @@ cd "$WORKTREE_PATH/<directory>"
 AUDIT_JSON=$(uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
 AUDIT_EXIT=$?
 
-# Retry without --strict if exit non-zero but no real vulns (database-coverage warning, not a true vulnerability)
+# Retry without --strict only when strict run found no real vulns
+# (distinguishes database-coverage warning from actual vulnerabilities)
 if [ "$AUDIT_EXIT" -ne 0 ]; then
-  AUDIT_JSON_NOSTRICT=$(uv export --frozen | uvx pip-audit --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
-  VULN_COUNT_CHECK=$(echo "$AUDIT_JSON_NOSTRICT" | python3 -c "
+  STRICT_VULN_COUNT=$(echo "$AUDIT_JSON" | python3 -c "
 import json, sys
 try:
     data = json.load(sys.stdin)
@@ -116,8 +116,8 @@ try:
 except Exception:
     print(-1)
 " 2>/dev/null)
-  if [ "$VULN_COUNT_CHECK" = "0" ]; then
-    AUDIT_JSON="$AUDIT_JSON_NOSTRICT"
+  if [ "$STRICT_VULN_COUNT" = "0" ] || [ "$STRICT_VULN_COUNT" = "-1" ]; then
+    AUDIT_JSON=$(uv export --frozen | uvx pip-audit --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
     AUDIT_EXIT=0
   fi
 fi
