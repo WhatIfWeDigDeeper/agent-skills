@@ -88,3 +88,4 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 - **Parallelization**: Use Task subagents for processing multiple items concurrently
 - **Documentation sync**: Update CLAUDE.md/README.md when major versions change
 - **PR-driven**: Create pull requests for review rather than auto-committing
+- **GitHub suggested changes**: There is no public REST API to accept them. Extract the replacement from the `suggestion` fenced block in the comment body and apply it as a local edit.
