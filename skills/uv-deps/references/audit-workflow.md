@@ -183,19 +183,67 @@ Validate after each update per SKILL.md step 6. If validation fails, revert (see
 
 ### Post-Audit Scan
 
-Re-run the audit to confirm fixes:
+Re-run the audit to confirm fixes. Apply the same severity filter used to compute `TARGET_COUNT` so the "Fixed X of Y" math is accurate for filtered runs (not inflated by out-of-scope severities):
+
 ```bash
 cd "$WORKTREE_PATH/<directory>"
-# REAUDIT_JSON is raw pip-audit output (a dict with a 'dependencies' key),
-# unlike VULN_JSON above which is a pre-filtered list of dicts.
 REAUDIT_JSON=$(uv export --frozen | uvx pip-audit --strict --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
 REAUDIT_EXIT=$?
-REMAINING=$(echo "$REAUDIT_JSON" | python3 -c "
+
+# Retry without --strict if exit non-zero but no vulns parsed (database-coverage warning, not real vuln)
+if [ "$REAUDIT_EXIT" -ne 0 ]; then
+  REAUDIT_JSON_NOSTRICT=$(uv export --frozen | uvx pip-audit --format json --desc -r /dev/stdin --disable-pip --no-deps 2>/dev/null)
+  REAUDIT_VULNS=$(echo "$REAUDIT_JSON_NOSTRICT" | python3 -c "
 import json, sys
 try:
     data = json.load(sys.stdin)
-    remaining = sum(len(d['vulns']) for d in data['dependencies'])
-    print(remaining)
+    print(sum(len(d['vulns']) for d in data['dependencies']))
+except Exception:
+    print(-1)
+" 2>/dev/null)
+  if [ "$REAUDIT_VULNS" = "0" ]; then
+    REAUDIT_JSON="$REAUDIT_JSON_NOSTRICT"
+    REAUDIT_EXIT=0
+  fi
+fi
+
+# Extract vulnerable packages from re-audit (same shape as VULN_JSON)
+REMAINING_VULN_JSON=$(echo "$REAUDIT_JSON" | python3 -c "
+import json, sys
+try:
+    data = json.load(sys.stdin)
+    vulns = [d for d in data['dependencies'] if d['vulns']]
+    print(json.dumps(vulns, indent=2))
+except (json.JSONDecodeError, KeyError):
+    print('[]')
+")
+
+# Apply same severity filter as TARGET_COUNT so the math is apples-to-apples
+if [ -n "$SELECTED_SEVERITIES" ]; then
+  REMAINING_VULN_JSON=$(echo "$REMAINING_VULN_JSON" | SELECTED_SEVERITIES="$SELECTED_SEVERITIES" SEVERITY_MAP="$SEVERITY_MAP" python3 -c "
+import json, sys, os
+selected = set(os.environ.get('SELECTED_SEVERITIES', '').lower().split())
+severity_map = {}
+for line in os.environ.get('SEVERITY_MAP', '').strip().split('\n'):
+    if ': ' in line:
+        ghsa_id, sev = line.split(': ', 1)
+        severity_map[ghsa_id.strip()] = sev.strip().lower()
+data = json.load(sys.stdin)
+def pkg_matches(pkg):
+    for vuln in pkg['vulns']:
+        for alias in vuln.get('aliases', []):
+            if alias.startswith('GHSA-') and severity_map.get(alias, 'high') in selected:
+                return True
+    return False
+print(json.dumps([p for p in data if pkg_matches(p)], indent=2))
+")
+fi
+
+REMAINING=$(echo "$REMAINING_VULN_JSON" | python3 -c "
+import json, sys
+try:
+    data = json.load(sys.stdin)
+    print(sum(len(p['vulns']) for p in data))
 except (json.JSONDecodeError, KeyError):
     print('unknown')
 ")

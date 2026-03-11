@@ -12,9 +12,14 @@ This is a collection of reusable skill definitions for Claude Code and other cod
 skills/
   <skill-name>/
     SKILL.md     # Skill definition with frontmatter + workflow
+evals/
+  <skill-name>/
+    evals.json   # Test cases for the skill (not distributed with the skill)
 specs/
   <N>-<topic>/  # Design specs: plan.md and tasks.md for planned changes
 ```
+
+Evals live under `evals/` at the repo root, not inside `skills/` — they are development artifacts and should not be bundled when a skill is distributed.
 
 ## Skill Definition Format
 
@@ -79,6 +84,14 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 
 - After modifying skill and reference files run `uv run --with pytest pytest tests/` to verify changes don't break existing assertions.
 - Consider whether new tests are needed to cover the changed behavior.
+
+## Portability
+
+Skills in this repo should work with any coding assistant, not just Claude Code. Keep workflow instructions in assistant-neutral language. When a step has a Claude Code-specific mechanic, note it with a qualifier rather than stating it as a universal requirement:
+
+- **Arguments**: "The text following the skill invocation is available as `$ARGUMENTS` (e.g. in Claude Code: `/skill-name args`)" — not "Claude Code passes..."
+- **Sandbox**: "Requires OS keyring/network access — lift any sandbox restrictions (in Claude Code: `dangerouslyDisableSandbox: true`)" — not "requires `dangerouslyDisableSandbox: true`"
+- **PR attribution**: Use a generic placeholder like `Generated with [Claude Code](...)` that other assistants can substitute with their own name
 
 ## Skill Design Patterns
 

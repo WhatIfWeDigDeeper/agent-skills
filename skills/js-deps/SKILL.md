@@ -38,14 +38,12 @@ WORKTREE_PATH="$(dirname "$(git rev-parse --show-toplevel)")/$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
 
-If `git worktree add` fails (e.g., sandbox permission error), prompt the user:
-> `git worktree` requires write access outside the project root. Choose an option:
-> 1. Add the parent directory (one level above the repo root) to your sandbox allowlist in `settings.json` (recommended)
-> 2. Fall back to branch+stash approach
+If `git worktree add` fails due to a sandbox permission error:
+> `git worktree` requires write access outside the project root. Grant that access in your assistant's settings (in Claude Code: add the parent directory to your sandbox allowlist in `settings.json`) and retry.
 
 **All subsequent steps operate within `$WORKTREE_PATH`.** Discovery, installs, edits, and commits all happen there. Paths like `cd <directory>` in reference files are relative to `$WORKTREE_PATH`.
 
-`gh`, `git push`, and `git commit` require `dangerouslyDisableSandbox: true` (keyring access for auth).
+`gh`, `git push`, and `git commit` require OS keyring/credential helper access — lift any sandbox restrictions that block this (in Claude Code: `dangerouslyDisableSandbox: true`).
 
 ### 2. Detect Package Manager
 
@@ -56,7 +54,7 @@ Detect from lock files and `package.json` `packageManager` field (which takes pr
 Verify the package manager CLI is available and, for npm, that it can reach the registry. See [references/package-managers.md](references/package-managers.md) for manager-specific verification commands.
 
 If verification fails, prompt user with a message appropriate to what was checked:
-- **npm or pnpm** (registry connectivity verified): "Cannot reach package registry. Sandbox may be blocking network access. To allow package manager commands in sandbox mode, update settings.json."
+- **npm or pnpm** (registry connectivity verified): "Cannot reach package registry. A sandbox or network restriction may be blocking access. Lift network restrictions in your assistant's settings and retry."
 - **yarn or bun** (CLI availability only): "Package manager CLI not found or not executable. Ensure yarn/bun is installed and available in PATH."
 
 Do not proceed until verification passes.
@@ -123,7 +121,7 @@ Remove the worktree. The main working directory was never modified, so no stash 
 
 ```bash
 git worktree remove "$WORKTREE_PATH" --force
-# Only delete branch if no PR was created (requires dangerouslyDisableSandbox: true)
+# Only delete branch if no PR was created (requires keyring/network access)
 if [ -z "$(gh pr list --head "$BRANCH_NAME" --json url --jq '.[0].url' 2>/dev/null)" ]; then
   git branch -D "$BRANCH_NAME"
 fi
