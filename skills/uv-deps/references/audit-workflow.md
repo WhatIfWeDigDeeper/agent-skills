@@ -122,7 +122,9 @@ Write the filter script to a temp file once — it's reused in the Post-Audit Sc
 # multiSelect answers in interactive-help.md (e.g. "critical high" or "moderate").
 # Leave empty (unset) to include all severities — do not set it when "All vulnerabilities" is selected.
 # Valid values match the normalized GitHub API severities: critical, high, moderate (includes low).
-SEVERITY_FILTER=$(mktemp --suffix=.py)
+SEVERITY_FILTER_BASE=$(mktemp -t severity_filter.XXXXXX)
+SEVERITY_FILTER="${SEVERITY_FILTER_BASE}.py"
+mv "$SEVERITY_FILTER_BASE" "$SEVERITY_FILTER"
 trap "rm -f '$SEVERITY_FILTER'" EXIT
 cat > "$SEVERITY_FILTER" << 'PYEOF'
 import json, sys, os
