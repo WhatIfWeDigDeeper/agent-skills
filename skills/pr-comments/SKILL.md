@@ -33,7 +33,6 @@ Different operations require different `gh` commands:
 | PR metadata | `gh pr view --json` | High-level; handles branch detection |
 | List review comments | `gh api repos/{owner}/{repo}/pulls/{number}/comments` | REST; simpler than GraphQL for reads |
 | Reply to a comment | `gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{id}/replies` | REST; direct reply-to-comment endpoint |
-| Accept suggestions (batch) | `gh api repos/{owner}/{repo}/pulls/{pull_number}/suggestions/batch` | REST; accepts multiple suggestions in one remote commit |
 | Get thread node IDs | `gh api graphql` | Thread node IDs only exist in GraphQL |
 | Resolve a thread | `gh api graphql` mutation | No REST equivalent for resolution |
 
@@ -70,7 +69,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate \
 
 When deciding on action items, focus on top-level comments (where `in_reply_to_id` is null); treat replies as context. Filter for these after fetching (for example, with `jq 'map(select(.in_reply_to_id == null))'`) and still read reply chains to understand the full discussion thread.
 
-**Identify suggested changes**: A comment body containing a ` ```suggestion ``` ` code block is a GitHub suggested change — the reviewer has proposed an exact diff. Flag these separately; they're handled differently from regular comments (see Steps 5–7).
+**Identify suggested changes**: A comment body containing a ```` ```suggestion ``` ```` code block is a GitHub suggested change — the reviewer has proposed an exact diff. Flag these separately; they're handled differently from regular comments (see Steps 5–7).
 
 ### 3. Fetch Thread Resolution State
 
@@ -111,7 +110,7 @@ For each unresolved thread, read the current file at the referenced path. The `d
 
 ### 5. Decide: Accept Suggestion / Implement / Decline
 
-**For suggested changes (` ```suggestion ``` ` comments):**
+**For suggested changes (comments starting with `\`\`\`suggestion`):**
 - Evaluate the proposed diff directly — it's explicit, so the decision is usually clear
 - **Accept** if the change is correct and improves the code
 - **Decline** if it's wrong, conflicts with other changes, or is out of scope
@@ -125,8 +124,10 @@ For each unresolved thread, read the current file at the referenced path. The `d
 - The change is within the scope of this PR
 - It doesn't conflict with project conventions or other changes being made
 
+*Skip (no reply) if:*
+- `isOutdated` is true — the code has already moved on; treat this as part of the *skipping — outdated* category in your plan/report and do not post a new reply or resolve the thread
+
 *Decline if:*
-- `isOutdated` is true — the code has already moved on
 - The suggestion is incorrect, would introduce a bug, or conflicts with project requirements
 - It's a style preference that conflicts with established codebase conventions
 - It's clearly out of scope (worth a follow-up issue, not this PR)
@@ -160,22 +161,11 @@ Proceed?
 
 Wait for the user's go-ahead. They know the codebase and may want to override your judgment.
 
-### 7. Accept Suggestions via API (Batch)
+### 7. Apply Accepted Suggestions
 
-If there are any suggestions to accept, batch them into a single remote commit — this avoids needing to pull between each one:
+GitHub's suggestion feature embeds the proposed replacement in the comment body as a `suggestion` fenced code block. The content of that block is the exact replacement for the highlighted lines — apply it directly to the file.
 
-```bash
-gh api repos/{owner}/{repo}/pulls/{pull_number}/suggestions/batch \
-  --method POST \
-  --field commit_message="Apply suggested changes from review" \
-  --field 'pull_request_review_comment_ids[]=[COMMENT_ID_1, COMMENT_ID_2, ...]'
-```
-
-GitHub creates the commit on the remote branch. After this succeeds, pull to sync locally before making any manual edits:
-
-```bash
-git pull
-```
+Handle accepted suggestions together with regular manual changes in Step 8. There's no public API to auto-commit them; you apply them locally like any other edit.
 
 ### 8. Implement Valid Changes
 
@@ -207,7 +197,7 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 - If GPG signing fails, retry with `--no-gpg-sign`
 - If heredoc fails with "can't create temp file", write the message to a temp file and use `git commit -F <file>`
 
-If there were no manual changes (only batch-accepted suggestions), skip this step.
+Include accepted suggestions in this commit alongside other manual changes — they're all local edits at this point.
 
 ### 10. Reply to Declined Comments
 
@@ -223,7 +213,7 @@ Be direct and specific: state the reason, and offer an alternative if appropriat
 
 ### 11. Resolve Addressed Threads
 
-Resolve each thread that was addressed (both batch-accepted suggestions and manual implementations). Use the GraphQL node IDs captured in Step 3:
+Resolve each thread that was addressed (accepted suggestions and manual implementations). Use the GraphQL node IDs captured in Step 3:
 
 ```bash
 gh api graphql -f query='
@@ -241,8 +231,7 @@ Do not resolve declined threads — leave them open so the reviewer can see your
 ```
 ## Done
 
-Accepted N suggestions → remote commit (via batch API)
-Implemented N comments → committed <hash>
+Applied N suggestions + implemented N comments → committed <hash>
 Declined N comments → replied with explanations
 Skipped N outdated threads
 
@@ -257,4 +246,4 @@ If the branch hasn't been pushed (manual commit only), mention: "Run `git push` 
 - **Review threads vs. PR comments**: This skill handles inline code review threads. General PR body comments (top-level review text) are out of scope.
 - **Multiple reviewers raised the same issue**: Give all of them credit in the commit message.
 - **Draft PRs**: Treat comments the same as on open PRs.
-- **Suggestion conflicts**: If a suggestion overlaps with a line you're also editing manually, skip the batch accept and fold it into your manual edit to avoid a conflict.
+- **Suggestion conflicts**: If a suggestion overlaps with a line you're also editing for another comment, apply the suggestion diff as your starting point and layer the other change on top.
