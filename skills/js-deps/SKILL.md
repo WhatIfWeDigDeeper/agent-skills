@@ -65,23 +65,23 @@ Do not proceed until verification passes.
 
 Find all `package.json` files within `$WORKTREE_PATH` excluding `node_modules`, `dist`, `.cache`, `coverage`, `.next`, and `.nuxt` directories. Store results as an array of directories to process.
 
-### 5. Install Dependencies
+### 5. Identify Packages
+
+- Parse `$ARGUMENTS` to determine target packages
+- For globs, expand against all four dependency fields (`dependencies`, `devDependencies`, `optionalDependencies`, `peerDependencies`) in each discovered `package.json`
+- For `.` or no arguments, process all packages in all discovered directories
+
+### 6. Install Dependencies
 
 **Skip this step for security audit workflows** — `$PM audit` reads from lock files and does not require `node_modules`.
 
-For dependency update workflows only: install dependencies so that `$PM outdated` can accurately compare installed vs. registry versions. Without `node_modules`, exact-pinned packages (no `^` or `~`) won't appear in outdated reports. If `$ARGUMENTS` specifies particular packages (not `.`), only install in directories where those packages appear in `package.json`. Check `dependencies`, `devDependencies`, `optionalDependencies`, and `peerDependencies` fields when scanning for package presence. For glob arguments, expand against all four fields before filtering directories.
-
-### 6. Identify Packages
-
-- Parse `$ARGUMENTS` to determine packages
-- For globs, expand against package.json dependencies
-- For `.`, process all packages
+For dependency update workflows only: install dependencies so that `$PM outdated` can accurately compare installed vs. registry versions. Without `node_modules`, exact-pinned packages (no `^` or `~`) won't appear in outdated reports. If specific packages were identified in step 5 (not `.`), only install in directories where those packages appear. For glob arguments, use the expanded package list from step 5 to filter directories.
 
 ### 7. Validate Changes
 
 Run validation **per directory** after each package update. Check `package.json` scripts and run available commands using `$PM run <script>` in order: build, lint, test. Skip any that don't exist.
 
-**For audit workflows only:** if `node_modules` does not exist in the directory being validated (step 5 skips installation for audits), run `$PM install` before executing validation scripts. This is a validation-only install and does not affect the audit results already collected.
+**If `node_modules` does not exist** in the directory being validated, run `$PM install` before executing validation scripts. This applies to audit workflows (which skip step 6) and any update workflow directory where install was skipped. The install is validation-only and does not affect already-collected results.
 
 - **Build failure** is a hard failure: revert the package before continuing.
 - **Lint or test failure** is a soft failure: report it but continue with remaining packages.
@@ -118,6 +118,8 @@ Handled by the reference workflow. See the **On Success** section of [references
 ### 10. Cleanup
 
 Remove the worktree. The main working directory was never modified, so no stash restore is needed.
+
+**Always run cleanup**, even if the skill fails mid-run (e.g., registry unreachable, build failure, unexpected error). If a step fails, run cleanup before surfacing the error to the user.
 
 ```bash
 git worktree remove "$WORKTREE_PATH" --force

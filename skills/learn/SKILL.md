@@ -3,20 +3,25 @@ name: learn
 description: >-
   Extracts lessons learned from conversations and persists them to AI assistant
   config files (CLAUDE.md, GEMINI.md, AGENTS.md, Cursor, Copilot, Windsurf,
-  Continue).
-  Use when: debugging revealed issues, commands failed then succeeded, assumptions proved wrong, workarounds were discovered, undocumented behavior found,
-  or user says "/learn" or "remember this".
+  Continue) or creates new skills from discovered workflows.
+  Use this skill whenever: a command failed then succeeded (especially with a
+  flag or env change), debugging revealed a workaround, an assumption proved
+  wrong, undocumented behavior was discovered, a multi-step pattern was
+  invented on the fly, or the user says "/learn", "remember this", "save this",
+  "add this to CLAUDE.md", "don't forget this", or "make a skill for this".
+  Also invoke proactively after any complex troubleshooting session where
+  notable lessons emerged, even if the user didn't explicitly ask.
 license: MIT
 compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.5"
+  version: "0.6"
 ---
 
 # Learn from Conversation
 
-Analyze the conversation to extract lessons learned, then persist them to AI assistant configuration files.
+Analyze the conversation to extract lessons learned, then persist them to AI assistant configuration files or new skills.
 
 ## Arguments
 
@@ -24,25 +29,11 @@ Optional text to narrow what to learn (e.g. `sandbox workaround`, `that build fi
 
 If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, skip the workflow and read [references/options.md](references/options.md).
 
-## Supported Assistants
-
-| Assistant | Config File | Format |
-|-----------|-------------|--------|
-| Claude Code | `CLAUDE.md` | Markdown |
-| Gemini | `GEMINI.md` | Markdown |
-| AGENTS.md | `AGENTS.md` | Markdown |
-| Cursor | `.cursorrules` or `.cursor/rules/*.mdc` | Markdown/MDC |
-| GitHub Copilot | `.github/copilot-instructions.md` | Markdown |
-| Windsurf | `.windsurf/rules/rules.md` | Markdown |
-| Continue | `.continuerc.json` | JSON |
-
-See [references/assistant-configs.md](references/assistant-configs.md) for format details.
+If `$ARGUMENTS` is a non-empty, non-help string, use it as a focus filter in Step 2: only surface learnings related to the specified topic, skip unrelated findings.
 
 ## Process
 
-### 1. Detect and Assess Configurations
-
-Scan for config files and check their sizes:
+### 1. Detect Configurations and Existing Skills
 
 ```bash
 for f in CLAUDE.md GEMINI.md AGENTS.md .cursorrules .github/copilot-instructions.md \
@@ -50,156 +41,79 @@ for f in CLAUDE.md GEMINI.md AGENTS.md .cursorrules .github/copilot-instructions
   [ -f "$f" ] && wc -l "$f"
 done
 find .cursor/rules -name "*.mdc" -exec wc -l {} \; 2>/dev/null
-```
-
-**Behavior based on detection:**
-
-| Scenario | Action |
-|----------|--------|
-| Single config found | Update it automatically |
-| Multiple configs found | Prompt user to select which to update |
-| No configs found | Display init commands from [assistant-configs.md](references/assistant-configs.md), then exit |
-
-#### Size Thresholds
-
-| Lines | Status | Action |
-|-------|--------|--------|
-| < 400 | Healthy | Add learnings directly |
-| 400-500 | Warning | Add carefully, suggest cleanup |
-| > 500 | Oversized | [Refactor](references/refactoring.md) before adding new content |
-
-Use these same thresholds throughout (routing decisions, present-and-confirm, edge cases).
-
-#### Discover Existing Skills
-
-List skills for routing decisions:
-
-```bash
 find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
-  xargs grep -l "^name:" | while read -r f; do
-  grep -m1 "^name:" "$f" | sed 's/name: //'
-done
+  xargs grep -l "^name:" | while read -r f; do grep -m1 "^name:" "$f" | sed 's/name: //'; done
 ```
+
+**Config detection:**
+- Single config found → use it
+- Multiple configs found → stop and ask before proceeding:
+  ```
+  Found multiple config files:
+  1. CLAUDE.md (142 lines)
+  2. .github/copilot-instructions.md (38 lines)
+
+  Which should I update? (enter number, or "all")
+  ```
+- No configs found → show init commands from [references/assistant-configs.md](references/assistant-configs.md) and exit
+
+**Size thresholds** for any config file:
+- < 400 lines: healthy, add directly
+- 400–500 lines: add carefully, note the file is getting large
+- > 500 lines: offer to [refactor](references/refactoring.md) before adding
 
 ### 2. Analyze Conversation
 
-Scan for:
-- **Corrections**: Commands retried, assumptions proven wrong, missing prerequisites
-- **Discoveries**: Undocumented patterns, integration quirks, environment requirements
-- **Improvements**: Steps that should be automated or validated earlier
-- **Instruction Violations**: Existing config file guidelines that were not followed during the conversation. If the user had to remind the assistant to do something already documented, flag which section was ignored and assess whether the wording needs to be more prominent or actionable
+Scan for learnings the user would want to carry forward:
+- **Corrections**: commands retried with a flag or env change, wrong assumptions corrected
+- **Discoveries**: undocumented behavior, integration quirks, environment requirements
+- **Workflows**: multi-step patterns invented during the session that should be repeatable
+- **Instruction violations**: if the user had to remind you of something already in the config, note it — the wording may need strengthening, not a new rule
 
-### 3. Categorize and Route Each Learning
+### 3. Route Each Learning
 
-| Category | Primary Destination | Fallback When Oversized |
-|----------|---------------------|------------------------|
-| Project facts | Config file | Extract to new skill |
-| Prerequisites | Config file | Extract to `project-setup` skill |
-| Environment | Config file | Extract to `environment-setup` skill |
-| Workflow pattern | Existing related skill | Create new skill |
-| Automated workflow | New skill | New skill (always) |
+For each learning, decide where it belongs:
 
-#### Routing Decision Tree
+1. **Does this feel like a procedure someone would invoke repeatedly?** Think: deployment runbooks, release checklists, debugging workflows, multi-phase processes where sequence matters or there are conditional branches. If yes → Create a new skill (Route C).
+2. **Does an existing skill cover this topic?** → Update that skill (Route B)
+3. **Is the config file oversized (>500 lines)?** → Create a skill or offer refactoring
+4. **Is this situation-specific (narrow context, rarely applies)?** → Create a skill
+5. Otherwise → Add to config file (Route A)
 
-For each learning, evaluate in order:
+Short facts (<3 lines) go to the config file even when near the threshold. Large learnings (>30 lines) strongly prefer a new skill.
 
-1. **Is this a multi-step automated workflow (>5 steps)?**
-   - YES → Create new skill (proceed to Step 5, Route C)
-   - NO → Continue
+### 4. Present Plan and Wait for Confirmation
 
-2. **Does an existing skill cover this topic?**
-   - YES → Update that skill
-   - NO → Continue
+Show everything you plan to do before touching any files:
 
-3. **Is the target config file oversized (>500 lines)?**
-   - YES → Create new skill OR offer refactoring (see Step 4)
-   - NO → Continue
-
-4. **Is this learning situation-specific (applies to narrow context)?**
-   - YES → Create new skill with `globs` or context constraints
-   - NO → Add to config file
-
-#### Size-Based Rules
-
-| Learning Size | Preferred Destination |
-|---------------|----------------------|
-| < 3 lines | Config file (even if near threshold) |
-| 3-30 lines | Follow decision tree above |
-| > 30 lines | Strongly prefer skill creation |
-
-### 4. Present and Confirm
-
-For each learning, show:
 ```
 **[Category]**: [Brief description]
-- Source: [What happened in conversation]
-- Proposed change: [Exact text or file to add]
-- Destination: [Config file] ([current] → [projected] lines)
+- Source: [what triggered this learning]
+- Proposed change: [exact text to add]
+- Destination: [file] ([current lines] → [projected lines])
 ```
 
-#### Handle Size Threshold
-
-If adding the learning would push a config file over threshold:
-
+If multiple learnings, list them all, then ask:
 ```
-Adding this learning would bring [filename] to [X] lines (threshold: [Y]).
-
-Options:
-1. Add learning anyway (not recommended)
-2. [Refactor](references/refactoring.md) existing content to skills first, then add
-3. Create a new skill for this learning instead
-4. Skip this config file
+Ready to apply. Approve all, or review each one?
 ```
 
-Ask for confirmation before applying each change.
+**Do not modify any files until the user responds to this step.**
 
 ### 5. Apply Changes
 
-Apply changes based on routing decision from Step 3:
+**Route A — Config file** (CLAUDE.md, GEMINI.md, etc.): find the appropriate section, preserve existing structure, append or create a section. See [references/assistant-configs.md](references/assistant-configs.md) for format details.
 
-#### Route A: Add to Config File
+**Route B — Existing skill**: read `skills/[name]/SKILL.md`, append to the relevant section, maintain existing structure.
 
-**Markdown configs** (CLAUDE.md, GEMINI.md, AGENTS.md, Copilot, Windsurf):
-- Find appropriate section, preserve existing structure
-- Append to relevant section or create new section if needed
-
-**Cursor rules**:
-- Legacy `.cursorrules`: Treat like markdown, append content
-- Modern `.cursor/rules/*.mdc`: See [references/format-cursor-mdc.md](references/format-cursor-mdc.md)
-
-**Continue** (`.continuerc.json`):
-- Update `customInstructions` field, preserving existing content
-- See [references/format-continue.md](references/format-continue.md)
-
-#### Route B: Update Existing Skill
-
-When adding to an existing skill:
-
-1. Read the skill file: `skills/[name]/SKILL.md`
-2. Find appropriate section or create new one
-3. Append learning, maintaining the skill's existing structure
-4. If skill has references, consider adding to reference file instead
-
-**Skill update format:**
-```markdown
-## [New Section or append to existing]
-
-[Learning content formatted as guidance or workflow step]
-```
-
-#### Route C: Create New Skill
-
-Create in `skills/[name]/SKILL.md` with this template:
-
+**Route C — New skill**: create `skills/[name]/SKILL.md`:
 ```markdown
 ---
-name: [learning-topic]
-description: [What this handles and when to use it - triggers belong here, not in body]
+name: [topic]
+description: [when to use this and what it does]
 ---
 
-# [Learning Topic]
-
-[Learning content structured as workflow]
+# [Topic]
 
 ## Process
 
@@ -209,37 +123,11 @@ description: [What this handles and when to use it - triggers belong here, not i
 
 ### 6. Summarize
 
-List:
-- Config files modified (with full paths)
-- Sections updated in each file
-- Any skills created
-
-## Examples
-
-| Situation | Learning |
-|-----------|----------|
-| "e2e tests failed because API wasn't running" | Add prerequisite to selected config(s) |
-| "Parse SDK doesn't work with Vite out of the box" | Document workaround in selected config(s) |
-| "Build failed because NODE_ENV wasn't set" | Add required env var to selected config(s) |
-| "Every component needs tests, lint, build..." | Create `add-component` skill |
-| "User asked to update README but config already requires it" | Flag instruction violation — fix wording or prominence, not add new rule |
-
-## Edge Cases
-
-| Scenario | Handling |
-|----------|----------|
-| No configs detected | Guide user to initialize one first, exit early |
-| Multiple configs found | Prompt user to select which to update |
-| Malformed config file | Warn and skip that file |
-| Duplicate content exists | Check before adding, warn if similar learning exists |
-| Config file already oversized | Offer refactoring before adding (Step 4) |
-| Learning matches multiple skills | Present options, let user choose which skill to update |
-| Skill file also oversized | Suggest creating sub-skills or reference files |
-| No existing skills found | Skip skill matching, proceed with config or new skill |
+List what changed: files modified, sections updated, skills created.
 
 ## Guidelines
 
-- **Be minimal**: Only add what genuinely helps future sessions
-- **Avoid duplication**: Check for existing similar content before adding
+- **Be minimal**: only add what genuinely helps future sessions
+- **Avoid duplication**: check for similar content before adding
 - **Prefer specificity**: "Run `npm run dev` before e2e tests" beats "ensure services are running"
-- **Focus on non-obvious**: Skip things Claude would naturally do; capture what surprised you
+- **Focus on non-obvious**: skip things any developer would know; capture what surprised you

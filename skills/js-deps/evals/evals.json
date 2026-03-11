@@ -1,0 +1,129 @@
+{
+  "skill_name": "js-deps",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "run a security audit on my node project",
+      "expected_output": "Creates an isolated worktree, runs npm/yarn/pnpm audit, categorizes vulnerabilities by severity, applies fixes where possible, commits the changes, opens a PR with a security report showing before/after vulnerability counts",
+      "assertions": [
+        {
+          "name": "creates-worktree",
+          "description": "Creates a git worktree on a dedicated branch before making any changes"
+        },
+        {
+          "name": "runs-audit-command",
+          "description": "Runs the appropriate audit command (npm audit, yarn audit, pnpm audit) for the detected package manager"
+        },
+        {
+          "name": "skips-install-for-audit",
+          "description": "Does NOT run npm/yarn/pnpm install before the audit (audit reads from lock files)"
+        },
+        {
+          "name": "default-severity-filter",
+          "description": "Applies Critical+High severity filter by default when user hasn't specified one"
+        },
+        {
+          "name": "cleans-up-worktree",
+          "description": "Removes the worktree at the end, even if no vulnerabilities were found or no PR was created"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/js-deps --help",
+      "expected_output": "Shows the interactive help summary (js-deps description, argument syntax, workflow options) and presents the workflow selection question using AskUserQuestion",
+      "assertions": [
+        {
+          "name": "shows-help-summary",
+          "description": "Displays the js-deps help summary including supported package managers and workflow descriptions"
+        },
+        {
+          "name": "asks-workflow-question",
+          "description": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion"
+        },
+        {
+          "name": "no-worktree-created",
+          "description": "Does not create a worktree or start any workflow before the user answers"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "update all my js packages to the latest versions",
+      "expected_output": "Creates worktree, installs deps, runs outdated check, applies Patch+Minor+Major filter (user said 'latest'), updates packages, validates (build/lint/test), commits with major versions noted in message, opens PR",
+      "assertions": [
+        {
+          "name": "creates-worktree",
+          "description": "Creates a git worktree on a dedicated branch"
+        },
+        {
+          "name": "installs-before-outdated",
+          "description": "Runs npm/yarn/pnpm install before running the outdated check"
+        },
+        {
+          "name": "major-version-filter",
+          "description": "Applies Patch+Minor+Major filter (includes all updates) because user said 'latest'"
+        },
+        {
+          "name": "validates-after-update",
+          "description": "Runs build/lint/test validation after updating packages"
+        },
+        {
+          "name": "commit-notes-major-bumps",
+          "description": "Commit message notes major version changes (e.g. 'chore: update dependencies (major: pkg vX->Y)')"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "/js-deps react react-dom @types/react",
+      "expected_output": "Creates worktree, targets only the three named packages, installs deps only in directories containing those packages, checks for outdated versions, updates them, validates, creates PR",
+      "assertions": [
+        {
+          "name": "creates-worktree",
+          "description": "Creates a git worktree on a dedicated branch"
+        },
+        {
+          "name": "targets-specific-packages",
+          "description": "Only updates react, react-dom, and @types/react — not all packages"
+        },
+        {
+          "name": "filters-install-directories",
+          "description": "Only installs dependencies in directories where at least one of the named packages appears"
+        },
+        {
+          "name": "interactive-help-for-version-scope",
+          "description": "Asks the user about version scope (patch/minor/major) via AskUserQuestion since no scope was specified"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "fix only critical security vulnerabilities in my project",
+      "expected_output": "Creates worktree, runs audit, filters to Critical severity only, fixes those packages, creates PR with report",
+      "assertions": [
+        {
+          "name": "creates-worktree",
+          "description": "Creates a git worktree on a dedicated branch"
+        },
+        {
+          "name": "critical-only-filter",
+          "description": "Applies Critical-only severity filter without asking — user specified 'critical' inline"
+        },
+        {
+          "name": "skips-high-moderate-low",
+          "description": "Does not attempt to fix High, Moderate, or Low vulnerabilities"
+        },
+        {
+          "name": "skips-install-for-audit",
+          "description": "Does not run npm install before auditing"
+        }
+      ],
+      "files": []
+    }
+  ]
+}

@@ -4,7 +4,7 @@ Use the detected `$PM` package manager for all commands. See [package-managers.m
 
 ## Prerequisites
 
-Ensure dependencies are installed first (SKILL.md step 5) so that `$PM outdated` can accurately compare installed vs. registry versions.
+Ensure dependencies are installed first (SKILL.md step 6) so that `$PM outdated` can accurately compare installed vs. registry versions.
 
 ## Version Checking and Updates
 
@@ -24,6 +24,15 @@ The tiered filter model works as follows:
 - **"Patch + Minor"** (default): include packages where the patch or minor version differs (major is the same).
 - **"Patch + Minor + Major"**: include all packages with any version difference.
 - **Skip x.y.0**: a separate question shown only when minor updates are in scope ("Patch + Minor" or "Patch + Minor + Major"). If the latest version has patch=0 and minor>0 (e.g. `2.1.0`), skip it — wait for `x.y.1+`. Does not apply to `x.0.0` major releases (e.g. `3.0.0`); those are governed by the major version filter.
+
+### Parallelize Across Directories
+
+If multiple directories need updates, launch a separate Task subagent (general-purpose, background) per directory. Each subagent handles installs, version checks, and package updates for its directory only — **do not commit from subagents**. The main agent commits all changes after all subagents complete.
+
+When consolidating results:
+- Collect packages updated, versions changed, and validation results from each subagent
+- Merge into a single report; if any subagent fails, still include partial results from others
+- Document any packages that couldn't be updated in the PR description
 
 ### Check and Update Versions
 

@@ -15,7 +15,7 @@ AUDIT_JSON=$($PM audit --json 2>/dev/null)
 
 Note: bun does not support audit. If using bun, skip audit and inform user.
 
-**Note:** Installation (SKILL.md step 5) is not required before running `$PM audit` — the audit reads from lock files and package.json, not `node_modules`.
+**Note:** Installation (SKILL.md step 6) is not required before running `$PM audit` — the audit reads from lock files and package.json, not `node_modules`.
 
 **Note for npm monorepos:** If the root `package.json` has a `workspaces` field, run `npm audit --workspaces` from the root instead of auditing member directories individually.
 
@@ -29,9 +29,18 @@ If `$ARGUMENTS` contains specific package names or glob patterns (not `.` or emp
 
 After collecting audit results across all directories, if the total vulnerability count is zero, report that the project is clean and exit — do not commit, push, or create a PR.
 
-### Categorize by Severity
+### Apply Severity Filter
 
-Parse audit results for each directory:
+If the user specified a severity scope (either through the interactive help flow or inline in their request), apply it now to limit which vulnerabilities to fix:
+
+| Selection | Severities to fix |
+|-----------|-------------------|
+| Critical only | Critical |
+| Critical + High (default) | Critical, High |
+| Critical + High + Moderate | Critical, High, Moderate |
+| All | Critical, High, Moderate, Low |
+
+If no severity preference was expressed, default to **Critical + High**.
 
 | Severity | Action |
 |----------|--------|

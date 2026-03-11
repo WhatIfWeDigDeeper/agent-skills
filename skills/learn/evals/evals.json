@@ -1,0 +1,108 @@
+{
+  "skill_name": "learn",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Just spent an hour debugging Docker container networking on macOS. Turned out `curl localhost:3000` always fails from inside a container — you have to use `host.docker.internal` instead to reach the host machine. Frustrating but at least we know now.",
+      "expected_output": "Skill decides on its own to add this to CLAUDE.md (no explicit instruction given). Places it in a relevant section. Confirms what was added.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- Node.js backend\n- React frontend\n- PostgreSQL database\n- Docker Compose for local dev\n\n## Development\n- Run `npm run dev` to start all services\n- Run `npm test` for unit tests\n- Run `npm run e2e` for end-to-end tests (requires services running)\n\n## Conventions\n- Use camelCase for variables, PascalCase for components\n- All API routes prefixed with `/api/v1`\n- Database migrations live in `db/migrations/`\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "adds-to-claude-md",
+          "text": "CLAUDE.md was modified"
+        },
+        {
+          "id": "mentions-host-docker-internal",
+          "text": "The added content mentions 'host.docker.internal'"
+        },
+        {
+          "id": "mentions-localhost-pitfall",
+          "text": "The added content captures that localhost doesn't work inside containers"
+        },
+        {
+          "id": "appropriate-section",
+          "text": "Learning is placed in a relevant section rather than appended randomly"
+        },
+        {
+          "id": "confirms-change",
+          "text": "Skill summarizes what was added and where"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Ok so we finally have the full deployment process figured out:\n1. Always `npm run build:prod` not `npm run build` — it sets NODE_ENV=production, the regular build doesn't\n2. Run `npm run db:migrate:prod` with the prod DATABASE_URL before deploying\n3. After deploy, check `/healthz` — it should return 200\n4. If it returns 503, the first place to look is CloudWatch logs at `/app/prod`",
+      "expected_output": "Skill routes this 4-step workflow to a new skill file on its own (no explicit 'make a skill' hint given). Does not just append to CLAUDE.md.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- Node.js backend\n- AWS deployment\n- PostgreSQL (RDS in prod)\n\n## Commands\n- `npm run build` — local dev build\n- `npm run build:prod` — production build\n- `npm test` — run tests\n\n## Environment Variables\n- `DATABASE_URL` — postgres connection string\n- `AWS_REGION` — deployment region\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "creates-skill-not-config",
+          "text": "A new skill file is created rather than just appending the full workflow to CLAUDE.md"
+        },
+        {
+          "id": "skill-has-workflow-steps",
+          "text": "Created skill includes the key workflow steps"
+        },
+        {
+          "id": "skill-has-frontmatter",
+          "text": "Created skill has valid YAML frontmatter with name and description fields"
+        },
+        {
+          "id": "correct-commands-captured",
+          "text": "build:prod, db:migrate:prod, and /healthz check all appear in the created skill"
+        },
+        {
+          "id": "cloudwatch-logs-captured",
+          "text": "CloudWatch log group /app/prod troubleshooting tip is included"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We found a bunch of stuff today:\n1. The `pytest` fixtures need to be in `conftest.py` at the root, not inside individual test directories — otherwise they're not discovered\n2. You need to run `docker compose up db` before running any tests or they fail with connection refused\n3. To add a new API endpoint: create the handler in `app/routes/`, register it in `app/routes/__init__.py`, add tests to `tests/routes/`, run `pytest tests/routes/` to verify, then update `docs/api.md`",
+      "expected_output": "Skill detects two config files and asks which to update. Routes items 1 and 2 to the config file. Routes item 3 (5-step workflow) to a new skill. Shows plan before applying and waits for confirmation.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- Python FastAPI\n- PostgreSQL\n- pytest for testing\n\n## Commands\n- `pytest` — run all tests\n- `docker compose up` — start services\n"
+        },
+        {
+          "path": ".github/copilot-instructions.md",
+          "content": "# Copilot Instructions\n\nThis is a Python FastAPI project. Follow PEP 8 style guidelines.\nTests use pytest. Always write tests for new endpoints.\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "detects-multiple-configs",
+          "text": "Transcript shows both CLAUDE.md and copilot-instructions.md were detected before any files were modified"
+        },
+        {
+          "id": "routes-workflow-to-skill",
+          "text": "The 5-step 'add endpoint' workflow is routed to a new skill, not appended to a config file"
+        },
+        {
+          "id": "conftest-learning-captured",
+          "text": "The conftest.py discovery rule is captured somewhere"
+        },
+        {
+          "id": "docker-prerequisite-captured",
+          "text": "The 'run docker compose up db before tests' prerequisite is captured"
+        },
+        {
+          "id": "shows-plan-before-applying",
+          "text": "Transcript shows a plan or summary of proposed changes (what will be added, where) before any file write operations occur"
+        }
+      ]
+    }
+  ]
+}
