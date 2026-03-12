@@ -89,6 +89,7 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 
 - After modifying skill and reference files run `uv run --with pytest pytest tests/` to verify changes don't break existing assertions.
 - Consider whether new tests are needed to cover the changed behavior.
+- **When adding a new skill or substantially modifying an existing skill**, propose adding or updating tests under `tests/<skill-name>/`. Tests should cover help trigger detection, argument parsing, and any classifiable logic (workflow routing, comment classification, etc.). Follow the patterns in existing test suites (e.g. `tests/js-deps/`, `tests/ship-it/`).
 
 ## Evals and Benchmarking
 
