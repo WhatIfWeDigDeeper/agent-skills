@@ -64,13 +64,24 @@
       "allowUnixSockets": [
         "/var/run/docker.sock"
       ],
-      "allowLocalBinding": true
+      "allowLocalBinding": true,
+      "allowedHosts": [
+        "github.com",
+        "registry.npmjs.org"
+      ]
     },
     "excludedCommands": [
+      "docker",
       "gh",
       "git",
+      "psql",
+      "mysql",
+      "mongosh",
       "npm",
-      "npx"
+      "npx",
+      "playwright",
+      "redis-cli",
+      "uv"
     ]
   }
 }
