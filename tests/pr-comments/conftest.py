@@ -44,7 +44,7 @@ def classify_comment(comment: dict) -> str:
     if comment.get("in_reply_to_id") is not None:
         return "reply"
     body = comment.get("body", "")
-    if re.search(r"```suggestion\b", body):
+    if extract_suggestion_content(body) is not None:
         return "suggestion"
     return "regular"
 
@@ -55,7 +55,7 @@ def extract_suggestion_content(body: str) -> str | None:
     Per SKILL.md Step 7, the content between ```suggestion and ``` is
     the exact replacement for the highlighted lines.
     """
-    match = re.search(r"```suggestion\b\s*\n(.*?)```", body, re.DOTALL)
+    match = re.search(r"```suggestion\b[^\n]*\n(.*?)```", body, re.DOTALL)
     if match:
         return match.group(1)
     return None

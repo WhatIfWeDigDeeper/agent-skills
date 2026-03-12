@@ -22,7 +22,7 @@ class TestClassifyComment:
     def test_suggestion_with_language_hint(self):
         """Some editors append language hints after suggestion keyword."""
         comment = {
-            "body": "```suggestion\nfixed code\n```",
+            "body": "```suggestion:javascript\nfixed code\n```",
             "in_reply_to_id": None,
         }
         assert classify_comment(comment) == "suggestion"
