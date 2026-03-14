@@ -55,32 +55,39 @@ find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
 
   Which should I update? (enter number, or "all")
   ```
-- No configs found → show init commands from [references/assistant-configs.md](references/assistant-configs.md) and exit
+- No configs found → **MANDATORY: read [`references/assistant-configs.md`](references/assistant-configs.md) in full** to show init commands, then exit. Do NOT load `refactoring.md` or `options.md` at this step.
 
 **Size thresholds** for any config file:
 - < 400 lines: healthy, add directly
 - 400–500 lines: add carefully, note the file is getting large
-- > 500 lines: offer to [refactor](references/refactoring.md) before adding
+- > 500 lines: **MANDATORY: read [`references/refactoring.md`](references/refactoring.md) in full** before proceeding, then offer to refactor. Do NOT load `assistant-configs.md` for this path unless also applying Route A changes.
 
 ### 2. Analyze Conversation
+
+Before scanning, ask yourself:
+- **Would I forget this?** If the lesson is obvious to any developer, skip it.
+- **Is this already covered?** Check existing config entries — maybe the wording just needs tightening, not a new rule.
+- **Is this universal or local?** Environment-specific workarounds must be labeled, not globalized.
 
 Scan for learnings the user would want to carry forward:
 - **Corrections**: commands retried with a flag or env change, wrong assumptions corrected
 - **Discoveries**: undocumented behavior, integration quirks, environment requirements
 - **Workflows**: multi-step patterns invented during the session that should be repeatable
 - **Instruction violations**: if the user had to remind you of something already in the config, note it — the wording may need strengthening, not a new rule
+- **Contradictions**: does this learning conflict with or supersede something already in the config? If so, flag for replacement, not addition
+
+If no learnings pass the "Would I forget this?" filter, tell the user nothing non-obvious was found and exit — do not fabricate learnings to justify the invocation.
 
 ### 3. Route Each Learning
 
-For each learning, decide where it belongs:
+For each learning, ask: **would someone invoke this by name?** If you can imagine a user saying "run the [X] workflow," it's a skill. If not, it's a config entry.
 
-1. **Does this feel like a procedure someone would invoke repeatedly?** Think: deployment runbooks, release checklists, debugging workflows, multi-phase processes where sequence matters or there are conditional branches. If yes → Create a new skill (Route C).
-2. **Does an existing skill cover this topic?** → Update that skill (Route B)
-3. **Is the config file oversized (>500 lines)?** → Create a skill or offer refactoring
-4. **Is this situation-specific (narrow context, rarely applies)?** → Create a skill
-5. Otherwise → Add to config file (Route A)
+1. **Is this a multi-step procedure someone would run as a workflow?** If the learning has 3+ numbered steps that execute in sequence — even if project-specific — it belongs in a new skill. Deploy checklists, release runbooks, "add an X" workflows are all skills. Single facts and gotchas are config. If yes → Route C (new skill).
+2. **Does an existing skill cover this topic?** → Route B (update that skill)
+3. **Is the config file oversized (>500 lines)?** → Route C or offer refactoring
+4. Otherwise → Route A (config file)
 
-Short facts (<3 lines) go to the config file even when near the threshold. Large learnings (>30 lines) strongly prefer a new skill.
+The cleanest signal: **if it takes more than one command to execute, it probably belongs in a skill; if it's a single fact to remember, it belongs in the config.**
 
 ### 4. Present Plan and Wait for Confirmation
 
@@ -102,15 +109,16 @@ Ready to apply. Approve all, or review each one?
 
 ### 5. Apply Changes
 
-**Route A — Config file** (CLAUDE.md, GEMINI.md, etc.): find the appropriate section, preserve existing structure, append or create a section. See [references/assistant-configs.md](references/assistant-configs.md) for format details.
+**Route A — Config file** (CLAUDE.md, GEMINI.md, etc.): **MANDATORY: read [`references/assistant-configs.md`](references/assistant-configs.md) in full** for format and section conventions before writing. Do NOT load `refactoring.md` for this route unless the file is also over 500 lines. Before appending, search the existing config for related content — if found, propose an update-in-place rather than a duplicate entry. Then find the appropriate section, preserve existing structure, append or create a section.
 
 **Route B — Existing skill**: read `skills/[name]/SKILL.md`, append to the relevant section, maintain existing structure.
 
-**Route C — New skill**: create `skills/[name]/SKILL.md`:
+**Route C — New skill**: create `skills/[name]/SKILL.md`. The description field determines whether the skill will ever be activated — it must state WHAT the skill does, WHEN to use it, and include trigger KEYWORDS (action verbs, file types, domain terms). A vague description like "helps with deployment" means the skill will never fire.
+
 ```markdown
 ---
 name: [topic]
-description: [when to use this and what it does]
+description: [WHAT it does + WHEN to use it + trigger keywords]
 ---
 
 # [Topic]
@@ -123,11 +131,19 @@ description: [when to use this and what it does]
 
 ### 6. Summarize
 
-List what changed: files modified, sections updated, skills created.
+List files modified with before/after line counts, sections updated or created, and any skills created with their names. If a contradiction was resolved, note which version was kept and why.
+
+## NEVER
+
+- **NEVER extract basics** — "npm install before running" or "save your work" are noise that dilutes the config; skip anything any developer already knows, because a bloated config trains agents to skim it
+- **NEVER treat one-off emergency fixes as universal rules** — a workaround scoped to one repo's broken state will actively mislead future sessions where the state differs; always annotate environment-specific workarounds with the project or condition that triggered them
+- **NEVER add a new config rule when an existing rule just needs stronger wording** — two entries covering the same topic create ambiguity; the agent will follow whichever it reads first, which may be the weaker version; re-read the existing entry and tighten it instead
+- **NEVER create a skill just to keep the config file short** — skill fragmentation is harder to maintain than a 450-line CLAUDE.md; use the size thresholds in Step 1 to decide
+- **NEVER create a skill for a 2-step workflow with no branching** — if it fits in 2 config lines, it belongs in the config; a skill requires a reason to invoke, which a 2-step note doesn't earn
+- **NEVER silently duplicate a learning that contradicts existing content** — always surface the conflict to the user and propose which version to keep; silent contradictions cause agents to behave inconsistently depending on which rule they encounter first
+- **NEVER write vague learnings** — "be careful with deployments" teaches nothing; "run smoke tests against staging before promoting to prod because the CDN cache masks broken assets" is actionable and explains why
 
 ## Guidelines
 
-- **Be minimal**: only add what genuinely helps future sessions
-- **Avoid duplication**: check for similar content before adding
-- **Prefer specificity**: "Run `npm run dev` before e2e tests" beats "ensure services are running"
-- **Focus on non-obvious**: skip things any developer would know; capture what surprised you
+- **Prefer specificity**: `Run npm run dev before e2e tests` beats `ensure services are running` — vague rules train agents to interpret rather than follow
+- **One learning, one location**: if it already exists anywhere in the config or a skill, update that entry rather than creating a second one
