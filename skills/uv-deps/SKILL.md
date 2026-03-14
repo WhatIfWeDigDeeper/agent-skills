@@ -38,7 +38,7 @@ WORKTREE_PATH="${TMPDIR:-/tmp}/$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
 
-`git worktree add` writes to `$TMPDIR` and requires filesystem access outside the default sandbox. `gh`, `git push`, and `git commit` require OS keyring/credential helper access. Both may need sandbox restrictions lifted (in Claude Code: `dangerouslyDisableSandbox: true`).
+`git worktree add` writes to `$WORKTREE_PATH` (i.e. `${TMPDIR:-/tmp}`) and requires filesystem access outside the default sandbox. `gh` and `git push` require OS keyring/credential helper access. If your assistant runs in a sandbox, ensure it has filesystem access to `${TMPDIR:-/tmp}` and can reach the OS keyring.
 
 If `git worktree add` fails due to a sandbox permission error:
 > `git worktree` requires write access to `$TMPDIR`. Grant that access in your assistant's settings (in Claude Code: add `$TMPDIR` to the sandbox allowlist in `settings.json`) and retry.
@@ -49,7 +49,7 @@ If `git worktree add` fails due to a sandbox permission error:
 
 Verify that `uv` and `uvx` are available and can reach PyPI. See [references/uv-commands.md](references/uv-commands.md) for verification commands and troubleshooting.
 
-All `uv`, `uvx`, `gh`, `git push`, and `git commit` commands require network and keyring access — lift any sandbox restrictions before running them (in Claude Code: `dangerouslyDisableSandbox: true`).
+`uv`, `uvx`, `gh`, and `git push` require network access. `gh` and `git push` also require OS keyring/credential helper access. Ensure your assistant's sandbox allows both before running them.
 
 Do not proceed until verification passes.
 

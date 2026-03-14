@@ -257,7 +257,7 @@ If the branch hasn't been pushed (manual commit only), mention: "Run `git push` 
 
 ## Notes
 
-- **Keyring access required**: `gh` needs OS keyring/credential helper access. Lift any sandbox restrictions that block this (in Claude Code: `dangerouslyDisableSandbox: true`).
+- **Keyring access required**: `gh` needs OS keyring/credential helper access. If your assistant runs in a sandbox, ensure it can reach the OS keyring.
 - **Review threads vs. PR comments**: This skill handles inline code review threads. General PR body comments (top-level review text) are out of scope.
 - **Multiple reviewers raised the same issue**: Give all of them credit in the commit message.
 - **Draft PRs**: Treat comments the same as on open PRs.
