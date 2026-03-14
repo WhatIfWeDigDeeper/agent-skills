@@ -43,7 +43,7 @@ If `git worktree add` fails due to a sandbox permission error:
 
 **All subsequent steps operate within `$WORKTREE_PATH`.** Discovery, installs, edits, and commits all happen there. Paths like `cd <directory>` in reference files are relative to `$WORKTREE_PATH`.
 
-`gh`, `git push`, and `git commit` require OS keyring/credential helper access — lift any sandbox restrictions that block this (in Claude Code: `dangerouslyDisableSandbox: true`).
+`gh`, `git push`, and `git commit` require OS keyring/credential helper access. If your assistant runs in a sandbox, ensure it can reach the OS keyring.
 
 ### 2. Detect Package Manager
 
