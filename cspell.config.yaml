@@ -18,6 +18,7 @@ words:
   - mktemp
   - mypy
   - oneline
+  - opusplan
   - osascript
   - pipenv
   - PREOF
