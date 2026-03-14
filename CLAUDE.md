@@ -76,7 +76,7 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 
 - **Never commit directly to `main`.** Always create a feature branch and open a PR for review.
 - This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI).
-- After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge.
+- After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge. **Before running `git reset --hard`, check for uncommitted changes (`git status`). If any exist, stash them first (`git stash`) or ask the user — do not silently discard them.**
 - After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
   ```bash
   # Get thread IDs
@@ -117,3 +117,7 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 - **Documentation sync**: Update CLAUDE.md/README.md when major versions change
 - **PR-driven**: Create pull requests for review rather than auto-committing
 - **GitHub suggested changes**: There is no public REST API to accept them. Extract the replacement from the `suggestion` fenced block in the comment body and apply it as a local edit.
+
+## Persisting Learnings
+
+- **Persisting Learnings**: When you discover a new gotcha, stack-specific pattern, or tool quirk during a session, add it directly to the relevant section of `CLAUDE.md` before ending the session — so teammates and future agents benefit. For repeatable multi-step processes, create a skill in `.claude/skills/`. **NEVER write to `~/.claude/projects/.../memory/` for this project** — those files are invisible to other contributors, may be reset, and are not the persistence mechanism for this repo. `CLAUDE.md` is the only approved place for project learnings. If any files exist in the memory directory, delete them.
