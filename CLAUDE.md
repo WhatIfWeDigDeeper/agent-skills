@@ -58,7 +58,7 @@ Valid frontmatter fields: `name`, `description` (required), `license`, `compatib
 4. Document the workflow with numbered process steps
 5. Add bash code blocks for commands that should be executed
 6. Include example outputs where helpful
-7. Create a symlink so Claude Code can discover it: `ln -s ../../skills/<skill-name> .claude/skills/<skill-name>` (local only — `.claude/skills/` is gitignored)
+7. Create a symlink so Claude Code can discover it: `ln -s ../../skills/<skill-name> .claude/skills/<skill-name>` (local only — `.claude/skills/` is gitignored). **After editing an existing skill, verify the symlink still resolves correctly** — a skill invocation may load a stale version if the symlink points to a cached or wrong path.
 8. Update `README.md` — add the skill to the table and add a notes section
 
 When substantially modifying an existing skill, also update its entry in `README.md`.
@@ -96,6 +96,7 @@ This repo uses cspell. When a technical term triggers a false-positive spelling 
 - Each skill with an `evals/` directory should have a corresponding `evals/<skill-name>/benchmark.json`.
 - **After running evals for a skill, always update `evals/<skill-name>/benchmark.json`** with the new results. Do not leave stale benchmark data.
 - The benchmark.json format mirrors `evals/ship-it/benchmark.json`: a `metadata` block, a `runs` array (one entry per eval × configuration), and a `run_summary` with mean/stddev/min/max stats plus a `delta` section comparing `with_skill` vs `without_skill`.
+- **`grading.json` must include a `summary` block** or `aggregate_benchmark.py` will report 0% for all runs even when expectations pass. Required shape: `{"summary": {"passed": N, "failed": N, "total": N, "pass_rate": 0.N}, "expectations": [{"text": "...", "passed": true, "evidence": "..."}]}`. The `expectations` field names must be exactly `text`, `passed`, and `evidence` — the eval viewer depends on them.
 - **After updating benchmark.json, also update the `Eval Δ` column in the `README.md` Available Skills table** to reflect the new pass-rate delta (e.g. `+62%`).
 - **After creating a PR**, check which skills were modified and whether the changes affect eval-relevant behavior (workflow steps, decision logic, command sequences, assertion-tested output). If so, recommend the user run evals for those skills before merging. If the changes are documentation-only, cosmetic, or don't affect behavior tested by evals (e.g. adding notes, security guidance, or comments), note that re-running evals is not needed and explain why.
 

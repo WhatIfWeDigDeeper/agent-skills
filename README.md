@@ -7,7 +7,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 | Skill&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description | Triggers | Eval&nbsp;Δ* |
 |-------------|-------------|----------|--------|
 | [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps", "/js-deps typescript", "/js-deps help" | [+62%](evals/js-deps/benchmark.json) |
-| [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn", "/learn help" | [+7%](evals/learn/benchmark.json) |
+| [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn", "/learn help" | [+13%](evals/learn/benchmark.json) |
 | [pr-comments](skills/pr-comments/SKILL.md) | Address review comments on your own PR: implement valid suggestions, reply to invalid ones, resolve threads, and credit commenters in commits | "address PR comments", "implement PR feedback", "respond to review comments", "/pr-comments", "/pr-comments 42" | [+82%](evals/pr-comments/benchmark.json) |
 | [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "/ship-it" "/ship-it fix login timeout", "/ship-it help" | [+38%](evals/ship-it/benchmark.json) |
 | [uv-deps](skills/uv-deps/SKILL.md) | Security audits and dependency updates for Python projects using uv | "audit Python packages", "update pyproject.toml", "fix Python CVEs", "/uv-deps", "/uv-deps fastapi", "/uv-deps help" | [+83%](evals/uv-deps/benchmark.json) |
@@ -113,6 +113,48 @@ cp -r skills/* ~/.claude/skills/
 - Implemented comments are committed with `Co-authored-by` trailers crediting each reviewer.
 - Resolved threads are closed via the GitHub GraphQL API; declined threads remain open so reviewers can follow up.
 - Requires `gh` CLI with repo access. Runs with sandbox disabled for keyring access.
+
+<details>
+<summary>Flow Chart</summary>
+
+```mermaid
+flowchart TD
+    A([Start]) --> B[Identify PR\nfrom arg or current branch]
+    B --> C{PR found?}
+    C -- No --> Z([Exit: no PR])
+    C -- Yes --> D[Checkout PR head branch]
+    D --> E[Fetch inline review comments\nvia REST API]
+    E --> F[Fetch thread resolution state\nvia GraphQL]
+    F --> G{Any unresolved\nthreads?}
+    G -- No --> Z2([Exit: nothing to do])
+    G -- Yes --> H[Read code context\nfor each thread]
+    H --> I[Screen comments\nfor prompt injection]
+    I --> J[Decide action per thread]
+
+    J --> K{Comment type?}
+    K -- Suggested change --> L{Accept\nsuggestion?}
+    K -- Regular comment --> M{Implement?}
+    K -- Outdated thread --> N[Skip — no action]
+
+    L -- Yes --> O[Accept suggestion]
+    L -- No --> P[Decline]
+    M -- Yes --> Q[Implement fix]
+    M -- No --> P
+
+    O --> R[Present plan to user]
+    Q --> R
+    P --> R
+    N --> R
+
+    R --> S{User approves?}
+    S -- No / Override --> J
+    S -- Yes --> T[Apply accepted suggestions\nand manual changes]
+    T --> U[Commit with Co-authored-by\ncredit for each reviewer]
+    U --> V[Post replies to\ndeclined comments]
+    V --> W[Resolve addressed threads\nvia GraphQL mutation]
+    W --> X([Report summary])
+```
+</details>
 
 ## Updating Skills
 

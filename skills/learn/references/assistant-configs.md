@@ -10,21 +10,17 @@
 
 ## Markdown Config Structure
 
-For markdown-based configs (CLAUDE.md, GEMINI.md, AGENTS.md, Copilot, Windsurf), use standard markdown sections:
+For markdown-based configs (CLAUDE.md, GEMINI.md, AGENTS.md, Copilot, Windsurf), use standard markdown sections. Find the most relevant existing section and append; create a new section only when no existing section fits.
 
-```markdown
-# Project Instructions
+## Non-Markdown Formats
 
-## Conventions
-- Convention 1
-- Convention 2
+When writing to Cursor or Continue configs, **MANDATORY: read the format reference before writing**:
 
-## Prerequisites
-- Required setup step
+- **Cursor MDC** (`.cursor/rules/*.mdc`): read [`format-cursor-mdc.md`](format-cursor-mdc.md) in full — MDC uses YAML frontmatter with `description`, `globs`, and `alwaysApply` fields. Do NOT treat `.mdc` files like plain markdown.
+- **Continue** (`.continuerc.json`): read [`format-continue.md`](format-continue.md) in full — learnings go in the `customInstructions` JSON string field. Do NOT create a markdown file.
+- **Legacy Cursor** (`.cursorrules`): plain markdown, no special format needed.
 
-## Environment
-- Required env vars
-```
+Do NOT load these format references when writing to markdown-based configs (CLAUDE.md, GEMINI.md, AGENTS.md, Copilot, Windsurf).
 
 ## Initialization Commands
 
