@@ -9,10 +9,10 @@
       "assertions": [
         {"id": "fetches-rest-comments", "text": "The agent fetches inline review comments via the REST API (gh api repos/.../pulls/.../comments)"},
         {"id": "fetches-graphql-threads", "text": "The agent fetches thread resolution state via GraphQL to filter out already-resolved threads"},
+        {"id": "skips-already-resolved", "text": "Already-resolved threads are not included in the plan or acted upon"},
         {"id": "presents-plan", "text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes"},
         {"id": "waits-for-confirmation", "text": "The agent waits for user confirmation before proceeding with changes"},
         {"id": "coauthored-by-credit", "text": "Implemented changes are committed with Co-authored-by credit to the reviewer(s)"},
-        {"id": "replies-to-declined", "text": "Declined comments receive a reply via gh api with the POST method to the replies endpoint"},
         {"id": "resolves-threads", "text": "Resolved threads are marked via GraphQL resolveReviewThread mutation"}
       ]
     },
@@ -59,7 +59,8 @@
         {"id": "coauthored-by-trailers", "text": "The agent commits with Co-authored-by trailers for the reviewers whose suggestions were implemented"},
         {"id": "replies-to-out-of-scope", "text": "The agent posts a reply to the declined out-of-scope comment explaining why it won't be done"},
         {"id": "resolves-implemented-threads", "text": "The agent calls the GraphQL resolveReviewThread mutation to resolve implemented threads"},
-        {"id": "declined-thread-not-resolved", "text": "The agent does NOT resolve the declined comment's thread"}
+        {"id": "declined-thread-not-resolved", "text": "The agent does NOT resolve the declined comment's thread"},
+        {"id": "declined-reviewer-not-coauthor", "text": "The declined reviewer is NOT included in Co-authored-by trailers (only reviewers whose feedback was implemented are credited)"}
       ]
     },
     {

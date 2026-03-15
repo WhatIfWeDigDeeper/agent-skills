@@ -1,17 +1,76 @@
 {
   "metadata": {
     "skill_name": "pr-comments",
-    "skill_path": "skills/pr-comments",
-    "executor_model": "claude-sonnet-4-6",
-    "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-03-11T12:48:55Z",
-    "evals_run": [1, 2, 3],
-    "runs_per_configuration": 1
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-03-15T18:58:59Z",
+    "evals_run": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "runs_per_configuration": 3
   },
   "runs": [
     {
       "eval_id": 1,
-      "eval_name": "basic-address-comments",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 91.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent fetches inline review comments via the REST API (gh api repos/.../pulls/.../comments)",
+          "passed": true,
+          "evidence": "Step 2 shows: 'gh api repos/whatifwedigdeeper/agent-skills/pulls/33/comments --paginate ...' with paginate flag and jq filtering."
+        },
+        {
+          "text": "The agent fetches thread resolution state via GraphQL to filter out already-resolved threads",
+          "passed": true,
+          "evidence": "Step 3 issues a GraphQL query with 'reviewThreads(first: 100, after: $after) { nodes { id isResolved isOutdated comments(first: 1) { nodes { databaseId } } } }' and builds a mapping of comment IDs to resolution state."
+        },
+        {
+          "text": "Already-resolved threads are not included in the plan or acted upon",
+          "passed": true,
+          "evidence": "Comment #1004 (RT_kwDOABCDEF04, isResolved=true) was explicitly discarded after Step 3: 'Comment #1004 (thread RT_kwDOABCDEF04) is already resolved. It is discarded immediately and will not appear in the plan table or be acted upon.' The plan table in Step 6 contains only items #1001, #1002, #1003. The Skill Compliance Notes also confirm: 'Comment #1004 (isResolved=true) was discarded after Step 3 and does not appear in the plan table.'"
+        },
+        {
+          "text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes",
+          "passed": true,
+          "evidence": "Step 6 presents a plan table with columns for Action before any file edits (which happen in Step 8). Categories used are 'fix' and 'accept suggestion' \u2014 semantically equivalent to implement/accept. No file edits occur until after 'User response (simulated): Yes, proceed.' is received."
+        },
+        {
+          "text": "The agent waits for user confirmation before proceeding with changes",
+          "passed": true,
+          "evidence": "Step 6 ends with 'Proceed?' and shows 'User response (simulated): Yes, proceed.' followed by 'Confirmation received. Continuing to implementation.' File edits do not begin until Step 8, after this confirmation. metrics.json also records 'confirmation_waited: true'."
+        },
+        {
+          "text": "Implemented changes are committed with Co-authored-by credit to the reviewer(s)",
+          "passed": true,
+          "evidence": "Step 9 shows the commit message includes 'Co-authored-by: alice <alice@users.noreply.github.com>' and 'Co-authored-by: bob <bob@users.noreply.github.com>'. The transcript notes that @alice was deduplicated despite appearing in two comments (#1001 and #1003)."
+        },
+        {
+          "text": "Resolved threads are marked via GraphQL resolveReviewThread mutation",
+          "passed": true,
+          "evidence": "Step 11 calls resolveReviewThread mutation for all three addressed thread IDs (RT_kwDOABCDEF01, RT_kwDOABCDEF02, RT_kwDOABCDEF03). Each returns isResolved=true. Thread RT_kwDOABCDEF04 (already resolved) is correctly not re-resolved."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -19,117 +78,100 @@
         "passed": 8,
         "failed": 0,
         "total": 8,
-        "time_seconds": 45.0,
-        "tokens": 4800,
-        "tool_calls": 13,
+        "time_seconds": 70.4,
+        "tokens": 19960,
+        "tool_calls": 18,
         "errors": 0
       },
       "expectations": [
         {
-          "text": "The agent runs gh pr view to identify the current PR",
+          "text": "The agent fetches review comments and thread state before making any decisions",
           "passed": true,
-          "evidence": "Transcript Step 2 shows: `gh pr view --json number,url,title,baseRefName,headRefName` executed, with expected output documented"
+          "evidence": "Step 2 fetches inline review comments via REST API and Step 3 fetches thread resolution state via GraphQL. Both occur before Step 5 where decisions are made."
         },
         {
-          "text": "The agent fetches inline review comments via the REST API (gh api repos/.../pulls/.../comments)",
+          "text": "The plan presented to the user includes a decline section with a reason for the out-of-scope comment",
           "passed": true,
-          "evidence": "Transcript Step 3 shows the exact REST endpoint: `gh api repos/whatifwedigdeeper/agent-skills/pulls/33/comments --paginate --jq '...' | jq -s '.'`"
+          "evidence": "Step 6 table shows comment #3003 with action 'decline' and note 'Out of scope for this PR; a full OAuth2 migration is a separate project-level decision'."
         },
         {
-          "text": "The agent fetches thread resolution state via GraphQL to filter out already-resolved threads",
+          "text": "The agent posts a reply to the declined comment explaining it is out of scope",
           "passed": true,
-          "evidence": "Transcript Step 4 shows the full GraphQL query with `isResolved`, `isOutdated`, and `databaseId` fields — exactly as prescribed by the skill"
+          "evidence": "Step 10 posts a reply to comment #3003 via gh api with body explaining: 'Migrating to OAuth2 is a meaningful improvement, but it's a substantial architectural change that goes beyond the scope of this PR...'"
         },
         {
-          "text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes",
+          "text": "Declined threads are NOT resolved (left open for reviewer to see the reply)",
           "passed": true,
-          "evidence": "Transcript Step 7 shows a formatted plan with sections 'Will accept suggestion (1)', 'Will implement (2)', 'Will decline (0)', 'Skipping — outdated (0)' — matching the skill's template exactly"
+          "evidence": "Step 11 explicitly states: 'Thread #3003 (alice / OAuth2 rewrite) is intentionally left unresolved \u2014 the reviewer can see the reply and respond.' Only threads 3001, 3002, and 3004 are resolved."
         },
         {
-          "text": "The agent waits for user confirmation before proceeding with changes",
+          "text": "Addressed (implemented) threads ARE resolved via GraphQL resolveReviewThread",
           "passed": true,
-          "evidence": "Transcript Step 7 ends with 'Agent waits for user confirmation before touching anything.' and 'User says: Yes, proceed.'"
+          "evidence": "Step 11 resolves threads PRRT_kwDOABCD01, PRRT_kwDOABCD02, and PRRT_kwDOABCD04 (corresponding to comments 3001, 3002, 3004) using GraphQL resolveReviewThread mutation, each returning isResolved: true."
         },
         {
-          "text": "Implemented changes are committed with Co-authored-by credit to the reviewer(s)",
+          "text": "In-scope comments are implemented and committed",
           "passed": true,
-          "evidence": "Transcript Step 9 shows commit message with 'Co-authored-by: alice <alice@users.noreply.github.com>' and 'Co-authored-by: bob <bob@users.noreply.github.com>'"
+          "evidence": "Step 8 applies all three in-scope changes to src/session.py (null check, SESSION_TIMEOUT constant, typo fix). Step 9 commits with 'git add src/session.py' and 'git commit', resulting in commit abc1234."
         },
         {
-          "text": "Declined comments receive a reply via gh api with the POST method to the replies endpoint",
+          "text": "The commit includes Co-authored-by trailers for each reviewer whose feedback was implemented",
           "passed": true,
-          "evidence": "No declined comments in this scenario — transcript Step 10 notes 'No declined comments — this step is skipped.' This is correct behavior, not a failure."
+          "evidence": "Step 9 commit message includes 'Co-authored-by: bob <bob@users.noreply.github.com>' and 'Co-authored-by: carol <carol@users.noreply.github.com>' \u2014 the two reviewers whose suggestions were implemented. @alice's suggestion was declined so she is correctly omitted."
         },
         {
-          "text": "Resolved threads are marked via GraphQL resolveReviewThread mutation",
+          "text": "The final report distinguishes between implemented, declined, and skipped items",
           "passed": true,
-          "evidence": "Transcript Step 11 shows three `gh api graphql` calls with `resolveReviewThread` mutation for each addressed thread"
+          "evidence": "Step 12 report explicitly states: 'Implemented 3 comments \u2192 committed abc1234 / Declined 1 comment \u2192 replied with explanation / Skipped 0 outdated threads' and lists each action with its category."
         }
       ],
       "notes": []
     },
     {
-      "eval_id": 1,
-      "eval_name": "basic-address-comments",
-      "configuration": "without_skill",
+      "eval_id": 6,
+      "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.125,
-        "passed": 1,
-        "failed": 7,
-        "total": 8,
-        "time_seconds": 18.0,
-        "tokens": 2200,
-        "tool_calls": 5,
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 85.8,
+        "tokens": 0,
+        "tool_calls": 14,
         "errors": 0
       },
       "expectations": [
         {
-          "text": "The agent runs gh pr view to identify the current PR",
+          "text": "The agent skips threads that are already resolved (isResolved=true)",
           "passed": true,
-          "evidence": "Transcript Step 1 shows: `gh pr view` — this is a natural first step even without the skill"
+          "evidence": "Step 3 maps thread #6005 to 'isResolved: true' and marks it 'already resolved \u2192 skip'. Step 11 confirms: 'Thread #6005 was already resolved \u2014 no action taken'. Step 12 summary lists 'Skipped 1 already-resolved thread'."
         },
         {
-          "text": "The agent fetches inline review comments via the REST API (gh api repos/.../pulls/.../comments)",
-          "passed": false,
-          "evidence": "Transcript Step 2 shows the agent trying `gh pr view --json reviews,comments` which returns PR-level comments, not inline review thread comments. The correct REST endpoint (`/pulls/{number}/comments`) is mentioned as a possibility but the agent is uncertain about the repo owner and the correct jq filters. No structured paginated fetch with proper field extraction."
+          "text": "When two reviewers flagged the same issue, both get Co-authored-by credit in the commit (deduplicated \u2014 one entry each)",
+          "passed": true,
+          "evidence": "Step 9 commit message contains exactly three Co-authored-by trailers: alice, bob, carol \u2014 one each. The transcript notes: 'Co-authors are deduplicated \u2014 one entry each for @alice, @bob, and @carol (3 total). @alice and @bob both receive credit even though their comments pointed to the same line and were resolved by a single edit.'"
         },
         {
-          "text": "The agent fetches thread resolution state via GraphQL to filter out already-resolved threads",
-          "passed": false,
-          "evidence": "Transcript Step 4 explicitly states: 'Without the skill: I wouldn't think to make a separate GraphQL call for thread state. I'd try to address all comments I find, including already-resolved and outdated ones.'"
+          "text": "The agent replies to the clarifying question comment without resolving that thread",
+          "passed": true,
+          "evidence": "Step 10 posts a reply via 'gh api repos/myorg/myrepo/pulls/85/comments/6004/replies'. Step 11 explicitly leaves thread #6004 unresolved: 'Thread #6004 left unresolved (clarifying question \u2014 reply posted but discussion may continue).' The resolve mutation is only called for threads 6001, 6002, and 6003."
         },
         {
-          "text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes",
-          "passed": false,
-          "evidence": "Transcript Step 4 states: 'Without structured guidance, I'd likely just start making changes immediately without presenting a plan to the user.'"
+          "text": "The agent uses gh api to fetch thread resolution state before deciding on actions",
+          "passed": true,
+          "evidence": "Step 3 issues a 'gh api graphql' call requesting 'isResolved' and 'isOutdated' for all review threads before Step 5 (the decision/classification step). The GraphQL result is used to build the thread resolution mapping that drives subsequent actions."
         },
         {
-          "text": "The agent waits for user confirmation before proceeding with changes",
-          "passed": false,
-          "evidence": "No mention of waiting for user confirmation in the transcript. The agent proceeds without a confirmation step."
-        },
-        {
-          "text": "Implemented changes are committed with Co-authored-by credit to the reviewer(s)",
-          "passed": false,
-          "evidence": "Transcript Step 5 shows: `git commit -m 'Address PR review comments'` — no Co-authored-by trailers"
-        },
-        {
-          "text": "Declined comments receive a reply via gh api with the POST method to the replies endpoint",
-          "passed": false,
-          "evidence": "Transcript Step 6: 'I likely wouldn't know the specific REST endpoint for replying to individual inline review comments... might not reply at all, or reply at PR level instead.'"
-        },
-        {
-          "text": "Resolved threads are marked via GraphQL resolveReviewThread mutation",
-          "passed": false,
-          "evidence": "Transcript Step 7: 'I wouldn't know about the GraphQL resolveReviewThread mutation. Threads would remain unresolved even after being addressed.'"
+          "text": "The commit message lists which changes were suggested by which reviewers",
+          "passed": true,
+          "evidence": "Step 9 commit message body includes: '- Add type annotations to validate_input parameters (suggested by @alice, @bob)' and '- Replace loop with list comprehension for better performance (suggested by @carol)' \u2014 each change is attributed to the reviewer(s) who suggested it."
         }
       ],
       "notes": []
     },
     {
       "eval_id": 2,
-      "eval_name": "explicit-pr-with-suggestions",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -137,8 +179,8 @@
         "passed": 7,
         "failed": 0,
         "total": 7,
-        "time_seconds": 50.0,
-        "tokens": 5200,
+        "time_seconds": 57.7,
+        "tokens": 0,
         "tool_calls": 14,
         "errors": 0
       },
@@ -146,199 +188,456 @@
         {
           "text": "The agent passes the explicit PR number 47 to gh pr view",
           "passed": true,
-          "evidence": "Transcript Step 2: `gh pr view 47 --json number,url,title,baseRefName,headRefName` — the explicit PR number 47 is passed, as the skill instructs when $ARGUMENTS is a number"
+          "evidence": "Step 1 shows: 'gh pr view 47 --json number,url,title,baseRefName,headRefName' \u2014 PR number 47 is passed directly as a positional argument."
         },
         {
-          "text": "The agent identifies comments containing ```suggestion``` fenced code blocks as suggested changes",
+          "text": "The agent identifies comments containing suggestion fenced code blocks as suggested changes",
           "passed": true,
-          "evidence": "Transcript Step 3: both comments #2001 and #2002 are flagged as 'suggested changes' due to their ```suggestion``` blocks. Comment #2003 is correctly identified as a regular comment."
+          "evidence": "Step 2 output notes: 'Comments #2001 and #2002 contain suggestion fenced blocks \u2192 flagged as suggested changes.' Step 5 categorizes both as 'accept suggestion' actions, distinct from plain-text comments #2003 and #2004."
         },
         {
           "text": "Suggested changes are applied as local file edits (not via a batch API)",
           "passed": true,
-          "evidence": "Transcript Step 8&9: 'The agent directly edits src/batch.py: Apply suggestion block from #2001... Apply suggestion block from #2002...' — no API call, local edits only"
+          "evidence": "Step 7 shows Before/After diffs applied directly to src/batch.py as local edits with text like 'Applying suggestion from comment #2001 to src/batch.py lines 20' followed by explicit before/after code blocks. No batch API call is made."
         },
         {
           "text": "The commit message includes bullet points describing each change with the reviewer's handle",
           "passed": true,
-          "evidence": "Transcript Step 9 shows commit message with bullet points: '- Add type hints and docstring to process_batch function (suggested by @carol)' and '- Add early return guard for empty input (suggested by @dave)'"
+          "evidence": "Step 9 commit message: '- Add type hints and docstring to process_batch (suggested by @carol)' and '- Add early-return guard for empty items in run_batch (suggested by @dave)' \u2014 both bullet points name the reviewer's handle."
         },
         {
           "text": "The agent checks out the PR's head branch if the current branch does not match",
           "passed": true,
-          "evidence": "Transcript Step 2: 'Current branch is main, but PR head is feature/batch-processing. Skill says to check this and run: gh pr checkout 47'"
+          "evidence": "Step 1: 'Current branch is main; PR head branch is feature/batch-processing \u2014 checkout required.' Then 'gh pr checkout 47' is executed, output: 'Switched to branch feature/batch-processing'."
         },
         {
           "text": "Outdated threads (isOutdated=true) are skipped without posting a reply",
           "passed": true,
-          "evidence": "Transcript Step 5 (decide): 'Comment #2003: isOutdated = true → Skip — outdated'. Step 10 (replies): 'No declined comments — step skipped.' And in Step 11, thread PRRT_a3 is NOT resolved."
+          "evidence": "Step 3 identifies comment #2003 with isOutdated=true. Step 5 Decision for #2003: 'skip (outdated thread, no reply, no resolution)'. Step 10 (Reply to Declined Comments) is empty. Step 11 notes 'Thread #2003 (outdated, skipped) \u2014 not resolved per skill policy.' No reply is posted."
         },
         {
           "text": "Already-resolved threads are filtered out before presenting the plan",
           "passed": true,
-          "evidence": "Transcript Step 4: Thread #2004 has `isResolved: true` → 'discarded before presenting plan'. The plan in Step 7 only shows 2 items (suggestions accepted), not 4."
+          "evidence": "Step 3: Comment #2004 with isResolved=true is flagged as 'filtered out, no action needed.' In Step 6 plan table, it appears as a row but with action '\u2014' and note 'resolved, no action' \u2014 clearly excluded from actionable items before the plan is presented to the user."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 77.5,
+        "tokens": 0,
+        "tool_calls": 14,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent presents a plan categorizing comments as accept suggestion, implement, and decline before making any changes",
+          "passed": true,
+          "evidence": "Step 5 categorizes all four comments with labels 'Accept suggestion' (#4004), 'Implement' (#4001, #4002), and 'Decline' (#4003). Step 6 then presents a formatted table plan and waits for user confirmation before any file edits occur. Changes begin in Step 7."
+        },
+        {
+          "text": "The agent uses the gh api GraphQL endpoint to fetch thread resolution state and node IDs",
+          "passed": true,
+          "evidence": "Step 3 shows a `gh api graphql` call with a query fetching `reviewThreads` nodes including `id`, `isResolved`, `isOutdated`, and `comments { nodes { databaseId } }`. The output maps all four comment IDs to their thread node IDs (e.g., PRRT_kwDOA1b2Nc5AAAA1 through AAAA4)."
+        },
+        {
+          "text": "The agent applies the suggested change locally from the suggestion code block in the comment body",
+          "passed": true,
+          "evidence": "Step 7 explicitly shows the before/after for line 55 of src/processor.py, extracting the code from the `suggestion` fenced block in comment #4004 (`if item is None: raise ValueError('item cannot be None')`) and applying it as a local edit."
+        },
+        {
+          "text": "The agent commits with Co-authored-by trailers for the reviewers whose suggestions were implemented",
+          "passed": true,
+          "evidence": "Step 9 shows a git commit with three Co-authored-by trailers: alice, bob, and dave \u2014 exactly the three reviewers whose feedback was implemented or accepted."
+        },
+        {
+          "text": "The agent posts a reply to the declined out-of-scope comment explaining why it won't be done",
+          "passed": true,
+          "evidence": "Step 10 shows `gh api repos/myorg/myrepo/pulls/62/comments/4003/replies` POST with a detailed body explaining the Rust rewrite is out of scope and warrants its own planning cycle. The reply was posted to carol's comment #4003."
+        },
+        {
+          "text": "The agent calls the GraphQL resolveReviewThread mutation to resolve implemented threads",
+          "passed": true,
+          "evidence": "Step 11 shows three separate `gh api graphql` calls with `resolveReviewThread(input: {threadId: ...})` mutations for thread IDs AAAA1 (#4001/alice), AAAA2 (#4002/bob), and AAAA4 (#4004/dave). Each returns `isResolved: true`."
+        },
+        {
+          "text": "The agent does NOT resolve the declined comment's thread",
+          "passed": true,
+          "evidence": "Step 11 explicitly states 'Thread #4003 (carol's Rust rewrite suggestion) left unresolved \u2014 reply posted, reviewer can respond.' The resolveReviewThread mutation is only called for thread IDs AAAA1, AAAA2, and AAAA4; AAAA3 (carol's thread) is never resolved."
+        },
+        {
+          "text": "The declined reviewer is NOT included in Co-authored-by trailers (only reviewers whose feedback was implemented are credited)",
+          "passed": true,
+          "evidence": "Step 9 commit message includes Co-authored-by for alice, bob, and dave only. Step 9 includes an explicit note: '@carol is NOT included in Co-authored-by \u2014 her suggestion was declined and no code change was made based on her comment.' metrics.json also confirms `declined_reviewer_excluded: true`."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 70.9,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent skips outdated threads (isOutdated=true) without posting replies to them",
+          "passed": true,
+          "evidence": "Step 5 explicitly marks #5001 and #5004 as 'skip \u2014 thread is outdated'. Step 10 states 'No replies posted. (Outdated threads are skipped without reply per skill spec.)' metrics.json confirms outdated_replied: 0 and outdated_skipped: 2."
+        },
+        {
+          "text": "The agent distinguishes outdated threads from regular ones in the plan summary",
+          "passed": true,
+          "evidence": "Step 6 plan table explicitly labels rows 1 and 4 with action 'skip' and note 'outdated thread', while rows 2 and 3 have actions 'fix' and 'accept suggestion' with no outdated note. The distinction is clear and prominent."
+        },
+        {
+          "text": "The agent implements the valid error handling suggestion and commits the change",
+          "passed": true,
+          "evidence": "Step 8 shows the None-check implementation added to validate(): 'if data is None: raise ValueError(\"Input data must not be None\")'. Step 9 shows a successful commit (a3f9c12) with message crediting @bob and noting 'Add None check in validate() to raise ValueError on None input'."
+        },
+        {
+          "text": "The agent applies the suggested change from the docstring suggestion block",
+          "passed": true,
+          "evidence": "Step 7 shows the suggestion from comment #5003 applied verbatim: docstring changed from '\"\"\"Parse the input.\"\"\"' to '\"\"\"Parse the input data and return a structured dict.\"\"\"'. The change is included in the same commit (a3f9c12)."
+        },
+        {
+          "text": "The agent only resolves threads that were actually addressed, not the outdated ones",
+          "passed": true,
+          "evidence": "Step 11 resolves only thread PRRT_kwDOABCDEF2345 (#5002, bob) and PRRT_kwDOABCDEF3456 (#5003, carol). Explicitly states: 'Threads #5001 and #5004 (outdated, skipped) are not resolved \u2014 no action taken on them.' Skill behavior summary table confirms this."
+        },
+        {
+          "text": "The final report categorizes actions: implemented, skipped-outdated, etc.",
+          "passed": true,
+          "evidence": "Step 12 report clearly categorizes: 'Applied 1 suggestion + implemented 1 comment', 'Declined 0 comments', 'Skipped 2 outdated threads (no reply posted)'. The detailed breakdown labels each item: 'Accepted', 'Implemented', 'Skipped (outdated)' x2. The Skill Behavior Summary table at the end also provides categorical verification."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.14,
+        "passed": 1,
+        "failed": 6,
+        "total": 7,
+        "time_seconds": 31.9,
+        "tokens": 0,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent fetches inline review comments via the REST API (gh api repos/.../pulls/.../comments)",
+          "passed": true,
+          "evidence": "Transcript Step 1 shows: 'Tool: Bash / Command: gh api repos/whatifwedigdeeper/agent-skills/pulls/33/comments'. The command matches the expected REST endpoint pattern."
+        },
+        {
+          "text": "The agent fetches thread resolution state via GraphQL to filter out already-resolved threads",
+          "passed": false,
+          "evidence": "Transcript Step 1 explicitly states: 'It does NOT use the GraphQL API, so it has no visibility into `isResolved` status on review threads.' No GraphQL call appears anywhere in the transcript."
+        },
+        {
+          "text": "Already-resolved threads are not included in the plan or acted upon",
+          "passed": false,
+          "evidence": "metrics.json confirms `resolved_thread_in_plan: true`. Transcript Step 7 explicitly describes the agent acting on thread #1004 ('Thread #1004 appears in the agent\\'s plan and is acted on') despite it being already resolved."
+        },
+        {
+          "text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes",
+          "passed": false,
+          "evidence": "Transcript Step 3 states: 'The agent does NOT present a plan or ask for confirmation before making changes. It begins applying edits immediately after reading the diff.' metrics.json confirms `plan_shown: false`."
+        },
+        {
+          "text": "The agent waits for user confirmation before proceeding with changes",
+          "passed": false,
+          "evidence": "Transcript Step 3 states the agent begins applying edits immediately without seeking confirmation. metrics.json confirms `confirmation_waited: false`."
+        },
+        {
+          "text": "Implemented changes are committed with Co-authored-by credit to the reviewer(s)",
+          "passed": false,
+          "evidence": "Transcript Step 8 shows commit command 'git add -A && git commit -m \"Address PR review comments\"' with no Co-Authored-By trailer, and explicitly states: 'No `Co-Authored-By` trailer is present in the commit message.'"
+        },
+        {
+          "text": "Resolved threads are marked via GraphQL resolveReviewThread mutation",
+          "passed": false,
+          "evidence": "Transcript Step 10 explicitly states: 'The agent does NOT call `resolveReviewThread` via the GitHub GraphQL API. Review threads #1001, #1002, and #1003 remain unresolved in the GitHub UI even though the changes have been made.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 2,
+        "failed": 6,
+        "total": 8,
+        "time_seconds": 39.0,
+        "tokens": 0,
+        "tool_calls": 1,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent fetches review comments and thread state before making any decisions",
+          "passed": false,
+          "evidence": "The agent ran `gh pr view 51 --json title,body,comments` which fetches PR comments, not review threads. It did not query the review threads API (e.g. `gh api repos/.../pulls/51/comments` or GraphQL `reviewThreads`) to obtain thread state (isResolved, thread IDs). The transcript self-acknowledges this is without skill guidance and never retrieves thread state."
+        },
+        {
+          "text": "The plan presented to the user includes a decline section with a reason for the out-of-scope comment",
+          "passed": false,
+          "evidence": "The agent jumped straight into making changes with no upfront plan shown to the user. The transcript itself notes under 'What I would NOT do': 'No structured classification plan shown upfront \u2014 I jumped straight into doing things without presenting a plan (accept/decline/defer table) for user confirmation.' While a summary table appears at the end, it is a retrospective gap analysis, not a pre-execution plan presented for user confirmation."
+        },
+        {
+          "text": "The agent posts a reply to the declined comment explaining it is out of scope",
+          "passed": true,
+          "evidence": "The agent does post a reply to @alice's comment (#3003): `gh pr comment 51 --body \"Thanks @alice \u2014 rewriting the auth module to OAuth2 is a great idea but out of scope for this PR. I'll open a separate issue to track it.\"` This explains the decline reason. However, note the reply uses the wrong endpoint (top-level PR comment, not a threaded reply)."
+        },
+        {
+          "text": "Declined threads are NOT resolved (left open for reviewer to see the reply)",
+          "passed": true,
+          "evidence": "The transcript explicitly states 'No thread resolution \u2014 I never called resolveReviewThread via the GitHub GraphQL API to mark addressed threads as resolved. The threads stay open.' Since no threads are resolved at all, declined threads are also not resolved, satisfying this expectation \u2014 though for the wrong reason (it's a general failure, not intentional handling of the decline case)."
+        },
+        {
+          "text": "Addressed (implemented) threads ARE resolved via GraphQL resolveReviewThread",
+          "passed": false,
+          "evidence": "The transcript explicitly states under 'What I would NOT do': 'No thread resolution \u2014 I never called resolveReviewThread via the GitHub GraphQL API to mark addressed threads as resolved. The threads stay open.' No GraphQL mutation was invoked for any thread."
+        },
+        {
+          "text": "In-scope comments are implemented and committed",
+          "passed": false,
+          "evidence": "The agent showed pseudocode for changes to #3001, #3002, and #3004 but never actually ran any file edits or git commands. No `git commit` appears in the transcript. The changes were described in markdown code blocks only, not applied to any file. The metrics.json shows only 1 tool call (`gh pr view`), confirming no actual file edits or commits occurred."
+        },
+        {
+          "text": "The commit includes Co-authored-by trailers for each reviewer whose feedback was implemented",
+          "passed": false,
+          "evidence": "No commit was made (see above). The transcript explicitly notes 'No Co-authored-by in commits \u2014 Commits fixing the issues would lack Co-authored-by: attribution for the comment authors' as a known gap."
+        },
+        {
+          "text": "The final report distinguishes between implemented, declined, and skipped items",
+          "passed": false,
+          "evidence": "The transcript ends with a 'Summary of Gaps' table that lists failure modes, not a structured report of what was implemented vs. declined vs. skipped for this run. No items were actually implemented (no real code changes or commits were made), so the table cannot represent a true final status report. The gap table is meta-commentary about the without-skill run, not a task completion report."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 6,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 5,
+        "total": 5,
+        "time_seconds": 44.6,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent skips threads that are already resolved (isResolved=true)",
+          "passed": false,
+          "evidence": "Transcript Step 1 explicitly states: 'The agent would likely fetch comments but would NOT use GraphQL to check isResolved state. The REST API for pull request review comments does not surface the isResolved field.' Step 6 further notes the agent 'might try to re-resolve it or make an unnecessary comment on an already-closed thread.' The summary table confirms: 'Skip already-resolved thread (#6005) | Yes | No \u2014 may act on it unnecessarily.'"
+        },
+        {
+          "text": "When two reviewers flagged the same issue, both get Co-authored-by credit in the commit (deduplicated \u2014 one entry each)",
+          "passed": false,
+          "evidence": "Transcript Step 4 states: 'The agent would NOT add Co-authored-by trailers for @alice, @bob, and @carol. Without skill guidance specifying this convention, the agent has no reason to include reviewer attribution in the commit message. The co-author count would be 0.' metrics.json confirms coauthor_count: 0."
+        },
+        {
+          "text": "The agent replies to the clarifying question comment without resolving that thread",
+          "passed": false,
+          "evidence": "Transcript Step 5 states: 'Without skill guidance, the agent has no rule distinguishing answer and leave open from answer and resolve. There is roughly a 50/50 chance it resolves the thread when it shouldn't.' No evidence of correct behavior; the transcript predicts inconsistent handling with likely incorrect resolution of the thread."
+        },
+        {
+          "text": "The agent uses gh api to fetch thread resolution state before deciding on actions",
+          "passed": false,
+          "evidence": "Transcript Step 1 explicitly states: 'The agent would likely fetch comments but would NOT use GraphQL to check isResolved state.' The summary table confirms: 'Check resolved state via GraphQL | Yes | No \u2014 uses REST API, misses isResolved.'"
+        },
+        {
+          "text": "The commit message lists which changes were suggested by which reviewers",
+          "passed": false,
+          "evidence": "Transcript Step 4 shows the expected commit message as: 'Address PR review comments: add type annotations, use list comprehension' \u2014 a generic message with no per-reviewer attribution. No Co-authored-by trailers (coauthor_count: 0 per metrics.json), and no mention of which reviewer suggested which change."
         }
       ],
       "notes": []
     },
     {
       "eval_id": 2,
-      "eval_name": "explicit-pr-with-suggestions",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.143,
-        "passed": 1,
-        "failed": 6,
+        "pass_rate": 0.29,
+        "passed": 2,
+        "failed": 5,
         "total": 7,
-        "time_seconds": 17.0,
-        "tokens": 2100,
-        "tool_calls": 5,
+        "time_seconds": 47.6,
+        "tokens": 0,
+        "tool_calls": 4,
         "errors": 0
       },
       "expectations": [
         {
           "text": "The agent passes the explicit PR number 47 to gh pr view",
           "passed": true,
-          "evidence": "Transcript Step 1: `gh pr view 47` — the PR number is used since it's in the prompt. This is intuitive even without the skill."
+          "evidence": "Transcript Step 1 shows: `gh pr view 47 --repo myorg/myrepo --comments` \u2014 PR number 47 is explicitly passed."
         },
         {
-          "text": "The agent identifies comments containing ```suggestion``` fenced code blocks as suggested changes",
+          "text": "The agent identifies comments containing suggestion fenced code blocks as suggested changes",
           "passed": false,
-          "evidence": "Transcript Step 3: 'Without specific skill guidance, I might not recognize suggestion fenced blocks as a special GitHub feature. I might try to manually parse the suggestion text and apply it, possibly making mistakes about which lines to replace.'"
+          "evidence": "The transcript uses hedging language: 'The agent identifies the suggestion fenced blocks in comments #2001 and #2002 and decides to apply them.' However, the summary table marks this as 'PARTIAL \u2014 may work if body is visible', indicating this is not reliably done. The transcript also notes the REST endpoint output does not surface raw markdown fences clearly, making reliable identification uncertain. No clear evidence of consistent identification."
         },
         {
           "text": "Suggested changes are applied as local file edits (not via a batch API)",
-          "passed": false,
-          "evidence": "Transcript Step 3: 'Not know that suggestions correspond exactly to line ranges from the diff_hunk' — the agent's approach to applying suggestions is uncertain and error-prone without guidance"
+          "passed": true,
+          "evidence": "Step 3 and 4 describe: 'Agent directly edits src/batch.py using Read + Edit tools' \u2014 local file edits are the described mechanism, not a batch API."
         },
         {
           "text": "The commit message includes bullet points describing each change with the reviewer's handle",
           "passed": false,
-          "evidence": "Transcript Step 5: `git commit -m 'Apply PR #47 suggestions'` — no bullet points, no reviewer handles"
+          "evidence": "Step 7 states the commit message is generic ('Address review comments on PR #47') and explicitly notes 'Does not add Co-authored-by: trailers for carol/dave (whose suggestions were applied)'. No bullet points or reviewer handles in the commit message."
         },
         {
           "text": "The agent checks out the PR's head branch if the current branch does not match",
           "passed": false,
-          "evidence": "Transcript Step 8: 'I wouldn't specifically verify that I'm on the PR's head branch before editing files.'"
+          "evidence": "Step 3 explicitly states: 'Miss the branch checkout step entirely. The agent is on main. It does not switch to feature/batch-processing before editing.' The summary table confirms: 'Check out correct branch before editing \u2014 MISSED \u2014 edits on main'."
         },
         {
           "text": "Outdated threads (isOutdated=true) are skipped without posting a reply",
           "passed": false,
-          "evidence": "Transcript Step 4: 'Without the skill: I wouldn't think to make a separate GraphQL call for thread state... I might waste effort implementing a change that's already been addressed.'"
+          "evidence": "Step 6 states: 'The agent has no signal from the REST API that these are outdated/resolved... it cannot make this determination correctly.' The summary table shows: 'Skip outdated thread #2003 \u2014 MISSED \u2014 may attempt to apply'. The agent uses REST (not GraphQL) and therefore has no isOutdated information."
         },
         {
           "text": "Already-resolved threads are filtered out before presenting the plan",
           "passed": false,
-          "evidence": "Transcript Step 4: No GraphQL call for resolution state means resolved threads are not filtered — the agent would attempt to address already-resolved comments"
+          "evidence": "Step 6 states the agent cannot determine resolved status from the REST API, and the summary table confirms: 'Skip resolved thread #2004 \u2014 MISSED \u2014 may attempt to apply'. No plan presentation step occurs, and no filtering of resolved threads is described."
         }
       ],
       "notes": []
     },
     {
-      "eval_id": 3,
-      "eval_name": "decline-out-of-scope",
-      "configuration": "with_skill",
-      "run_number": 1,
-      "result": {
-        "pass_rate": 1.0,
-        "passed": 7,
-        "failed": 0,
-        "total": 7,
-        "time_seconds": 52.0,
-        "tokens": 5600,
-        "tool_calls": 15,
-        "errors": 0
-      },
-      "expectations": [
-        {
-          "text": "The agent fetches review comments and thread state before making any decisions",
-          "passed": true,
-          "evidence": "Transcript Steps 3 and 4 show the REST comment fetch and GraphQL thread state query both happen before any decisions in Step 6"
-        },
-        {
-          "text": "The plan presented to the user includes a 'Will decline' section with a reason for the out-of-scope comment",
-          "passed": true,
-          "evidence": "Transcript Step 7 shows the plan with '### Will decline (1): - [src/auth.py:10] @alice: ... → Out of scope for this PR. This PR focuses on session management. Will file a follow-up issue for OAuth2 migration.'"
-        },
-        {
-          "text": "The agent posts a reply to the declined comment explaining it is out of scope",
-          "passed": true,
-          "evidence": "Transcript Step 10: `gh api repos/.../pulls/51/comments/3003/replies --method POST --field body='Thanks for flagging this...'` with a clear explanation that the rewrite is out of scope and suggesting a follow-up issue"
-        },
-        {
-          "text": "Declined threads are NOT resolved (left open for reviewer to see the reply)",
-          "passed": true,
-          "evidence": "Transcript Step 11: resolveReviewThread called for PRRT_b1, PRRT_b2, PRRT_b4 only. Explicitly states: 'Thread PRRT_b3 (comment #3003 — auth module rewrite) is NOT resolved — left open so @alice can see the reply.'"
-        },
-        {
-          "text": "In-scope comments are implemented and committed",
-          "passed": true,
-          "evidence": "Transcript Step 8&9: 3 in-scope changes made to src/session.py and committed with git commit"
-        },
-        {
-          "text": "The commit includes Co-authored-by trailers for each reviewer whose feedback was implemented",
-          "passed": true,
-          "evidence": "Transcript Step 9 commit message includes 'Co-authored-by: alice <alice@users.noreply.github.com>' and 'Co-authored-by: bob <bob@users.noreply.github.com>' — both reviewers whose feedback was implemented"
-        },
-        {
-          "text": "The final report distinguishes between implemented, declined, and skipped items",
-          "passed": true,
-          "evidence": "Transcript Step 12: 'Applied 0 suggestions + implemented 3 comments → committed ghi9012', 'Declined 1 comment → replied with explanation', 'Skipped 0 outdated threads' — all three categories distinguished"
-        }
-      ],
-      "notes": []
-    },
-    {
-      "eval_id": 3,
-      "eval_name": "decline-out-of-scope",
+      "eval_id": 4,
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.286,
+        "pass_rate": 0.25,
         "passed": 2,
-        "failed": 5,
-        "total": 7,
-        "time_seconds": 16.0,
-        "tokens": 2000,
-        "tool_calls": 5,
+        "failed": 6,
+        "total": 8,
+        "time_seconds": 47.0,
+        "tokens": 0,
+        "tool_calls": 0,
         "errors": 0
       },
       "expectations": [
         {
-          "text": "The agent fetches review comments and thread state before making any decisions",
+          "text": "The agent presents a plan categorizing comments as accept suggestion, implement, and decline before making any changes",
           "passed": false,
-          "evidence": "Transcript Step 2: agent tries `gh pr view --json reviews` and `gh pr view --comments` but does not make the REST inline comments call or the GraphQL thread state call. Decisions are made on partial data."
+          "evidence": "Transcript Step 1 explicitly states: 'No upfront plan is shown. The agent proceeds directly to gathering information.' The summary table confirms 'Upfront plan / categorization: No (vs. Yes with skill).'"
         },
         {
-          "text": "The plan presented to the user includes a 'Will decline' section with a reason for the out-of-scope comment",
+          "text": "The agent uses the gh api GraphQL endpoint to fetch thread resolution state and node IDs",
           "passed": false,
-          "evidence": "Transcript Step 4: 'Without structured guidance, I'd likely just start making changes immediately without presenting a plan to the user.'"
+          "evidence": "No GraphQL fetch calls appear anywhere in the transcript. Only basic REST-style calls are shown (`gh pr view 62`, `gh api repos/{owner}/{repo}/pulls/62/comments`). Step 7 notes the agent 'would not call resolveReviewThread via the GitHub GraphQL API' and has no pattern for GraphQL at all."
         },
         {
-          "text": "The agent posts a reply to the declined comment explaining it is out of scope",
+          "text": "The agent applies the suggested change locally from the suggestion code block in the comment body",
           "passed": false,
-          "evidence": "Transcript Step 6: 'I might: a) Just ignore it and not reply at all... b) Leave a comment but not know the specific reply endpoint... I likely wouldn't know to use: POST .../comments/{comment_id}/replies'"
+          "evidence": "Transcript Step 3 states for comment #4004: 'It does not have a reliable workflow to extract the exact replacement text from the suggestion block and apply it verbatim.' The agent 'may attempt to infer the intended fix from the text description' rather than extracting from the suggestion block."
         },
         {
-          "text": "Declined threads are NOT resolved (left open for reviewer to see the reply)",
+          "text": "The agent commits with Co-authored-by trailers for the reviewers whose suggestions were implemented",
           "passed": true,
-          "evidence": "Transcript Step 7: 'I would not know about the GraphQL resolveReviewThread mutation... Threads would remain unresolved even after being addressed.' — the declined thread is not resolved, but by accident (no threads are resolved)"
+          "evidence": "The transcript shows a commit with Co-authored-by trailers for @alice, @bob, and @dave (whose suggestions were implemented). However, @carol is also incorrectly included \u2014 that error is assessed in expectation 8. The implemented reviewers do appear in the trailers."
         },
         {
-          "text": "In-scope comments are implemented and committed",
+          "text": "The agent posts a reply to the declined out-of-scope comment explaining why it won't be done",
+          "passed": false,
+          "evidence": "Transcript Step 6 states 'It would likely not reply to #4003 with a clear decline explanation.' Step 3 notes 'There is no structured mechanism to mark this as declined and leave a reply.' The summary table confirms 'Replies to declined comments with explanation: Unlikely.'"
+        },
+        {
+          "text": "The agent calls the GraphQL resolveReviewThread mutation to resolve implemented threads",
+          "passed": false,
+          "evidence": "Transcript Step 7 explicitly states: 'The agent would not call resolveReviewThread via the GitHub GraphQL API. Without skill guidance, there is no established pattern to resolve threads programmatically.' The Key Findings section also lists this as finding #2."
+        },
+        {
+          "text": "The agent does NOT resolve the declined comment's thread",
           "passed": true,
-          "evidence": "Transcript Step 5: `git add src/session.py` and a commit are shown — the agent does implement in-scope changes"
+          "evidence": "The agent does not call resolveReviewThread for any thread at all (Step 7: 'Threads are left open'), so the declined thread is also not resolved. This expectation is trivially satisfied \u2014 the agent fails to resolve anything, not because it correctly excludes the declined thread."
         },
         {
-          "text": "The commit includes Co-authored-by trailers for each reviewer whose feedback was implemented",
+          "text": "The declined reviewer is NOT included in Co-authored-by trailers (only reviewers whose feedback was implemented are credited)",
           "passed": false,
-          "evidence": "Transcript Step 5: `git commit -m 'Address most PR review comments, skipping auth refactor (out of scope)'` — no Co-authored-by trailers"
+          "evidence": "The transcript shows the commit includes 'Co-authored-by: carol <carol@users.noreply.github.com>' and explicitly notes 'this is incorrect behavior since her suggestion was not implemented.' The metrics.json confirms `declined_reviewer_excluded: false`."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 2,
+        "failed": 4,
+        "total": 6,
+        "time_seconds": 55.2,
+        "tokens": 14003,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent skips outdated threads (isOutdated=true) without posting replies to them",
+          "passed": false,
+          "evidence": "Transcript Step 8 shows the agent posts replies to all four threads including #5001 and #5004 (both outdated): 'gh api repos/owner/repo/pulls/71/comments/5001/replies -f body=\"Refactored the function...\"' and similarly for #5004. The summary table confirms: '#5001 @alice: Agent Action = Made code changes + posted reply \u2014 Correct? NO'."
         },
         {
-          "text": "The final report distinguishes between implemented, declined, and skipped items",
+          "text": "The agent distinguishes outdated threads from regular ones in the plan summary",
           "passed": false,
-          "evidence": "Transcript Step 8: 'Without the skill, there's no structured final report showing what was implemented, declined, or skipped.'"
+          "evidence": "Transcript Step 1 explains the agent used the REST API ('gh api repos/owner/repo/pulls/71/comments') which does not include isOutdated metadata. Step 2 states: 'Because the agent used the REST endpoint instead of the GraphQL reviewThreads query, it has no visibility into isOutdated: true on threads #5001 and #5004. It treats all four comments as equally valid.' The metrics.json confirms: 'plan_shown: false, outdated_handled_correctly: false'. No plan summary distinguishing outdated threads was produced."
+        },
+        {
+          "text": "The agent implements the valid error handling suggestion and commits the change",
+          "passed": true,
+          "evidence": "Transcript Step 4 shows the agent adds the None input check: 'def process(value): if value is None: raise ValueError(\"value cannot be None\")'. Step 7 shows a commit: 'git commit -m \"Address PR review comments from #71\"'. The summary table confirms '#5002 @bob: Correct? YES'. The change was implemented and committed (though bundled with unnecessary changes from outdated threads)."
+        },
+        {
+          "text": "The agent applies the suggested change from the docstring suggestion block",
+          "passed": true,
+          "evidence": "Transcript Step 5 shows the agent reads the suggestion block and applies the docstring change: 'It applies the change manually. Outcome is coincidentally correct.' The summary table marks #5003 as PARTIAL (applied manually by guessing rather than following a defined protocol, but the docstring change was in fact applied)."
+        },
+        {
+          "text": "The agent only resolves threads that were actually addressed, not the outdated ones",
+          "passed": false,
+          "evidence": "Transcript Step 9 states: 'The agent does not attempt to resolve any review threads via GraphQL mutations. It is not aware of the resolveReviewThread mutation or the workflow of resolving threads after addressing them. The threads remain open.' The agent resolved zero threads \u2014 it did not resolve even the valid ones (#5002, #5003)."
+        },
+        {
+          "text": "The final report categorizes actions: implemented, skipped-outdated, etc.",
+          "passed": false,
+          "evidence": "No final report was produced by the agent. The summary table at the end of the transcript is part of the eval's own narration ('Summary of Failures'), not output from the agent. The transcript describes agent actions up through Step 9 (no resolution) with no mention of the agent generating a report categorizing its actions."
         }
       ],
       "notes": []
@@ -353,51 +652,43 @@
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 49.0,
-        "stddev": 3.6056,
-        "min": 45.0,
-        "max": 52.0
+        "mean": 75.55,
+        "stddev": 11.9527,
+        "min": 57.7,
+        "max": 91.0
       },
       "tokens": {
-        "mean": 5200.0,
-        "stddev": 400.0,
-        "min": 4800,
-        "max": 5600
+        "mean": 3326.6667,
+        "stddev": 8148.6359,
+        "min": 0,
+        "max": 19960
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.1847,
-        "stddev": 0.0882,
-        "min": 0.125,
-        "max": 0.286
+        "mean": 0.21,
+        "stddev": 0.1208,
+        "min": 0.0,
+        "max": 0.33
       },
       "time_seconds": {
-        "mean": 17.0,
-        "stddev": 1.0,
-        "min": 16.0,
-        "max": 18.0
+        "mean": 44.2167,
+        "stddev": 7.9861,
+        "min": 31.9,
+        "max": 55.2
       },
       "tokens": {
-        "mean": 2100.0,
-        "stddev": 100.0,
-        "min": 2000,
-        "max": 2200
+        "mean": 2333.8333,
+        "stddev": 5716.7008,
+        "min": 0,
+        "max": 14003
       }
     },
     "delta": {
-      "pass_rate": "+0.82",
-      "time_seconds": "+32.0",
-      "tokens": "+3100"
+      "pass_rate": "+0.79",
+      "time_seconds": "+31.3",
+      "tokens": "+993"
     }
   },
-  "notes": [
-    "Strong signal: skill produces +0.82 pass rate delta (100% vs 18.5% baseline).",
-    "Baseline's 18.5% is inflated by two accidental passes: 'declined thread not resolved' (baseline never resolves any threads) and 'in-scope comments implemented' (implementing changes is intuitive even without guidance).",
-    "'gh pr view used to identify PR' passes in both configurations — not discriminating; consider dropping from future iterations.",
-    "Skill adds ~32s and ~3100 tokens overhead vs baseline. Expected for a 12-step structured workflow.",
-    "Zero variance in with_skill pass rates across all 3 evals — skill instructions are clear and complete.",
-    "Key behaviors baseline always misses: GraphQL thread state check, suggestion block detection, upfront plan + confirmation, Co-authored-by commit credit, inline reply to declined comments, resolveReviewThread mutation.",
-    "Weak assertion in eval-3: 'declined thread not resolved' passes by accident in baseline. Should be paired with a check that addressed threads ARE resolved."
-  ]
+  "notes": []
 }
