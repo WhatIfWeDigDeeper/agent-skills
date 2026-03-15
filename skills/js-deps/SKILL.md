@@ -79,12 +79,28 @@ For dependency update workflows only: install dependencies so that `$PM outdated
 
 ### 7. Validate Changes
 
-Run validation **per directory** after each package update. Check `package.json` scripts and run available commands using `$PM run <script>` in order: build, lint, test. Skip any that don't exist.
+Run validation **per directory** after each package update.
+
+**Discover validation scripts** — read the `scripts` object from `package.json` and classify into three categories (exact names first, then prefix matches):
+
+| Category | Exact matches | Prefix matches |
+|----------|--------------|----------------|
+| Build | `build`, `compile`, `tsc`, `typecheck` | `build:*` |
+| Lint | `lint`, `check`, `format`, `format:check` | `lint:*` |
+| Test | `test`, `tests` | `test:*`, `test.*` |
+
+Scripts named after a test runner also match the Test category even without a prefix (e.g. `jest`, `vitest`, `mocha`, `jasmine`, `cypress`, `playwright`).
+
+Ignore lifecycle scripts (`preinstall`, `postinstall`, `prepare`) and dev server scripts (`dev`, `start`, `serve`, `watch`). For each category, collect all matching script names.
+
+**Confirm with user** — before running, present a table of discovered scripts grouped by category and ask which to include. If no scripts match any category, note that validation will be skipped for this directory. If running autonomously with no user available to respond, run all discovered scripts across all three categories.
+
+> **Trust boundary:** Validation scripts are project-defined code that will execute in the disposable worktree. The worktree branch is never merged automatically — all changes require PR review before landing.
 
 **If `node_modules` does not exist** in the directory being validated, run `$PM install` before executing validation scripts. This applies to audit workflows (which skip step 6) and any update workflow directory where install was skipped. The install is validation-only and does not affect already-collected results.
 
-- **Build failure** is a hard failure: revert the package before continuing.
-- **Lint or test failure** is a soft failure: report it but continue with remaining packages.
+- **Build script failure** is a hard failure: revert the package before continuing.
+- **Lint or test script failure** is a soft failure: report it but continue with remaining packages.
 
 Continue running all validators even on failure to collect the full error set before reporting.
 

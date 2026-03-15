@@ -144,28 +144,48 @@ def parse_arguments(args: str, dependencies: dict) -> list[str]:
     return result
 
 
-def detect_validation_scripts(package_json_path: Path) -> dict[str, str | None]:
-    """Detect available validation scripts per SKILL.md step 7."""
-    build_names = {"build", "compile", "tsc"}
-    lint_names = {"lint", "check", "eslint"}
-    test_names = {"test", "jest", "vitest"}
+LIFECYCLE_SCRIPTS = {"preinstall", "postinstall", "prepare", "prepublish", "publish", "postpublish"}
+DEV_SERVER_SCRIPTS = {"dev", "start", "serve", "watch"}
 
+BUILD_EXACT = {"build", "compile", "tsc", "typecheck"}
+LINT_EXACT = {"lint", "check", "format", "format:check"}
+TEST_EXACT = {"test", "tests", "jest", "vitest", "mocha", "jasmine", "cypress", "playwright", "ava"}
+
+
+def detect_validation_scripts(package_json_path: Path) -> dict[str, list[str]]:
+    """Detect available validation scripts per SKILL.md step 7.
+
+    Returns a dict mapping category to a list of matching script names.
+    Exact matches are checked first, then prefix matches (build:*, lint:*, test:*, test.*).
+    Lifecycle and dev server scripts are excluded.
+    """
     try:
         data = json.loads(package_json_path.read_text())
         scripts = data.get("scripts", {})
     except (json.JSONDecodeError, FileNotFoundError):
-        return {"build": None, "lint": None, "test": None}
+        return {"build": [], "lint": [], "test": []}
 
-    def find_script(candidates: set) -> str | None:
-        for name in candidates:
-            if name in scripts:
-                return name
-        return None
+    excluded = LIFECYCLE_SCRIPTS | DEV_SERVER_SCRIPTS
+
+    def find_scripts(exact: set, prefixes: tuple) -> list[str]:
+        matches = []
+        for name in scripts:
+            if name in excluded:
+                continue
+            if name in exact:
+                matches.append(name)
+        if not matches:
+            for name in scripts:
+                if name in excluded:
+                    continue
+                if any(name.startswith(p) for p in prefixes):
+                    matches.append(name)
+        return matches
 
     return {
-        "build": find_script(build_names),
-        "lint": find_script(lint_names),
-        "test": find_script(test_names),
+        "build": find_scripts(BUILD_EXACT, ("build:",)),
+        "lint": find_scripts(LINT_EXACT, ("lint:",)),
+        "test": find_scripts(TEST_EXACT, ("test:", "test.")),
     }
 
 
@@ -332,6 +352,34 @@ def setup_fixtures() -> Generator[Path, None, None]:
     (val / "dev-only").mkdir(parents=True)
     (val / "dev-only" / "package.json").write_text(
         generate_package_json("dev-only", scripts={"start": "node .", "dev": "nodemon ."})
+    )
+
+    # Prefix-named scripts (test:unit, lint:fix, build:prod)
+    (val / "prefix-names").mkdir(parents=True)
+    (val / "prefix-names" / "package.json").write_text(
+        generate_package_json(
+            "prefix-names",
+            scripts={
+                "build:prod": "tsc --build tsconfig.prod.json",
+                "lint:fix": "eslint . --fix",
+                "test:unit": "vitest run --project unit",
+                "test:integration": "vitest run --project integration",
+            },
+        )
+    )
+
+    # Lifecycle scripts mixed with a real build script
+    (val / "lifecycle").mkdir(parents=True)
+    (val / "lifecycle" / "package.json").write_text(
+        generate_package_json(
+            "lifecycle",
+            scripts={
+                "preinstall": "echo pre",
+                "postinstall": "echo post",
+                "prepare": "husky install",
+                "build": "tsc",
+            },
+        )
     )
 
     # 5. Edge case fixtures

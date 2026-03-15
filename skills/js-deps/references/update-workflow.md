@@ -123,8 +123,8 @@ For yarn: `audit fix` is not available — fix remaining vulnerabilities manuall
 
 | Category | Examples | Remediation |
 |----------|----------|-------------|
-| Build | Type errors, missing dependencies | Update @types/*, check changelogs |
-| Lint | Code style issues | Run `$PM run lint -- --fix` |
-| Test | Breaking API changes | Review migration guides |
+| Build scripts | Type errors, missing dependencies | Update @types/*, check changelogs |
+| Lint scripts | Code style issues | Run `$PM run <lint-script> -- --fix` |
+| Test scripts | Breaking API changes | Review migration guides |
 | Audit | Vulnerabilities | Manual remediation steps |
 
