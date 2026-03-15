@@ -22,6 +22,17 @@ If no packages are outdated after filtering, report that all packages are up to 
 
 If multiple directories need updates, launch a separate Task subagent (general-purpose, background) per directory. Each subagent handles installs, version checks, and package updates for its directory only — **do not commit from subagents**. The main agent commits all changes after all subagents complete.
 
+**Critical: always use `--prefix` instead of `cd`** — shell working directory does not persist between Bash tool calls in subagents. A `cd /path && npm install` that spans two calls will run npm in the wrong directory. Always pass an absolute path via the `--prefix` flag so no `cd` is needed:
+```bash
+# Safe — no cd required, directory is explicit
+npm install --prefix "$WORKTREE_PATH/some-pkg" --save-exact some-package@1.2.3
+
+# Unsafe — cd does not persist if split across Bash calls
+cd "$WORKTREE_PATH/some-pkg"
+npm install --save-exact some-package@1.2.3
+```
+When writing subagent prompts, instruct subagents to use `npm install --prefix <absolute-path>` for all install commands.
+
 When consolidating results:
 - Collect packages updated, versions changed, and validation results from each subagent
 - Merge into a single report; if any subagent fails, still include partial results from others
