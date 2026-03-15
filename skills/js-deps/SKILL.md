@@ -14,7 +14,7 @@ compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or b
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.7"
+  version: "0.8"
 ---
 
 # JS Deps
