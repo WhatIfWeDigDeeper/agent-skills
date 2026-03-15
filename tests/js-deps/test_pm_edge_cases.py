@@ -132,6 +132,13 @@ class TestValidationScripts:
         assert "test" in scripts["test"]
         assert "test:coverage" in scripts["test"]
 
+    def test_detects_dot_notation_test_scripts(self, use_fixture):
+        """Should detect test scripts using dot notation (test.e2e, test.unit)."""
+        project = use_fixture("validation/dot-test")
+        scripts = detect_validation_scripts(project / "package.json")
+        assert "test.e2e" in scripts["test"]
+        assert "test.unit" in scripts["test"]
+
 
 class TestNoDependencies:
     """Test package.json with no dependencies."""

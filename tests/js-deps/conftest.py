@@ -167,7 +167,7 @@ def detect_validation_scripts(package_json_path: Path) -> dict[str, list[str]]:
 
     excluded = LIFECYCLE_SCRIPTS | DEV_SERVER_SCRIPTS
 
-    def find_scripts(exact: set, prefixes: tuple) -> list[str]:
+    def find_scripts(exact: set[str], prefixes: tuple[str, ...]) -> list[str]:
         exact_matches = [n for n in scripts if n not in excluded and n in exact]
         prefix_matches = [
             n for n in scripts
@@ -371,6 +371,18 @@ def setup_fixtures() -> Generator[Path, None, None]:
                 "build:prod": "tsc --build tsconfig.prod.json",
                 "test": "vitest run",
                 "test:coverage": "vitest run --coverage",
+            },
+        )
+    )
+
+    # Dot-notation test scripts (test.e2e, test.unit — "test." prefix)
+    (val / "dot-test").mkdir(parents=True)
+    (val / "dot-test" / "package.json").write_text(
+        generate_package_json(
+            "dot-test",
+            scripts={
+                "test.e2e": "playwright test",
+                "test.unit": "vitest run",
             },
         )
     )

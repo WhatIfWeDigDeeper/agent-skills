@@ -2,7 +2,7 @@
 
 > **Note:** If package arguments were provided (e.g. `/js-deps react lodash`), they are already set. The workflow will target only those packages.
 
-Display the following help summary to the user, then present the questions below using `AskUserQuestion`. Each path has two questions; the second question depends on the first answer.
+Display the following help summary to the user, then present the questions below using `AskUserQuestion`. The update path has two follow-up questions (Q2 and Q3); the security path has one (Q2).
 
 ---
 
