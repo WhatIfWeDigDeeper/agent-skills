@@ -168,19 +168,12 @@ def detect_validation_scripts(package_json_path: Path) -> dict[str, list[str]]:
     excluded = LIFECYCLE_SCRIPTS | DEV_SERVER_SCRIPTS
 
     def find_scripts(exact: set, prefixes: tuple) -> list[str]:
-        matches = []
-        for name in scripts:
-            if name in excluded:
-                continue
-            if name in exact:
-                matches.append(name)
-        if not matches:
-            for name in scripts:
-                if name in excluded:
-                    continue
-                if any(name.startswith(p) for p in prefixes):
-                    matches.append(name)
-        return matches
+        exact_matches = [n for n in scripts if n not in excluded and n in exact]
+        prefix_matches = [
+            n for n in scripts
+            if n not in excluded and n not in exact and any(n.startswith(p) for p in prefixes)
+        ]
+        return exact_matches + prefix_matches
 
     return {
         "build": find_scripts(BUILD_EXACT, ("build:",)),
@@ -364,6 +357,20 @@ def setup_fixtures() -> Generator[Path, None, None]:
                 "lint:fix": "eslint . --fix",
                 "test:unit": "vitest run --project unit",
                 "test:integration": "vitest run --project integration",
+            },
+        )
+    )
+
+    # Mixed exact + prefix scripts (both should be collected)
+    (val / "mixed-exact-prefix").mkdir(parents=True)
+    (val / "mixed-exact-prefix" / "package.json").write_text(
+        generate_package_json(
+            "mixed-exact-prefix",
+            scripts={
+                "build": "tsc",
+                "build:prod": "tsc --build tsconfig.prod.json",
+                "test": "vitest run",
+                "test:coverage": "vitest run --coverage",
             },
         )
     )

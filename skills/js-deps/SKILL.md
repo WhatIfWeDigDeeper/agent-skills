@@ -81,7 +81,7 @@ For dependency update workflows only: install dependencies so that `$PM outdated
 
 Run validation **per directory** after each package update.
 
-**Discover validation scripts** — read the `scripts` object from `package.json` and classify into three categories (exact names first, then prefix matches):
+**Discover validation scripts** — read the `scripts` object from `package.json` and classify into three categories. Collect **all** matching names in each category: exact matches first, then prefix matches. Both passes are always run — prefix matches are additive, not a fallback for when exact matches are absent.
 
 | Category | Exact matches | Prefix matches |
 |----------|--------------|----------------|

@@ -123,6 +123,15 @@ class TestValidationScripts:
         assert scripts["lint"] == []
         assert scripts["test"] == []
 
+    def test_collects_exact_and_prefix_together(self, use_fixture):
+        """Should collect both exact and prefix matches, not treat prefix as fallback."""
+        project = use_fixture("validation/mixed-exact-prefix")
+        scripts = detect_validation_scripts(project / "package.json")
+        assert "build" in scripts["build"]
+        assert "build:prod" in scripts["build"]
+        assert "test" in scripts["test"]
+        assert "test:coverage" in scripts["test"]
+
 
 class TestNoDependencies:
     """Test package.json with no dependencies."""
