@@ -70,7 +70,7 @@ When substantially modifying an existing skill, also update its entry in `README
 
 ## Spell Checking
 
-This repo uses cspell. When a technical term triggers a false-positive spelling warning (e.g. `pyproject`, `uvx`, `subagent`), add it to the `words` list in `cspell.config.yaml` rather than ignoring or suppressing the warning.
+This repo uses cspell. When you see a cspell diagnostic — whether from the IDE, a linter run, or noticing an unknown-word warning on a file you just edited — immediately add the term to the `words` list in `cspell.config.yaml`. Do not wait for the user to point it out. Use `npx cspell <file>` to check any file you've modified before finishing a task.
 
 ## Git Workflow
 
