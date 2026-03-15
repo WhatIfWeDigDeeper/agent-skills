@@ -98,7 +98,7 @@ query($owner: String!, $name: String!, $number: Int!, $after: String) {
 }'
 ```
 
-This gives you a mapping from REST `comment.id` (= `databaseId`) → GraphQL `thread.id` + `isResolved` + `isOutdated`. Discard threads that are already resolved.
+This gives you a mapping from REST `comment.id` (= `databaseId`) → GraphQL `thread.id` + `isResolved` + `isOutdated`. Discard threads that are already resolved — they should not appear in the plan table or be acted upon at all.
 
 If `pageInfo.hasNextPage` is true, repeat the query passing `-f after=END_CURSOR` until all threads are fetched.
 

@@ -9,6 +9,7 @@ words:
   - conftest
   - continuerc
   - cursorrules
+  - EBADPLATFORM
   - elif
   - evals
   - fastapi
@@ -17,26 +18,28 @@ words:
   - heredocs
   - lockfiles
   - mktemp
+  - mongosh
   - mypy
+  - nuxt
   - oneline
   - opusplan
   - osascript
   - pipenv
   - PREOF
+  - psql
   - pyproject
   - PYSEC
   - pytest
   - REAUDIT
   - sandboxed
   - startswith
+  - stddev
   - subshell
+  - toplevel
   - unupgradable
   - venv
-  - EBADPLATFORM
-  - nuxt
-  - toplevel
-  - vitest
   - vite
+  - vitest
   - vulns
   - whatifwedigdeeper
   - worktree
