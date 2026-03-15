@@ -2,8 +2,8 @@
   "metadata": {
     "skill_name": "pr-comments",
     "skill_path": "<path/to/skill>",
-    "executor_model": "<model-name>",
-    "analyzer_model": "<model-name>",
+    "executor_model": "claude-sonnet-4-6",
+    "analyzer_model": "claude-sonnet-4-6",
     "timestamp": "2026-03-15T18:58:59Z",
     "evals_run": [
       1,
