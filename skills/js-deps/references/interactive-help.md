@@ -2,7 +2,7 @@
 
 > **Note:** If package arguments were provided (e.g. `/js-deps react lodash`), they are already set. The workflow will target only those packages.
 
-Display the following help summary to the user, then present the questions below using `AskUserQuestion`. The second question depends on the answer to the first, and the third depends on the answer to the second.
+Display the following help summary to the user, then present the questions below using `AskUserQuestion`. Each path has two questions; the second question depends on the first answer.
 
 ---
 
@@ -25,7 +25,9 @@ Use `multiSelect: false`.
 | Update dependencies (Recommended) | Update packages to newer versions |
 | Security fixes only | Only fix packages with known vulnerabilities |
 
-## Question 2a: Version scope (if "Update dependencies" was selected)
+## Update path — Question 2: Version scope
+
+_Only ask this if "Update dependencies" was selected._
 
 Use `multiSelect: false`.
 
@@ -35,16 +37,20 @@ Use `multiSelect: false`.
 | Patch only | Include only patch-level updates (e.g. 2.1.3 to 2.1.4) |
 | Patch + Minor + Major | Include all updates including major version upgrades |
 
-## Question 3: Skip x.y.0 releases (if "Patch + Minor" or "Patch + Minor + Major" was selected)
+## Update path — Question 3: Skip x.y.0 releases
 
-Use `multiSelect: false`. Only shown when minor updates are in scope — omit entirely if "Patch only" was chosen, since x.y.0 is a minor bump, not a patch.
+_Only ask this if "Patch + Minor" or "Patch + Minor + Major" was selected. Omit entirely if "Patch only" was chosen, since x.y.0 is a minor bump, not a patch._
+
+Use `multiSelect: false`.
 
 | Option | Description |
 |--------|-------------|
 | Yes, skip x.y.0 — wait for x.y.1+ bug fixes (Recommended) | Skip x.y.0 releases and wait for x.y.1+ bugfix releases |
 | No, include x.y.0 releases | Include all minor releases including x.y.0 |
 
-## Question 2b: Severity scope (if "Security fixes only" was selected)
+## Security path — Question 2: Severity scope
+
+_Only ask this if "Security fixes only" was selected._
 
 Use `multiSelect: false`.
 
@@ -67,7 +73,7 @@ The selected answers map to filter behavior as follows:
 
 **Security fixes path:**
 - Run `$PM audit` to identify vulnerable packages.
-- Apply a severity filter based on the selected option from Question 2b:
+- Apply a severity filter based on the selected option from "Security path — Question 2":
   - **Critical + High (Recommended)**: include only Critical and High vulnerabilities.
   - **Critical only**: include only Critical vulnerabilities.
   - **Critical + High + Moderate**: include Critical, High, and Moderate vulnerabilities; exclude Low.

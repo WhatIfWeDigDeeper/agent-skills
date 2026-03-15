@@ -99,19 +99,19 @@ class TestInteractiveHelpStructure:
         assert "## Question 1" in help_content
 
     def test_has_conditional_questions(self, help_content):
-        """js-deps has conditional Q2a and Q2b."""
-        assert "## Question 2a" in help_content
-        assert "## Question 2b" in help_content
+        """js-deps has conditional update-path and security-path questions."""
+        assert "## Update path — Question 2" in help_content
+        assert "## Security path — Question 2" in help_content
 
     def test_has_question_3(self, help_content):
-        """js-deps has Q3 (skip x.y.0 releases) conditional on Q2a selection."""
-        assert "## Question 3" in help_content
+        """js-deps has Q3 (skip x.y.0 releases) conditional on update path selection."""
+        assert "## Update path — Question 3" in help_content
 
     @pytest.mark.parametrize("question_header,max_options", [
         ("## Question 1", 4),
-        ("## Question 2a", 4),
-        ("## Question 2b", 4),
-        ("## Question 3", 4),
+        ("## Update path — Question 2", 4),
+        ("## Security path — Question 2", 4),
+        ("## Update path — Question 3", 4),
     ])
     def test_option_count_within_limit(self, help_content, question_header, max_options):
         """Each question must have at most 4 options (AskUserQuestion limit)."""
@@ -132,25 +132,25 @@ class TestInteractiveHelpStructure:
 
     def test_q1_is_single_select(self, help_content):
         """Question 1 should use multiSelect: false."""
-        q1_section = help_content.split("## Question 2")[0]
+        q1_section = help_content.split("## Update path")[0]
         assert "multiSelect: false" in q1_section
 
     def test_q2a_is_single_select(self, help_content):
-        """Question 2a (version scope) should use multiSelect: false."""
-        q2a_start = help_content.index("## Question 2a")
-        q2b_start = help_content.index("## Question 2b")
-        q2a_section = help_content[q2a_start:q2b_start]
+        """Update path Q2 (version scope) should use multiSelect: false."""
+        q2a_start = help_content.index("## Update path — Question 2")
+        q3_start = help_content.index("## Update path — Question 3")
+        q2a_section = help_content[q2a_start:q3_start]
         assert "multiSelect: false" in q2a_section
 
     def test_q3_is_single_select(self, help_content):
-        """Question 3 (skip x.y.0 releases) should use multiSelect: false."""
-        q3_start = help_content.index("## Question 3")
-        q2b_start = help_content.index("## Question 2b")
+        """Update path Q3 (skip x.y.0 releases) should use multiSelect: false."""
+        q3_start = help_content.index("## Update path — Question 3")
+        q2b_start = help_content.index("## Security path — Question 2")
         q3_section = help_content[q3_start:q2b_start]
         assert "multiSelect: false" in q3_section
 
     def test_q2b_is_single_select(self, help_content):
-        """Question 2b (severity scope) should use multiSelect: false."""
-        q2b_start = help_content.index("## Question 2b")
+        """Security path Q2 (severity scope) should use multiSelect: false."""
+        q2b_start = help_content.index("## Security path — Question 2")
         q2b_section = help_content[q2b_start:]
         assert "multiSelect: false" in q2b_section

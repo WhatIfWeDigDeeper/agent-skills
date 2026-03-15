@@ -4,107 +4,20 @@
     "skill_path": "skills/js-deps",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-03-15T13:16:25Z",
-    "evals_run": [
-      1,
-      2,
-      3,
-      4,
-      5
-    ],
+    "timestamp": "2026-03-15T15:10:00Z",
+    "evals_run": [1, 2, 3, 4, 5],
     "runs_per_configuration": 1,
     "notes": [
-      "Eval 1 with_skill: worktree creation blocked by sandbox (parent dir not in allowlist) \u2014 assertions 1, 2, 5 fail due to environment, not skill logic",
-      "Eval 2 with_skill: AskUserQuestion unavailable to subagents \u2014 assertion 2 always fails in this environment",
-      "Evals 3, 4, 5 with_skill: no real JS project in repo, workflow narrated rather than executed \u2014 all assertions pass on planned behavior",
-      "See evals/js-deps/README.md for full environment limitation details"
+      "Eval 2 with_skill: AskUserQuestion unavailable to subagents — assertion 2 always fails in this environment",
+      "Eval 2 without_skill: agent described correct behavior from reading SKILL.md — assertion 2 fails for same reason",
+      "All evals are narrated/simulated — no real JS project fixture exists in this repo",
+      "Eval 1 with_skill: worktree fallback to $TMPDIR now works — scored 5/5 vs 2/5 in previous benchmark"
     ]
   },
   "runs": [
     {
       "eval_id": 1,
-      "configuration": "with_skill",
-      "run_number": 1,
-      "result": {
-        "pass_rate": 0.4,
-        "passed": 2,
-        "failed": 3,
-        "total": 5,
-        "time_seconds": 145.7,
-        "tokens": 28838,
-        "tool_calls": 0,
-        "errors": 0
-      },
-      "expectations": [
-        {
-          "text": "Creates a git worktree on a dedicated branch before making any changes",
-          "passed": false,
-          "evidence": "Worktree creation attempted but blocked by sandbox: 'fatal: could not create leading directories of /Users/greg/code/js-deps-20260315-090913/.git: Operation not permitted'. Skill correctly refused to proceed but worktree was never created."
-        },
-        {
-          "text": "Runs the appropriate audit command (npm audit, yarn audit, pnpm audit) for the detected package manager",
-          "passed": false,
-          "evidence": "Audit command never executed \u2014 worktree blocker prevented real execution. Transcript explicitly frames subsequent steps as hypothetical."
-        },
-        {
-          "text": "Does NOT run npm/yarn/pnpm install before the audit (audit reads from lock files)",
-          "passed": true,
-          "evidence": "Step 6 explicitly skipped with correct justification: '$PM audit reads from lock files and does not require node_modules'."
-        },
-        {
-          "text": "Applies Critical+High severity filter by default when user hasn't specified one",
-          "passed": true,
-          "evidence": "Step 0 applies default Critical+High filter; Step 7 confirms 'Severity filter applied: Critical + High (default, since user expressed no preference)'."
-        },
-        {
-          "text": "Removes the worktree at the end, even if no vulnerabilities were found or no PR was created",
-          "passed": false,
-          "evidence": "Cleanup is a no-op \u2014 worktree was never created due to sandbox block."
-        }
-      ],
-      "notes": [
-        "Assertions 1, 2, 5 fail due to sandbox restriction, not skill logic \u2014 see evals/js-deps/README.md"
-      ],
-      "eval_name": "security-audit"
-    },
-    {
-      "eval_id": 2,
-      "configuration": "with_skill",
-      "run_number": 1,
-      "result": {
-        "pass_rate": 0.67,
-        "passed": 2,
-        "failed": 1,
-        "total": 3,
-        "time_seconds": 48.1,
-        "tokens": 19370,
-        "tool_calls": 0,
-        "errors": 0
-      },
-      "expectations": [
-        {
-          "text": "Displays the js-deps help summary including supported package managers and workflow descriptions",
-          "passed": true,
-          "evidence": "Full help summary rendered in Step 3, listing npm/yarn/pnpm/bun and both workflow types."
-        },
-        {
-          "text": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion",
-          "passed": false,
-          "evidence": "AskUserQuestion not found in available deferred tools \u2014 tool unavailable in eval environment. Skill reached this step correctly but could not execute."
-        },
-        {
-          "text": "Does not create a worktree or start any workflow before the user answers",
-          "passed": true,
-          "evidence": "Summary table confirms 'Worktree created: No' and 'Workflow started: No'."
-        }
-      ],
-      "notes": [
-        "Assertion 2 always fails in eval environment \u2014 AskUserQuestion unavailable to subagents"
-      ],
-      "eval_name": "help-flag"
-    },
-    {
-      "eval_id": 3,
+      "eval_name": "security-audit",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -112,42 +25,60 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 161.4,
-        "tokens": 29477,
-        "tool_calls": 0,
-        "errors": 0
+        "time_seconds": 79.6,
+        "tokens": 21540
       },
       "expectations": [
-        {
-          "text": "Creates a git worktree on a dedicated branch",
-          "passed": true,
-          "evidence": "Step 1: 'git worktree add \"$WORKTREE_PATH\" -b js-deps-20260315-120000'. Cleanup in Step 10 confirms removal."
-        },
-        {
-          "text": "Runs npm/yarn/pnpm install before running the outdated check",
-          "passed": true,
-          "evidence": "Step 6: 'INSTALL IS RUN BEFORE THE OUTDATED CHECK' \u2014 npm install then npm outdated. Summary confirms ordering."
-        },
-        {
-          "text": "Applies Patch+Minor+Major filter (includes all updates) because user said 'latest'",
-          "passed": true,
-          "evidence": "Filter: 'Patch + Minor + Major \u2014 include ALL packages with any version difference.' All 5 simulated packages included."
-        },
-        {
-          "text": "Runs build/lint/test validation after updating packages",
-          "passed": true,
-          "evidence": "Step 7: npm run build/lint/test all succeed. Summary confirms 'Build: pass, Lint: pass, Tests: pass'."
-        },
-        {
-          "text": "Commit message notes major version changes (e.g. 'chore: update dependencies (major: pkg vX->Y)')",
-          "passed": true,
-          "evidence": "Commit message: 'chore: update dependencies (major: express v4->5, jest v29->30, eslint v8->9)' \u2014 exact expected format."
-        }
-      ],
-      "eval_name": "update-all"
+        {"text": "Creates a git worktree on a dedicated branch before making any changes", "passed": true, "evidence": "Step 1 creates git worktree with sibling-first / $TMPDIR fallback pattern."},
+        {"text": "Runs the appropriate audit command (npm audit, yarn audit, pnpm audit) for the detected package manager", "passed": true, "evidence": "npm audit --json run after npm detected from package-lock.json."},
+        {"text": "Does NOT run npm/yarn/pnpm install before the audit (audit reads from lock files)", "passed": true, "evidence": "Step 6 explicitly skipped with correct rationale."},
+        {"text": "Applies Critical+High severity filter by default when user hasn't specified one", "passed": true, "evidence": "Default Critical+High filter stated twice with table showing Moderate/Low skipped."},
+        {"text": "Removes the worktree at the end, even if no vulnerabilities were found or no PR was created", "passed": true, "evidence": "Step 10 always runs git worktree remove --force, covering no-vulns and no-PR cases."}
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "help-flag",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 33.9,
+        "tokens": 17176
+      },
+      "expectations": [
+        {"text": "Displays the js-deps help summary including supported package managers and workflow descriptions", "passed": true, "evidence": "Help summary rendered with npm/yarn/pnpm/bun and both workflow types."},
+        {"text": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion", "passed": false, "evidence": "AskUserQuestion unavailable in eval environment; fell back to plain text presentation."},
+        {"text": "Does not create a worktree or start any workflow before the user answers", "passed": true, "evidence": "Transcript confirms --help bypassed all workflow steps."}
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-all",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 98.4,
+        "tokens": 22801
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "Step 1 creates branch js-deps-20260315-143022 with $TMPDIR fallback."},
+        {"text": "Runs npm/yarn/pnpm install before running the outdated check", "passed": true, "evidence": "Step 6 runs npm install before npm outdated with explicit rationale."},
+        {"text": "Applies Patch+Minor+Major filter (includes all updates) because user said 'latest'", "passed": true, "evidence": "'No filtering' applied; all packages including major eslint 8->9 updated with @latest."},
+        {"text": "Runs build/lint/test validation after updating packages", "passed": true, "evidence": "All three validation categories (build, lint, test with prefix variants) run after each update."},
+        {"text": "Commit message notes major version changes (e.g. 'chore: update dependencies (major: pkg vX->Y)')", "passed": true, "evidence": "Commit message: 'chore: update dependencies (major: eslint v8->v9)' — exact expected format."}
+      ]
     },
     {
       "eval_id": 4,
+      "eval_name": "specific-packages",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -155,37 +86,19 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 174.8,
-        "tokens": 32292,
-        "tool_calls": 0,
-        "errors": 0
+        "time_seconds": 91.8,
+        "tokens": 23576
       },
       "expectations": [
-        {
-          "text": "Creates a git worktree on a dedicated branch",
-          "passed": true,
-          "evidence": "Worktree created at /private/tmp/claude-501/js-deps-20260315-090940 (used tmp fallback path successfully)."
-        },
-        {
-          "text": "Only updates react, react-dom, and @types/react \u2014 not all packages",
-          "passed": true,
-          "evidence": "Step 5: 'ONLY these three packages are targeted.' No other packages in scope."
-        },
-        {
-          "text": "Only installs dependencies in directories where at least one of the named packages appears",
-          "passed": true,
-          "evidence": "Step 6 applies directory filter; no install ran because no qualifying directories found."
-        },
-        {
-          "text": "Asks the user about version scope (patch/minor/major) via AskUserQuestion since no scope was specified",
-          "passed": true,
-          "evidence": "Question 2a presented via AskUserQuestion with patch/minor/major options. Summary confirms 3 total AskUserQuestion calls."
-        }
-      ],
-      "eval_name": "specific-packages"
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "Step 1 creates timestamped branch with sibling-first / $TMPDIR fallback."},
+        {"text": "Only updates react, react-dom, and @types/react — not all packages", "passed": true, "evidence": "Only the three named packages are targeted; others explicitly excluded."},
+        {"text": "Only installs dependencies in directories where at least one of the named packages appears", "passed": true, "evidence": "Step 6 restricts npm install to matching directories; unrelated directories skipped."},
+        {"text": "Asks the user about version scope (patch/minor/major) via AskUserQuestion since no scope was specified", "passed": true, "evidence": "AskUserQuestion (Question 2) presents three scope options; transcript explains why required."}
+      ]
     },
     {
       "eval_id": 5,
+      "eval_name": "critical-only",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -193,37 +106,59 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 113.5,
-        "tokens": 28113,
-        "tool_calls": 0,
-        "errors": 0
+        "time_seconds": 81.6,
+        "tokens": 22056
       },
       "expectations": [
-        {
-          "text": "Creates a git worktree on a dedicated branch",
-          "passed": true,
-          "evidence": "Worktree js-deps-20260315-143022 created and removed. Final report confirms 'Worktree created: Yes'."
-        },
-        {
-          "text": "Applies Critical-only severity filter without asking \u2014 user specified 'critical' inline",
-          "passed": true,
-          "evidence": "Workflow selection: 'Critical only \u2014 High, Moderate, and Low will be skipped WITHOUT asking.' Applied from inline request."
-        },
-        {
-          "text": "Does not attempt to fix High, Moderate, or Low vulnerabilities",
-          "passed": true,
-          "evidence": "Severity table marks High, Moderate, Low as 'SKIPPED (user requested critical only)'."
-        },
-        {
-          "text": "Does not run npm install before auditing",
-          "passed": true,
-          "evidence": "Step 6 labeled 'SKIPPED' with citation: '$PM audit reads from lock files and does not require node_modules'."
-        }
-      ],
-      "eval_name": "critical-only"
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "Step 1 creates branch js-deps-20260315-120000 and cleanup confirms removal."},
+        {"text": "Applies Critical-only severity filter without asking — user specified 'critical' inline", "passed": true, "evidence": "Workflow Selection infers 'Critical only' from inline phrasing without prompting."},
+        {"text": "Does not attempt to fix High, Moderate, or Low vulnerabilities", "passed": true, "evidence": "axios (High), semver (Moderate), debug (Low) all marked Skip in filter table."},
+        {"text": "Does not run npm install before auditing", "passed": true, "evidence": "Step 6 labeled SKIPPED with spec-cited justification about lock files."}
+      ]
     },
     {
       "eval_id": 1,
+      "eval_name": "security-audit",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 50.5,
+        "tokens": 13544
+      },
+      "expectations": [
+        {"text": "Creates a git worktree on a dedicated branch before making any changes", "passed": false, "evidence": "Explicitly decided against worktree, reasoning audit is read-only."},
+        {"text": "Runs the appropriate audit command (npm audit, yarn audit, pnpm audit) for the detected package manager", "passed": true, "evidence": "npm audit run after npm detected from lock files."},
+        {"text": "Does NOT run npm/yarn/pnpm install before the audit (audit reads from lock files)", "passed": false, "evidence": "Conditionally runs npm install when node_modules/ or lockfile absent."},
+        {"text": "Applies Critical+High severity filter by default when user hasn't specified one", "passed": false, "evidence": "No severity filter applied by default; full audit run to 'report all'."},
+        {"text": "Removes the worktree at the end, even if no vulnerabilities were found or no PR was created", "passed": false, "evidence": "No worktree created, so none removed."}
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "help-flag",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 28.8,
+        "tokens": 17795
+      },
+      "expectations": [
+        {"text": "Displays the js-deps help summary including supported package managers and workflow descriptions", "passed": true, "evidence": "Transcript shows correct help content including all four package managers and both workflows."},
+        {"text": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion", "passed": false, "evidence": "Question text appears as static prose, no actual AskUserQuestion tool call recorded."},
+        {"text": "Does not create a worktree or start any workflow before the user answers", "passed": true, "evidence": "No worktree created, no workflow steps taken."}
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-all",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -231,238 +166,103 @@
         "passed": 2,
         "failed": 3,
         "total": 5,
-        "time_seconds": 107.4,
-        "tokens": 21937,
-        "tool_calls": 0,
-        "errors": 0
+        "time_seconds": 46.1,
+        "tokens": 13555
       },
       "expectations": [
-        {
-          "text": "Creates a git worktree on a dedicated branch before making any changes",
-          "passed": false,
-          "evidence": "Step 4: 'Did NOT create a git worktree.' Treated audit as read-only with no isolation."
-        },
-        {
-          "text": "Runs the appropriate audit command (npm audit, yarn audit, pnpm audit) for the detected package manager",
-          "passed": true,
-          "evidence": "npm audit run after npm detected via package-lock.json."
-        },
-        {
-          "text": "Does NOT run npm/yarn/pnpm install before the audit (audit reads from lock files)",
-          "passed": true,
-          "evidence": "Step 5: 'Did NOT run npm install before the audit.' Correct reasoning given."
-        },
-        {
-          "text": "Applies Critical+High severity filter by default when user hasn't specified one",
-          "passed": false,
-          "evidence": "Step 7: 'No severity filter was applied.' Full audit ran without --audit-level."
-        },
-        {
-          "text": "Removes the worktree at the end, even if no vulnerabilities were found or no PR was created",
-          "passed": false,
-          "evidence": "No worktree was created, so no removal. The expected worktree lifecycle never happened."
-        }
-      ],
-      "eval_name": "security-audit"
-    },
-    {
-      "eval_id": 2,
-      "configuration": "without_skill",
-      "run_number": 1,
-      "result": {
-        "pass_rate": 0.33,
-        "passed": 1,
-        "failed": 2,
-        "total": 3,
-        "time_seconds": 41.1,
-        "tokens": 13876,
-        "tool_calls": 0,
-        "errors": 0
-      },
-      "expectations": [
-        {
-          "text": "Displays the js-deps help summary including supported package managers and workflow descriptions",
-          "passed": false,
-          "evidence": "Agent said '/js-deps is not a loaded skill' and gave installation instructions instead of a help summary."
-        },
-        {
-          "text": "Presents the workflow selection question (Update dependencies vs Security fixes only) via AskUserQuestion",
-          "passed": false,
-          "evidence": "No workflow question asked. Only question was about installing the skill."
-        },
-        {
-          "text": "Does not create a worktree or start any workflow before the user answers",
-          "passed": true,
-          "evidence": "No workflow executed, no files modified."
-        }
-      ],
-      "eval_name": "help-flag"
-    },
-    {
-      "eval_id": 3,
-      "configuration": "without_skill",
-      "run_number": 1,
-      "result": {
-        "pass_rate": 0.0,
-        "passed": 0,
-        "failed": 5,
-        "total": 5,
-        "time_seconds": 61.7,
-        "tokens": 17319,
-        "tool_calls": 0,
-        "errors": 0
-      },
-      "expectations": [
-        {
-          "text": "Creates a git worktree on a dedicated branch",
-          "passed": false,
-          "evidence": "No worktree created. No JS packages to update so no branch work to isolate."
-        },
-        {
-          "text": "Runs npm/yarn/pnpm install before running the outdated check",
-          "passed": false,
-          "evidence": "No install run \u2014 no real packages exist, only test fixtures."
-        },
-        {
-          "text": "Applies Patch+Minor+Major filter (includes all updates) because user said 'latest'",
-          "passed": false,
-          "evidence": "No filter applied \u2014 no update performed."
-        },
-        {
-          "text": "Runs build/lint/test validation after updating packages",
-          "passed": false,
-          "evidence": "No validation ran \u2014 no JS build pipeline in this Python repo."
-        },
-        {
-          "text": "Commit message notes major version changes (e.g. 'chore: update dependencies (major: pkg vX->Y)')",
-          "passed": false,
-          "evidence": "No commit created. Hypothetical message also lacked major-bump notation."
-        }
-      ],
-      "eval_name": "update-all"
+        {"text": "Creates a git worktree on a dedicated branch", "passed": false, "evidence": "No worktree or branch creation mentioned."},
+        {"text": "Runs npm/yarn/pnpm install before running the outdated check", "passed": false, "evidence": "Outdated check comes first; no pre-check install run."},
+        {"text": "Applies Patch+Minor+Major filter (includes all updates) because user said 'latest'", "passed": true, "evidence": "Step 5 uses npm-check-updates -u and --latest flags."},
+        {"text": "Runs build/lint/test validation after updating packages", "passed": true, "evidence": "Steps 7 and 8 cover npm test and npm run build."},
+        {"text": "Commit message notes major version changes (e.g. 'chore: update dependencies (major: pkg vX->Y)')", "passed": false, "evidence": "Generic message used; major version notation absent."}
+      ]
     },
     {
       "eval_id": 4,
+      "eval_name": "specific-packages",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.0,
-        "passed": 0,
-        "failed": 4,
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
         "total": 4,
-        "time_seconds": 76.4,
-        "tokens": 16874,
-        "tool_calls": 0,
-        "errors": 0
+        "time_seconds": 95.3,
+        "tokens": 20128
       },
       "expectations": [
-        {
-          "text": "Creates a git worktree on a dedicated branch",
-          "passed": false,
-          "evidence": "No worktree created or referenced at any point."
-        },
-        {
-          "text": "Only updates react, react-dom, and @types/react \u2014 not all packages",
-          "passed": false,
-          "evidence": "Agent only referenced the three packages but produced no actual update \u2014 only a documentation plan."
-        },
-        {
-          "text": "Only installs dependencies in directories where at least one of the named packages appears",
-          "passed": false,
-          "evidence": "No install executed. No directory filtering applied."
-        },
-        {
-          "text": "Asks the user about version scope (patch/minor/major) via AskUserQuestion since no scope was specified",
-          "passed": false,
-          "evidence": "Looked up latest versions directly without prompting user for scope preference."
-        }
-      ],
-      "eval_name": "specific-packages"
+        {"text": "Creates a git worktree on a dedicated branch", "passed": true, "evidence": "Agent created isolated branch in sibling directory with $TMPDIR fallback."},
+        {"text": "Only updates react, react-dom, and @types/react — not all packages", "passed": true, "evidence": "Only the three named packages referenced; stayed within major 18.x."},
+        {"text": "Only installs dependencies in directories where at least one of the named packages appears", "passed": true, "evidence": "Directory filtering applied; unrelated directories skipped."},
+        {"text": "Asks the user about version scope (patch/minor/major) via AskUserQuestion since no scope was specified", "passed": false, "evidence": "Autonomously defaulted to current major (18.x) without prompting user."}
+      ]
     },
     {
       "eval_id": 5,
+      "eval_name": "critical-only",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.5,
-        "passed": 2,
-        "failed": 2,
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
         "total": 4,
-        "time_seconds": 66.7,
-        "tokens": 16600,
-        "tool_calls": 0,
-        "errors": 0
+        "time_seconds": 48.5,
+        "tokens": 13587
       },
       "expectations": [
-        {
-          "text": "Creates a git worktree on a dedicated branch",
-          "passed": false,
-          "evidence": "No worktree created. Audit done directly in working directory."
-        },
-        {
-          "text": "Applies Critical-only severity filter without asking \u2014 user specified 'critical' inline",
-          "passed": true,
-          "evidence": "Agent interpreted 'critical' literally and planned --audit-level=critical without asking for clarification."
-        },
-        {
-          "text": "Does not attempt to fix High, Moderate, or Low vulnerabilities",
-          "passed": true,
-          "evidence": "Agent stated it would not fix non-critical vulnerabilities. Note: passes vacuously \u2014 no JS project found, no audit ran."
-        },
-        {
-          "text": "Does not run npm install before auditing",
-          "passed": false,
-          "evidence": "Agent's stated plan: 'run npm install if node_modules/ missing before auditing' \u2014 directly contradicts expected behavior."
-        }
-      ],
-      "eval_name": "critical-only"
+        {"text": "Creates a git worktree on a dedicated branch", "passed": false, "evidence": "No git commands; went straight from lockfile detection to npm audit."},
+        {"text": "Applies Critical-only severity filter without asking — user specified 'critical' inline", "passed": true, "evidence": "Step 4 filters to severity=critical; user's inline specification respected without prompting."},
+        {"text": "Does not attempt to fix High, Moderate, or Low vulnerabilities", "passed": true, "evidence": "axios (high) and minimist (moderate) explicitly excluded; 'What I Did NOT Do' section confirms."},
+        {"text": "Does not run npm install before auditing", "passed": true, "evidence": "No npm install appears; first npm command is npm audit --json."}
+      ]
     }
   ],
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.814,
-        "stddev": 0.272,
-        "min": 0.4,
+        "mean": 0.933,
+        "stddev": 0.149,
+        "min": 0.667,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 128.7,
-        "stddev": 50.5,
-        "min": 48.1,
-        "max": 174.8
+        "mean": 77.1,
+        "stddev": 25.2,
+        "min": 33.9,
+        "max": 98.4
       },
       "tokens": {
-        "mean": 27618,
-        "stddev": 4875,
-        "min": 19370,
-        "max": 32292
+        "mean": 21430,
+        "stddev": 2473,
+        "min": 17176,
+        "max": 23576
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.246,
-        "stddev": 0.233,
-        "min": 0.0,
-        "max": 0.5
+        "mean": 0.553,
+        "stddev": 0.244,
+        "min": 0.2,
+        "max": 0.75
       },
       "time_seconds": {
-        "mean": 70.7,
-        "stddev": 24.3,
-        "min": 41.1,
-        "max": 107.4
+        "mean": 53.8,
+        "stddev": 26.4,
+        "min": 28.8,
+        "max": 95.3
       },
       "tokens": {
-        "mean": 17321,
-        "stddev": 2911,
-        "min": 13876,
-        "max": 21937
+        "mean": 15722,
+        "stddev": 3121,
+        "min": 13544,
+        "max": 20128
       }
     },
     "delta": {
-      "pass_rate": "+0.57",
-      "time_seconds": "+58.0",
-      "tokens": "+10297"
+      "pass_rate": "+0.38",
+      "time_seconds": "+23.3",
+      "tokens": "+5708"
     }
   }
 }
