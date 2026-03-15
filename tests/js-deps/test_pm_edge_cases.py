@@ -65,46 +65,79 @@ class TestValidationScripts:
         """Should detect build, lint, and test scripts."""
         project = use_fixture("validation/all-scripts")
         scripts = detect_validation_scripts(project / "package.json")
-        assert scripts["build"] == "build"
-        assert scripts["lint"] == "lint"
-        assert scripts["test"] == "test"
+        assert scripts["build"] == ["build"]
+        assert scripts["lint"] == ["lint"]
+        assert scripts["test"] == ["test"]
 
     def test_detects_partial_scripts(self, use_fixture):
-        """Should detect available scripts, None for missing."""
+        """Should detect available scripts, empty list for missing."""
         project = use_fixture("validation/partial-scripts")
         scripts = detect_validation_scripts(project / "package.json")
-        assert scripts["build"] == "build"
-        assert scripts["lint"] is None
-        assert scripts["test"] == "test"
+        assert scripts["build"] == ["build"]
+        assert scripts["lint"] == []
+        assert scripts["test"] == ["test"]
 
     def test_no_scripts(self, use_fixture):
-        """Should return all None when no scripts exist."""
+        """Should return all empty lists when no scripts exist."""
         project = use_fixture("validation/no-scripts")
         scripts = detect_validation_scripts(project / "package.json")
-        assert scripts["build"] is None
-        assert scripts["lint"] is None
-        assert scripts["test"] is None
+        assert scripts["build"] == []
+        assert scripts["lint"] == []
+        assert scripts["test"] == []
 
     def test_detects_alternative_names(self, use_fixture):
         """Should detect alternative script names (compile, check, vitest)."""
         project = use_fixture("validation/alt-names")
         scripts = detect_validation_scripts(project / "package.json")
-        assert scripts["build"] == "compile"
-        assert scripts["lint"] == "check"
-        assert scripts["test"] == "vitest"
+        assert scripts["build"] == ["compile"]
+        assert scripts["lint"] == ["check"]
+        assert scripts["test"] == ["vitest"]
 
     def test_ignores_non_validation_scripts(self, use_fixture):
         """Should not match dev/start scripts as validation."""
         project = use_fixture("validation/dev-only")
         scripts = detect_validation_scripts(project / "package.json")
-        assert scripts["build"] is None
-        assert scripts["lint"] is None
-        assert scripts["test"] is None
+        assert scripts["build"] == []
+        assert scripts["lint"] == []
+        assert scripts["test"] == []
 
-    def test_missing_file_returns_none(self, temp_dir):
+    def test_missing_file_returns_empty(self, temp_dir):
         """Should handle missing package.json gracefully."""
         scripts = detect_validation_scripts(temp_dir / "package.json")
-        assert scripts == {"build": None, "lint": None, "test": None}
+        assert scripts == {"build": [], "lint": [], "test": []}
+
+    def test_detects_prefix_scripts(self, use_fixture):
+        """Should detect scripts matched by prefix (test:unit, lint:fix, build:prod)."""
+        project = use_fixture("validation/prefix-names")
+        scripts = detect_validation_scripts(project / "package.json")
+        assert "build:prod" in scripts["build"]
+        assert "lint:fix" in scripts["lint"]
+        assert "test:unit" in scripts["test"]
+        assert "test:integration" in scripts["test"]
+
+    def test_ignores_lifecycle_scripts(self, use_fixture):
+        """Should exclude lifecycle scripts (preinstall, postinstall, prepare) but keep build."""
+        project = use_fixture("validation/lifecycle")
+        scripts = detect_validation_scripts(project / "package.json")
+        assert scripts["build"] == ["build"]
+        assert scripts["lint"] == []
+        assert scripts["test"] == []
+
+    def test_collects_exact_and_prefix_together(self, use_fixture):
+        """Should collect both exact and prefix matches, not treat prefix as fallback."""
+        project = use_fixture("validation/mixed-exact-prefix")
+        scripts = detect_validation_scripts(project / "package.json")
+        assert "build" in scripts["build"]
+        assert "build:prod" in scripts["build"]
+        assert "test" in scripts["test"]
+        assert "test:coverage" in scripts["test"]
+
+    def test_detects_dot_notation_test_scripts(self, use_fixture):
+        """Should detect test scripts using dot notation (test.e2e, test.unit)."""
+        project = use_fixture("validation/dot-test")
+        scripts = detect_validation_scripts(project / "package.json")
+        assert "test.e2e" in scripts["test"]
+        assert "test.unit" in scripts["test"]
 
 
 class TestNoDependencies:
@@ -120,7 +153,7 @@ class TestNoDependencies:
         """Validation scripts should work even without dependencies."""
         project = use_fixture("edge-cases/no-deps")
         scripts = detect_validation_scripts(project / "package.json")
-        assert scripts["build"] == "build"
+        assert scripts["build"] == ["build"]
 
 
 class TestPackageManagerFieldEdgeCases:

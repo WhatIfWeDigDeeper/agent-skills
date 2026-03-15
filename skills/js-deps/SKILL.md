@@ -1,6 +1,14 @@
 ---
 name: js-deps
-description: Maintain JavaScript/Node.js packages through security audits or dependency updates using an isolated git worktree. Supports npm, yarn, pnpm, and bun. Use for security audits, CVE fixes, vulnerability checks, dependency updates, package upgrades, outdated packages, bump versions, fix npm vulnerabilities, modernize node_modules, or when user types "/js-deps" with or without specific package names or glob patterns.
+description: >
+  Fix JavaScript package security vulnerabilities or upgrade outdated npm/yarn/pnpm/bun
+  dependencies. Use when the user wants to patch CVEs, resolve npm audit findings, bump package
+  versions, modernize node_modules, or update specific packages across a JS project or monorepo.
+  Handles any project with package.json files. Also triggers for "/js-deps" with or without
+  specific package names or glob patterns.
+
+  Not for non-JS ecosystems, adding brand-new packages, creating package.json from scratch,
+  switching package managers, or debugging runtime errors.
 license: MIT
 compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or bun), and network access to package registries
 metadata:
@@ -34,12 +42,16 @@ Create an isolated git worktree so the main working directory is never modified:
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 BRANCH_NAME="js-deps-$TIMESTAMP"
+# Prefer a sibling directory to the project root; fall back to $TMPDIR if that's not writable
 WORKTREE_PATH="$(dirname "$(git rev-parse --show-toplevel)")/$BRANCH_NAME"
-git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
+git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME" 2>/dev/null || {
+  WORKTREE_PATH="${TMPDIR:-/tmp}/$BRANCH_NAME"
+  git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
+}
 ```
 
-If `git worktree add` fails due to a sandbox permission error:
-> `git worktree` requires write access outside the project root. Grant that access in your assistant's settings (in Claude Code: add the parent directory to your sandbox allowlist in `settings.json`) and retry.
+If both locations fail, the environment likely restricts all writes outside the project. In that case:
+> Grant write access to either the project's parent directory or `$TMPDIR` in your assistant's settings (in Claude Code: add the relevant path to your sandbox allowlist in `settings.json`) and retry.
 
 **All subsequent steps operate within `$WORKTREE_PATH`.** Discovery, installs, edits, and commits all happen there. Paths like `cd <directory>` in reference files are relative to `$WORKTREE_PATH`.
 
@@ -79,12 +91,28 @@ For dependency update workflows only: install dependencies so that `$PM outdated
 
 ### 7. Validate Changes
 
-Run validation **per directory** after each package update. Check `package.json` scripts and run available commands using `$PM run <script>` in order: build, lint, test. Skip any that don't exist.
+Run validation **per directory** after each package update.
+
+**Discover validation scripts** — read the `scripts` object from `package.json` and classify into three categories. Collect **all** matching names in each category: exact matches first, then prefix matches. Both passes are always run — prefix matches are additive, not a fallback for when exact matches are absent.
+
+| Category | Exact matches | Prefix matches |
+|----------|--------------|----------------|
+| Build | `build`, `compile`, `tsc`, `typecheck` | `build:*` |
+| Lint | `lint`, `check`, `format`, `format:check` | `lint:*` |
+| Test | `test`, `tests` | `test:*`, `test.*` |
+
+Scripts named after a test runner also match the Test category even without a prefix (e.g. `jest`, `vitest`, `mocha`, `jasmine`, `cypress`, `playwright`).
+
+Ignore lifecycle scripts (`preinstall`, `postinstall`, `prepare`) and dev server scripts (`dev`, `start`, `serve`, `watch`). For each category, collect all matching script names.
+
+**Confirm with user** — before running, present a table of discovered scripts grouped by category and ask which to include. If no scripts match any category, note that validation will be skipped for this directory. If running autonomously with no user available to respond, run all discovered scripts across all three categories.
+
+> **Trust boundary:** Validation scripts are project-defined code that will execute in the disposable worktree. The worktree branch is never merged automatically — all changes require PR review before landing.
 
 **If `node_modules` does not exist** in the directory being validated, run `$PM install` before executing validation scripts. This applies to audit workflows (which skip step 6) and any update workflow directory where install was skipped. The install is validation-only and does not affect already-collected results.
 
-- **Build failure** is a hard failure: revert the package before continuing.
-- **Lint or test failure** is a soft failure: report it but continue with remaining packages.
+- **Build script failure** is a hard failure: revert the package before continuing.
+- **Lint or test script failure** is a soft failure: report it but continue with remaining packages.
 
 Continue running all validators even on failure to collect the full error set before reporting.
 

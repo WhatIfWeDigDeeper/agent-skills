@@ -6,6 +6,7 @@ words:
   - anthropics
   - asyncpg
   - commenters
+  - conftest
   - continuerc
   - cursorrules
   - elif
@@ -31,8 +32,14 @@ words:
   - subshell
   - unupgradable
   - venv
+  - EBADPLATFORM
+  - nuxt
+  - toplevel
+  - vitest
+  - vite
   - vulns
   - whatifwedigdeeper
+  - worktree
   - worktrees
 ignoreWords: []
 import: []
