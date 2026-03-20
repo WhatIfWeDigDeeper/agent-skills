@@ -11,7 +11,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.1"
+  version: "1.2"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -218,7 +218,7 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 
 If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted), skip this step and proceed to the report.
 
-**Display names for bot accounts**: The REST comments API returns `user.login` (e.g. `copilot-pull-request-reviewer`), not the short handle users recognize (e.g. `copilot`). When building the prompt, use the short handle for display — strip the `-pull-request-reviewer` suffix if present. Use the full login (with `[bot]` suffix where applicable) for the actual API calls.
+**Display names for bot accounts**: The REST comments API returns `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), not the short handle users recognize (e.g. `copilot`). When building the prompt, use the short handle for display — strip any trailing `[bot]` suffix first, then strip the `-pull-request-reviewer` suffix if present. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
 Present a single combined prompt:
 
@@ -242,9 +242,9 @@ Push and re-request review from @user1, @user2?
    **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts. Use the REST API directly instead:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-     --method DELETE --field 'reviewers[]=botname[bot]'
+     --method DELETE --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
    gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-     --method POST --field 'reviewers[]=botname[bot]'
+     --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
    ```
 
 **If the user declines**, note that they can run `git push` and re-request review manually from the PR page when ready.
