@@ -205,6 +205,8 @@ Do not resolve declined threads — leave them open so the reviewer can see your
 
 Collect all commenters whose feedback was processed (implemented, accepted, or declined — anyone you replied to or credited). Deduplicate this list; it's already available from the `Co-authored-by` usernames in Step 10 (if a commit was made) plus the authors of any declined comments.
 
+**Display names for bot accounts**: The REST comments API returns `user.login` (e.g. `copilot-pull-request-reviewer`), not the short handle users recognize (e.g. `copilot`). When building the prompt, use the short handle for display — strip the `-pull-request-reviewer` suffix if present. Use the full login (with `[bot]` suffix where applicable) for the actual API calls.
+
 Present a single combined prompt:
 
 ```
