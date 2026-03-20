@@ -11,7 +11,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.2"
+  version: "1.1"
 ---
 
 # PR Review: Implement and Respond to Review Comments
