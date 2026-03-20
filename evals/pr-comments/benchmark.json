@@ -4,7 +4,7 @@
     "skill_path": "<path/to/skill>",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-03-15T18:58:59Z",
+    "timestamp": "2026-03-20T00:00:00Z",
     "evals_run": [
       1,
       2,
@@ -15,7 +15,7 @@
       7,
       8
     ],
-    "runs_per_configuration": 3
+    "runs_per_configuration": 1
   },
   "runs": [
     {
@@ -866,7 +866,6 @@
   },
   "notes": [
     "Eval 7 tests the Step 12 push+re-request confirm path (v1.1). The 0.83 with_skill score reflects one structurally-untestable assertion (decline fallback in a confirm-path eval), closed by eval 8.",
-    "Eval 8 tests the Step 12 decline path. Without-skill 75% is inflated — expectations 2 and 3 pass trivially since the baseline never shows an interactive prompt; expectation 1 is the real discriminator.",
-    "Timestamp: 2026-03-20"
+    "Eval 8 tests the Step 12 decline path. Without-skill 75% is inflated — expectations 2 and 3 pass trivially since the baseline never shows an interactive prompt; expectation 1 is the real discriminator."
   ]
 }

@@ -157,7 +157,7 @@ Make each manual code change. Group changes in the same file into a single edit 
 
 If all threads were declined or marked as outdated and there is nothing to implement, skip the commit and proceed directly to Step 11.
 
-### 10. Commit with Commenter Credit
+### 10. (If Changes Were Made) Commit with Commenter Credit
 
 Stage and commit all manual changes. Give credit using `Co-authored-by` trailers — GitHub recognizes the noreply email format:
 
@@ -203,7 +203,7 @@ Do not resolve declined threads — leave them open so the reviewer can see your
 
 ### 13. Push and Re-request Review
 
-After committing and resolving threads, collect all commenters whose feedback was processed (implemented, accepted, or declined — anyone you replied to or credited). Deduplicate this list; it's already available from the `Co-authored-by` usernames in Step 10 plus the authors of any declined comments.
+Collect all commenters whose feedback was processed (implemented, accepted, or declined — anyone you replied to or credited). Deduplicate this list; it's already available from the `Co-authored-by` usernames in Step 10 (if a commit was made) plus the authors of any declined comments.
 
 Present a single combined prompt:
 
@@ -239,7 +239,9 @@ Pushed and re-requested review from @user1, @user2
 [List of each action taken]
 ```
 
-If the branch was not pushed, replace the push/re-request line with: "Commit not pushed — run `git push` when ready."
+If nothing was implemented (all declined or outdated), replace the first line with: "No changes — all threads declined or outdated."
+
+If the branch was not pushed, replace the push/re-request line with: "Commit not pushed — run `git push` and re-request review manually from the PR page when ready."
 
 ## Notes
 

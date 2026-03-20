@@ -100,11 +100,9 @@
         {"id": "includes-declined-commenter-in-rerequest", "text": "The declined commenter is included in the re-request list (they should see the reply), not just the Co-authored-by reviewers"},
         {"id": "pushes-branch-on-confirm", "text": "When the user confirms, the agent runs git push to push the branch"},
         {"id": "removes-then-adds-reviewers", "text": "The agent re-requests review by running gh pr edit --remove-reviewer then gh pr edit --add-reviewer (remove before add to trigger GitHub notification)"},
-        {"id": "deduplicates-rerequest-list", "text": "Each reviewer appears only once in the re-request prompt and gh pr edit commands even if they authored multiple comments"},
-        {"id": "fallback-if-declined", "text": "If the user declines the push, the agent tells them to run git push manually rather than silently doing nothing"}
+        {"id": "deduplicates-rerequest-list", "text": "Each reviewer appears only once in the re-request prompt and gh pr edit commands even if they authored multiple comments"}
       ]
-    }
-  ,
+    },
     {
       "id": 8,
       "prompt": "Please address the review comments on my PR. There are two threads: one suggests adding a docstring (valid), and one suggests extracting a magic number to a named constant (valid). After you're done, I'll want to push myself — don't push automatically.",

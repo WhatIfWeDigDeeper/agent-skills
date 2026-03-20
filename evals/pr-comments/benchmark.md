@@ -1,18 +1,18 @@
 # Skill Benchmark: pr-comments
 
 **Model**: claude-sonnet-4-6
-**Date**: 2026-03-15
-**Evals**: 1, 2, 3, 4, 5, 6 (1 run each per configuration)
+**Date**: 2026-03-20
+**Evals**: 1, 2, 3, 4, 5, 6, 7, 8 (1 run each per configuration)
 
 ## Summary
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 21% ± 12% | **+79%** |
-| Time | 75.5s ± 12.0s | 44.2s ± 8.0s | +31.3s |
-| Tokens | 3,327 ± 8,149 | 2,334 ± 5,717 | +993 |
+| Pass Rate | **98%** ± 6% | 27% ± 20% | **+71%** |
+| Time | 85.2s ± 20.6s | 44.8s ± 7.2s | +40.4s |
+| Tokens | 10,787 ± 11,082 | 4,043 ± 6,219 | +6,744 |
 
-The skill adds ~31s and ~1000 tokens overhead and improves correctness by +79 percentage points. The baseline fetches comments and applies basic edits, but consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, and thread resolution — the four behaviors the skill explicitly mandates.
+The skill adds ~40s and ~6,700 tokens overhead and improves correctness by +71 percentage points. The baseline fetches comments and applies basic edits, but consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, and thread resolution — the four behaviors the skill explicitly mandates.
 
 ## Per-Eval Results
 
@@ -24,6 +24,8 @@ The skill adds ~31s and ~1000 tokens overhead and improves correctness by +79 pe
 | 4 | Mixed four categories | **8/8 (100%)** | 2/8 (25%) | Declined reviewer excluded from Co-authored-by, suggestion applied from block |
 | 5 | Outdated threads | **6/6 (100%)** | 2/6 (33%) | Outdated threads skipped without reply, only addressed threads resolved |
 | 6 | Deduplicated co-authors + clarifying question | **5/5 (100%)** | 0/5 (0%) | Already-resolved skip, co-author deduplication, clarifying question left open |
+| 7 | Push + re-request confirm path | **5/6 (83%)** | 1/6 (17%) | Interactive push prompt, remove-then-add reviewer pattern, include declined commenter |
+| 8 | Push + re-request decline path | **4/4 (100%)** | 3/4 (75%) | Interactive prompt shown before acting, no push when user declines, manual push instruction |
 
 ## What Each Eval Tests
 
@@ -57,10 +59,21 @@ Tests that outdated threads (isOutdated=true from GraphQL) are skipped without p
 
 The hardest eval — requires five distinct behaviors simultaneously. The without-skill run failed all five: didn't use GraphQL to detect the already-resolved thread, omitted Co-authored-by entirely (so deduplication was moot), couldn't distinguish "reply and close" from "reply and leave open" for the clarifying question, and never fetched thread state.
 
+### Eval 7 — Push + re-request review (confirm path)
+**Prompt**: Three threads (two valid, one out of scope). After addressing, push and re-request review from all commenters.
+
+Tests the push + re-request workflow when the user confirms: the skill presents a combined prompt listing all relevant commenters (including declined), runs `git push`, then re-requests review by removing then re-adding reviewers via `gh pr edit` to trigger GitHub notifications. Without the skill, the baseline implemented the changes but never presented an interactive push prompt — it either pushed silently or mentioned push as a next step without waiting for confirmation. The 83% with-skill score reflects one structurally-untestable assertion (decline fallback in a confirm-path eval; covered by eval 8).
+
+### Eval 8 — Push + re-request review (decline path)
+**Prompt**: Two valid threads. User says they want to push manually — don't push automatically.
+
+Tests the decline path: the skill presents the combined push prompt first (regardless of the user's upfront hint), respects the user's decline by not running `git push` or `gh pr edit`, and explicitly tells the user to push manually. The without-skill 75% is inflated — expectations 2 and 3 pass trivially since the baseline never presents an interactive prompt; expectation 1 (prompt shown before acting) is the real discriminator.
+
 ## Notes
 
-- **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the +79% delta.
-- **Process steps vs. output quality.** The baseline produces reasonable commit messages and file edits on its own. The skill's value is almost entirely in the process steps it mandates — the plan/confirmation gate, Co-authored-by attribution, and thread resolution via GraphQL mutation. These are omissions (things not done), not errors in what was done.
+- **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the +71% delta.
+- **Process steps vs. output quality.** The baseline produces reasonable commit messages and file edits on its own. The skill's value is almost entirely in the process steps it mandates — the plan/confirmation gate, Co-authored-by attribution, thread resolution via GraphQL mutation, and the interactive push + re-request prompt.
 - **Eval 6 is the ceiling test.** The 0% without-skill score on eval 6 reflects the cumulative effect of missing all five behaviors at once. Each individual failure is predictable; together they produce a completely incorrect outcome.
 - **Eval 3's "declined thread not resolved" assertion passes trivially in the baseline** (the agent never resolves anything). The paired assertion — "addressed threads ARE resolved" — is what distinguishes correct decline-handling from a general failure to use GraphQL.
-- **Token variance is high** (stddev ≈ 8,000 for with-skill) because some evals ran during iteration-2 with full transcript tokens captured and others during iteration-3 with simulated runs that recorded 0 tokens. The pass rates are reliable; the token numbers are not directly comparable across evals.
+- **Eval 7's 83% with-skill score** reflects one structurally-untestable assertion (fallback when user declines push, in a scenario where the user confirms). That assertion is covered by eval 8 instead.
+- **Token variance is high** (stddev ≈ 11,000 for with-skill) because some evals ran during iteration-2 with full transcript tokens captured and others during iteration-3 with simulated runs that recorded 0 tokens. The pass rates are reliable; the token numbers are not directly comparable across evals.
