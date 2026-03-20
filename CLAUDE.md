@@ -67,7 +67,7 @@ When substantially modifying an existing skill, also update its entry in `README
 
 ## Sandbox Workarounds
 
-- **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` as a fallback.
+- **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` **only as a fallback after a signing failure** — do not use it preemptively. `dangerouslyDisableSandbox: true` (for keyring/network access) and GPG signing are separate; enabling sandbox does not mean GPG will fail.
 - **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first.
 
 ## Spell Checking
@@ -77,6 +77,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 ## Git Workflow
 
 - **Never commit directly to `main`.** Always create a feature branch and open a PR for review.
+- **Never rewrite history on a PR that has review comments** (from humans or bots). This means no force push, no `git rebase`, no `git commit --amend` on pushed commits. Rewriting history detaches inline comments from their source lines and disrupts reviewers who have already pulled the branch. If commits need fixing after comments exist, add a new commit instead. Squash happens at merge time.
 - This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI).
 - After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge. **Before running `git reset --hard`, check for uncommitted changes (`git status`). If any exist, stash them first (`git stash`) or ask the user — do not silently discard them.**
 - After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
