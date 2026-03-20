@@ -614,22 +614,22 @@
         {
           "text": "After committing, the agent presents a combined prompt offering to push and re-request review listing the relevant commenters by GitHub handle",
           "passed": true,
-          "evidence": "Step 12 shows the prompt: 'Push and re-request review from @priya-reviewer, @marcus-dev, @zach-architect?' — all three commenters listed by handle, presented as a single combined offer after the commit in Step 9."
+          "evidence": "Step 13 shows the prompt: 'Push and re-request review from @priya-reviewer, @marcus-dev, @zach-architect?' — all three commenters listed by handle, presented as a single combined offer after the commit in Step 10."
         },
         {
           "text": "The declined commenter is included in the re-request list (they should see the reply), not just the Co-authored-by reviewers",
           "passed": true,
-          "evidence": "@zach-architect authored the declined comment (not in Co-authored-by). They appear in the prompt and in both gh pr edit commands alongside the two Co-authored-by reviewers. Step 12 explicitly notes: '@zach-architect is included in the re-request even though their comment was declined — they received a reply explaining the decision and should have the opportunity to respond or follow up.'"
+          "evidence": "@zach-architect authored the declined comment (not in Co-authored-by). They appear in the prompt and in both gh pr edit commands alongside the two Co-authored-by reviewers. Step 13 explicitly notes: '@zach-architect is included in the re-request even though their comment was declined — they received a reply explaining the decision and should have the opportunity to respond or follow up.'"
         },
         {
           "text": "When the user confirms, the agent runs git push to push the branch",
           "passed": true,
-          "evidence": "After user response 'yes, proceed', Step 12 shows 'git push' executed with simulated output confirming successful push: 'feature/user-profile-settings -> feature/user-profile-settings'. metrics.json confirms push_executed: true."
+          "evidence": "After user response 'yes, proceed', Step 13 shows 'git push' executed with simulated output confirming successful push: 'feature/user-profile-settings -> feature/user-profile-settings'. metrics.json confirms push_executed: true."
         },
         {
           "text": "The agent re-requests review by running gh pr edit --remove-reviewer then gh pr edit --add-reviewer (remove before add to trigger GitHub notification)",
           "passed": true,
-          "evidence": "Step 12 shows the two commands in order: (1) 'gh pr edit 47 --remove-reviewer priya-reviewer,marcus-dev,zach-architect' then (2) 'gh pr edit 47 --add-reviewer priya-reviewer,marcus-dev,zach-architect'. The transcript notes: 'GitHub requires removing reviewers before re-adding them to trigger the review notification.' metrics.json confirms remove_before_add: true."
+          "evidence": "Step 13 shows the two commands in order: (1) 'gh pr edit 47 --remove-reviewer priya-reviewer,marcus-dev,zach-architect' then (2) 'gh pr edit 47 --add-reviewer priya-reviewer,marcus-dev,zach-architect'. The transcript notes: 'GitHub requires removing reviewers before re-adding them to trigger the review notification.' metrics.json confirms remove_before_add: true."
         },
         {
           "text": "Each reviewer appears only once in the re-request prompt and gh pr edit commands even if they authored multiple comments",
@@ -758,7 +758,7 @@
         {
           "text": "The agent presents a combined prompt offering to push and re-request review, listing commenters by handle, before doing anything",
           "passed": true,
-          "evidence": "Step 12 shows the agent outputs: 'Push and re-request review from @alice, @bob?' — a single combined prompt listing both reviewer handles by @-mention, presented before taking any push or re-request action."
+          "evidence": "Step 13 shows the agent outputs: 'Push and re-request review from @alice, @bob?' — a single combined prompt listing both reviewer handles by @-mention, presented before taking any push or re-request action."
         },
         {
           "text": "When the user declines the push, the agent does NOT run git push",
@@ -773,7 +773,7 @@
         {
           "text": "The agent explicitly tells the user to run git push manually (or equivalent) rather than silently stopping",
           "passed": true,
-          "evidence": "After the user declines, the agent responds: 'When you're ready, run: git push' and Step 13 report reiterates: 'Commit not pushed — run `git push` when ready.' Not a silent stop."
+          "evidence": "After the user declines, the agent responds: 'When you're ready, run: git push' and Step 14 report reiterates: 'Commit not pushed — run `git push` when ready.' Not a silent stop."
         }
       ],
       "notes": []
@@ -865,7 +865,7 @@
     }
   },
   "notes": [
-    "Eval 7 tests the Step 12 push+re-request confirm path (v1.1). The 0.83 with_skill score reflects one structurally-untestable assertion (decline fallback in a confirm-path eval), closed by eval 8.",
-    "Eval 8 tests the Step 12 decline path. Without-skill 75% is inflated — expectations 2 and 3 pass trivially since the baseline never shows an interactive prompt; expectation 1 is the real discriminator."
+    "Eval 7 tests the Step 13 push+re-request confirm path (v1.1). The 0.83 with_skill score reflects one structurally-untestable assertion (decline fallback in a confirm-path eval), closed by eval 8.",
+    "Eval 8 tests the Step 13 decline path. Without-skill 75% is inflated — expectations 2 and 3 pass trivially since the baseline never shows an interactive prompt; expectation 1 is the real discriminator."
   ]
 }
