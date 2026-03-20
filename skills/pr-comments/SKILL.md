@@ -189,17 +189,19 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 - If GPG signing fails, retry with `--no-gpg-sign`
 - If heredoc fails with "can't create temp file", write the message to a temp file and use `git commit -F <file>`
 
-### 11. Reply to Declined Comments
+### 11. Reply to Comments
 
-For each declined comment, post a reply using the replies REST endpoint:
+For each `reply` comment (clarifying questions): post a direct answer using the replies REST endpoint. Do not resolve the thread — leave it open for the reviewer to follow up.
+
+For each `decline` comment: post a reply explaining why the suggestion won't be implemented. Be direct and specific; state the reason and offer an alternative if appropriate (e.g., "I'll file a follow-up issue for this"). No need to be overly apologetic — just clear.
+
+Both use the same endpoint:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies \
   --method POST \
-  --field body="[Explanation of why not implementing]"
+  --field body="[Your reply]"
 ```
-
-Be direct and specific: state the reason, and offer an alternative if appropriate (e.g., "I'll file a follow-up issue for this"). No need to be overly apologetic — just clear.
 
 ### 12. Resolve Addressed Threads
 
@@ -209,7 +211,12 @@ Do not resolve declined threads — leave them open so the reviewer can see your
 
 ### 13. Push and Re-request Review
 
-Collect all commenters whose feedback was processed (implemented, accepted, or declined — anyone you replied to or credited). Deduplicate this list; it's already available from the `Co-authored-by` usernames in Step 10 (if a commit was made) plus the authors of any declined comments.
+Collect all commenters whose feedback was processed (implemented, accepted, declined, or replied to). Build this list from three sources and then deduplicate it:
+- The `Co-authored-by` usernames from Step 10 (for feedback that resulted in commits).
+- The authors of any declined comments.
+- The authors of any comments you replied to via the replies REST endpoint (including clarifying questions you answered without implementing or explicitly declining), using the `user.login` from the original comments you replied to.
+
+If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted), skip this step and proceed to the report.
 
 **Display names for bot accounts**: The REST comments API returns `user.login` (e.g. `copilot-pull-request-reviewer`), not the short handle users recognize (e.g. `copilot`). When building the prompt, use the short handle for display — strip the `-pull-request-reviewer` suffix if present. Use the full login (with `[bot]` suffix where applicable) for the actual API calls.
 
@@ -228,15 +235,15 @@ Push and re-request review from @user1, @user2?
 
 2. Re-request review from each commenter. GitHub only notifies reviewers when they are *added*, not when they're already on the list — so remove them first to re-trigger the notification:
    ```bash
-   gh pr edit <PR_NUMBER> --remove-reviewer user1,user2
-   gh pr edit <PR_NUMBER> --add-reviewer user1,user2
+   gh pr edit {pr_number} --remove-reviewer user1,user2
+   gh pr edit {pr_number} --add-reviewer user1,user2
    ```
 
    **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts. Use the REST API directly instead:
    ```bash
-   gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/requested_reviewers \
+   gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
      --method DELETE --field 'reviewers[]=botname[bot]'
-   gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/requested_reviewers \
+   gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
      --method POST --field 'reviewers[]=botname[bot]'
    ```
 

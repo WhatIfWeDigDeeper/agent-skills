@@ -1,16 +1,6 @@
 """Tests for Step 13 push+re-request reviewer list logic in pr-comments skill."""
 
-from conftest import extract_coauthors
-
-
-def build_reviewer_list(implemented_comments: list[dict], declined_comments: list[dict]) -> list[str]:
-    """Build deduplicated reviewer list for push+re-request step.
-
-    Per SKILL.md Step 13: collect all commenters whose feedback was processed
-    (implemented, accepted, or declined — anyone replied to or credited).
-    """
-    all_comments = implemented_comments + declined_comments
-    return extract_coauthors(all_comments)
+from conftest import build_reviewer_list
 
 
 class TestReviewerListDeduplication:

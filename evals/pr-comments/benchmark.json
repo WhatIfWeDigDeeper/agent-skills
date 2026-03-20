@@ -598,6 +598,7 @@
     },
     {
       "eval_id": 7,
+      "eval_name": "push-rerequest-confirm",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -646,6 +647,7 @@
     },
     {
       "eval_id": 7,
+      "eval_name": "push-rerequest-confirm",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -742,6 +744,7 @@
     },
     {
       "eval_id": 8,
+      "eval_name": "push-rerequest-decline",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -780,6 +783,7 @@
     },
     {
       "eval_id": 8,
+      "eval_name": "push-rerequest-decline",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
