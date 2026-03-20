@@ -233,13 +233,15 @@ Push and re-request review from @user1, @user2?
    git push
    ```
 
-2. Re-request review from each commenter. GitHub only notifies reviewers when they are *added*, not when they're already on the list — so remove them first to re-trigger the notification:
+2. Re-request review from each commenter. Split the deduplicated reviewer list into **human** and **bot** logins — handle them separately so a bot rejection doesn't block the human re-requests.
+
+   **Human reviewers** — GitHub only notifies reviewers when they are *added*, not when they're already on the list, so remove them first to re-trigger the notification:
    ```bash
    gh pr edit {pr_number} --remove-reviewer user1,user2
    gh pr edit {pr_number} --add-reviewer user1,user2
    ```
 
-   **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts. Use the REST API directly instead:
+   **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too. Use the REST API directly for each bot:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
      --method DELETE --field 'reviewers[]=copilot-pull-request-reviewer[bot]'

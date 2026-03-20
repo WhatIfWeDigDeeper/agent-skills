@@ -4,7 +4,6 @@ dictionaryDefinitions: []
 dictionaries: []
 words:
   - anthropics
-  - botname
   - asyncpg
   - commenters
   - conftest
