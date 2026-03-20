@@ -89,6 +89,33 @@
         {"id": "fetches-thread-state", "text": "The agent uses gh api to fetch thread resolution state before deciding on actions"},
         {"id": "commit-attributes-reviewers", "text": "The commit message lists which changes were suggested by which reviewers"}
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "Please address the review comments on my PR. There are three threads: one reviewer suggested adding input validation (valid), another proposed renaming a variable for clarity (valid), and a third asked for a full rewrite of the module in a different framework (out of scope). After addressing them, push and re-request review from the commenters.",
+      "expected_output": "The skill processes all three threads (implements two, declines one), commits with Co-authored-by credit, then presents a combined 'Push and re-request review from @user1, @user2, @user3?' prompt covering all processed commenters. On confirmation, runs git push and re-requests review by removing then re-adding reviewers via gh pr edit. The declined reviewer is included in the re-request list.",
+      "files": [],
+      "assertions": [
+        {"id": "presents-push-rerequest-prompt", "text": "After committing, the agent presents a combined prompt offering to push and re-request review listing the relevant commenters by GitHub handle"},
+        {"id": "includes-declined-commenter-in-rerequest", "text": "The declined commenter is included in the re-request list (they should see the reply), not just the Co-authored-by reviewers"},
+        {"id": "pushes-branch-on-confirm", "text": "When the user confirms, the agent runs git push to push the branch"},
+        {"id": "removes-then-adds-reviewers", "text": "The agent re-requests review by running gh pr edit --remove-reviewer then gh pr edit --add-reviewer (remove before add to trigger GitHub notification)"},
+        {"id": "deduplicates-rerequest-list", "text": "Each reviewer appears only once in the re-request prompt and gh pr edit commands even if they authored multiple comments"},
+        {"id": "fallback-if-declined", "text": "If the user declines the push, the agent tells them to run git push manually rather than silently doing nothing"}
+      ]
+    }
+  ,
+    {
+      "id": 8,
+      "prompt": "Please address the review comments on my PR. There are two threads: one suggests adding a docstring (valid), and one suggests extracting a magic number to a named constant (valid). After you're done, I'll want to push myself — don't push automatically.",
+      "expected_output": "The skill processes both valid comments, commits with Co-authored-by credit, then presents the combined 'Push and re-request review from @user1, @user2?' prompt. The user declines. The skill does NOT run git push or gh pr edit, and instead tells the user to run git push manually when ready.",
+      "files": [],
+      "assertions": [
+        {"id": "presents-push-rerequest-prompt", "text": "The agent presents a combined prompt offering to push and re-request review, listing commenters by handle, before doing anything"},
+        {"id": "does-not-push-when-declined", "text": "When the user declines the push, the agent does NOT run git push"},
+        {"id": "does-not-rerequest-when-declined", "text": "When the user declines, the agent does NOT run gh pr edit --add-reviewer or --remove-reviewer"},
+        {"id": "tells-user-to-push-manually", "text": "The agent explicitly tells the user to run git push manually (or equivalent) rather than silently stopping"}
+      ]
     }
   ]
 }

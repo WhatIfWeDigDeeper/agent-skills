@@ -11,7 +11,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.0"
+  version: "1.1"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -241,7 +241,32 @@ mutation {
 
 Do not resolve declined threads — leave them open so the reviewer can see your reply and respond.
 
-### 12. Report
+### 12. Push and Re-request Review
+
+After committing and resolving threads, collect all commenters whose feedback was processed (implemented, accepted, or declined — anyone you replied to or credited). Deduplicate this list; it's already available from the `Co-authored-by` usernames in Step 9 plus the authors of any declined comments.
+
+Present a single combined prompt:
+
+```
+Push and re-request review from @user1, @user2?
+```
+
+**If the user confirms:**
+
+1. Push the branch:
+   ```bash
+   git push
+   ```
+
+2. Re-request review from each commenter (GitHub requires removing then re-adding to trigger the notification):
+   ```bash
+   gh pr edit <PR_NUMBER> --remove-reviewer user1,user2
+   gh pr edit <PR_NUMBER> --add-reviewer user1,user2
+   ```
+
+**If the user declines**, note that they can run `git push` and re-request review manually from the PR page when ready.
+
+### 13. Report
 
 ```
 ## Done
@@ -249,11 +274,12 @@ Do not resolve declined threads — leave them open so the reviewer can see your
 Applied N suggestions + implemented N comments → committed <hash>
 Declined N comments → replied with explanations
 Skipped N outdated threads
+Pushed and re-requested review from @user1, @user2
 
 [List of each action taken]
 ```
 
-If the branch hasn't been pushed (manual commit only), mention: "Run `git push` to push the commit."
+If the branch was not pushed, replace the push/re-request line with: "Commit not pushed — run `git push` when ready."
 
 ## Notes
 

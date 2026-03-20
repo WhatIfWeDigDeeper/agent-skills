@@ -11,7 +11,9 @@
       3,
       4,
       5,
-      6
+      6,
+      7,
+      8
     ],
     "runs_per_configuration": 3
   },
@@ -595,6 +597,102 @@
       "notes": []
     },
     {
+      "eval_id": 7,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.83,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 99.2,
+        "tokens": 22867,
+        "tool_calls": 13,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "After committing, the agent presents a combined prompt offering to push and re-request review listing the relevant commenters by GitHub handle",
+          "passed": true,
+          "evidence": "Step 12 shows the prompt: 'Push and re-request review from @priya-reviewer, @marcus-dev, @zach-architect?' — all three commenters listed by handle, presented as a single combined offer after the commit in Step 9."
+        },
+        {
+          "text": "The declined commenter is included in the re-request list (they should see the reply), not just the Co-authored-by reviewers",
+          "passed": true,
+          "evidence": "@zach-architect authored the declined comment (not in Co-authored-by). They appear in the prompt and in both gh pr edit commands alongside the two Co-authored-by reviewers. Step 12 explicitly notes: '@zach-architect is included in the re-request even though their comment was declined — they received a reply explaining the decision and should have the opportunity to respond or follow up.'"
+        },
+        {
+          "text": "When the user confirms, the agent runs git push to push the branch",
+          "passed": true,
+          "evidence": "After user response 'yes, proceed', Step 12 shows 'git push' executed with simulated output confirming successful push: 'feature/user-profile-settings -> feature/user-profile-settings'. metrics.json confirms push_executed: true."
+        },
+        {
+          "text": "The agent re-requests review by running gh pr edit --remove-reviewer then gh pr edit --add-reviewer (remove before add to trigger GitHub notification)",
+          "passed": true,
+          "evidence": "Step 12 shows the two commands in order: (1) 'gh pr edit 47 --remove-reviewer priya-reviewer,marcus-dev,zach-architect' then (2) 'gh pr edit 47 --add-reviewer priya-reviewer,marcus-dev,zach-architect'. The transcript notes: 'GitHub requires removing reviewers before re-adding them to trigger the review notification.' metrics.json confirms remove_before_add: true."
+        },
+        {
+          "text": "Each reviewer appears only once in the re-request prompt and gh pr edit commands even if they authored multiple comments",
+          "passed": true,
+          "evidence": "All three reviewers appear exactly once in the prompt and once in each gh pr edit command. Deduplication was not stress-tested (one comment per reviewer in this scenario)."
+        },
+        {
+          "text": "If the user declines the push, the agent tells them to run git push manually rather than silently doing nothing",
+          "passed": false,
+          "evidence": "The user confirmed the push in this run, so the decline path was never executed. No evidence in the transcript that the skill would display the fallback message if declined."
+        }
+      ],
+      "notes": ["Assertion 6 is untestable in a confirm-path eval; needs a separate decline-path eval case. Assertion 5 (dedup) not stress-tested — one comment per reviewer."]
+    },
+    {
+      "eval_id": 7,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.17,
+        "passed": 1,
+        "failed": 5,
+        "total": 6,
+        "time_seconds": 52.3,
+        "tokens": 14507,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "After committing, the agent presents a combined prompt offering to push and re-request review listing the relevant commenters by GitHub handle",
+          "passed": false,
+          "evidence": "The agent never presented a combined prompt. Steps 5 and 7 show autonomous git push and gh pr edit --add-reviewer without asking for confirmation. metrics.json confirms confirmation_waited: false."
+        },
+        {
+          "text": "The declined commenter is included in the re-request list (they should see the reply), not just the Co-authored-by reviewers",
+          "passed": true,
+          "evidence": "Step 7 shows 'gh pr edit 47 --repo myorg/myrepo --add-reviewer alice,bob,carol' — carol (declined commenter) is explicitly included. metrics.json shows declined_in_rerequest: true."
+        },
+        {
+          "text": "When the user confirms, the agent runs git push to push the branch",
+          "passed": false,
+          "evidence": "Push ran (Step 5) but without any user confirmation. The precondition was never met. metrics.json confirms confirmation_waited: false."
+        },
+        {
+          "text": "The agent re-requests review by running gh pr edit --remove-reviewer then gh pr edit --add-reviewer (remove before add to trigger GitHub notification)",
+          "passed": false,
+          "evidence": "Only --add-reviewer used with no preceding remove step. metrics.json confirms remove_before_add: false. Honest Assessment explicitly acknowledges skipping this."
+        },
+        {
+          "text": "Each reviewer appears only once in the re-request prompt and gh pr edit commands even if they authored multiple comments",
+          "passed": false,
+          "evidence": "The gh pr edit command lists each reviewer once, but the combined prompt was never shown (Expectation 1 failed), so the prompt half of this assertion is unverifiable."
+        },
+        {
+          "text": "If the user declines the push, the agent tells them to run git push manually rather than silently doing nothing",
+          "passed": false,
+          "evidence": "No push/re-request prompt was shown, so the user had no opportunity to decline. Decline path was never triggered."
+        }
+      ],
+      "notes": ["remove_before_add is the key discriminating assertion; confirmed baseline fails it. Assertions 3, 5, 6 are structurally dependent on Assertion 1."]
+    },
+    {
       "eval_id": 5,
       "configuration": "without_skill",
       "run_number": 1,
@@ -641,54 +739,134 @@
         }
       ],
       "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 129.1,
+        "tokens": 20431,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent presents a combined prompt offering to push and re-request review, listing commenters by handle, before doing anything",
+          "passed": true,
+          "evidence": "Step 12 shows the agent outputs: 'Push and re-request review from @alice, @bob?' — a single combined prompt listing both reviewer handles by @-mention, presented before taking any push or re-request action."
+        },
+        {
+          "text": "When the user declines the push, the agent does NOT run git push",
+          "passed": true,
+          "evidence": "No 'git push' command appears in the transcript after the user says 'No, I'll push myself.' metrics.json confirms push_executed: false."
+        },
+        {
+          "text": "When the user declines, the agent does NOT run gh pr edit --add-reviewer or --remove-reviewer",
+          "passed": true,
+          "evidence": "No 'gh pr edit' command with --add-reviewer or --remove-reviewer appears anywhere in the transcript after the user declines. metrics.json confirms rerequest_executed: false."
+        },
+        {
+          "text": "The agent explicitly tells the user to run git push manually (or equivalent) rather than silently stopping",
+          "passed": true,
+          "evidence": "After the user declines, the agent responds: 'When you're ready, run: git push' and Step 13 report reiterates: 'Commit not pushed — run `git push` when ready.' Not a silent stop."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 41.1,
+        "tokens": 13832,
+        "tool_calls": 4,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent presents a combined prompt offering to push and re-request review, listing commenters by handle, before doing anything",
+          "passed": false,
+          "evidence": "The agent never presented an interactive prompt. It applied fixes, committed, and then in Step 7 mentioned push and re-request as informational next steps. metrics.json confirms push_prompt_shown: false and confirmation_waited: false."
+        },
+        {
+          "text": "When the user declines the push, the agent does NOT run git push",
+          "passed": true,
+          "evidence": "No git push was executed (push_executed: false). However this is because the agent obeyed the upfront 'don't push automatically' instruction rather than declining an interactive prompt."
+        },
+        {
+          "text": "When the user declines, the agent does NOT run gh pr edit --add-reviewer or --remove-reviewer",
+          "passed": true,
+          "evidence": "gh pr edit was not run (rerequest_executed: false). The agent suggested it as an optional manual step but did not execute it. Again, not the result of an interactive decline."
+        },
+        {
+          "text": "The agent explicitly tells the user to run git push manually (or equivalent) rather than silently stopping",
+          "passed": true,
+          "evidence": "Step 7 includes an explicit git push command with the branch name as a manual instruction. metrics.json confirms manual_push_instruction_given: true."
+        }
+      ],
+      "notes": ["Expectations 2 and 3 pass trivially — no interactive prompt was shown so the 'decline' path was never triggered. Expectation 1 is the sole discriminating assertion for this eval."]
     }
   ],
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 1.0,
-        "stddev": 0.0,
-        "min": 1.0,
+        "mean": 0.98,
+        "stddev": 0.06,
+        "min": 0.83,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 75.55,
-        "stddev": 11.9527,
+        "mean": 85.2,
+        "stddev": 20.6,
         "min": 57.7,
-        "max": 91.0
+        "max": 129.1
       },
       "tokens": {
-        "mean": 3326.6667,
-        "stddev": 8148.6359,
+        "mean": 10787.0,
+        "stddev": 11082.0,
         "min": 0,
-        "max": 19960
+        "max": 22867
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.21,
-        "stddev": 0.1208,
+        "mean": 0.27,
+        "stddev": 0.20,
         "min": 0.0,
-        "max": 0.33
+        "max": 0.75
       },
       "time_seconds": {
-        "mean": 44.2167,
-        "stddev": 7.9861,
+        "mean": 44.8,
+        "stddev": 7.2,
         "min": 31.9,
         "max": 55.2
       },
       "tokens": {
-        "mean": 2333.8333,
-        "stddev": 5716.7008,
+        "mean": 4043.0,
+        "stddev": 6219.0,
         "min": 0,
-        "max": 14003
+        "max": 14507
       }
     },
     "delta": {
-      "pass_rate": "+0.79",
-      "time_seconds": "+31.3",
-      "tokens": "+993"
+      "pass_rate": "+0.71",
+      "time_seconds": "+40.4",
+      "tokens": "+6744"
     }
   },
-  "notes": []
+  "notes": [
+    "Eval 7 tests the Step 12 push+re-request confirm path (v1.1). The 0.83 with_skill score reflects one structurally-untestable assertion (decline fallback in a confirm-path eval), closed by eval 8.",
+    "Eval 8 tests the Step 12 decline path. Without-skill 75% is inflated — expectations 2 and 3 pass trivially since the baseline never shows an interactive prompt; expectation 1 is the real discriminator.",
+    "Timestamp: 2026-03-20"
+  ]
 }
