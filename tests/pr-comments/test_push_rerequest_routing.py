@@ -52,3 +52,29 @@ class TestReviewerListDeduplication:
         declined = [{"author": "bob"}]
         result = build_reviewer_list(implemented, declined)
         assert result == ["alice", "bob", "charlie"]
+
+    def test_replied_only(self):
+        """Commenters answered via reply action appear in re-request list."""
+        replied = [{"author": "diana"}]
+        result = build_reviewer_list([], [], replied_comments=replied)
+        assert result == ["diana"]
+
+    def test_replied_combined_with_implemented_and_declined(self):
+        """All three Step 13 sources contribute to the reviewer list."""
+        implemented = [{"author": "alice"}]
+        declined = [{"author": "bob"}]
+        replied = [{"author": "carol"}]
+        result = build_reviewer_list(implemented, declined, replied_comments=replied)
+        assert result == ["alice", "bob", "carol"]
+
+    def test_replied_deduplication_across_sources(self):
+        """Author appearing in both replied and implemented lists appears only once."""
+        implemented = [{"author": "alice"}]
+        replied = [{"author": "alice"}, {"author": "bob"}]
+        result = build_reviewer_list(implemented, [], replied_comments=replied)
+        assert result == ["alice", "bob"]
+
+    def test_replied_defaults_to_empty(self):
+        """Omitting replied_comments works the same as passing an empty list."""
+        implemented = [{"author": "alice"}]
+        assert build_reviewer_list(implemented, []) == build_reviewer_list(implemented, [], replied_comments=[])
