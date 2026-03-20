@@ -224,6 +224,14 @@ Push and re-request review from @user1, @user2?
    gh pr edit <PR_NUMBER> --add-reviewer user1,user2
    ```
 
+   **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts. Use the REST API directly instead:
+   ```bash
+   gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/requested_reviewers \
+     --method DELETE --field 'reviewers[]=botname[bot]'
+   gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/requested_reviewers \
+     --method POST --field 'reviewers[]=botname[bot]'
+   ```
+
 **If the user declines**, note that they can run `git push` and re-request review manually from the PR page when ready.
 
 ### 14. Report
