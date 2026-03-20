@@ -859,7 +859,7 @@
     }
   },
   "notes": [
-    "Eval 7 tests the Step 13 push+re-request confirm path (v1.1). The 0.83 with_skill score reflects one structurally-untestable assertion (decline fallback in a confirm-path eval), closed by eval 8.",
+    "Eval 7 tests the Step 13 push+re-request confirm path (v1.1). One assertion (decline fallback in a confirm-path eval) is structurally untestable and is closed by eval 8.",
     "Eval 8 tests the Step 13 decline path. Without-skill 75% is inflated — expectations 2 and 3 pass trivially since the baseline never shows an interactive prompt; expectation 1 is the real discriminator."
   ]
 }
