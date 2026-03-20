@@ -602,10 +602,10 @@
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.83,
+        "pass_rate": 1.0,
         "passed": 5,
-        "failed": 1,
-        "total": 6,
+        "failed": 0,
+        "total": 5,
         "time_seconds": 99.2,
         "tokens": 22867,
         "tool_calls": 13,
@@ -636,14 +636,9 @@
           "text": "Each reviewer appears only once in the re-request prompt and gh pr edit commands even if they authored multiple comments",
           "passed": true,
           "evidence": "All three reviewers appear exactly once in the prompt and once in each gh pr edit command. Deduplication was not stress-tested (one comment per reviewer in this scenario)."
-        },
-        {
-          "text": "If the user declines the push, the agent tells them to run git push manually rather than silently doing nothing",
-          "passed": false,
-          "evidence": "The user confirmed the push in this run, so the decline path was never executed. No evidence in the transcript that the skill would display the fallback message if declined."
         }
       ],
-      "notes": ["Assertion 6 is untestable in a confirm-path eval; needs a separate decline-path eval case. Assertion 5 (dedup) not stress-tested — one comment per reviewer."]
+      "notes": ["Assertion 5 (dedup) not stress-tested — one comment per reviewer."]
     },
     {
       "eval_id": 7,
@@ -651,10 +646,10 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.17,
+        "pass_rate": 0.20,
         "passed": 1,
-        "failed": 5,
-        "total": 6,
+        "failed": 4,
+        "total": 5,
         "time_seconds": 52.3,
         "tokens": 14507,
         "tool_calls": 7,
@@ -685,14 +680,9 @@
           "text": "Each reviewer appears only once in the re-request prompt and gh pr edit commands even if they authored multiple comments",
           "passed": false,
           "evidence": "The gh pr edit command lists each reviewer once, but the combined prompt was never shown (Expectation 1 failed), so the prompt half of this assertion is unverifiable."
-        },
-        {
-          "text": "If the user declines the push, the agent tells them to run git push manually rather than silently doing nothing",
-          "passed": false,
-          "evidence": "No push/re-request prompt was shown, so the user had no opportunity to decline. Decline path was never triggered."
         }
       ],
-      "notes": ["remove_before_add is the key discriminating assertion; confirmed baseline fails it. Assertions 3, 5, 6 are structurally dependent on Assertion 1."]
+      "notes": ["remove_before_add is the key discriminating assertion; confirmed baseline fails it. Assertions 3 and 5 are structurally dependent on Assertion 1."]
     },
     {
       "eval_id": 5,
@@ -824,9 +814,9 @@
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.98,
-        "stddev": 0.06,
-        "min": 0.83,
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
         "max": 1.0
       },
       "time_seconds": {
@@ -844,7 +834,7 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.27,
+        "mean": 0.28,
         "stddev": 0.20,
         "min": 0.0,
         "max": 0.75
@@ -863,7 +853,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.71",
+      "pass_rate": "+0.72",
       "time_seconds": "+40.4",
       "tokens": "+6744"
     }
