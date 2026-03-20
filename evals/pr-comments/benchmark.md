@@ -12,7 +12,7 @@
 | Time | 85.2s ± 20.6s | 44.8s ± 7.2s | +40.4s |
 | Tokens | 10,787 ± 11,082 | 4,043 ± 6,219 | +6,744 |
 
-The skill adds ~40s and ~6,700 tokens overhead and improves correctness by +71 percentage points. The baseline fetches comments and applies basic edits, but consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, and thread resolution — the four behaviors the skill explicitly mandates.
+The skill adds ~40s and ~6,700 tokens overhead and improves correctness by +71 percentage points. The baseline fetches comments and applies basic edits, but consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, thread resolution, and the interactive push + re-request flow — these five behaviors the skill explicitly mandates.
 
 ## Per-Eval Results
 

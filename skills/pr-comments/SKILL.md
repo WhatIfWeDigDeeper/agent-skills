@@ -51,7 +51,7 @@ Also get the repo's owner/name for API calls:
 gh repo view --json nameWithOwner --jq '.nameWithOwner'
 ```
 
-**Ensure the working tree is on the PR's head branch.** If the current branch doesn't match `headRefName`, check for uncommitted changes first — `gh pr checkout` will fail or discard work if the tree is dirty:
+**Ensure the working tree is on the PR's head branch.** If the current branch doesn't match `headRefName`, check for uncommitted changes first — `gh pr checkout` will fail or may carry uncommitted changes onto the PR branch if the tree is dirty:
 
 ```bash
 git status --porcelain   # must be clean before switching branches
