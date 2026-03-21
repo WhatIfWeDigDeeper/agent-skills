@@ -3,6 +3,10 @@ name: Spell Check
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'skills/**/*.md'
+      - 'specs/**/*.md'
+      - 'cspell.config.yaml'
 
 jobs:
   cspell:
@@ -10,4 +14,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run cspell
-        run: npx --yes cspell "skills/**/*.md" "specs/**/*.md"
+        run: npx --yes cspell@8.14.2 "skills/**/*.md" "specs/**/*.md"
