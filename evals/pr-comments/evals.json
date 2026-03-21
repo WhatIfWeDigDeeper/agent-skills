@@ -152,6 +152,44 @@
         {"id": "presents-rerequest-prompt", "text": "The agent still presents a push/re-request prompt listing both commenters (they should see the replies)"},
         {"id": "skips-push-no-commit", "text": "When the user confirms, the agent skips git push (nothing new to push) and proceeds directly to re-requesting review"}
       ]
+    },
+    {
+      "id": 12,
+      "prompt": "Please address the review comments on my PR. There is one valid comment from @alice suggesting adding a docstring, and copilot-pull-request-reviewer[bot] suggested a null check fix. After addressing both, push and re-request review. Then poll for Copilot to finish re-reviewing — when it posts a new comment, process that too.",
+      "expected_output": "The skill implements both suggestions, commits, pushes, re-requests review from @alice (human) and copilot (bot). After re-request, offers to poll for Copilot. User confirms. Skill polls every 60 seconds. When a new unresolved thread from the bot appears, loops back to Step 2, presents a new plan, gets user confirmation, and processes the new thread (implements or declines). Final report includes poll duration and thread count.",
+      "files": [],
+      "assertions": [
+        {"id": "offers-poll-after-bot-rerequest", "text": "After re-requesting review from a bot, the agent offers to poll for the bot's response before proceeding to the report"},
+        {"id": "polls-using-graphql-thread-query", "text": "The agent polls by re-running the GraphQL thread query (Step 3) and comparing unresolved thread IDs against the pre-push snapshot"},
+        {"id": "loops-back-to-step-2-on-new-threads", "text": "When new unresolved threads are detected, the agent loops back to Step 2 (fetch comments) without requiring the user to re-invoke the skill"},
+        {"id": "presents-new-plan-for-bot-comments", "text": "The agent presents a new plan for the bot's new comments and waits for user confirmation before implementing"},
+        {"id": "report-includes-poll-line", "text": "The final report includes a line noting the poll duration and number of new threads found (e.g. 'Polled for @copilot review (~Ns) — found N new threads, processed above')"}
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Please address the review comments on my PR. There is one valid comment from copilot-pull-request-reviewer[bot]. After addressing it, push and re-request review. When asked about polling, decline — I'll check manually.",
+      "expected_output": "The skill implements the suggestion, commits, pushes, re-requests the bot via REST. Offers to poll. User declines. The skill does NOT poll or wait, and proceeds directly to the report without a poll line.",
+      "files": [],
+      "assertions": [
+        {"id": "offers-poll-prompt", "text": "The agent offers to poll for the bot's response after re-requesting the bot reviewer"},
+        {"id": "does-not-poll-when-declined", "text": "When the user declines polling, the agent does NOT poll or sleep"},
+        {"id": "no-poll-line-in-report", "text": "The final report does not include a polling line when the user declined to poll"},
+        {"id": "poll-not-offered-for-human-only", "text": "The poll offer is specific to bot reviewers — if only humans were re-requested, no poll prompt is shown"}
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Please address the review comments on my PR. There is one valid comment from copilot-pull-request-reviewer[bot]. After addressing it, push and re-request review. Poll for Copilot — but Copilot doesn't respond within 10 minutes.",
+      "expected_output": "The skill implements the suggestion, pushes, re-requests. Offers to poll. User confirms. Skill polls every 60 seconds for up to 10 minutes. No new threads appear. Skill prints the timeout message and exits without looping back.",
+      "files": [],
+      "assertions": [
+        {"id": "polls-at-60s-interval", "text": "The agent polls at approximately 60-second intervals, not continuously"},
+        {"id": "gives-up-after-10-minutes", "text": "The agent stops polling after 10 minutes if no new threads appear"},
+        {"id": "prints-timeout-message", "text": "On timeout, the agent prints a message telling the user to run the skill manually when the review is ready"},
+        {"id": "no-loop-on-timeout", "text": "The agent does not loop back to Step 2 on timeout — it exits the poll loop and reports"},
+        {"id": "no-loop-depth-exceeded", "text": "The agent does not re-offer polling after the second round (loop depth is capped at one poll cycle per invocation)"}
+      ]
     }
   ]
 }

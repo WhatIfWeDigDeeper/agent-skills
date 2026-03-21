@@ -11,7 +11,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.1"
+  version: "1.2"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -250,7 +250,34 @@ Push and re-request review from @user1, @user2?
      --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
    ```
 
-**If the user declines**, note that they can run `git push` and re-request review manually from the PR page when ready.
+**If bot reviewers were re-requested**, offer to poll for the bot's response after the re-request completes:
+
+```
+Poll for @copilot to finish reviewing? I'll wait and process new comments automatically when it's done (~2–5 min).
+```
+
+Only offer this when at least one bot reviewer was re-requested in this run. Do not offer for human-only re-requests — human review timing is unpredictable.
+
+**If the user confirms polling:**
+
+Record the current set of unresolved thread node IDs (from Step 3) as a snapshot. Then poll every 60 seconds using the same GraphQL thread query from Step 3, comparing the new unresolved thread set against the snapshot. When new unresolved threads appear, the bot has finished reviewing.
+
+```bash
+# Re-run the Step 3 GraphQL query and compare unresolved thread IDs against the pre-push snapshot
+gh api graphql -f query='...' | jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | .id]'
+```
+
+Give up after 10 minutes. If the bot hasn't responded by then, print:
+
+> "@copilot hasn't responded yet. Run `/pr-comments` manually when the review is ready."
+
+When new threads are detected, loop back to Step 2 within the same skill invocation — do not require the user to re-invoke the skill. Run the full workflow again (Steps 2–14), including the plan/confirm gate (Step 7). Nothing is applied automatically.
+
+**Loop depth**: poll and process once per invocation. After the second round completes, do not re-offer polling. The user can invoke the skill again manually for further rounds.
+
+**If the user declines polling**, proceed to the report as normal.
+
+**If the user declines** the push/re-request prompt, note that they can run `git push` and re-request review manually from the PR page when ready.
 
 ### 14. Report
 
@@ -272,6 +299,12 @@ If the branch was not pushed (Step 10 was skipped — all threads declined/outda
 If the user declined to push at the Step 13 prompt, replace the push/re-request line with: "Commit not pushed — run `git push` and re-request review manually from the PR page when ready."
 
 If there were no reviewers to re-request (for example, all threads were outdated or had no replies, so the deduplicated reviewer list in Step 13 was empty), either omit the push/re-request line or replace it with: "No reviewers to re-request (all threads outdated/no replies)."
+
+If the poll-and-process path was taken (bot responded and a second round was processed), add a line before the action list: "Polled for @copilot review (~Ns) — found N new threads, processed above."
+
+If the bot poll timed out, replace that line with: "@copilot hasn't responded yet. Run `/pr-comments` manually when the review is ready."
+
+If the user declined polling or no bot reviewers were re-requested, omit the poll line.
 
 ## Notes
 
