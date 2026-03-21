@@ -61,8 +61,9 @@ Add eval 15:
 - Add a sub-step (Step 2b) after fetching inline comments:
 
   ```bash
-  gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews \
-    --jq '.[] | select(.body != "" and .body != null) | {id, body, state, submitted_at, author: .user.login}'
+  gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
+    --jq '.[] | select((.state == "CHANGES_REQUESTED" or .state == "COMMENTED") and .body != "" and .body != null) | {id, body, state, submitted_at, author: .user.login}' \
+    | jq -s '.'
   ```
 
 - Filter for reviews in `CHANGES_REQUESTED` or `COMMENTED` state with non-empty bodies.
@@ -83,7 +84,7 @@ Add eval 15:
   ```bash
   gh issue create \
     --title "Follow-up: <one-line summary>" \
-    --body "Suggested in PR #N by @reviewer.\n\n<comment body>"
+    --body $'Suggested in PR #N by @reviewer.\n\n<comment body>'
   ```
 - This is per-comment (not batch). Injection-flagged declines do not get this offer.
 

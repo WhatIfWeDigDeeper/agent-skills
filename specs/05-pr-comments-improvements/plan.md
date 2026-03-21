@@ -55,8 +55,9 @@ Some reviewers write their main feedback in the review summary body (submitted w
 **Design:** In Step 2 (or as a new Step 2b), also fetch top-level review bodies:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews \
-  --jq '.[] | select(.body != "" and .body != null) | {id, body, state, submitted_at, author: .user.login}'
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
+  --jq '.[] | select((.state == "CHANGES_REQUESTED" or .state == "COMMENTED") and .body != "" and .body != null) | {id, body, state, submitted_at, author: .user.login}' \
+  | jq -s '.'
 ```
 
 Filter for reviews in state `CHANGES_REQUESTED` or `COMMENTED` with non-empty bodies. Present them in the plan table as a separate category (e.g. action `review-body`) so the user knows they exist. Do not attempt to resolve or reply to these via thread APIs — they use a different endpoint. Instead, surface them as FYI items with a note that they require manual response.
@@ -79,7 +80,7 @@ If confirmed, run:
 ```bash
 gh issue create \
   --title "Follow-up: <one-line summary from comment>" \
-  --body "Suggested in PR #N by @reviewer.\n\n<comment body>"
+  --body $'Suggested in PR #N by @reviewer.\n\n<comment body>'
 ```
 
 This is opt-in per declined comment (not batch), so the user controls which suggestions become issues.
