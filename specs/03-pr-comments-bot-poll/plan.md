@@ -43,7 +43,7 @@ After the user approves the new plan, execute as normal (Steps 8–14).
 
 ### Loop Depth
 
-Poll and process **once** per invocation — do not re-offer polling after the second round of bot comments. The user can invoke `/pr-comments` again manually if further rounds are needed. This keeps the skill simple and avoids infinite loops.
+After each round that re-requests a bot reviewer, offer to poll again — the user decides each time whether to continue. This lets the user stay in the loop for multi-round bot reviews without re-invoking the skill. (Original design capped at one cycle; updated during implementation to give users more control.)
 
 ### Report
 
