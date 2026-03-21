@@ -21,6 +21,8 @@ specs/
 
 Evals live under `evals/` at the repo root, not inside `skills/` — they are development artifacts and should not be bundled when a skill is distributed.
 
+**Spec step numbers drift**: When editing or reviewing specs for an existing skill, verify step numbers (e.g. "Step 5", "Step 6") against the current SKILL.md — they shift as skills evolve and specs can silently fall out of sync.
+
 **Eval fixtures with intentionally old/pinned versions** (e.g. `evals/uv-deps/fixtures/`) may conflict when a skill like `uv-deps` runs on main and updates those same files. During a merge, keep `--ours` to preserve the intentionally pinned versions.
 
 ## Skill Definition Format
@@ -80,6 +82,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **Never rewrite history on a PR that has review comments** (from humans or bots). This means no force push, no `git rebase`, no `git commit --amend` on pushed commits. Rewriting history detaches inline comments from their source lines and disrupts reviewers who have already pulled the branch. If commits need fixing after comments exist, add a new commit instead. Squash happens at merge time.
 - This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI).
 - After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge. **Before running `git reset --hard`, check for uncommitted changes (`git status`). If any exist, stash them first (`git stash`) or ask the user — do not silently discard them.**
+- After merging and syncing main, ask the user: "Want to run `/learn` to capture any lessons from this session?"
 - After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
   ```bash
   # Get thread IDs
