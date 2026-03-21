@@ -19,13 +19,16 @@ words:
   - lockfiles
   - mktemp
   - mongosh
+  - myorg
   - mypy
+  - myrepo
   - nuxt
   - oneline
   - opusplan
   - osascript
   - pipenv
   - PREOF
+  - PRRT
   - psql
   - pyproject
   - PYSEC
