@@ -127,6 +127,7 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 
 - **Proactively offer next steps** at natural milestones (eval run complete, skill review done, PR merged, etc.). Don't wait for the user to ask "what should we do next?" — present a short prioritized list of options and let them choose.
 - **Never bundle irreversible actions into option descriptions.** When presenting choices, keep destructive or hard-to-reverse steps (merging a PR, force-pushing, deleting branches) separate from preparatory work. Even if merging is the obvious next step after a cleanup, complete the reversible work first, then explicitly ask "ready to merge?" before executing. A user selecting option "1" authorizes the work described, not every downstream consequence implied by the framing.
+- **Suggest a fresh conversation on topic changes.** When the user starts work on an unrelated skill, feature, or task and the current conversation already has significant history (compressed messages, multiple completed tasks), suggest starting a new conversation to avoid stale context bleeding into unrelated work.
 
 ## Persisting Learnings
 
