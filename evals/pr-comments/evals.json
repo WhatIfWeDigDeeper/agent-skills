@@ -114,6 +114,44 @@
         {"id": "does-not-rerequest-when-declined", "text": "When the user declines, the agent does NOT run gh pr edit --add-reviewer or --remove-reviewer"},
         {"id": "tells-user-to-push-manually", "text": "The agent explicitly tells the user to run git push manually (or equivalent) rather than silently stopping"}
       ]
+    },
+    {
+      "id": 9,
+      "prompt": "Please address the review comments on my PR. Two threads have feedback: @alice suggested improving error messages (valid), and copilot-pull-request-reviewer[bot] suggested adding a missing null check (valid). After addressing them, push and re-request review from both.",
+      "expected_output": "The skill implements both suggestions, commits with Co-authored-by credit for alice and copilot-pull-request-reviewer[bot], then presents 'Push and re-request review from @alice, @copilot?' On confirmation, runs git push. Re-requests @alice via gh pr edit (--remove-reviewer then --add-reviewer). Re-requests the bot via the REST requested_reviewers endpoint (DELETE then POST), NOT gh pr edit, because gh pr edit rejects bot accounts.",
+      "files": [],
+      "assertions": [
+        {"id": "splits-human-and-bot-reviewers", "text": "The agent separates human reviewers (@alice) from bot reviewers (copilot-pull-request-reviewer[bot]) when re-requesting review"},
+        {"id": "human-via-gh-pr-edit", "text": "Human reviewers are re-requested via gh pr edit --remove-reviewer / --add-reviewer"},
+        {"id": "bot-via-rest-api", "text": "Bot reviewers are re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit"},
+        {"id": "bot-display-name-shortened", "text": "The push/re-request prompt uses the shortened bot handle (e.g. @copilot) not the full login with [bot] suffix"},
+        {"id": "pushes-branch-on-confirm", "text": "When the user confirms, the agent runs git push before re-requesting reviewers"}
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Please address the review comments on my PR. There are three threads, but all of them are marked as outdated — the code has already changed past those comments.",
+      "expected_output": "The skill fetches comments and thread state, recognizes all three threads are outdated, skips them without posting replies, makes no code changes, and does not present a push/re-request prompt (reviewer list is empty). Final report says no open review threads were acted upon.",
+      "files": [],
+      "assertions": [
+        {"id": "skips-all-outdated-threads", "text": "The agent skips all three outdated threads without posting replies to any of them"},
+        {"id": "no-commit-made", "text": "The agent does not create a commit (there are no changes to implement)"},
+        {"id": "no-push-rerequest-prompt", "text": "The agent does NOT present a push/re-request prompt because the reviewer list is empty (no threads were replied to or implemented)"},
+        {"id": "report-notes-all-skipped", "text": "The final report notes that all threads were outdated and skipped"}
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Please address the review comments on my PR. There are two threads: one reviewer asked a clarifying question about why a particular design decision was made (needs a reply but no code change), and another asked whether a TODO comment is still relevant (same — just needs an answer). No code changes are needed.",
+      "expected_output": "The skill classifies both threads as 'reply' (no code changes). It posts answers to both clarifying questions via the replies endpoint without resolving either thread. No commit is created. The push/re-request prompt is still presented (the commenter list includes both question authors). On confirmation, the skill skips git push (no new commits) and re-requests review from both commenters.",
+      "files": [],
+      "assertions": [
+        {"id": "classifies-both-as-reply", "text": "The agent classifies both threads as 'reply' in the plan (not 'fix' or 'decline')"},
+        {"id": "posts-replies-without-resolving", "text": "The agent posts replies to both comments but does NOT resolve either thread"},
+        {"id": "no-commit-for-reply-only", "text": "The agent does not create a commit because there are no code changes to implement"},
+        {"id": "presents-rerequest-prompt", "text": "The agent still presents a push/re-request prompt listing both commenters (they should see the replies)"},
+        {"id": "skips-push-no-commit", "text": "When the user confirms, the agent skips git push (nothing new to push) and proceeds directly to re-requesting review"}
+      ]
     }
   ]
 }
