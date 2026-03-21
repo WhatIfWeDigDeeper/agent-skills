@@ -228,7 +228,7 @@ Push and re-request review from @user1, @user2?
 
 **If the user confirms:**
 
-1. Push the branch:
+1. Push the branch (skip if no commit was made in Step 10 — there is nothing new to push):
    ```bash
    git push
    ```

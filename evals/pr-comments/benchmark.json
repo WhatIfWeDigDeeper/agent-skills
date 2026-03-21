@@ -20,6 +20,7 @@
   "runs": [
     {
       "eval_id": 1,
+      "eval_name": "basic-address-comments",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -73,6 +74,7 @@
     },
     {
       "eval_id": 3,
+      "eval_name": "out-of-scope-decline",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -131,6 +133,7 @@
     },
     {
       "eval_id": 6,
+      "eval_name": "deduped-coauthors-clarifying",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -174,6 +177,7 @@
     },
     {
       "eval_id": 2,
+      "eval_name": "explicit-pr-suggestions",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -227,6 +231,7 @@
     },
     {
       "eval_id": 4,
+      "eval_name": "mixed-four-categories",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -285,6 +290,7 @@
     },
     {
       "eval_id": 5,
+      "eval_name": "outdated-threads",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -333,6 +339,7 @@
     },
     {
       "eval_id": 1,
+      "eval_name": "basic-address-comments",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -386,6 +393,7 @@
     },
     {
       "eval_id": 3,
+      "eval_name": "out-of-scope-decline",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -444,6 +452,7 @@
     },
     {
       "eval_id": 6,
+      "eval_name": "deduped-coauthors-clarifying",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -487,6 +496,7 @@
     },
     {
       "eval_id": 2,
+      "eval_name": "explicit-pr-suggestions",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -540,6 +550,7 @@
     },
     {
       "eval_id": 4,
+      "eval_name": "mixed-four-categories",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -615,12 +626,12 @@
         {
           "text": "After committing, the agent presents a combined prompt offering to push and re-request review listing the relevant commenters by GitHub handle",
           "passed": true,
-          "evidence": "Step 13 shows the prompt: 'Push and re-request review from @priya-reviewer, @marcus-dev, @zach-architect?' — all three commenters listed by handle, presented as a single combined offer after the commit in Step 10."
+          "evidence": "Step 13 shows the prompt: 'Push and re-request review from @priya-reviewer, @marcus-dev, @zach-architect?' \u2014 all three commenters listed by handle, presented as a single combined offer after the commit in Step 10."
         },
         {
           "text": "The declined commenter is included in the re-request list (they should see the reply), not just the Co-authored-by reviewers",
           "passed": true,
-          "evidence": "@zach-architect authored the declined comment (not in Co-authored-by). They appear in the prompt and in both gh pr edit commands alongside the two Co-authored-by reviewers. Step 13 explicitly notes: '@zach-architect is included in the re-request even though their comment was declined — they received a reply explaining the decision and should have the opportunity to respond or follow up.'"
+          "evidence": "@zach-architect authored the declined comment (not in Co-authored-by). They appear in the prompt and in both gh pr edit commands alongside the two Co-authored-by reviewers. Step 13 explicitly notes: '@zach-architect is included in the re-request even though their comment was declined \u2014 they received a reply explaining the decision and should have the opportunity to respond or follow up.'"
         },
         {
           "text": "When the user confirms, the agent runs git push to push the branch",
@@ -638,7 +649,9 @@
           "evidence": "All three reviewers appear exactly once in the prompt and once in each gh pr edit command. Deduplication was not stress-tested (one comment per reviewer in this scenario)."
         }
       ],
-      "notes": ["Assertion 5 (dedup) not stress-tested — one comment per reviewer."]
+      "notes": [
+        "Assertion 5 (dedup) not stress-tested \u2014 one comment per reviewer."
+      ]
     },
     {
       "eval_id": 7,
@@ -646,7 +659,7 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.20,
+        "pass_rate": 0.2,
         "passed": 1,
         "failed": 4,
         "total": 5,
@@ -664,7 +677,7 @@
         {
           "text": "The declined commenter is included in the re-request list (they should see the reply), not just the Co-authored-by reviewers",
           "passed": true,
-          "evidence": "Step 7 shows 'gh pr edit 47 --repo myorg/myrepo --add-reviewer alice,bob,carol' — carol (declined commenter) is explicitly included. metrics.json shows declined_in_rerequest: true."
+          "evidence": "Step 7 shows 'gh pr edit 47 --repo myorg/myrepo --add-reviewer alice,bob,carol' \u2014 carol (declined commenter) is explicitly included. metrics.json shows declined_in_rerequest: true."
         },
         {
           "text": "When the user confirms, the agent runs git push to push the branch",
@@ -682,10 +695,13 @@
           "evidence": "The gh pr edit command lists each reviewer once, but the combined prompt was never shown (Expectation 1 failed), so the prompt half of this assertion is unverifiable."
         }
       ],
-      "notes": ["remove_before_add is the key discriminating assertion; confirmed baseline fails it. Assertions 3 and 5 are structurally dependent on Assertion 1."]
+      "notes": [
+        "remove_before_add is the key discriminating assertion; confirmed baseline fails it. Assertions 3 and 5 are structurally dependent on Assertion 1."
+      ]
     },
     {
       "eval_id": 5,
+      "eval_name": "outdated-threads",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -751,7 +767,7 @@
         {
           "text": "The agent presents a combined prompt offering to push and re-request review, listing commenters by handle, before doing anything",
           "passed": true,
-          "evidence": "Step 13 shows the agent outputs: 'Push and re-request review from @alice, @bob?' — a single combined prompt listing both reviewer handles by @-mention, presented before taking any push or re-request action."
+          "evidence": "Step 13 shows the agent outputs: 'Push and re-request review from @alice, @bob?' \u2014 a single combined prompt listing both reviewer handles by @-mention, presented before taking any push or re-request action."
         },
         {
           "text": "When the user declines the push, the agent does NOT run git push",
@@ -766,7 +782,7 @@
         {
           "text": "The agent explicitly tells the user to run git push manually (or equivalent) rather than silently stopping",
           "passed": true,
-          "evidence": "After the user declines, the agent responds: 'When you're ready, run: git push' and Step 14 report reiterates: 'Commit not pushed — run `git push` when ready.' Not a silent stop."
+          "evidence": "After the user declines, the agent responds: 'When you're ready, run: git push' and Step 14 report reiterates: 'Commit not pushed \u2014 run `git push` when ready.' Not a silent stop."
         }
       ],
       "notes": []
@@ -808,7 +824,9 @@
           "evidence": "Step 7 includes an explicit git push command with the branch name as a manual instruction. metrics.json confirms manual_push_instruction_given: true."
         }
       ],
-      "notes": ["Expectations 2 and 3 pass trivially — no interactive prompt was shown so the 'decline' path was never triggered. Expectation 1 is the sole discriminating assertion for this eval."]
+      "notes": [
+        "Expectations 2 and 3 pass trivially \u2014 no interactive prompt was shown so the 'decline' path was never triggered. Expectation 1 is the sole discriminating assertion for this eval."
+      ]
     }
   ],
   "run_summary": {
@@ -835,7 +853,7 @@
     "without_skill": {
       "pass_rate": {
         "mean": 0.28,
-        "stddev": 0.20,
+        "stddev": 0.2,
         "min": 0.0,
         "max": 0.75
       },
@@ -860,6 +878,6 @@
   },
   "notes": [
     "Eval 7 tests the Step 13 push+re-request confirm path (v1.1). One assertion (decline fallback in a confirm-path eval) is structurally untestable and is closed by eval 8.",
-    "Eval 8 tests the Step 13 decline path. Without-skill 75% is inflated — expectations 2 and 3 pass trivially since the baseline never shows an interactive prompt; expectation 1 is the real discriminator."
+    "Eval 8 tests the Step 13 decline path. Without-skill 75% is inflated \u2014 expectations 2 and 3 pass trivially since the baseline never shows an interactive prompt; expectation 1 is the real discriminator."
   ]
 }
