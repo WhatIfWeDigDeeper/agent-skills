@@ -14,7 +14,7 @@ Add eval 15:
 
 **File:** `evals/pr-comments/benchmark.json`
 
-- Add a placeholder `with_skill` and `without_skill` run for eval 15 (pass_rate: null or 0, noting it is unrun).
+- Ensure eval 15 has `with_skill` and `without_skill` runs recorded with actual results (no placeholder `pass_rate` values).
 - Backfill `eval_name` for any existing runs that lack it (check all 14 existing eval entries).
 
 **File:** `evals/pr-comments/benchmark.md`

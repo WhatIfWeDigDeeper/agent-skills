@@ -307,7 +307,7 @@
         "failed": 2,
         "total": 5,
         "time_seconds": 44.6,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 8,
         "errors": 0
       },

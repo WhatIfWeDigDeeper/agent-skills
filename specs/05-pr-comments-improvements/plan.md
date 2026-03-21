@@ -115,7 +115,7 @@ Update the Step 13 description and the Note in the Notes section.
 ## Files to Modify
 
 1. `evals/pr-comments/evals.json` — add eval 15 (security screening)
-2. `evals/pr-comments/benchmark.json` — add placeholder run for eval 15; backfill `eval_name` for any runs missing it
+2. `evals/pr-comments/benchmark.json` — add benchmark run for eval 15; backfill `eval_name` for any runs missing it
 3. `evals/pr-comments/benchmark.md` — add eval 15 row to per-eval table
 4. `skills/pr-comments/SKILL.md`
    - Step 1: add `author` to `--json` fields
