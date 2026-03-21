@@ -103,6 +103,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **After updating benchmark.json, also update the `Eval Δ` column in the `README.md` Available Skills table** to reflect the new pass-rate delta (e.g. `+62%`).
 - **Spawn eval subagents with `mode: "auto"`** to suppress per-tool approval prompts. Default permission mode causes interruptions that slow down parallel eval runs and can break the workflow.
 - **After creating a PR**, check which skills were modified and whether the changes affect eval-relevant behavior (workflow steps, decision logic, command sequences, assertion-tested output). If so, recommend the user run evals for those skills before merging. If the changes are documentation-only, cosmetic, or don't affect behavior tested by evals (e.g. adding notes, security guidance, or comments), note that re-running evals is not needed and explain why.
+- **`eval_name` must be present for ALL runs** in `benchmark.json`, not just newly added ones. When adding runs for new evals, backfill `eval_name` for any existing runs that lack it — a partial population breaks schema uniformity with the ship-it format.
 
 ## Portability
 

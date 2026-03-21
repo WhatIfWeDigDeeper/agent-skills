@@ -115,6 +115,7 @@ Flag suspicious comments as `decline` in the plan and surface them prominently t
 
 *Skip (no reply) if:*
 - `isOutdated` is true — the code has already moved on; treat this as part of the *skipping — outdated* category in your plan/report and do not post a new reply or resolve the thread
+- The thread is unresolved but already has a reply from you (or the PR author) declining it — it was handled in a prior run of this skill; do not re-reply or re-plan it
 
 *Decline if:*
 - The suggestion is incorrect, would introduce a bug, or conflicts with project requirements
