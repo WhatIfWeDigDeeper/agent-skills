@@ -22,7 +22,7 @@ Work through open PR review threads — implement valid suggestions, explain why
 
 Optional PR number (e.g. `42`). If omitted, detect from the current branch. The argument is the text following the skill invocation (in Claude Code: `/pr-comments 42`); in other assistants it may be passed differently.
 
-If the argument is `help`, `--help`, `-h`, or `?`, print usage and exit.
+If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, print usage and exit.
 
 ## Tool choice rationale
 
@@ -267,7 +267,9 @@ Pushed and re-requested review from @user1, @user2
 
 If nothing was implemented (all declined or outdated), replace the first line with: "No changes — all threads declined or outdated."
 
-If the branch was not pushed, replace the push/re-request line with: "Commit not pushed — run `git push` and re-request review manually from the PR page when ready."
+If the branch was not pushed (Step 10 was skipped — all threads declined/outdated) but review was still re-requested, replace the push/re-request line with: "Re-requested review from @user1, @user2 (no new commits to push)."
+
+If the user declined to push at the Step 13 prompt, replace the push/re-request line with: "Commit not pushed — run `git push` and re-request review manually from the PR page when ready."
 
 If there were no reviewers to re-request (for example, all threads were outdated or had no replies, so the deduplicated reviewer list in Step 13 was empty), either omit the push/re-request line or replace it with: "No reviewers to re-request (all threads outdated/no replies)."
 
