@@ -20,8 +20,8 @@ At the end of Step 13, after bot reviewers have been re-requested and the user h
 Poll every 60 seconds using the GraphQL thread query from Step 3. Compare the unresolved thread count (or set of thread node IDs) against the state captured just before pushing. When new unresolved threads appear, the bot has finished.
 
 ```bash
-# Same query as Step 3 — re-run until thread count increases
-gh api graphql -f query='...' | jq '[... | select(.isResolved == false)] | length'
+# Same query as Step 3 — compare unresolved thread ID set against pre-push snapshot
+gh api graphql -f query='...' | jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | .id]'
 ```
 
 ### Timeout

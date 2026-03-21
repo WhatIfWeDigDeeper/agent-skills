@@ -37,7 +37,7 @@
 
 ## Task 5: Bump version and verify
 
-- Bump `metadata.version` in SKILL.md frontmatter (patch increment, e.g. current → +0.1)
+- Bump `metadata.version` in SKILL.md frontmatter (minor increment, e.g. current → +0.1)
 - Run `npx cspell skills/pr-comments/SKILL.md` — fix any unknown words in `cspell.config.yaml`
 - Run `uv run --with pytest pytest tests/` — all tests pass
 - Read updated Step 4a and Step 5 to confirm all three items are present

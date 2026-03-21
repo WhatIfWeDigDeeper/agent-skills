@@ -5,8 +5,6 @@ Tests for Step 13 bot poll routing logic:
 - Poll not offered when reviewer list is empty
 """
 
-import pytest
-
 from conftest import is_bot_login, should_offer_poll, split_human_bot
 
 

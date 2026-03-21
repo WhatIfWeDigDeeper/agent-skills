@@ -8,7 +8,7 @@
     - Polling logic: 60s interval, GraphQL thread query, compare thread IDs against pre-push snapshot
     - Timeout at 10 minutes with fallback message
     - On detection: loop back to Step 2, run through to Step 7 (plan/confirm gate), then Steps 8–14
-    - Loop depth: once per invocation
+    - Loop behavior: re-offer polling after each round that re-requests a bot reviewer; user decides each time
   - Update Step 14 report template to include the poll path variant
 
 ## Evals
