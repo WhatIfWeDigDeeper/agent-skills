@@ -17,7 +17,7 @@ At the end of Step 13, after bot reviewers have been re-requested and the user h
 
 ### Polling
 
-Poll every 60 seconds using the GraphQL thread query from Step 3. Compare the unresolved thread count (or set of thread node IDs) against the state captured just before pushing. When new unresolved threads appear, the bot has finished.
+Poll every 60 seconds using the GraphQL thread query from Step 3. Compare the set of unresolved thread node IDs against the snapshot captured just before pushing. When new unresolved threads appear, the bot has finished.
 
 ```bash
 # Same query as Step 3 — compare unresolved thread ID set against pre-push snapshot
@@ -71,7 +71,7 @@ Also adds evals 12–14 (bot-poll-confirms, bot-poll-declined, bot-poll-timeout)
 - Polling for human reviewers
 - Automatically applying changes without a plan/confirm gate
 - Infinite re-poll loops
-- Support for multiple simultaneous bot reviewers (handle the first bot; if multiple bots were re-requested, poll until any one responds)
+- Support for multiple simultaneous bot reviewers; only a single bot reviewer is supported per run
 
 ## Tasks
 

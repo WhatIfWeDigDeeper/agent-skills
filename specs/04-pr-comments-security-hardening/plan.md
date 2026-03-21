@@ -54,4 +54,4 @@ Add a note to Step 4a making the intent explicit: the screening step must be app
 - Read updated Step 5: confirm diff-validation rule is present for suggestion acceptance.
 - `npx cspell skills/pr-comments/SKILL.md` — no unknown words.
 - Run `uv run --with pytest pytest tests/pr-comments/` if tests exist for this skill.
-- Bump `metadata.version` in SKILL.md frontmatter (patch increment).
+- Bump `metadata.version` in SKILL.md frontmatter with a minor increment (e.g. +0.1).
