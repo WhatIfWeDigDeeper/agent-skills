@@ -271,6 +271,8 @@ Give up after 10 minutes. If the bot hasn't responded by then, print:
 
 > "@<bot-handle> hasn't responded yet. Re-invoke the pr-comments skill when the review is ready (in Claude Code: `/pr-comments`)."
 
+Then proceed to Step 14 (report) and end the invocation — do not loop back to Step 2 on timeout.
+
 When new threads are detected, loop back to Step 2 within the same skill invocation — do not require the user to re-invoke the skill. Run the full workflow again (Steps 2–14), including the plan/confirm gate (Step 7). Nothing is applied automatically. After each subsequent round that re-requests a bot reviewer, offer to poll again — the user decides each time whether to continue.
 
 **If the user declines polling**, proceed to the report as normal.
