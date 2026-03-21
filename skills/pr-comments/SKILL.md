@@ -162,7 +162,7 @@ Handle accepted suggestions together with regular manual changes in Step 9. Ther
 
 Make each manual code change. Group changes in the same file into a single edit pass. Keep track of which thread corresponds to which change, and which GitHub login authored each suggestion.
 
-If all threads were declined or marked as outdated and there is nothing to implement, skip the commit and proceed directly to Step 11.
+If there are no code changes to implement (for example, all threads were declined, marked as outdated, or only required a reply), skip the commit and proceed directly to Step 11.
 
 ### 10. (If Changes Were Made) Commit with Commenter Credit
 
@@ -215,11 +215,11 @@ Do not resolve declined threads — leave them open so the reviewer can see your
 Collect all commenters whose feedback was processed (implemented, accepted, declined, or replied to). Build this list from three sources and then deduplicate it:
 - The `Co-authored-by` usernames from Step 10 (for feedback that resulted in commits).
 - The authors of any declined comments.
-- The authors of any comments you replied to via the replies REST endpoint (including clarifying questions you answered without implementing or explicitly declining), using the `user.login` from the original comments you replied to.
+- The authors of any comments you replied to via the replies REST endpoint (including clarifying questions you answered without implementing or explicitly declining), using the `author` field from Step 2 (which should contain the original `user.login` from the REST API).
 
 If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted), skip this step and proceed to the report.
 
-**Display names for bot accounts**: The REST comments API returns `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), not the short handle users recognize (e.g. `copilot`). When building the prompt, use the short handle for display — strip any trailing `[bot]` suffix first, then strip the `-pull-request-reviewer` suffix if present. Use the full login (including any `[bot]` suffix) for the actual API calls.
+**Display names for bot accounts**: The REST comments API exposes each commenter's login as `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), which you should store or reference as the `author` value from Step 2. When building the prompt, use the short handle for display — strip any trailing `[bot]` suffix first, then strip the `-pull-request-reviewer` suffix if present. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
 Present a single combined prompt:
 
