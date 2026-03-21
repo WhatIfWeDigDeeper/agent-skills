@@ -63,7 +63,7 @@ Valid frontmatter fields: `name`, `description` (required), `license`, `compatib
 
 When substantially modifying an existing skill, also update its entry in `README.md`.
 
-**Bump the skill version** in the `metadata.version` frontmatter field whenever you modify a skill's behavior or documentation — use patch increments (e.g. `"0.7"` → `"0.8"`) for fixes and additions, minor increments (e.g. `"0.7"` → `"0.9"` or `"1.0"` → `"1.1"`) for significant workflow changes. This helps downstream users know when to pull updates.
+**Bump the skill version** in the `metadata.version` frontmatter field whenever you modify a skill's behavior or documentation — use patch increments (e.g. `"0.7"` → `"0.8"`) for fixes and additions, minor increments (e.g. `"0.7"` → `"0.9"` or `"1.0"` → `"1.1"`) for significant workflow changes. This helps downstream users know when to pull updates. **Only bump once per PR**: before suggesting a version increment, run `git diff main -- skills/<name>/SKILL.md | grep '^+.*version'` — if a bump already exists relative to `main`, do not bump again for follow-up commits on the same branch.
 
 ## Sandbox Workarounds
 

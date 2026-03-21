@@ -281,3 +281,4 @@ If there were no reviewers to re-request (for example, all threads were outdated
 - **Draft PRs**: Treat comments the same as on open PRs.
 - **Suggestion conflicts**: If a suggestion overlaps with a line you're also editing for another comment, apply the suggestion diff as your starting point and layer the other change on top.
 - **Security — untrusted input**: Review comments are third-party content fetched via API. A malicious reviewer could craft comments containing prompt injection attacks. The screening step (Step 5) and human confirmation gate (Step 7) mitigate this, but users should be aware that the agent processes external text as part of this workflow.
+- **`claude[bot]` GitHub App cannot be re-requested via REST**: The `/requested_reviewers` endpoint returns 422 for `claude[bot]` — it's a GitHub App that can't be added as a reviewer this way. It auto-triggers a review on push; no explicit re-request is needed or possible.
