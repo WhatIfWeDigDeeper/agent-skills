@@ -52,7 +52,7 @@ def classify_comment(comment: dict) -> str:
 def extract_suggestion_content(body: str) -> str | None:
     """Extract the content of a ```suggestion block from a comment body.
 
-    Per SKILL.md Step 7, the content between ```suggestion and ``` is
+    Per SKILL.md Step 8, the content between ```suggestion and ``` is
     the exact replacement for the highlighted lines.
     """
     match = re.search(r"```suggestion\b[^\n]*\n(.*?)```", body, re.DOTALL)
@@ -80,7 +80,7 @@ def build_reviewer_list(
 def extract_coauthors(comments: list[dict]) -> list[str]:
     """Extract unique comment authors for Co-authored-by trailers.
 
-    Per SKILL.md Step 9, deduplicate — one entry per person.
+    Per SKILL.md Step 10, deduplicate — one entry per person.
     """
     authors = []
     seen = set()

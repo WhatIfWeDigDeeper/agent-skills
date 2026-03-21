@@ -269,6 +269,8 @@ If nothing was implemented (all declined or outdated), replace the first line wi
 
 If the branch was not pushed, replace the push/re-request line with: "Commit not pushed — run `git push` and re-request review manually from the PR page when ready."
 
+If there were no reviewers to re-request (for example, all threads were outdated or had no replies, so the deduplicated reviewer list in Step 13 was empty), either omit the push/re-request line or replace it with: "No reviewers to re-request (all threads outdated/no replies)."
+
 ## Notes
 
 - **Keyring access required**: `gh` needs OS keyring/credential helper access. If your assistant runs in a sandbox, ensure it can reach the OS keyring.
