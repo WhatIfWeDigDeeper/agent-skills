@@ -46,6 +46,7 @@ words:
   - vitest
   - vulns
   - whatifwedigdeeper
+  - wordlist
   - worktree
   - worktrees
 ignoreWords: []
