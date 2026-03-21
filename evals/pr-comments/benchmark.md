@@ -9,7 +9,7 @@
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
 | Pass Rate | **100%** ± 0% | 25% ± 14% | **+75%** |
-| Time | 23.9s ± 42.9s | 17.7s ± 30.5s | +6.2s |
+| Time | 18.8s ± 37.6s | 13.9s ± 26.8s | +4.9s |
 | Tokens | 0 ± 0 | 0 ± 0 | 0 |
 
 The skill improves correctness by +75 percentage points. The baseline fetches comments and applies basic edits, but consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, thread resolution, the interactive push + re-request flow, and the bot poll sub-step — these behaviors the skill explicitly mandates.

@@ -256,7 +256,7 @@ Push and re-request review from @user1, @user2?
 Poll for @<bot-handle> to finish reviewing? I'll wait and process new comments automatically when it's done (~2–5 min).
 ```
 
-Only offer this when at least one bot reviewer was re-requested in this run. Do not offer for human-only re-requests — human review timing is unpredictable.
+Only offer this when at least one bot reviewer was re-requested in this run. Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bot reviewers were re-requested, poll for the first one in the list; substitute its display handle for `@<bot-handle>` in the prompt.
 
 **If the user confirms polling:**
 
