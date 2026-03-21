@@ -19,7 +19,8 @@
       11,
       12,
       13,
-      14
+      14,
+      15
     ],
     "runs_per_configuration": 1
   },
@@ -1345,6 +1346,42 @@
         }
       ],
       "notes": []
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "security-screening",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [],
+      "notes": ["Placeholder — eval 15 not yet run"]
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "security-screening",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [],
+      "notes": ["Placeholder — eval 15 not yet run"]
     }
   ],
   "run_summary": {
