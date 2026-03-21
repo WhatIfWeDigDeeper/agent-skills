@@ -1139,7 +1139,7 @@
       "result": {
         "pass_rate": 0.0,
         "passed": 0,
-        "failed": 5,
+        "failed": 6,
         "total": 6,
         "time_seconds": 0.0,
         "tokens": 0,
@@ -1227,7 +1227,7 @@
       "result": {
         "pass_rate": 0.0,
         "passed": 0,
-        "failed": 5,
+        "failed": 4,
         "total": 4,
         "time_seconds": 0.0,
         "tokens": 0,

@@ -6,7 +6,7 @@
 
 - Add a size check: if a comment body exceeds 64 KB, truncate to 64 KB for screening purposes
 - Flag oversized comments as suspicious with note: "Unusually large comment body — screening applied to first 64 KB only. Manual review recommended."
-- Ensure oversized comments surface prominently in the Step 6 plan table (same as other flagged comments)
+- Ensure oversized comments surface prominently in the Step 7 plan table (same as other flagged comments)
 
 ## Task 2: Add screening-independence note to Step 4a
 

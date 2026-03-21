@@ -77,6 +77,26 @@ def build_reviewer_list(
     return extract_coauthors(all_comments)
 
 
+def is_bot_login(login: str) -> bool:
+    """Returns True if the login belongs to a bot account (has '[bot]' suffix)."""
+    return login.endswith("[bot]")
+
+
+def split_human_bot(reviewers: list[str]) -> tuple[list[str], list[str]]:
+    """Split reviewer list into (humans, bots)."""
+    humans = [r for r in reviewers if not is_bot_login(r)]
+    bots = [r for r in reviewers if is_bot_login(r)]
+    return humans, bots
+
+
+def should_offer_poll(bot_reviewers: list[str]) -> bool:
+    """Returns True if the poll prompt should be offered after re-requesting review.
+
+    Per SKILL.md Step 13: only offer when at least one bot reviewer was re-requested.
+    """
+    return len(bot_reviewers) > 0
+
+
 def extract_coauthors(comments: list[dict]) -> list[str]:
     """Extract unique comment authors for Co-authored-by trailers.
 

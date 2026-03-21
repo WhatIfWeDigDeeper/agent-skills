@@ -7,7 +7,7 @@ Security audit (skills.sh/whatifwedigdeeper/agent-skills/pr-comments/security/sn
 - **W011** — Third-party content exposure: the skill processes untrusted GitHub PR comment bodies to make editing decisions, creating an indirect prompt injection vector.
 - **W012** — Runtime control via unverifiable external dependency: suggestion blocks fetched from GitHub endpoints directly control the agent's file editing actions.
 
-The skill already has two mitigations (Step 4a prompt injection screening and the Step 6 human confirmation gate). Three gaps remain:
+The skill already has two mitigations (Step 5 prompt injection screening and the Step 7 human confirmation gate). Three gaps remain:
 
 1. **Suggestion blocks are not validated against the PR diff** — a crafted suggestion could target lines outside the PR scope, potentially modifying unrelated code.
 2. **No bounds on comment body size** — extremely long comments could bury injection attempts or overwhelm screening.

@@ -13,9 +13,9 @@
 
 ## Evals
 
-- [ ] **Add eval 9 to `evals/pr-comments/evals.json`**: Bot poll — user confirms polling, bot responds with 1 new thread, skill processes it
-- [ ] **Add eval 10 to `evals/pr-comments/evals.json`**: Bot poll — user declines polling, skill reports normally
-- [ ] **Add eval 11 to `evals/pr-comments/evals.json`**: Bot poll — timeout path (bot doesn't respond within 10 min)
+- [ ] **Add eval 12 to `evals/pr-comments/evals.json`**: Bot poll — user confirms polling, bot responds with 1 new thread, skill processes it
+- [ ] **Add eval 13 to `evals/pr-comments/evals.json`**: Bot poll — user declines polling, skill reports normally
+- [ ] **Add eval 14 to `evals/pr-comments/evals.json`**: Bot poll — timeout path (bot doesn't respond within 10 min)
 
 ## Tests
 
@@ -27,6 +27,6 @@
 ## Benchmark
 
 - [ ] Run evals for the updated skill after implementation
-- [ ] Update `evals/pr-comments/benchmark.json` with new results (evals 9–11)
+- [ ] Update `evals/pr-comments/benchmark.json` with new results (evals 12–14)
 - [ ] Update `evals/pr-comments/benchmark.md` summary
 - [ ] Update `README.md` Eval Δ column

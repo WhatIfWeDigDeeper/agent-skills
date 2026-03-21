@@ -1,4 +1,4 @@
-# Spec 04: pr-comments — Bot Review Polling
+# Spec 03: pr-comments — Bot Review Polling
 
 ## Problem
 
@@ -64,7 +64,7 @@ After push and re-request, ask: "Poll for @<bot> to finish reviewing? ..."
 [polling behavior as described above]
 ```
 
-No changes to other steps, evals, tests, or benchmark data.
+Also adds evals 12–14 (bot-poll-confirms, bot-poll-declined, bot-poll-timeout), unit tests in `tests/pr-comments/test_bot_poll_routing.py`, and updated `benchmark.json`.
 
 ## Out of Scope
 
