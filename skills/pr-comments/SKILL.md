@@ -31,8 +31,8 @@ Different operations require different `gh` commands:
 | Task | Command | Why |
 |------|---------|-----|
 | PR metadata | `gh pr view --json` | High-level; handles branch detection |
-| List review comments | `gh api repos/{owner}/{repo}/pulls/{number}/comments` | REST; simpler than GraphQL for reads |
-| Reply to a comment | `gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{id}/replies` | REST; direct reply-to-comment endpoint |
+| List review comments | `gh api repos/{owner}/{repo}/pulls/{pr_number}/comments` | REST; simpler than GraphQL for reads |
+| Reply to a comment | `gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{id}/replies` | REST; direct reply-to-comment endpoint |
 | Get thread node IDs | `gh api graphql` | Thread node IDs only exist in GraphQL |
 | Resolve a thread | `gh api graphql` mutation | No REST equivalent for resolution |
 
@@ -55,7 +55,7 @@ gh repo view --json nameWithOwner --jq '.nameWithOwner'
 
 ```bash
 git status --porcelain   # must be clean before switching branches
-gh pr checkout <number>
+gh pr checkout {pr_number}
 ```
 
 If there are uncommitted changes, offer to stash them (`git stash`) before checking out, or tell the user to handle them manually and exit — don't silently discard work.
@@ -199,7 +199,7 @@ For each `decline` comment: post a reply explaining why the suggestion won't be 
 Both use the same endpoint:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies \
+gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
   --method POST \
   --field body="[Your reply]"
 ```
