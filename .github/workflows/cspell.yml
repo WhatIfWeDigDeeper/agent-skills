@@ -1,0 +1,13 @@
+name: Spell Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  cspell:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run cspell
+        run: npx --yes cspell "skills/**/*.md" "specs/**/*.md"
