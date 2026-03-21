@@ -269,7 +269,7 @@ gh api graphql -f query='...' | jq '[.data.repository.pullRequest.reviewThreads.
 
 Give up after 10 minutes. If the bot hasn't responded by then, print:
 
-> "@<bot-handle> hasn't responded yet. Run `/pr-comments` manually when the review is ready."
+> "@<bot-handle> hasn't responded yet. Re-invoke the pr-comments skill when the review is ready (in Claude Code: `/pr-comments`)."
 
 When new threads are detected, loop back to Step 2 within the same skill invocation — do not require the user to re-invoke the skill. Run the full workflow again (Steps 2–14), including the plan/confirm gate (Step 7). Nothing is applied automatically. After each subsequent round that re-requests a bot reviewer, offer to poll again — the user decides each time whether to continue.
 
@@ -300,7 +300,7 @@ If there were no reviewers to re-request (for example, all threads were outdated
 
 If the poll-and-process path was taken (bot responded and a second round was processed), add a line before the action list: "Polled for @<bot-handle> review (~Ns) — found N new threads, processed above."
 
-If the bot poll timed out, replace that line with: "@<bot-handle> hasn't responded yet. Run `/pr-comments` manually when the review is ready."
+If the bot poll timed out, replace that line with: "@<bot-handle> hasn't responded yet. Re-invoke the pr-comments skill when the review is ready (in Claude Code: `/pr-comments`)."
 
 If the user declined polling or no bot reviewers were re-requested, omit the poll line.
 
