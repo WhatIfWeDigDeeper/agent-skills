@@ -48,6 +48,11 @@ If `$ARGUMENTS` is a number, pass it: `gh pr view $ARGUMENTS --json ...`. Otherw
 
 Save `author.login` from the result — it is used in Step 6 to identify replies already posted by the PR author.
 
+Also fetch the authenticated GitHub user's login — it is used in Step 6 to identify replies posted by the skill operator in prior runs:
+```bash
+gh api user --jq '.login'
+```
+
 Also get the repo's owner/name for API calls:
 ```bash
 gh repo view --json nameWithOwner --jq '.nameWithOwner'
@@ -86,7 +91,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
   | jq -s '.'
 ```
 
-Filter for reviews in `CHANGES_REQUESTED` or `COMMENTED` state with non-empty bodies. These will be surfaced in the Step 7 plan table as action `review-body` — FYI only. Do not attempt to reply or resolve them via thread APIs; they use a different endpoint. They require manual response from the PR page.
+Filter for reviews in `CHANGES_REQUESTED` or `COMMENTED` state with non-empty bodies. These will be surfaced in the Step 7 plan table as action `review-body` — FYI only. Do not attempt to reply or resolve them via thread APIs; they use a different endpoint. In Steps 8–14, explicitly exclude `review-body` items from all automated reply/resolve loops and from any reviewer re-request logic: they are informational only and must never be acted on via APIs. They require manual response from the PR page and must be summarized in the final report as **manual response required** so the author knows to handle them directly in the GitHub UI.
 
 ### 3. Fetch Thread Resolution State
 
