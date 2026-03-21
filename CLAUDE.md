@@ -63,11 +63,11 @@ Valid frontmatter fields: `name`, `description` (required), `license`, `compatib
 
 When substantially modifying an existing skill, also update its entry in `README.md`.
 
-**Bump the skill version** in the `metadata.version` frontmatter field whenever you modify a skill's behavior or documentation — use patch increments (e.g. `"0.7"` → `"0.8"`) for fixes and additions, minor increments (e.g. `"0.7"` → `"0.9"` or `"1.0"` → `"1.1"`) for significant workflow changes. This helps downstream users know when to pull updates.
+**Bump the skill version** in the `metadata.version` frontmatter field whenever you modify a skill's behavior or documentation — use patch increments (e.g. `"0.7"` → `"0.8"`) for fixes and additions, minor increments (e.g. `"0.7"` → `"0.9"` or `"1.0"` → `"1.1"`) for significant workflow changes. This helps downstream users know when to pull updates. **Only bump once per PR**: before suggesting a version increment, run `git diff main -- skills/<name>/SKILL.md | grep '^+.*version'` — if a bump already exists relative to `main`, do not bump again for follow-up commits on the same branch.
 
 ## Sandbox Workarounds
 
-- **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` as a fallback.
+- **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` **only as a fallback after a signing failure** — do not use it preemptively. `dangerouslyDisableSandbox: true` (for keyring/network access) and GPG signing are separate; enabling sandbox does not mean GPG will fail.
 - **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first.
 
 ## Spell Checking
@@ -77,6 +77,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 ## Git Workflow
 
 - **Never commit directly to `main`.** Always create a feature branch and open a PR for review.
+- **Never rewrite history on a PR that has review comments** (from humans or bots). This means no force push, no `git rebase`, no `git commit --amend` on pushed commits. Rewriting history detaches inline comments from their source lines and disrupts reviewers who have already pulled the branch. If commits need fixing after comments exist, add a new commit instead. Squash happens at merge time.
 - This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI).
 - After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge. **Before running `git reset --hard`, check for uncommitted changes (`git status`). If any exist, stash them first (`git stash`) or ask the user — do not silently discard them.**
 - After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
@@ -102,6 +103,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **After updating benchmark.json, also update the `Eval Δ` column in the `README.md` Available Skills table** to reflect the new pass-rate delta (e.g. `+62%`).
 - **Spawn eval subagents with `mode: "auto"`** to suppress per-tool approval prompts. Default permission mode causes interruptions that slow down parallel eval runs and can break the workflow.
 - **After creating a PR**, check which skills were modified and whether the changes affect eval-relevant behavior (workflow steps, decision logic, command sequences, assertion-tested output). If so, recommend the user run evals for those skills before merging. If the changes are documentation-only, cosmetic, or don't affect behavior tested by evals (e.g. adding notes, security guidance, or comments), note that re-running evals is not needed and explain why.
+- **`eval_name` must be present for ALL runs** in `benchmark.json`, not just newly added ones. When adding runs for new evals, backfill `eval_name` for any existing runs that lack it — a partial population breaks schema uniformity with the ship-it format.
 
 ## Portability
 
@@ -125,6 +127,7 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 
 - **Proactively offer next steps** at natural milestones (eval run complete, skill review done, PR merged, etc.). Don't wait for the user to ask "what should we do next?" — present a short prioritized list of options and let them choose.
 - **Never bundle irreversible actions into option descriptions.** When presenting choices, keep destructive or hard-to-reverse steps (merging a PR, force-pushing, deleting branches) separate from preparatory work. Even if merging is the obvious next step after a cleanup, complete the reversible work first, then explicitly ask "ready to merge?" before executing. A user selecting option "1" authorizes the work described, not every downstream consequence implied by the framing.
+- **Suggest a fresh conversation on topic changes.** When the user starts work on an unrelated skill, feature, or task and the current conversation already has significant history (compressed messages, multiple completed tasks), suggest starting a new conversation to avoid stale context bleeding into unrelated work.
 
 ## Persisting Learnings
 
