@@ -2,17 +2,17 @@
 
 **Model**: claude-sonnet-4-6
 **Date**: 2026-03-21
-**Evals**: 1–11 (1 run each per configuration)
+**Evals**: 1–14 (1 run each per configuration)
 
 ## Summary
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 30% ± 11% | **+70%** |
-| Time | 23.9s ± 42.9s | 17.7s ± 30.5s | +6.2s |
+| Pass Rate | **100%** ± 0% | 25% ± 14% | **+75%** |
+| Time | 18.8s ± 37.6s | 13.9s ± 26.8s | +4.9s |
 | Tokens | 0 ± 0 | 0 ± 0 | 0 |
 
-The skill improves correctness by +70 percentage points. The baseline fetches comments and applies basic edits, but consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, thread resolution, and the interactive push + re-request flow — these five behaviors the skill explicitly mandates.
+The skill improves correctness by +75 percentage points. The baseline fetches comments and applies basic edits, but consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, thread resolution, the interactive push + re-request flow, and the bot poll sub-step — these behaviors the skill explicitly mandates.
 
 ## Per-Eval Results
 
@@ -29,6 +29,9 @@ The skill improves correctness by +70 percentage points. The baseline fetches co
 | 9 | Bot reviewer handling | **5/5 (100%)** | 1/5 (20%) | Human/bot reviewer split, REST for bots, shortened bot display name |
 | 10 | All threads outdated — no reviewer list | **4/4 (100%)** | 1/4 (25%) | No replies, no commit, no push/re-request prompt, report notes all skipped |
 | 11 | Reply-only run (no code changes) | **5/5 (100%)** | 2/5 (40%) | Reply classification, no commit for reply-only, push/re-request still offered, skip push on confirm |
+| 12 | Bot poll — confirm + loop back | **6/6 (100%)** | 0/6 (0%) | Poll offer after bot re-request, GraphQL snapshot comparison, loop-back to Step 2, re-offer after round 2 |
+| 13 | Bot poll — user declines poll | **5/5 (100%)** | 1/5 (20%) | No poll when declined, report omits poll line, bot re-requested via REST |
+| 14 | Bot poll — timeout | **4/4 (100%)** | 0/4 (0%) | 60s interval, 10-min timeout, timeout message, no loop on timeout |
 
 ## What Each Eval Tests
 
@@ -87,9 +90,24 @@ Tests the all-outdated edge case: no replies are posted, no commit is made, no p
 
 Tests the reply-only path: both threads are classified as `reply`, no commit is created, but the push/re-request prompt is still shown (the commenters need to see the replies). When the user confirms, git push is skipped (nothing new to push) but review is re-requested. The without-skill run typically made no replies, resolved threads that should stay open, or failed to re-request review after answering the questions.
 
+### Eval 12 — Bot poll: confirm path + loop back
+**Prompt**: Two threads (one from @alice, one from Copilot bot). After implementing both, push and re-request review. User confirms polling. Bot responds with a new thread. Skill loops back, processes the new thread, re-offers polling. User declines in round 2.
+
+Tests the full bot poll flow: poll offer is gated on bot re-request (not human-only), polling uses GraphQL thread ID snapshot comparison, detection of new threads triggers loop-back to Step 2 with full plan/confirm gate, and the skill re-offers polling after each subsequent round. The without-skill run never offered a poll prompt, polled via REST instead of GraphQL snapshots, and skipped directly to implementation without re-presenting a plan.
+
+### Eval 13 — Bot poll: user declines poll
+**Prompt**: One valid comment from Copilot bot. After addressing, push and re-request. User declines the poll offer.
+
+Tests the decline path: no polling occurs, the report omits the poll line entirely, and the bot is re-requested via the REST `/requested_reviewers` endpoint (not `gh pr edit`). The without-skill run attempted `gh pr edit` for the bot reviewer (which GraphQL rejects) and never presented a poll prompt to decline.
+
+### Eval 14 — Bot poll: timeout
+**Prompt**: One valid comment from Copilot bot. After addressing, push and re-request. User confirms polling, but bot doesn't respond within 10 minutes.
+
+Tests the timeout path: polling happens at ~60-second intervals (not continuously), stops after 10 minutes, prints the timeout message telling the user to re-invoke the skill, and does not loop back to Step 2 on timeout. The without-skill run polled continuously without sleep, never gave up after 10 minutes, and didn't print a structured timeout message.
+
 ## Notes
 
-- **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the +70% delta.
+- **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the +75% delta.
 - **Process steps vs. output quality.** The baseline produces reasonable commit messages and file edits on its own. The skill's value is almost entirely in the process steps it mandates — the plan/confirmation gate, Co-authored-by attribution, thread resolution via GraphQL mutation, and the interactive push + re-request prompt.
 - **Eval 6 is the ceiling test.** The 0% without-skill score on eval 6 reflects the cumulative effect of missing all five behaviors at once. Each individual failure is predictable; together they produce a completely incorrect outcome.
 - **Eval 3's "declined thread not resolved" assertion passes trivially in the baseline** (the agent never resolves anything). The paired assertion — "addressed threads ARE resolved" — is what distinguishes correct decline-handling from a general failure to use GraphQL.
