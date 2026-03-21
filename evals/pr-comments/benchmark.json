@@ -16,7 +16,10 @@
       8,
       9,
       10,
-      11
+      11,
+      12,
+      13,
+      14
     ],
     "runs_per_configuration": 1
   },
@@ -1078,6 +1081,270 @@
       ],
       "notes": [],
       "eval_name": "reply-only-no-commit"
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "bot-poll-confirms",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "After re-requesting review from a bot, the agent offers to poll for the bot's response before proceeding to the report",
+          "passed": true,
+          "evidence": "Step 13 (Round 1): after re-requesting copilot-pull-request-reviewer[bot] via REST, the transcript shows the agent presented: 'Poll for @copilot to finish reviewing? I'll wait and process new comments automatically when it's done (~2\u20135 min).' This occurred before the final report, satisfying the expectation."
+        },
+        {
+          "text": "The agent polls by re-running the GraphQL thread query (Step 3) and comparing unresolved thread IDs against the pre-push snapshot",
+          "passed": true,
+          "evidence": "Poll iteration 1 re-runs the identical Step 3 GraphQL reviewThreads query and pipes through `jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | .id]'`. The result ['PRRT_T3'] is compared against the pre-push snapshot {PRRT_T1, PRRT_T2} \u2014 the transcript states: 'New unresolved thread PRRT_T3 detected \u2014 it was not in the pre-push snapshot {PRRT_T1, PRRT_T2}. The bot has finished reviewing and posted a new comment.'"
+        },
+        {
+          "text": "When new unresolved threads are detected, the agent loops back to Step 2 (fetch comments) without requiring the user to re-invoke the skill",
+          "passed": true,
+          "evidence": "After detecting PRRT_T3, the transcript immediately shows '## ROUND 2 (Loop \u2014 bot responded with new thread PRRT_T3)' followed by '### Step 2 (Round 2): Fetch Inline Review Comments' \u2014 all within the same invocation. No prompt asked the user to re-invoke the skill."
+        },
+        {
+          "text": "The agent presents a new plan for the bot's new comments and waits for user confirmation before implementing",
+          "passed": true,
+          "evidence": "Step 7 (Round 2) presents '## PR Review Plan (Round 2 \u2014 new bot comments)' with a table for comment 2003, followed by 'Proceed?' The user responds 'yes' before the agent proceeds to Steps 8\u20139 (Round 2) to implement the optional chaining change."
+        },
+        {
+          "text": "After completing round 2 and re-requesting the bot reviewer, the agent offers to poll again (no loop depth cap)",
+          "passed": true,
+          "evidence": "Step 13 (Round 2) re-requests copilot-pull-request-reviewer[bot] and then presents: 'Poll for @copilot to finish reviewing? I'll wait and process new comments automatically when it's done (~2\u20135 min).' The transcript notes: 'there is no loop depth cap; the offer is made after every round that re-requests a bot reviewer.' The loop ends because the user declined ('no, I'll handle further reviews manually'), not because the skill imposed a cap."
+        },
+        {
+          "text": "The final report includes a line noting the poll duration and number of new threads found (e.g. 'Polled for @copilot review (~Ns) \u2014 found N new threads, processed above')",
+          "passed": true,
+          "evidence": "Step 14 (Report) contains: 'Polled for @copilot review (~45s) \u2014 found 1 new thread, processed above.' \u2014 matching the required format with duration (~45s) and thread count (1 new thread)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "bot-poll-confirms",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 5,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "After re-requesting review from a bot, the agent offers to poll for the bot's response before proceeding to the report",
+          "passed": false,
+          "evidence": "The agent re-requests review and immediately issues `sleep 60 && gh api ...` without offering to poll or asking for user confirmation. No poll offer appears."
+        },
+        {
+          "text": "The agent polls by re-running the GraphQL thread query (Step 3) and comparing unresolved thread IDs against the pre-push snapshot",
+          "passed": false,
+          "evidence": "The agent polls using the REST `/pulls/88/comments` endpoint, not a GraphQL thread query. It also does not take a pre-push snapshot \u2014 it identifies new comments by ID ordering rather than diffing a stored thread snapshot."
+        },
+        {
+          "text": "When new unresolved threads are detected, the agent loops back to Step 2 (fetch comments) without requiring the user to re-invoke the skill",
+          "passed": false,
+          "evidence": "The agent does not loop back to a structured 'Step 2'. It skips the re-fetch and classification step and directly implements the change upon detecting comment 2003."
+        },
+        {
+          "text": "The agent presents a new plan for the bot's new comments and waits for user confirmation before implementing",
+          "passed": false,
+          "evidence": "Upon finding comment 2003, the agent immediately applies the edit without presenting a plan or waiting for user confirmation. 'Failure Points' item #2 confirms: 'jumped directly to implementation without presenting a structured plan.'"
+        },
+        {
+          "text": "The final report includes a line noting the poll duration and number of new threads found (e.g. 'Polled for @copilot review (~Ns) \u2014 found N new threads, processed above')",
+          "passed": false,
+          "evidence": "Final summary mentions 'Polled for Copilot's follow-up review comment \u2014 found comment 2003' in prose but lacks the structured format with poll duration in seconds and thread count."
+        },
+        {
+          "text": "After completing round 2 and re-requesting the bot reviewer, the agent offers to poll again (no loop depth cap)",
+          "passed": false,
+          "evidence": "The without_skill agent never offered polling in round 1 either, so the round 2 re-offer is also absent. The loop depth cap behavior is moot."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "bot-poll-timeout",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent polls at approximately 60-second intervals, not continuously",
+          "passed": true,
+          "evidence": "Transcript shows 10 polling steps labeled Poll 1 (t=60s), Poll 2 (t=120s), ..., Poll 10 (t=600s) \u2014 each 60 seconds apart."
+        },
+        {
+          "text": "The agent stops polling after 10 minutes if no new threads appear",
+          "passed": true,
+          "evidence": "After Poll 10 at t=600s, the transcript states '10-minute timeout reached. @copilot has not responded. Exiting poll loop.'"
+        },
+        {
+          "text": "On timeout, the agent prints a message telling the user to run the skill manually when the review is ready",
+          "passed": true,
+          "evidence": "After timeout: '@copilot hasn't responded yet. Run `/pr-comments` manually when the review is ready.' appears in both the inline response and the Step 14 report."
+        },
+        {
+          "text": "The agent does not loop back to Step 2 on timeout \u2014 it exits the poll loop and reports",
+          "passed": true,
+          "evidence": "Transcript explicitly annotates '(No loop-back to Step 2. Poll cycle ends here. Proceeding to report.)' and jumps directly to Step 14."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "bot-poll-timeout",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 5,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent polls at approximately 60-second intervals, not continuously",
+          "passed": false,
+          "evidence": "The agent fired 20 consecutive poll attempts with no sleep or delay between them, effectively hammering the API continuously."
+        },
+        {
+          "text": "The agent stops polling after 10 minutes if no new threads appear",
+          "passed": false,
+          "evidence": "The agent ran 20+ polling iterations with no stopping condition. No concept of a 10-minute timeout was present \u2014 the agent never stopped autonomously."
+        },
+        {
+          "text": "On timeout, the agent prints a message telling the user to run the skill manually when the review is ready",
+          "passed": false,
+          "evidence": "After 20 polls the agent said 'You may want to check GitHub directly or wait a bit longer... would you like me to do anything else?' \u2014 no timeout declaration, no instruction to run the skill manually."
+        },
+        {
+          "text": "The agent does not loop back to Step 2 on timeout \u2014 it exits the poll loop and reports",
+          "passed": false,
+          "evidence": "The agent never cleanly exited the poll loop with a definitive report. At the end it offered to continue polling ('I can continue checking periodically'), with no defined exit condition."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "bot-poll-declined",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "After re-requesting the bot reviewer, the agent offers to poll for the bot's response",
+          "passed": true,
+          "evidence": "Step 13: after running the REST DELETE + POST for copilot-pull-request-reviewer[bot], the skill presents the prompt 'Poll for @copilot to finish reviewing? I'll wait and process new comments automatically when it's done (~2\u20135 min).' This matches the skill spec exactly: 'If bot reviewers were re-requested, offer to poll for the bot's response after the re-request completes.'"
+        },
+        {
+          "text": "When the user declines the poll offer, the agent does NOT poll \u2014 it proceeds directly to the report",
+          "passed": true,
+          "evidence": "After the user responds 'No, I'll check manually', the transcript records 'User declined polling. Proceeding directly to Step 14 (Report) without entering the poll loop.' No sleep, no GraphQL poll query, no waiting occurs. The skill correctly routes to the report per 'If the user declines polling, proceed to the report as normal.'"
+        },
+        {
+          "text": "The final report does not include a poll line (user declined polling)",
+          "passed": true,
+          "evidence": "Step 14 report contains 'Applied 1 suggestion \u2192 committed a3f9c1d / Pushed and re-requested review from @copilot' with a note '(Poll line omitted \u2014 user declined polling.)'. No 'Polled for @copilot review' line appears. This matches the skill spec: 'If the user declined polling or no bot reviewers were re-requested, omit the poll line.'"
+        },
+        {
+          "text": "The bot reviewer is re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit",
+          "passed": true,
+          "evidence": "Step 13 shows: 'gh api repos/myorg/myrepo/pulls/91/requested_reviewers --method DELETE --field \"reviewers[]=copilot-pull-request-reviewer[bot]\"' followed by the same path with '--method POST'. No gh pr edit command is used for the bot. The transcript notes: 'copilot-pull-request-reviewer[bot] is a bot \u2014 routing to REST /requested_reviewers (gh pr edit uses GraphQL requestReviewsByLogin which rejects bot accounts).'"
+        },
+        {
+          "text": "The commit includes a Co-authored-by trailer for the bot reviewer",
+          "passed": true,
+          "evidence": "Step 10 commit message includes: 'Co-authored-by: copilot-pull-request-reviewer[bot] <copilot-pull-request-reviewer[bot]@users.noreply.github.com>' \u2014 one trailer for the bot whose suggestion was implemented."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "bot-poll-declined",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 0.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "After re-requesting the bot reviewer, the agent offers to poll for the bot's response",
+          "passed": false,
+          "evidence": "The without-skill agent attempted 'gh pr edit 91 --add-reviewer copilot-pull-request-reviewer[bot]' (which returned a GraphQL error), then gave up without offering to poll. No poll prompt was presented. The concept of proactively offering to poll for a bot's response does not appear in general assistant behavior."
+        },
+        {
+          "text": "When the user declines the poll offer, the agent does NOT poll \u2014 it proceeds directly to the report",
+          "passed": false,
+          "evidence": "The poll offer was never made (assertion 1 fails), so the user never had the opportunity to decline. The decline scenario this assertion tests was never reached. The without-skill agent ended its session after the failed re-request attempt without entering any polling flow."
+        },
+        {
+          "text": "The final report does not include a poll line (user declined polling)",
+          "passed": false,
+          "evidence": "The final summary reads 'I attempted to re-request review from copilot-pull-request-reviewer[bot] but the request may not have succeeded' \u2014 no structured report and no poll line. While no poll line appears, the absence is because polling was never implemented, not because it was correctly omitted after a user decline. Marking as failed to avoid a vacuous pass."
+        },
+        {
+          "text": "The bot reviewer is re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit",
+          "passed": false,
+          "evidence": "The agent attempted 'gh pr edit 91 --add-reviewer copilot-pull-request-reviewer[bot]' first, receiving 'Error: GraphQL: Could not resolve to a node with login of copilot-pull-request-reviewer[bot]'. After this failure the agent did not fall back to the REST /requested_reviewers endpoint \u2014 it noted the error and moved on. The correct DELETE + POST pattern was never attempted."
+        },
+        {
+          "text": "The commit includes a Co-authored-by trailer for the bot reviewer",
+          "passed": true,
+          "evidence": "The commit includes 'Co-authored-by: copilot-pull-request-reviewer[bot] <copilot-pull-request-reviewer[bot]@users.noreply.github.com>'. The without-skill agent correctly attributed the change to the bot in the commit trailer, as co-authorship credit is common coding-assistant behavior even without the skill."
+        }
+      ],
+      "notes": []
     }
   ],
   "run_summary": {
@@ -1089,8 +1356,8 @@
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 23.9091,
-        "stddev": 42.8963,
+        "mean": 18.7857,
+        "stddev": 37.5579,
         "min": 0.0,
         "max": 108.0
       },
@@ -1103,14 +1370,14 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.3015,
-        "stddev": 0.1129,
-        "min": 0.2,
+        "mean": 0.2511,
+        "stddev": 0.1425,
+        "min": 0.0,
         "max": 0.571
       },
       "time_seconds": {
-        "mean": 17.7273,
-        "stddev": 30.4831,
+        "mean": 13.9286,
+        "stddev": 26.7701,
         "min": 0.0,
         "max": 69.0
       },
@@ -1122,8 +1389,8 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.70",
-      "time_seconds": "+6.2",
+      "pass_rate": "+0.75",
+      "time_seconds": "+4.9",
       "tokens": "+0"
     }
   },

@@ -271,9 +271,7 @@ Give up after 10 minutes. If the bot hasn't responded by then, print:
 
 > "@copilot hasn't responded yet. Run `/pr-comments` manually when the review is ready."
 
-When new threads are detected, loop back to Step 2 within the same skill invocation — do not require the user to re-invoke the skill. Run the full workflow again (Steps 2–14), including the plan/confirm gate (Step 7). Nothing is applied automatically.
-
-**Loop depth**: poll and process once per invocation. After the second round completes, do not re-offer polling. The user can invoke the skill again manually for further rounds.
+When new threads are detected, loop back to Step 2 within the same skill invocation — do not require the user to re-invoke the skill. Run the full workflow again (Steps 2–14), including the plan/confirm gate (Step 7). Nothing is applied automatically. After each subsequent round that re-requests a bot reviewer, offer to poll again — the user decides each time whether to continue.
 
 **If the user declines polling**, proceed to the report as normal.
 
