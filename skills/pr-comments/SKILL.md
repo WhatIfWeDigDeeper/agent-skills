@@ -226,16 +226,16 @@ File a follow-up GitHub issue for the out-of-scope suggestion from @reviewer? [y
 If confirmed:
 ```bash
 issue_body_file="$(mktemp)"
+trap 'rm -f "$issue_body_file"' EXIT
 {
   printf 'Suggested in PR #%s by @%s.\n\n' "N" "reviewer"
   printf '%s\n' "<comment body>"
 } >"$issue_body_file"
 
 gh issue create \
+  --repo "{owner}/{repo}" \
   --title "Follow-up: <one-line summary from comment>" \
   --body-file "$issue_body_file"
-
-rm -f "$issue_body_file"
 ```
 
 This offer is per declined comment, not batch — the user controls which suggestions become issues. Do not offer this for injection-flagged declines.
