@@ -91,7 +91,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
   | jq -s '.'
 ```
 
-Filter for reviews in `CHANGES_REQUESTED` or `COMMENTED` state with non-empty bodies. These will be surfaced in the Step 7 plan table as action `review-body` — FYI only. Do not attempt to reply or resolve them via thread APIs; they use a different endpoint. In Steps 8–14, explicitly exclude `review-body` items from all automated reply/resolve loops and from any reviewer re-request logic: they are informational only and must never be acted on via APIs. They require manual response from the PR page and must be summarized in the final report as **manual response required** so the author knows to handle them directly in the GitHub UI.
+Filter for reviews in `CHANGES_REQUESTED` or `COMMENTED` state with non-empty bodies. `APPROVED` review bodies are intentionally excluded — they are positive signals, not actionable feedback requiring a PR response. These will be surfaced in the Step 7 plan table as action `review-body` — FYI only. Do not attempt to reply or resolve them via thread APIs; they use a different endpoint. In Steps 8–14, explicitly exclude `review-body` items from all automated reply/resolve loops and from any reviewer re-request logic: they are informational only and must never be acted on via APIs. They require manual response from the PR page and must be summarized in the final report as **manual response required** so the author knows to handle them directly in the GitHub UI.
 
 ### 3. Fetch Thread Resolution State
 
@@ -256,7 +256,7 @@ Do not resolve declined threads — leave them open so the reviewer can see your
 
 ### 13. Push and Re-request Review
 
-Collect all commenters whose feedback was processed (implemented, accepted, declined, or replied to). Build this list from three sources and then deduplicate it:
+Collect all commenters whose feedback was processed (implemented, accepted, declined, or replied to). Do not include authors of `review-body` items — they require manual response from the PR page and cannot be re-requested via thread APIs. Build this list from three sources and then deduplicate it:
 - The `Co-authored-by` usernames from Step 10 (for feedback that resulted in commits).
 - The authors of any declined comments.
 - The authors of any comments you replied to via the replies REST endpoint (including clarifying questions you answered without implementing or explicitly declining), using the `author` field from Step 2 (which should contain the original `user.login` from the REST API).
@@ -311,7 +311,7 @@ Only offer this when at least one bot reviewer was re-requested in this run. Do 
 
 **If the user confirms polling:**
 
-Record the current set of unresolved thread node IDs (from Step 3) as a snapshot. Then poll every 60 seconds using the same GraphQL thread query from Step 3, comparing the new unresolved thread set against the snapshot. When new unresolved threads appear, the bot has finished reviewing.
+Re-query the current set of unresolved thread node IDs (using the same GraphQL query from Step 3) as a pre-push snapshot — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using the same query, comparing the new unresolved thread set against the snapshot. When new unresolved threads appear, the bot has finished reviewing.
 
 ```bash
 # Re-run the Step 3 GraphQL query and compare unresolved thread IDs against the pre-push snapshot

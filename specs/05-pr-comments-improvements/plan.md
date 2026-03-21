@@ -78,9 +78,19 @@ File a follow-up GitHub issue for the out-of-scope suggestion from @reviewer? [y
 
 If confirmed, run:
 ```bash
+ISSUE_BODY_FILE="$(mktemp)"
+cat >"$ISSUE_BODY_FILE" <<'EOF'
+Suggested in PR #N by @reviewer.
+
+<comment body>
+EOF
+
 gh issue create \
+  --repo "{owner}/{repo}" \
   --title "Follow-up: <one-line summary from comment>" \
-  --body $'Suggested in PR #N by @reviewer.\n\n<comment body>'
+  --body-file "$ISSUE_BODY_FILE"
+
+rm -f "$ISSUE_BODY_FILE"
 ```
 
 This is opt-in per declined comment (not batch), so the user controls which suggestions become issues.

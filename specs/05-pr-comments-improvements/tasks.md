@@ -32,11 +32,15 @@ Add eval 15:
   gh pr view --json number,url,title,baseRefName,headRefName,author
   ```
 - Add a sentence noting that `author.login` is saved for use in Step 6.
+- Also fetch the authenticated GitHub user's login for use in the Step 6 skip check:
+  ```bash
+  gh api user --jq '.login'
+  ```
 
 **File:** `skills/pr-comments/SKILL.md` — Step 6 ("already replied" skip rule)
 
-- Update the skip condition to read: "the thread is unresolved but already has a reply from the PR author (`pr.author.login`) declining it — do not re-reply."
-- Replace any vague reference to "you (or the PR author)" with the explicit `pr.author.login` check.
+- Update the skip condition to cover both the PR author (`pr.author.login`) and the authenticated GitHub user login — do not re-reply if either has already declined in a prior run.
+- Replace any vague reference to "you (or the PR author)" with explicit login checks.
 
 ---
 
