@@ -302,7 +302,7 @@ If there were no reviewers to re-request (for example, all threads were outdated
 
 If the poll-and-process path was taken (bot responded and a second round was processed), add a line before the action list: "Polled for @<bot-handle> review (~Ns) — found N new threads, processed above."
 
-If the bot poll timed out, replace that line with: "@<bot-handle> hasn't responded yet. Re-invoke the pr-comments skill when the review is ready (in Claude Code: `/pr-comments`)."
+If the bot poll timed out, include this line instead of the poll line: "@<bot-handle> hasn't responded yet. Re-invoke the pr-comments skill when the review is ready (in Claude Code: `/pr-comments`)."
 
 If the user declined polling or no bot reviewers were re-requested, omit the poll line.
 
