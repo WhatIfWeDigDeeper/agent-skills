@@ -99,7 +99,7 @@ The REST API doesn't expose whether a thread is resolved. Use GraphQL to get thr
 
 This gives you a mapping from REST `comment.id` → GraphQL `thread.id` + `isResolved` + `isOutdated`. Discard threads that are already resolved — they should not appear in the plan table or be acted upon at all.
 
-If there are no unresolved threads, report "No open review threads." and exit.
+If there are no unresolved threads and no review-body items from Step 2b, report "No open review threads." and exit. If review-body items exist but there are no unresolved inline threads, proceed to Step 7 to surface them.
 
 ### 4. Read Code Context
 

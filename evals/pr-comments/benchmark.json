@@ -73,7 +73,7 @@
         "failed": 0,
         "total": 7,
         "time_seconds": 57.7,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 14,
         "errors": 0
       },
@@ -125,7 +125,7 @@
         "failed": 0,
         "total": 8,
         "time_seconds": 70.4,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 18,
         "errors": 0
       },
