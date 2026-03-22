@@ -74,7 +74,7 @@ When substantially modifying an existing skill, also update its entry in `README
 
 ## Spell Checking
 
-This repo uses cspell. When you see a cspell diagnostic — whether from the IDE, a linter run, or noticing an unknown-word warning on a file you just edited — immediately add the term to the `words` list in `cspell.config.yaml`. Do not wait for the user to point it out. Use `npx cspell <file>` to check any file you've modified before finishing a task.
+This repo uses cspell. When you see a cspell diagnostic — whether from the IDE, a linter run, or noticing an unknown-word warning on a file you just edited — immediately add the term to the `words` list in `cspell.config.yaml`. Do not wait for the user to point it out. Use `npx cspell <file>` to check any file you've modified before finishing a task. Conversely, when you change phrasing that caused a word to be added, remove it if it no longer appears anywhere in the repo (use `rg -w <word>` or `git grep -w <word>` to confirm) — stale wordlist entries accumulate silently and are caught by reviewers, not linters.
 
 ## Git Workflow
 
@@ -107,6 +107,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **Spawn eval subagents with `mode: "auto"`** to suppress per-tool approval prompts. Default permission mode causes interruptions that slow down parallel eval runs and can break the workflow.
 - **After creating a PR**, check which skills were modified and whether the changes affect eval-relevant behavior (workflow steps, decision logic, command sequences, assertion-tested output). If so, recommend the user run evals for those skills before merging. If the changes are documentation-only, cosmetic, or don't affect behavior tested by evals (e.g. adding notes, security guidance, or comments), note that re-running evals is not needed and explain why.
 - **`eval_name` must be present for ALL runs** in `benchmark.json`, not just newly added ones. When adding runs for new evals, backfill `eval_name` for any existing runs that lack it — a partial population breaks schema uniformity with the ship-it format.
+- **Use `tokens: null` (not `0`) in `benchmark.json`** when the token count was not recorded for a run. `0` implies measured-as-zero and will skew mean/stddev stats. When updating or adding runs, backfill any existing `tokens: 0` entries that represent unknown counts to `null`, similar to the `eval_name` rule above.
 
 ## Portability
 
