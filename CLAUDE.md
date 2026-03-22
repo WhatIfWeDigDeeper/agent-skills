@@ -74,7 +74,7 @@ When substantially modifying an existing skill, also update its entry in `README
 
 ## Spell Checking
 
-This repo uses cspell. When you see a cspell diagnostic — whether from the IDE, a linter run, or noticing an unknown-word warning on a file you just edited — immediately add the term to the `words` list in `cspell.config.yaml`. Do not wait for the user to point it out. Use `npx cspell <file>` to check any file you've modified before finishing a task. Conversely, when you change phrasing that caused a word to be added, remove it if it no longer appears anywhere in the repo (use `rg -w <word>` or `git grep -w <word>` to confirm) — stale wordlist entries accumulate silently and are caught by reviewers, not linters.
+This repo uses cspell. When you see a cspell diagnostic — whether from the IDE, a linter run, or noticing an unknown-word warning on a file you just edited — immediately add the term to the `words` list in `cspell.config.yaml`. Do not wait for the user to point it out. Use `npx cspell <file>` to check any file you've modified before finishing a task. Conversely, when you change phrasing that caused a word to be added, remove it if it no longer appears anywhere in the repo (use `rg -w <word>` or `git grep -w <word>` to confirm) — stale wordlist entries accumulate silently and are caught by reviewers, not linters. Before merging a new cspell CI step (or after changing the set of files it scans), run `npx cspell "skills/**/*.md" "specs/**/*.md"` against all in-scope files locally to backfill any pre-existing wordlist gaps — otherwise CI will fail immediately on the first PR.
 
 ## Git Workflow
 

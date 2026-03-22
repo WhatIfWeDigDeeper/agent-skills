@@ -12,7 +12,7 @@ on:
 
 jobs:
   claude-review:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -36,4 +36,3 @@ jobs:
           prompt: '/code-review:code-review --comment'
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
-
