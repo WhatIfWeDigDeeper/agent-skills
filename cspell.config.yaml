@@ -5,12 +5,14 @@ dictionaries: []
 words:
   - anthropics
   - asyncpg
+  - bunx
   - commenters
   - conftest
   - continuerc
   - cursorrules
   - EBADPLATFORM
   - elif
+  - ensurepip
   - evals
   - fastapi
   - frontmatter
@@ -22,6 +24,7 @@ words:
   - myorg
   - mypy
   - myrepo
+  - noxfile
   - nuxt
   - oneline
   - opusplan
@@ -31,15 +34,19 @@ words:
   - PRRT
   - psql
   - pyproject
+  - PYEOF
   - PYSEC
   - pytest
   - REAUDIT
   - rerequest
+  - runbooks
   - sandboxed
+  - splitlines
   - startswith
   - stddev
   - subshell
   - toplevel
+  - unmatch
   - unupgradable
   - venv
   - vite
