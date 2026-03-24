@@ -29,7 +29,7 @@ Add an `--auto [N]` argument and an interactive `auto` response at the Step 7 co
 /pr-comments --auto 5 42
 ```
 
-Skips Step 7 confirmation on ALL iterations including the first. `N` is the max iteration cap (default 10). The flag and PR number can appear in any order.
+Skips Step 7 confirmation on ALL iterations including the first. `N` is the max iteration cap (default 10). The flag and PR number can appear in any order, with one disambiguation rule: a bare number immediately following `--auto` is always interpreted as `N` (e.g. `--auto 5 42` → `N=5`, PR `#42`), so a numeric PR must either be written with a leading `#` (e.g. `#42`) or placed before `--auto`.
 
 **2. Type `auto` at any Step 7 confirmation prompt (interactive entry)**
 

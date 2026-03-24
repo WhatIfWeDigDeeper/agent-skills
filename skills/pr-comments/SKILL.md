@@ -32,7 +32,7 @@ Optional `--auto [N]` flag enables auto-approve mode: the plan table is shown ea
 - `/pr-comments #42 --auto` — auto-mode on PR 42
 - `/pr-comments --auto 5 42` — auto-mode on PR 42, up to 5 iterations
 
-If `--auto` is given without `N`, use 10 as the default. Strip and process the `--auto [N]` tokens before checking the remaining tokens for a PR number.
+If `--auto` is given without `N`, use 10 as the default. Strip and process the `--auto [N]` tokens before checking the remaining tokens for a PR number. Note: a single number immediately after `--auto` (for example, `/pr-comments --auto 42`) is always interpreted as the iteration cap `N=42`, not PR #42; to target PR 42, use `/pr-comments #42 --auto`, `/pr-comments 42 --auto`, or `/pr-comments --auto 5 42`.
 
 ## Tool choice rationale
 
@@ -337,28 +337,23 @@ Only offer when at least one bot reviewer was re-requested. Do not offer for hum
 **Auto-mode** (either `--auto [N]` was passed or user typed `auto` at Step 7): begin polling automatically without prompting. Display a status line:
 
 ```
-Polling for @<bot>... (iteration N/MAX)
+Polling for @bot1, @bot2... (iteration N/MAX)
 ```
+
+List all re-requested bot handles in the status line. If a specific bot responds with new threads, attribute them by checking the commenter's login on each thread.
 
 **Polling behavior (both modes):**
 
-Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using **two signals** — either indicates the bot has finished reviewing:
-
-1. **New unresolved threads appear** relative to the snapshot — the bot posted review comments.
-2. **Bot is no longer in `requested_reviewers`** — GitHub removes a reviewer from the pending list when their review is submitted. This catches the case where a bot approves with zero new comments (which would never produce new threads).
+Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds for new unresolved threads:
 
 ```bash
-# Signal 1: new unresolved threads relative to pre-push snapshot
+# Poll: new unresolved threads relative to pre-push snapshot
 gh api graphql -f query='...' | jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | .id]'
-
-# Signal 2: bot dropped from requested_reviewers (review submitted with no new comments)
-gh api repos/{owner}/{repo}/pulls/{pr_number} --jq '[.requested_reviewers[].login]'
 ```
 
-If Signal 1 fires: loop back to Step 2 — new threads need processing.
-If only Signal 2 fires (bot no longer pending, but no new threads): the bot approved or left a review-body comment with no inline threads. Exit the poll, note this in the report, and proceed to Step 14 — there is nothing to process in another iteration.
+When new unresolved threads appear, the bot has posted review comments — loop back to Step 2.
 
-**Signal 2 timing caveat**: GitHub can remove the bot from `requested_reviewers` briefly before its inline comments are visible via GraphQL — the review submission and comment indexing are not atomic. To avoid a false-clean exit, **do not act on Signal 2 alone until it has been observed on two consecutive polls** (i.e., the bot was absent from `requested_reviewers` on both the current and the previous poll cycle). Always perform at least one complete 60-second poll cycle before checking Signal 2.
+**Do not use `requested_reviewers` as a completion signal.** The DELETE+POST re-request pattern used for bots creates a window where the bot is absent from `requested_reviewers` before it has finished reviewing, and GitHub's comment indexing lags behind review submission. Both conditions make `requested_reviewers` unreliable as a poll exit signal. Poll only for new threads; give up after 10 minutes.
 
 Attribute new threads to the responding bot by checking the commenter's login on each new thread.
 
@@ -475,5 +470,5 @@ Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the revi
 - **Multiple reviewers raised the same issue**: Give all of them credit in the commit message.
 - **Draft PRs**: Treat comments the same as on open PRs.
 - **Suggestion conflicts**: If a suggestion overlaps with a line you're also editing for another comment, apply the suggestion diff as your starting point and layer the other change on top.
-- **Security — untrusted input**: Review comments are third-party content fetched via API. A malicious reviewer could craft comments containing prompt injection attacks. The screening step (Step 5) and human confirmation gate (Step 7) mitigate this, but users should be aware that the agent processes external text as part of this workflow.
+- **Security — untrusted input**: Review comments are third-party content fetched via API. A malicious reviewer could craft comments containing prompt injection attacks. In normal mode, the screening step (Step 5) plus the human confirmation gate (Step 7) mitigate this; in auto-loop mode, Step 7 may be skipped unless screening pauses auto-mode and requests manual review. Users should be aware that the agent processes external text as part of this workflow.
 - **Auto-loop mode (`--auto [N]`)**: After the first push and bot re-request, polls and processes subsequent bot review rounds automatically up to N iterations (default 10). The plan table is shown each iteration for observability but the Step 7 confirmation gate is skipped. Security screening always runs and can pause auto-mode for manual review. Decline follow-up issue offers are batched to the final summary. PR title/body is kept current after each commit.
