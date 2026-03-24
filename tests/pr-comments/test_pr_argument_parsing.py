@@ -125,9 +125,9 @@ class TestAutoFlagParsing:
         assert result == {"auto": False, "max_iterations": 10, "remaining_args": "42"}
 
     def test_auto_zero_not_treated_as_count(self):
-        """--auto 0 is not a valid positive count; 0 lands in remaining_args."""
+        """--auto 0 is not a valid positive count; 0 is consumed (not leaked to remaining_args)."""
         result = parse_auto_flag("--auto 0")
-        assert result == {"auto": True, "max_iterations": 10, "remaining_args": "0"}
+        assert result == {"auto": True, "max_iterations": 10, "remaining_args": ""}
 
     def test_auto_negative_not_treated_as_count(self):
         """Negative numbers are not consumed as count; land in remaining_args."""

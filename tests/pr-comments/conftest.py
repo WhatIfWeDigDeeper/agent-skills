@@ -128,13 +128,12 @@ def parse_auto_flag(args: str) -> dict:
     while i < len(tokens):
         if tokens[i] == "--auto":
             auto = True
-            # Check if next token is a positive integer
-            if (
-                i + 1 < len(tokens)
-                and tokens[i + 1].isdigit()
-                and int(tokens[i + 1]) > 0
-            ):
-                max_iterations = int(tokens[i + 1])
+            # Consume any non-negative integer following --auto to prevent it
+            # from leaking into remaining_args (e.g., "0" being misparsed as PR #0).
+            # Only positive values are used as the iteration cap.
+            if i + 1 < len(tokens) and tokens[i + 1].isdigit():
+                if int(tokens[i + 1]) > 0:
+                    max_iterations = int(tokens[i + 1])
                 i += 2
             else:
                 i += 1
@@ -152,6 +151,10 @@ def parse_auto_flag(args: str) -> dict:
 
 def should_exit_auto_loop(iteration: int, max_iterations: int, new_threads: int) -> bool:
     """Returns True if the auto-loop should exit before starting the next iteration.
+
+    `iteration` is the 1-indexed count of the just-completed iteration (e.g.
+    iteration=3 means 3 rounds have finished). The loop exits when iteration
+    equals max_iterations, preventing a further iteration from starting.
 
     Per SKILL.md Step 13:
     - Exit when no new unresolved bot threads are found after poll
