@@ -4,10 +4,10 @@
     "skill_path": "skills/pr-comments",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-03-21T00:00:00Z",
-    "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    "timestamp": "2026-03-24T00:00:00Z",
+    "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
     "runs_per_configuration": 1,
-    "skill_version": "1.3"
+    "skill_version": "1.4"
   },
   "runs": [
     {
@@ -331,7 +331,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -355,7 +355,7 @@
         "failed": 5,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -379,7 +379,7 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -402,7 +402,7 @@
         "failed": 1,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -425,7 +425,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -449,7 +449,7 @@
         "failed": 5,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 1
       },
@@ -473,7 +473,7 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -496,7 +496,7 @@
         "failed": 3,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -519,7 +519,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -543,7 +543,7 @@
         "failed": 3,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 1
       },
@@ -567,7 +567,7 @@
         "failed": 0,
         "total": 6,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -592,7 +592,7 @@
         "failed": 6,
         "total": 6,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 12,
         "errors": 1
       },
@@ -617,7 +617,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -641,7 +641,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -665,7 +665,7 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -688,7 +688,7 @@
         "failed": 1,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -711,7 +711,7 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -734,7 +734,7 @@
         "failed": 3,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -745,58 +745,106 @@
         {"text": "The legitimate @alice docstring request is implemented and committed with Co-authored-by credit", "passed": false, "evidence": "The transcript describes what the agent 'would' do ('Action taken: Would implement the docstring as requested') but shows only a hypothetical code example. No actual implementation occurred, no commit was made, and no Co-authored-by credit appears."}
       ],
       "notes": []
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "reinvocation-skip-prior-reply",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 136.5,
+        "tokens": 25771,
+        "tool_calls": 4,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent skips @alice's thread (the reply chain already contains a reply from the PR author or operator) — it is marked with action=skip in the plan and no new reply is posted", "passed": true, "evidence": "Step 6 detected a reply from 'prauthor' (the PR author login) in thread 3001 and applied the skip rule: 'do not re-reply or re-plan it'. Thread 3001 was assigned action=skip in the plan and no reply, resolve, or re-request was performed for alice."},
+        {"text": "The agent includes @bob's return-type suggestion in the plan and implements it", "passed": true, "evidence": "Thread 3002 (bob's) was fully processed: action=fix in the plan, code change applied (added -> dict[str, Any] to process_config), committed, thread resolved via GraphQL mutation, and bob re-requested as reviewer."},
+        {"text": "The plan table contains a row for @alice's thread marked with action=skip (it is excluded from actionable items)", "passed": true, "evidence": "The Step 7 plan table lists alice's thread with action=`skip` and note='Prior reply from @prauthor in thread', confirming it was excluded from actionable items."},
+        {"text": "The commit Co-authored-by trailers credit @bob but not @alice", "passed": true, "evidence": "Commit message contains 'Co-authored-by: bob <bob@users.noreply.github.com>' and no Co-authored-by entry for alice. Alice's thread was skipped and required no action, so she receives no commit credit."}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "reinvocation-skip-prior-reply",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 77.2,
+        "tokens": 15312,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent skips @alice's thread (the reply chain already contains a reply from the PR author or operator) — it is marked with action=skip in the plan and no new reply is posted", "passed": true, "evidence": "The agent explicitly noted the existing reply from 'prauthor' in the chain and took no action on alice's thread."},
+        {"text": "The agent includes @bob's return-type suggestion in the plan and implements it", "passed": true, "evidence": "Bob's thread was identified as actionable. The agent added '-> dict[str, Any]' to 'process_config' and ensured 'Any' was imported."},
+        {"text": "The plan table contains a row for @alice's thread marked with action=skip (it is excluded from actionable items)", "passed": true, "evidence": "Alice appears in the summary only as 'Skipped' — no action item assigned to her thread."},
+        {"text": "The commit Co-authored-by trailers credit @bob but not @alice", "passed": true, "evidence": "Commit message includes 'Co-authored-by: bob <bob@users.noreply.github.com>' only. Alice receives no credit since her thread was skipped."}
+      ],
+      "notes": ["Baseline independently detected the prior reply in the thread chain and applied correct skip logic — this eval does not discriminate between configurations."]
     }
   ],
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.9905,
-        "stddev": 0.0357,
+        "mean": 0.9911,
+        "stddev": 0.0346,
         "min": 0.857,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 29.4,
-        "stddev": 36.8,
+        "mean": 36.1,
+        "stddev": 51.2,
         "min": 0.0,
-        "max": 85.8
+        "max": 136.5
       },
       "tokens": {
-        "mean": 6717.3,
-        "stddev": 9311.0,
-        "min": 0,
-        "max": 20835
+        "mean": 21306.0,
+        "stddev": 2528.8,
+        "min": 19747,
+        "max": 25771
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.3373,
-        "stddev": 0.3103,
+        "mean": 0.3787,
+        "stddev": 0.3226,
         "min": 0.0,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 18.4,
-        "stddev": 24.7,
+        "mean": 22.1,
+        "stddev": 28.9,
         "min": 0.0,
-        "max": 55.2
+        "max": 77.2
       },
       "tokens": {
-        "mean": 924.6,
-        "stddev": 2740.1,
-        "min": 0,
-        "max": 14003
+        "mean": 13954.8,
+        "stddev": 707.7,
+        "min": 13263,
+        "max": 15312
       }
     },
     "delta": {
-      "pass_rate": "+0.65",
-      "time_seconds": "+11.0",
-      "tokens": "+5793"
+      "pass_rate": "+0.61",
+      "time_seconds": "+14.0",
+      "tokens": "+7351"
     }
   },
   "notes": [
     "Eval 1 assertion 3 ('already-resolved threads not in plan') failed because the scenario fixture lacks a pre-resolved thread — the filtering path was untestable.",
     "Eval 13 without_skill scored 100% — the baseline independently discovered the correct REST pattern and poll-decline flow without skill guidance.",
+    "Eval 16 without_skill scored 100% — the explicit prompt context (prior reply visible in chain) was sufficient for the baseline to skip correctly. This eval does not discriminate between configurations.",
+    "Token run_summary stats (with_skill: n=5 of 16, without_skill: n=6 of 16) are computed only from runs with recorded token counts; remaining runs used simulated transcripts (tokens: null) and are excluded from token aggregates.",
     "Time and token values are unreliable for many runs (simulated transcripts); values above 0 are from actual executor measurements.",
     "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior."
   ]

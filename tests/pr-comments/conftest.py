@@ -11,8 +11,14 @@ def is_help_request(args: str) -> bool:
 
 
 def is_pr_number(args: str) -> bool:
-    """Check if arguments are a PR number per SKILL.md."""
-    return bool(args and args.strip().isdigit())
+    """Check if arguments are a PR number per SKILL.md.
+
+    Strips a leading '#' before checking (e.g. '#42' → '42').
+    """
+    if not args:
+        return False
+    stripped = args.strip().removeprefix("#")
+    return bool(stripped and stripped.isdigit())
 
 
 def parse_pr_argument(args: str) -> dict:
@@ -28,8 +34,9 @@ def parse_pr_argument(args: str) -> dict:
     stripped = args.strip()
     if is_help_request(stripped):
         return {"type": "help"}
-    if stripped.isdigit():
-        return {"type": "pr_number", "number": int(stripped)}
+    if is_pr_number(stripped):
+        cleaned = stripped.removeprefix("#")
+        return {"type": "pr_number", "number": int(cleaned)}
     return {"type": "detect"}
 
 
