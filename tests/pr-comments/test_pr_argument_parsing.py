@@ -16,6 +16,14 @@ class TestPRNumberDetection:
     def test_non_numeric_args_are_not_pr_numbers(self, args):
         assert is_pr_number(args) is False
 
+    def test_hash_prefix_is_pr_number(self):
+        """#42 should be recognized as a PR number."""
+        assert is_pr_number("#42") is True
+
+    def test_hash_only_is_not_pr_number(self):
+        """Bare '#' is not a PR number."""
+        assert is_pr_number("#") is False
+
     def test_whitespace_around_number(self):
         """PR number with whitespace should still be detected."""
         assert is_pr_number(" 42 ") is True
@@ -52,4 +60,14 @@ class TestParseArgument:
     def test_non_numeric_non_help_detects(self):
         """Unknown text should fall back to branch detection."""
         result = parse_pr_argument("some-branch")
+        assert result == {"type": "detect"}
+
+    def test_hash_prefix_pr_number(self):
+        """#42 should parse as PR number 42."""
+        result = parse_pr_argument("#42")
+        assert result == {"type": "pr_number", "number": 42}
+
+    def test_hash_only_detects_from_branch(self):
+        """Bare '#' is not a PR number — fall back to branch detection."""
+        result = parse_pr_argument("#")
         assert result == {"type": "detect"}
