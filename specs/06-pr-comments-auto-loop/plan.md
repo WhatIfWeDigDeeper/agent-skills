@@ -126,7 +126,7 @@ Changes:
 - **Notes**: add auto-loop mode note
 - **Version**: 1.4 → 1.5
 
-Also adds new unit tests in `tests/pr-comments/` and new eval scenarios in `evals/pr-comments/evals.json`.
+Also adds new unit tests in `tests/pr-comments/`. New eval scenarios in `evals/pr-comments/evals.json` are planned as follow-up work (see the corresponding unchecked items in `tasks.md`).
 
 ## Out of Scope
 

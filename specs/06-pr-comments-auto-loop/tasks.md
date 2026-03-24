@@ -10,9 +10,14 @@
 
 ## Verification
 
-- [ ] Run `uv run --with pytest pytest tests/pr-comments/` — all existing + new tests pass
-- [ ] Manual test on a PR with Copilot reviewer to verify full auto-loop cycle end-to-end
-- [ ] Verify PR title/body updates with `gh pr view --json title,body` after auto-loop
+- [x] Run `uv run --with pytest pytest tests/pr-comments/` — all existing + new tests pass (114 passing)
+- [x] Manual test on a PR with Copilot reviewer to verify full auto-loop cycle end-to-end (PR #64)
+- [x] Verify PR title/body updates with `gh pr view --json title,body` after auto-loop
+- [x] Run existing 16-eval suite, update `evals/pr-comments/benchmark.json` (100% pass rate)
+- [x] Update `Eval Δ` column in `README.md` with new pass-rate delta (+62%)
+
+## Follow-up (not included in this PR)
+
 - [ ] Add new eval scenarios to `evals/pr-comments/evals.json`:
   - Auto-loop happy path (2–3 iterations, clean exit on no new threads)
   - `--auto` with no bot reviewers (fallback to normal mode)
@@ -20,4 +25,3 @@
   - Max iteration exit
   - Interactive `auto` entry at Step 7 prompt
 - [ ] Run full eval suite (existing 16 + new scenarios), update `evals/pr-comments/benchmark.json`
-- [ ] Update `Eval Δ` column in `README.md` with new pass-rate delta
