@@ -344,18 +344,24 @@ List all re-requested bot handles in the status line. If a specific bot responds
 
 **Polling behavior (both modes):**
 
-Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds for new unresolved threads:
+Record a `snapshot_timestamp` (ISO 8601) at the moment polling begins. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using **two signals**:
 
+**Signal 1 — New unresolved threads:**
 ```bash
-# Poll: new unresolved threads relative to pre-push snapshot
 gh api graphql -f query='...' | jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | .id]'
 ```
+If new thread IDs appear relative to the snapshot, the bot posted review comments — loop back to Step 2.
 
-When new unresolved threads appear, the bot has posted review comments — loop back to Step 2.
+**Signal 2 — New review submitted by the bot (reviews API):**
+```bash
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews \
+  --jq "[.[] | select(.user.login == \"<bot_login>\" and .submitted_at > \"$snapshot_timestamp\")]"
+```
+If a new review entry exists with `submitted_at` after `snapshot_timestamp` but Signal 1 has not fired (no new threads), the bot reviewed without inline comments (e.g., approved or left only a review-body summary). Exit the poll cleanly, note it in the report, and proceed to Step 14.
 
-**Do not use `requested_reviewers` as a completion signal.** The DELETE+POST re-request pattern used for bots creates a window where the bot is absent from `requested_reviewers` before it has finished reviewing, and GitHub's comment indexing lags behind review submission. Both conditions make `requested_reviewers` unreliable as a poll exit signal. Poll only for new threads; give up after 10 minutes.
+Check Signal 2 after each poll cycle — but only act on it if Signal 1 has not fired in the same cycle (new threads take priority). Do not use `requested_reviewers` as a completion signal — the DELETE+POST re-request pattern creates a window where the bot is absent before it has finished reviewing.
 
-Attribute new threads to the responding bot by checking the commenter's login on each new thread.
+Attribute new threads (Signal 1) to the responding bot by checking the commenter's login on each thread.
 
 **On timeout (10 minutes):** print:
 
