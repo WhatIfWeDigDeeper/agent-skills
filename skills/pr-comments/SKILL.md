@@ -358,6 +358,8 @@ gh api repos/{owner}/{repo}/pulls/{pr_number} --jq '[.requested_reviewers[].logi
 If Signal 1 fires: loop back to Step 2 — new threads need processing.
 If only Signal 2 fires (bot no longer pending, but no new threads): the bot approved or left a review-body comment with no inline threads. Exit the poll, note this in the report, and proceed to Step 14 — there is nothing to process in another iteration.
 
+**Signal 2 timing caveat**: GitHub can remove the bot from `requested_reviewers` briefly before its inline comments are visible via GraphQL — the review submission and comment indexing are not atomic. To avoid a false-clean exit, **do not act on Signal 2 alone until it has been observed on two consecutive polls** (i.e., the bot was absent from `requested_reviewers` on both the current and the previous poll cycle). Always perform at least one complete 60-second poll cycle before checking Signal 2.
+
 Attribute new threads to the responding bot by checking the commenter's login on each new thread.
 
 **On timeout (10 minutes):** print:
