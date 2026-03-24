@@ -811,8 +811,7 @@
         "mean": 21306.0,
         "stddev": 2528.8,
         "min": 19747,
-        "max": 25771,
-        "note": "5 runs with recorded tokens out of 16; remaining runs used simulated transcripts (tokens: null)"
+        "max": 25771
       }
     },
     "without_skill": {
@@ -832,8 +831,7 @@
         "mean": 13954.8,
         "stddev": 707.7,
         "min": 13263,
-        "max": 15312,
-        "note": "6 runs with recorded tokens out of 16; remaining runs used simulated transcripts (tokens: null)"
+        "max": 15312
       }
     },
     "delta": {
@@ -846,6 +844,7 @@
     "Eval 1 assertion 3 ('already-resolved threads not in plan') failed because the scenario fixture lacks a pre-resolved thread — the filtering path was untestable.",
     "Eval 13 without_skill scored 100% — the baseline independently discovered the correct REST pattern and poll-decline flow without skill guidance.",
     "Eval 16 without_skill scored 100% — the explicit prompt context (prior reply visible in chain) was sufficient for the baseline to skip correctly. This eval does not discriminate between configurations.",
+    "Token run_summary stats (with_skill: n=5 of 16, without_skill: n=6 of 16) are computed only from runs with recorded token counts; remaining runs used simulated transcripts (tokens: null) and are excluded from token aggregates.",
     "Time and token values are unreliable for many runs (simulated transcripts); values above 0 are from actual executor measurements.",
     "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior."
   ]

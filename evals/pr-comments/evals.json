@@ -207,7 +207,7 @@
     {
       "id": 16,
       "prompt": "Please address the review comments on my PR. There are two threads: one from @alice asking a clarifying question — I already answered it in a prior run of this skill (thread is still open, my reply is visible in the reply chain). And one from @bob with a valid suggestion to add a missing return type annotation. Only @bob's thread should be processed.",
-      "expected_output": "The skill detects that @alice's thread already has a reply from the PR author or the authenticated operator in its reply chain, skips it without re-replying, and presents a plan containing only @bob's suggestion. Implements @bob's change, commits with Co-authored-by for @bob only, and resolves @bob's thread. @alice's thread does not appear in the plan or the commit.",
+      "expected_output": "The skill detects that @alice's thread already has a reply from the PR author or the authenticated operator in its reply chain and marks it action=skip in the plan (no new reply posted). Presents a plan with @alice's thread as skip and @bob's thread as fix. Implements @bob's change, commits with Co-authored-by for @bob only, and resolves @bob's thread.",
       "files": [],
       "assertions": [
         {"id": "skips-previously-replied-thread", "text": "The agent skips @alice's thread (the reply chain already contains a reply from the PR author or operator) — it is marked with action=skip in the plan and no new reply is posted"},

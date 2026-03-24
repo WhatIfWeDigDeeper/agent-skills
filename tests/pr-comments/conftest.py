@@ -34,8 +34,8 @@ def parse_pr_argument(args: str) -> dict:
     stripped = args.strip()
     if is_help_request(stripped):
         return {"type": "help"}
-    cleaned = stripped.lstrip("#")
-    if cleaned and cleaned.isdigit():
+    if is_pr_number(stripped):
+        cleaned = stripped.lstrip("#")
         return {"type": "pr_number", "number": int(cleaned)}
     return {"type": "detect"}
 

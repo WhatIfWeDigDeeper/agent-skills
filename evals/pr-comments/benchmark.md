@@ -11,7 +11,9 @@
 |--------|------------|---------------|-------|
 | Pass Rate | **99.1%** ± 3.5% | 37.9% ± 32.3% | **+61%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
-| Tokens | 7908 ± 10234 | 1824 ± 3571 | +6084 |
+| Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
+
+Token statistics are computed only over runs with recorded token counts (with_skill: 5 of 16 runs; without_skill: 6 of 16 runs). Evals using simulated transcripts have `tokens: null` in `benchmark.json` and are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
 
 The skill improves correctness by +61 percentage points. The delta vs v1.3 (+65%) dropped slightly because eval 16 (re-invocation skip) does not discriminate between configurations — the baseline correctly handles the prior-reply skip when the context is made explicit in the prompt. The baseline consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, thread resolution, and the interactive push + re-request flow — these behaviors the skill explicitly mandates.
 
