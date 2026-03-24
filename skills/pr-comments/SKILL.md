@@ -375,7 +375,9 @@ Then proceed to Step 14 and end the invocation — do not loop back to Step 2 on
   **After each auto-loop commit**, check whether the PR title or description is stale relative to the current commit log:
 
   ```bash
-  git log origin/$BASE_BRANCH..HEAD --oneline
+  # baseRefName was captured in Step 1 (e.g. via: gh pr view --json baseRefName --jq .baseRefName)
+  git fetch origin "$baseRefName"
+  git log "origin/$baseRefName"..HEAD --oneline
   gh pr view --json title,body --jq '{title: .title, body: .body}'
   ```
 

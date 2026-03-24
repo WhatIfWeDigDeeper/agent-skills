@@ -102,6 +102,16 @@ class TestAutoFlagParsing:
         result = parse_auto_flag("42 --auto")
         assert result == {"auto": True, "max_iterations": 10}
 
+    def test_auto_flag_with_hash_prefixed_pr_number_trailing(self):
+        """#42 --auto should enable auto mode with default iterations."""
+        result = parse_auto_flag("#42 --auto")
+        assert result == {"auto": True, "max_iterations": 10}
+
+    def test_auto_flag_with_hash_prefixed_pr_number_leading(self):
+        """--auto #42 should enable auto mode with default iterations."""
+        result = parse_auto_flag("--auto #42")
+        assert result == {"auto": True, "max_iterations": 10}
+
     def test_auto_flag_with_count_and_pr_number(self):
         result = parse_auto_flag("--auto 5 42")
         assert result == {"auto": True, "max_iterations": 5}
