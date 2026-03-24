@@ -342,12 +342,21 @@ Polling for @<bot>... (iteration N/MAX)
 
 **Polling behavior (both modes):**
 
-Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using the same query, comparing the new unresolved thread set against this snapshot. When new unresolved threads appear, the bot has finished reviewing.
+Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using **two signals** — either indicates the bot has finished reviewing:
+
+1. **New unresolved threads appear** relative to the snapshot — the bot posted review comments.
+2. **Bot is no longer in `requested_reviewers`** — GitHub removes a reviewer from the pending list when their review is submitted. This catches the case where a bot approves with zero new comments (which would never produce new threads).
 
 ```bash
-# Re-run the Step 3 GraphQL query and compare unresolved thread IDs against the pre-push snapshot
+# Signal 1: new unresolved threads relative to pre-push snapshot
 gh api graphql -f query='...' | jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | .id]'
+
+# Signal 2: bot dropped from requested_reviewers (review submitted with no new comments)
+gh api repos/{owner}/{repo}/pulls/{pr_number} --jq '[.requested_reviewers[].login]'
 ```
+
+If Signal 1 fires: loop back to Step 2 — new threads need processing.
+If only Signal 2 fires (bot no longer pending, but no new threads): the bot approved or left a review-body comment with no inline threads. Exit the poll, note this in the report, and proceed to Step 14 — there is nothing to process in another iteration.
 
 Attribute new threads to the responding bot by checking the commenter's login on each new thread.
 

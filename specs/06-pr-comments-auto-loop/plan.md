@@ -65,7 +65,8 @@ Polling for next round... (iteration 4/10)
 After each auto-loop commit, check if the PR description is stale relative to the current commit log:
 
 ```bash
-git log origin/$BASE_BRANCH..HEAD --oneline
+git fetch origin "$baseRefName"
+git log "origin/$baseRefName"..HEAD --oneline
 gh pr view --json title,body --jq '{title: .title, body: .body}'
 ```
 
