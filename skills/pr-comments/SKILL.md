@@ -303,7 +303,7 @@ Push and re-request review from @user1, @user2?
      --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
    ```
 
-   **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it auto-triggers a review on push and cannot be re-requested via API.
+   **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it auto-triggers a review on push and cannot be re-requested via API. Because it was not explicitly re-requested, do not include it in the polling offer; re-invoke the skill when its review arrives.
 
 **If bot reviewers were re-requested**, offer to poll for all re-requested bots after the re-request completes:
 
