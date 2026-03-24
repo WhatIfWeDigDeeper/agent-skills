@@ -46,7 +46,7 @@ Different operations require different `gh` commands:
 gh pr view --json number,url,title,baseRefName,headRefName,author
 ```
 
-If `$ARGUMENTS` is a number, pass it: `gh pr view $ARGUMENTS --json ...`. Otherwise, detect from the current branch. If no PR is found, tell the user and exit.
+If `$ARGUMENTS` contains a PR number (after stripping a single leading `#` per the Arguments section), pass the cleaned number: `gh pr view <number> --json ...`. Otherwise, detect from the current branch. If no PR is found, tell the user and exit.
 
 Save `author.login` from the result — it is used in Step 6 to identify replies already posted by the PR author.
 
