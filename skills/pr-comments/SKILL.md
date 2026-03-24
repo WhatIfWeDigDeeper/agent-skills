@@ -344,7 +344,7 @@ List all re-requested bot handles in the status line. If a specific bot responds
 
 **Polling behavior (both modes):**
 
-Record a `snapshot_timestamp` (ISO 8601) at the moment polling begins. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using **two signals**:
+Record a `snapshot_timestamp` (ISO 8601) **before** triggering the re-request. Recording it before the DELETE+POST ensures that even a same-second review submission is captured by Signal 2. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using **two signals**:
 
 **Signal 1 — New unresolved threads:**
 ```bash
@@ -358,7 +358,7 @@ If new thread IDs appear relative to the snapshot, the bot posted review comment
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  --jq "[.[] | select(.user.login == \"<bot_login>\" and .submitted_at > \"${snapshot_timestamp}\")]"
+  --jq "[.[] | select(.user.login == \"<bot_login>\" and .submitted_at >= \"${snapshot_timestamp}\")]"
 ```
 Evaluate Signal 2 **per bot**: track which bots have submitted a new review since `snapshot_timestamp`. If all polled bots have a new review with `submitted_at` after `snapshot_timestamp` but Signal 1 has not fired (no new threads), all bots reviewed without inline comments (e.g., approved or left only review-body summaries). Exit the poll cleanly, note it in the report, and proceed to Step 14. If only some bots have responded, continue polling for the remaining ones.
 
