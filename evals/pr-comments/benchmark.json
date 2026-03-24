@@ -7,6 +7,7 @@
     "timestamp": "2026-03-24T00:00:00Z",
     "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
     "runs_per_configuration": 1,
+    "regression_run_evals": [12, 14],
     "skill_version": "1.5"
   },
   "runs": [
@@ -891,7 +892,7 @@
   "notes": [
     "Eval 13 without_skill scored 100% — the baseline independently discovered the correct REST pattern and poll-decline flow without skill guidance.",
     "Eval 16 without_skill scored 100% — the explicit prompt context (prior reply visible in chain) was sufficient for the baseline to skip correctly. This eval does not discriminate between configurations.",
-    "Token run_summary stats (with_skill: n=5 of 16, without_skill: n=6 of 16) are computed only from runs with recorded token counts; remaining runs used simulated transcripts (tokens: null) and are excluded from token aggregates.",
+    "Token run_summary stats (with_skill: n=5 of 16 primary runs, without_skill: n=6 of 16 primary runs) are computed only from primary (run_number=1) runs with recorded token counts; regression runs (run_number=2, evals 12 and 14) and simulated transcripts (tokens: null) are excluded from token aggregates.",
     "Time and token values are unreliable for many runs (simulated transcripts); values above 0 are from actual executor measurements.",
     "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior.",
     "Evals 12 and 14 have run_number 2 (with_skill only) as regression checks after the Signal 2 poll redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). Both passed 100% — no regression introduced."
