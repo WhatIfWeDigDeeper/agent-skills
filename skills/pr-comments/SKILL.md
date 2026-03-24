@@ -353,8 +353,11 @@ gh api graphql -f query='...' | jq '[.data.repository.pullRequest.reviewThreads.
 If new thread IDs appear relative to the snapshot, the bot posted review comments — loop back to Step 2.
 
 **Signal 2 — New review submitted by the bot (reviews API):**
+
+`snapshot_timestamp` must be in ISO 8601 UTC format ending in `Z` (e.g. `2026-03-24T21:54:37Z`) so that the string comparison with GitHub's `submitted_at` field is lexicographically reliable.
+
 ```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews \
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
   --jq "[.[] | select(.user.login == \"<bot_login>\" and .submitted_at > \"$snapshot_timestamp\")]"
 ```
 If a new review entry exists with `submitted_at` after `snapshot_timestamp` but Signal 1 has not fired (no new threads), the bot reviewed without inline comments (e.g., approved or left only a review-body summary). Exit the poll cleanly, note it in the report, and proceed to Step 14.
