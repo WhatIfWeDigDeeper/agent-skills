@@ -87,49 +87,87 @@ class TestAutoFlagParsing:
 
     def test_auto_flag_alone(self):
         result = parse_auto_flag("--auto")
-        assert result == {"auto": True, "max_iterations": 10}
+        assert result == {"auto": True, "max_iterations": 10, "remaining_args": ""}
 
     def test_auto_flag_with_count(self):
         result = parse_auto_flag("--auto 5")
-        assert result == {"auto": True, "max_iterations": 5}
+        assert result == {"auto": True, "max_iterations": 5, "remaining_args": ""}
 
     def test_auto_flag_count_of_one(self):
         result = parse_auto_flag("--auto 1")
-        assert result == {"auto": True, "max_iterations": 1}
+        assert result == {"auto": True, "max_iterations": 1, "remaining_args": ""}
 
     def test_auto_flag_with_pr_number(self):
-        """--auto and a PR number together: auto flag should be detected."""
+        """--auto and a PR number together: PR number is preserved in remaining_args."""
         result = parse_auto_flag("42 --auto")
-        assert result == {"auto": True, "max_iterations": 10}
+        assert result == {"auto": True, "max_iterations": 10, "remaining_args": "42"}
 
     def test_auto_flag_with_hash_prefixed_pr_number_trailing(self):
-        """#42 --auto should enable auto mode with default iterations."""
+        """#42 --auto should enable auto mode; #42 preserved in remaining_args."""
         result = parse_auto_flag("#42 --auto")
-        assert result == {"auto": True, "max_iterations": 10}
+        assert result == {"auto": True, "max_iterations": 10, "remaining_args": "#42"}
 
     def test_auto_flag_with_hash_prefixed_pr_number_leading(self):
-        """--auto #42 should enable auto mode with default iterations."""
+        """--auto #42 should enable auto mode; #42 preserved in remaining_args."""
         result = parse_auto_flag("--auto #42")
-        assert result == {"auto": True, "max_iterations": 10}
+        assert result == {"auto": True, "max_iterations": 10, "remaining_args": "#42"}
 
     def test_auto_flag_with_count_and_pr_number(self):
         result = parse_auto_flag("--auto 5 42")
-        assert result == {"auto": True, "max_iterations": 5}
+        assert result == {"auto": True, "max_iterations": 5, "remaining_args": "42"}
 
     def test_no_auto_flag_empty(self):
         result = parse_auto_flag("")
-        assert result == {"auto": False, "max_iterations": 10}
+        assert result == {"auto": False, "max_iterations": 10, "remaining_args": ""}
 
     def test_no_auto_flag_pr_number_only(self):
         result = parse_auto_flag("42")
-        assert result == {"auto": False, "max_iterations": 10}
+        assert result == {"auto": False, "max_iterations": 10, "remaining_args": "42"}
 
     def test_auto_zero_not_treated_as_count(self):
-        """--auto 0 is not a valid positive count; 0 should not set max_iterations."""
+        """--auto 0 is not a valid positive count; 0 lands in remaining_args."""
         result = parse_auto_flag("--auto 0")
-        assert result == {"auto": True, "max_iterations": 10}
+        assert result == {"auto": True, "max_iterations": 10, "remaining_args": "0"}
 
     def test_auto_negative_not_treated_as_count(self):
-        """Negative numbers should not be treated as a valid count."""
+        """Negative numbers are not consumed as count; land in remaining_args."""
         result = parse_auto_flag("--auto -1")
-        assert result == {"auto": True, "max_iterations": 10}
+        assert result == {"auto": True, "max_iterations": 10, "remaining_args": "-1"}
+
+
+class TestCombinedAutoAndPRNumberParsing:
+    """End-to-end tests: parse --auto tokens then pass remaining_args to parse_pr_argument."""
+
+    def test_auto_with_pr_number_trailing(self):
+        """'42 --auto' → remaining_args '42' → PR number 42."""
+        remaining = parse_auto_flag("42 --auto")["remaining_args"]
+        assert parse_pr_argument(remaining) == {"type": "pr_number", "number": 42}
+
+    def test_auto_with_pr_number_leading_ambiguous(self):
+        """'--auto 42' is ambiguous — 42 is consumed as the iteration count, not a PR number.
+        Users should write '--auto 5 42' (count then PR) or '42 --auto' to disambiguate."""
+        parsed = parse_auto_flag("--auto 42")
+        assert parsed["auto"] is True
+        assert parsed["max_iterations"] == 42
+        assert parsed["remaining_args"] == ""
+        assert parse_pr_argument(parsed["remaining_args"]) == {"type": "detect"}
+
+    def test_auto_count_with_pr_number(self):
+        """'--auto 5 42' → remaining_args '42' → PR number 42."""
+        remaining = parse_auto_flag("--auto 5 42")["remaining_args"]
+        assert parse_pr_argument(remaining) == {"type": "pr_number", "number": 42}
+
+    def test_auto_with_hash_prefixed_pr_trailing(self):
+        """'#42 --auto' → remaining_args '#42' → PR number 42."""
+        remaining = parse_auto_flag("#42 --auto")["remaining_args"]
+        assert parse_pr_argument(remaining) == {"type": "pr_number", "number": 42}
+
+    def test_auto_with_hash_prefixed_pr_leading(self):
+        """'--auto #42' → remaining_args '#42' → PR number 42."""
+        remaining = parse_auto_flag("--auto #42")["remaining_args"]
+        assert parse_pr_argument(remaining) == {"type": "pr_number", "number": 42}
+
+    def test_auto_alone_detects_from_branch(self):
+        """'--auto' with no PR number → remaining_args '' → detect from branch."""
+        remaining = parse_auto_flag("--auto")["remaining_args"]
+        assert parse_pr_argument(remaining) == {"type": "detect"}

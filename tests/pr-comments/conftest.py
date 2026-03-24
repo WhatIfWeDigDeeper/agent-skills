@@ -108,30 +108,46 @@ def parse_auto_flag(args: str) -> dict:
     """Parse the --auto [N] flag from arguments per SKILL.md.
 
     Returns:
-        {"auto": bool, "max_iterations": int}
-    where max_iterations defaults to 10 if --auto is present without N.
+        {
+            "auto": bool,
+            "max_iterations": int,
+            "remaining_args": str,
+        }
+    where max_iterations defaults to 10 if --auto is present without N,
+    and remaining_args is the original args with any --auto [N] tokens removed.
     """
     if not args or not args.strip():
-        return {"auto": False, "max_iterations": 10}
+        return {"auto": False, "max_iterations": 10, "remaining_args": ""}
 
     tokens = args.strip().split()
     auto = False
     max_iterations = 10
+    remaining_tokens: list[str] = []
 
     i = 0
     while i < len(tokens):
         if tokens[i] == "--auto":
             auto = True
             # Check if next token is a positive integer
-            if i + 1 < len(tokens) and tokens[i + 1].isdigit() and int(tokens[i + 1]) > 0:
+            if (
+                i + 1 < len(tokens)
+                and tokens[i + 1].isdigit()
+                and int(tokens[i + 1]) > 0
+            ):
                 max_iterations = int(tokens[i + 1])
                 i += 2
             else:
                 i += 1
         else:
+            remaining_tokens.append(tokens[i])
             i += 1
 
-    return {"auto": auto, "max_iterations": max_iterations}
+    remaining_args = " ".join(remaining_tokens)
+    return {
+        "auto": auto,
+        "max_iterations": max_iterations,
+        "remaining_args": remaining_args,
+    }
 
 
 def should_exit_auto_loop(iteration: int, max_iterations: int, new_threads: int) -> bool:
