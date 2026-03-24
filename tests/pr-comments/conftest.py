@@ -17,7 +17,7 @@ def is_pr_number(args: str) -> bool:
     """
     if not args:
         return False
-    stripped = args.strip().lstrip("#")
+    stripped = args.strip().removeprefix("#")
     return bool(stripped and stripped.isdigit())
 
 
@@ -35,7 +35,7 @@ def parse_pr_argument(args: str) -> dict:
     if is_help_request(stripped):
         return {"type": "help"}
     if is_pr_number(stripped):
-        cleaned = stripped.lstrip("#")
+        cleaned = stripped.removeprefix("#")
         return {"type": "pr_number", "number": int(cleaned)}
     return {"type": "detect"}
 

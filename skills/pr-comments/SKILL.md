@@ -24,7 +24,7 @@ Optional PR number (e.g. `42` or `#42`). If omitted, detect from the current bra
 
 If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, print usage and exit.
 
-Strip a leading `#` from `$ARGUMENTS` before checking whether it is a number, and pass the cleaned numeric PR number (without `#`) to `gh pr view` (so both `42` and `#42` work).
+Strip a single leading `#` from `$ARGUMENTS` before checking whether it is a number, and pass the cleaned numeric PR number (without `#`) to `gh pr view` (so both `42` and `#42` work; `##42` is not a valid PR number).
 
 ## Tool choice rationale
 

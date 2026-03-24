@@ -24,6 +24,10 @@ class TestPRNumberDetection:
         """Bare '#' is not a PR number."""
         assert is_pr_number("#") is False
 
+    def test_double_hash_is_not_pr_number(self):
+        """##42 should NOT be treated as PR 42 — only a single leading # is stripped."""
+        assert is_pr_number("##42") is False
+
     def test_whitespace_around_number(self):
         """PR number with whitespace should still be detected."""
         assert is_pr_number(" 42 ") is True
@@ -70,4 +74,9 @@ class TestParseArgument:
     def test_hash_only_detects_from_branch(self):
         """Bare '#' is not a PR number — fall back to branch detection."""
         result = parse_pr_argument("#")
+        assert result == {"type": "detect"}
+
+    def test_double_hash_detects_from_branch(self):
+        """##42 should fall back to branch detection, not parse as PR 42."""
+        result = parse_pr_argument("##42")
         assert result == {"type": "detect"}
