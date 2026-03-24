@@ -120,7 +120,7 @@ Tests that the skill's skip logic covers not just "decline" replies from prior r
 
 ## Notes
 
-- **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the +65% delta.
+- **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the +61% delta.
 - **Process steps vs. output quality.** The baseline produces reasonable commit messages and file edits on its own. The skill's value is almost entirely in the process steps it mandates — the plan/confirmation gate, Co-authored-by attribution, thread resolution via GraphQL mutation, and the interactive push + re-request prompt.
 - **Eval 1 with-skill scored 6/7.** Assertion 3 ("already-resolved threads not in plan") failed because the scenario fixture has no pre-resolved threads — the resolved-thread filtering path was untestable. This is a fixture gap, not a skill gap.
 - **Eval 13 without-skill scored 100%.** The baseline independently found the correct REST endpoint pattern for bot re-request and the poll-decline flow. This eval does not discriminate between configurations.

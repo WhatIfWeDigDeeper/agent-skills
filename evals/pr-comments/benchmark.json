@@ -4,7 +4,7 @@
     "skill_path": "skills/pr-comments",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-03-21T00:00:00Z",
+    "timestamp": "2026-03-24T00:00:00Z",
     "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
     "runs_per_configuration": 1,
     "skill_version": "1.4"
@@ -331,7 +331,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -355,7 +355,7 @@
         "failed": 5,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -379,7 +379,7 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -402,7 +402,7 @@
         "failed": 1,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -425,7 +425,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -449,7 +449,7 @@
         "failed": 5,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 1
       },
@@ -473,7 +473,7 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -496,7 +496,7 @@
         "failed": 3,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -519,7 +519,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -543,7 +543,7 @@
         "failed": 3,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 1
       },
@@ -567,7 +567,7 @@
         "failed": 0,
         "total": 6,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -592,7 +592,7 @@
         "failed": 6,
         "total": 6,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 12,
         "errors": 1
       },
@@ -617,7 +617,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -641,7 +641,7 @@
         "failed": 0,
         "total": 5,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -665,7 +665,7 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -688,7 +688,7 @@
         "failed": 1,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -711,7 +711,7 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -734,7 +734,7 @@
         "failed": 3,
         "total": 4,
         "time_seconds": 0.0,
-        "tokens": 0,
+        "tokens": null,
         "tool_calls": 0,
         "errors": 0
       },
@@ -762,9 +762,9 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent skips @alice's thread (the reply chain already contains a reply from the PR author or operator) — it does not appear in the plan and no new reply is posted", "passed": true, "evidence": "Step 6 detected a reply from 'prauthor' (the PR author login) in thread 3001 and applied the skip rule: 'do not re-reply or re-plan it'. Thread 3001 was assigned action=skip in the plan and no reply, resolve, or re-request was performed for alice."},
+        {"text": "The agent skips @alice's thread (the reply chain already contains a reply from the PR author or operator) — it is marked with action=skip in the plan and no new reply is posted", "passed": true, "evidence": "Step 6 detected a reply from 'prauthor' (the PR author login) in thread 3001 and applied the skip rule: 'do not re-reply or re-plan it'. Thread 3001 was assigned action=skip in the plan and no reply, resolve, or re-request was performed for alice."},
         {"text": "The agent includes @bob's return-type suggestion in the plan and implements it", "passed": true, "evidence": "Thread 3002 (bob's) was fully processed: action=fix in the plan, code change applied (added -> dict[str, Any] to process_config), committed, thread resolved via GraphQL mutation, and bob re-requested as reviewer."},
-        {"text": "The plan table does not contain a row for @alice's thread", "passed": true, "evidence": "The Step 7 plan table lists alice's thread with action=`skip` and note='Prior reply from @prauthor in thread', confirming it was excluded from actionable items."},
+        {"text": "The plan table contains a row for @alice's thread marked with action=skip (it is excluded from actionable items)", "passed": true, "evidence": "The Step 7 plan table lists alice's thread with action=`skip` and note='Prior reply from @prauthor in thread', confirming it was excluded from actionable items."},
         {"text": "The commit Co-authored-by trailers credit @bob but not @alice", "passed": true, "evidence": "Commit message contains 'Co-authored-by: bob <bob@users.noreply.github.com>' and no Co-authored-by entry for alice. Alice's thread was skipped and required no action, so she receives no commit credit."}
       ],
       "notes": []
@@ -785,9 +785,9 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent skips @alice's thread (the reply chain already contains a reply from the PR author or operator) — it does not appear in the plan and no new reply is posted", "passed": true, "evidence": "The agent explicitly noted the existing reply from 'prauthor' in the chain and took no action on alice's thread."},
+        {"text": "The agent skips @alice's thread (the reply chain already contains a reply from the PR author or operator) — it is marked with action=skip in the plan and no new reply is posted", "passed": true, "evidence": "The agent explicitly noted the existing reply from 'prauthor' in the chain and took no action on alice's thread."},
         {"text": "The agent includes @bob's return-type suggestion in the plan and implements it", "passed": true, "evidence": "Bob's thread was identified as actionable. The agent added '-> dict[str, Any]' to 'process_config' and ensured 'Any' was imported."},
-        {"text": "The plan table does not contain a row for @alice's thread", "passed": true, "evidence": "Alice appears in the summary only as 'Skipped' — no action item assigned to her thread."},
+        {"text": "The plan table contains a row for @alice's thread marked with action=skip (it is excluded from actionable items)", "passed": true, "evidence": "Alice appears in the summary only as 'Skipped' — no action item assigned to her thread."},
         {"text": "The commit Co-authored-by trailers credit @bob but not @alice", "passed": true, "evidence": "Commit message includes 'Co-authored-by: bob <bob@users.noreply.github.com>' only. Alice receives no credit since her thread was skipped."}
       ],
       "notes": ["Baseline independently detected the prior reply in the thread chain and applied correct skip logic — this eval does not discriminate between configurations."]
@@ -808,10 +808,11 @@
         "max": 136.5
       },
       "tokens": {
-        "mean": 7908.2,
-        "stddev": 10234.0,
-        "min": 0,
-        "max": 25771
+        "mean": 21306.0,
+        "stddev": 2528.8,
+        "min": 19747,
+        "max": 25771,
+        "note": "5 runs with recorded tokens out of 16; remaining runs used simulated transcripts (tokens: null)"
       }
     },
     "without_skill": {
@@ -828,16 +829,17 @@
         "max": 77.2
       },
       "tokens": {
-        "mean": 1823.8,
-        "stddev": 3571.2,
-        "min": 0,
-        "max": 15312
+        "mean": 13954.8,
+        "stddev": 707.7,
+        "min": 13263,
+        "max": 15312,
+        "note": "6 runs with recorded tokens out of 16; remaining runs used simulated transcripts (tokens: null)"
       }
     },
     "delta": {
       "pass_rate": "+0.61",
       "time_seconds": "+14.0",
-      "tokens": "+6084"
+      "tokens": "+7351"
     }
   },
   "notes": [
