@@ -1,7 +1,5 @@
 """Tests for Step 6b cross-file consistency check in pr-comments skill."""
 
-import pytest
-
 from conftest import requires_manual_confirmation
 
 

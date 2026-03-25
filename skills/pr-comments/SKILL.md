@@ -315,6 +315,8 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 ### 11. Reply to Comments
 
+`consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
+
 For each inline `reply` comment (a clarifying question in a code thread): post a direct answer. Do not resolve the thread — leave it open for the reviewer to follow up.
 
 For `reply` items in the main review body (not attached to a code thread): just post the answer; there is no thread to resolve.
@@ -365,6 +367,8 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
 ```
 
 ### 12. Resolve Addressed Threads
+
+`consistency` items (from Step 6b) have no GraphQL thread ID — skip them in this step. No thread to resolve.
 
 Resolve each inline thread that was addressed (accepted suggestions and manual implementations). Use the GraphQL mutation from `references/graphql-queries.md` with the node IDs captured in Step 3.
 

@@ -13,7 +13,7 @@
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 22; without_skill: 6 of 22; i.e., 19 of the 22 primary evals currently have token logs). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
+Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 22; without_skill: 6 of 22; i.e., 11 of 44 total primary runs across both configurations have token logs). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
 
 The skill improves correctness by +60 percentage points. All 22 with-skill evals pass 100%. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the interactive plan/confirmation gate, diff-validation for suggestion blocks, cross-file consistency checks, and early-poll detection for pending bot reviewers — these remain the core discriminators.
 
@@ -144,7 +144,7 @@ Tests the v1.8 diff-validation guard: before accepting any suggestion, the skill
 ### Eval 20 — Cross-file consistency: matching rename
 **Prompt**: One inline thread from @charlie on `src/api.ts` requesting `getData` be renamed to `fetchData`. `src/routes.ts` (also in the PR diff) calls `getData` in the same import/usage pattern but has no review comment.
 
-Tests the v1.9 Step 6b cross-file consistency check: after classifying the @charlie fix, the skill searches other PR-modified files for the identifier `getData`, finds it in `src/routes.ts` in an analogous context, and adds a `consistency` row to the plan referencing the originating fix item. The consistency item is not auto-approved even in `--auto` mode. The without-skill baseline addresses only the commented file and produces no plan table or consistency rows — strongly discriminating (with_skill 4/4, without_skill 0/4).
+Tests the v1.10 Step 6b cross-file consistency check: after classifying the @charlie fix, the skill searches other PR-modified files for the identifier `getData`, finds it in `src/routes.ts` in an analogous context, and adds a `consistency` row to the plan referencing the originating fix item. The consistency item is not auto-approved even in `--auto` mode. The without-skill baseline addresses only the commented file and produces no plan table or consistency rows — strongly discriminating (with_skill 4/4, without_skill 0/4).
 
 ### Eval 21 — Cross-file consistency: no false positive
 **Prompt**: One inline thread from @diana on `src/parser.ts` requesting `result` be renamed to `parsedOutput`. `src/logger.ts` (also in the PR diff) has a `result` variable but in a logging context — completely different from the parser's `result`.

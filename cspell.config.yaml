@@ -37,6 +37,8 @@ words:
   - pipenv
   - PREOF
   - PRRT
+  - prauthor
+  - reinvocation
   - psql
   - pyproject
   - PYEOF
