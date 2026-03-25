@@ -2,20 +2,20 @@
 
 **Model**: claude-sonnet-4-6
 **Date**: 2026-03-25
-**Evals**: 1–18 (1 primary run each per configuration; evals 12 and 14 have supplementary run_number=2 regression checks)
-**Skill version**: 1.7
+**Evals**: 1–19 (1 primary run each per configuration; evals 12 and 14 have supplementary run_number=2 regression checks)
+**Skill version**: 1.8
 
 ## Summary
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 42.1% ± 34.1% | **+58%** |
+| Pass Rate | **100%** ± 0% | 41.2% ± 33.4% | **+59%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 18; without_skill: 6 of 18). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
+Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 19; without_skill: 6 of 19). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
 
-The skill improves correctness by +58 percentage points (down from +62% in v1.6 — the new evals 17 and 18 test review body handling, where the baseline independently gets the API endpoints right, narrowing the delta). All 18 with-skill evals pass 100%. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, and the interactive plan/confirmation gate — these remain the core discriminators.
+The skill improves correctness by +59 percentage points. All 19 with-skill evals pass 100%. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the interactive plan/confirmation gate, and diff-validation for suggestion blocks — these remain the core discriminators.
 
 ## Per-Eval Results
 
@@ -39,6 +39,7 @@ The skill improves correctness by +58 percentage points (down from +62% in v1.6 
 | 16 | Re-invocation: skip prior reply | **4/4 (100%)** | 4/4 (100%) | Non-discriminating — explicit prompt context sufficient for baseline to skip correctly |
 | 17 | Review body: skip and decline | **7/7 (100%)** | 5/7 (71%) | Co-authored-by missing, declined review body author not included in re-request list |
 | 18 | Review body: reply to question | **5/5 (100%)** | 4/5 (80%) | Nearly non-discriminating — baseline gets API endpoints right; only failure is Co-authored-by |
+| 19 | Diff validation: out-of-scope suggestion | **4/4 (100%)** | 1/4 (25%) | Baseline applies out-of-scope suggestions without checking the diff; diff-validation guard is skill-specific |
 
 ## What Each Eval Tests
 
@@ -132,12 +133,18 @@ Tests v1.7 review body handling: bot summary classified as skip (no reply), out-
 
 Tests the review body reply path: question classified as `reply`, posted via issue comments API (not the review comment reply endpoint), no resolveReviewThread. Nearly non-discriminating (baseline 4/5) — the baseline independently handles the API endpoints correctly. Only differentiator is Co-authored-by, a skill-specific convention.
 
+### Eval 19 — Diff validation: out-of-scope suggestion
+**Prompt**: Two suggestion threads — @alice's suggestion targets line 42 (within the PR diff), @eve's suggestion targets line 200 (outside the PR diff, that section was not modified).
+
+Tests the v1.8 diff-validation guard: before accepting any suggestion, the skill fetches the PR diff and verifies the suggestion's target line falls within a changed hunk. @alice's suggestion passes and is applied; @eve's fails and is declined with an explanatory note. The baseline applied both suggestions without fetching or checking the diff — strongly discriminating eval (with_skill 4/4, without_skill 1/4).
+
 ## Notes
 
 - **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the delta.
 - **Process steps vs. output quality.** The baseline produces reasonable commit messages and file edits on its own. The skill's value is almost entirely in the process steps it mandates — the plan/confirmation gate, Co-authored-by attribution, thread resolution via GraphQL mutation, and the interactive push + re-request prompt.
 - **Eval 13 without-skill scored 100%.** The baseline independently found the correct REST endpoint pattern for bot re-request and the poll-decline flow. This eval does not discriminate between configurations.
 - **Eval 16 without-skill scored 100%.** The prompt made the prior-reply context explicit, so the baseline correctly skipped alice's thread. This eval does not discriminate between configurations.
-- **Evals 17 and 18 narrow the delta from +62% to +58%.** The baseline independently gets review body API routing correct (issue comments API for replies, no resolveReviewThread). The skill's value in these scenarios is Co-authored-by attribution and including declined review body authors in the re-request list.
+- **Evals 17 and 18 narrowed the delta from +62% to +59%.** The baseline independently gets review body API routing correct (issue comments API for replies, no resolveReviewThread). The skill's value in these scenarios is Co-authored-by attribution and including declined review body authors in the re-request list.
 - **Eval 18 is nearly non-discriminating.** 4/5 without skill. Consider this a baseline-establishing eval rather than a key differentiator.
+- **Eval 19 is strongly discriminating (+75%).** The diff-validation guard is entirely skill-specific — a general assistant has no reason to fetch the PR diff and validate suggestion targets against changed hunks.
 - **Time and token values are partially reliable.** Evals 1–6 and 16 have measured timing from executor agents; the remainder used simulated transcripts — time/token fields are `0` or `null` for unmeasured runs (encoding varies by when the eval was added). The pass rates are fully reliable; timing and token numbers are approximate.
