@@ -110,11 +110,13 @@ Review body comments are treated like inline comments in Step 6 — they get cla
 
 ### 3. Fetch Thread Resolution State
 
+**Skip this step if the inline comments list from Step 2 is empty** — there are no threads to resolve, so the GraphQL call is unnecessary. Proceed directly to Step 7 to surface any review-body items from Step 2b (or exit if there are none).
+
 The REST API doesn't expose whether a thread is resolved. Use GraphQL to get thread node IDs, resolution state, and outdated status — see `references/graphql-queries.md` for the full query and pagination handling.
 
 This gives you a mapping from REST `comment.id` → GraphQL `thread.id` + `isResolved` + `isOutdated`. Discard threads that are already resolved — they should not appear in the plan table or be acted upon at all.
 
-If there are no unresolved threads and no review-body items from Step 2b, report "No open review threads." and exit.
+If there are no unresolved threads and no review-body items from Step 2b, report "No open review threads." and exit. If review-body items exist but there are no unresolved inline threads, proceed to Step 7 to surface them.
 
 ### 4. Read Code Context
 
