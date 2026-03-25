@@ -94,7 +94,7 @@ Changes:
 - **Step 7**: add `consistency` to action values; note that it forces manual confirmation in auto-mode
 - **Step 10**: note that consistency changes are grouped with their originating comment's commit
 - **Notes**: add CI/validation note
-- **Version**: 1.8 → 1.9
+- **Version**: 1.8 → 1.10
 
 ## New Evals
 
