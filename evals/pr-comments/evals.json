@@ -216,6 +216,34 @@
         {"id": "plan-excludes-prior-reply", "text": "The plan table contains a row for @alice's thread marked with action=skip (it is excluded from actionable items)"},
         {"id": "commit-credits-bob-only", "text": "The commit Co-authored-by trailers credit @bob but not @alice"}
       ]
+    },
+    {
+      "id": 17,
+      "prompt": "Please address the review comments on my PR. There are three items: a review body comment from copilot-pull-request-reviewer[bot] summarizing the PR (no actionable request), a review body comment from @alice suggesting the code be refactored in a follow-up ticket (out of scope), and one inline thread from @bob with a valid suggestion to add error handling. Process all of them.",
+      "expected_output": "The skill classifies the bot summary as skip (no action), the out-of-scope review body as decline (with a reply via the issue comments API), and the inline thread as fix. Implements @bob's error handling, commits with Co-authored-by for @bob. Posts a decline reply to @alice's review body comment via the issue comments API (not the review comment reply endpoint). Does NOT call resolveReviewThread for either review body item. Includes @alice and @bob in the re-request list.",
+      "files": [],
+      "assertions": [
+        {"id": "bot-summary-classified-skip", "text": "The bot summary review body comment is classified as skip in the plan — no reply is posted and no action is taken"},
+        {"id": "out-of-scope-review-body-declined", "text": "The out-of-scope review body comment from @alice is classified as decline in the plan"},
+        {"id": "decline-reply-via-issue-comments-api", "text": "The decline reply to @alice's review body comment is posted via the issue comments API (POST /issues/{pr_number}/comments), not the review comment reply endpoint"},
+        {"id": "no-resolve-thread-for-review-body", "text": "The agent does NOT call resolveReviewThread for either review body item (they have no GraphQL thread ID)"},
+        {"id": "inline-thread-implemented", "text": "The inline thread from @bob is implemented and committed with Co-authored-by credit"},
+        {"id": "inline-thread-resolved", "text": "The inline thread from @bob is resolved via GraphQL resolveReviewThread after implementation"},
+        {"id": "alice-included-in-rerequest", "text": "The push/re-request prompt includes @alice (her declined review body was actioned) alongside @bob"}
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "Please address the review comments on my PR. There is one review body comment from @carol asking a clarifying question: 'Why did you choose this approach over using a factory pattern here?' And one inline thread from @dave suggesting adding a missing docstring. Process both.",
+      "expected_output": "The skill classifies @carol's review body as reply (post an answer via the issue comments API, do not resolve — no thread exists). Classifies @dave's inline thread as fix, implements the docstring, commits with Co-authored-by for @dave. Does NOT call resolveReviewThread for @carol's review body item. Includes both @carol and @dave in the push/re-request prompt.",
+      "files": [],
+      "assertions": [
+        {"id": "review-body-question-classified-reply", "text": "The review body comment from @carol is classified as reply in the plan"},
+        {"id": "reply-posted-via-issue-comments-api", "text": "The reply to @carol's review body is posted via the issue comments API (POST /issues/{pr_number}/comments), not the review comment reply endpoint"},
+        {"id": "review-body-not-resolved", "text": "The agent does NOT call resolveReviewThread for @carol's review body comment"},
+        {"id": "inline-thread-implemented", "text": "The inline thread from @dave is implemented (docstring added) and committed with Co-authored-by credit"},
+        {"id": "carol-in-rerequest-list", "text": "The push/re-request prompt includes @carol (she was replied to) alongside @dave"}
+      ]
     }
   ]
 }

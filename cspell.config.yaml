@@ -21,7 +21,10 @@ words:
   - heredocs
   - lockfiles
   - mktemp
+  - DOABC
+  - DOXYZ
   - mongosh
+  - myapp
   - myorg
   - mypy
   - myrepo

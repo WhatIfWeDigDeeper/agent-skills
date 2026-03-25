@@ -114,6 +114,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **Non-discriminating evals** (both configurations score 100%) are expected when the scenario makes the correct behavior explicit enough for the baseline to handle it. Document them with a note in `benchmark.json` — they establish a baseline but don't contribute to the delta. Evals 13 and 16 in pr-comments are examples.
 - **When adding supplementary regression runs** (run_number > 1 for specific evals): add a `regression_run_evals` field to `metadata` listing which eval IDs have supplementary runs, scope token stats notes to "primary (run_number=1) runs", and update `benchmark.md` accordingly. Keep `runs_per_configuration` equal to the primary suite's value — do not bump it to the max `run_number`, which would misrepresent evals that only have one run.
 - **For structural refactors that move logic to a reference file** (no behavioral change), run only the evals that exercise the moved logic rather than the full suite. Get the old-skill baseline via `git show HEAD:skills/<name>/SKILL.md > "$TMPDIR/<name>-snapshot.md"`.
+- **When adding new evals to `evals.json`, run them immediately** — do not wait for the user to ask. Spawn with_skill and without_skill subagents, grade the results, and update `benchmark.json` as part of the same task.
 - **When a grader flags a missing assertion**, add it to `evals.json` and re-grade the existing transcript — no need to re-spawn the executor if the transcript is detailed enough to provide evidence.
 
 ## Portability

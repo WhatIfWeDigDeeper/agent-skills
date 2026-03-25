@@ -4,11 +4,11 @@
     "skill_path": "skills/pr-comments",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-03-24T00:00:00Z",
-    "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "timestamp": "2026-03-25T00:00:00Z",
+    "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
     "runs_per_configuration": 1,
     "regression_run_evals": [12, 14],
-    "skill_version": "1.5"
+    "skill_version": "1.7"
   },
   "runs": [
     {
@@ -840,6 +840,106 @@
         {"text": "The agent does not loop back to Step 2 on timeout — it exits the poll loop and reports", "passed": true, "evidence": "After timeout message the transcript states 'Proceeding to Step 14 (report). Not looping back to Step 2.' No loop occurs."}
       ],
       "notes": ["Regression run after Signal 2 redesign. All 4 assertions pass — timeout path unaffected by Signal 2 addition."]
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "review-body-skip-decline",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The bot summary review body comment is classified as skip in the plan — no reply is posted and no action is taken", "passed": true, "evidence": "Step 6 classifies review 9001 (copilot-pull-request-reviewer[bot]) as 'skip — bot PR summary, no actionable request.' Step 7 plan table shows action 'skip' for item 2. Step 11 confirms no reply posted. Step 12 confirms resolveReviewThread NOT called. Step 13 confirms copilot excluded from reviewer list."},
+        {"text": "The out-of-scope review body comment from @alice is classified as decline in the plan", "passed": true, "evidence": "Step 6 classifies review 9002 (@alice) as 'decline — out-of-scope refactoring suggestion; reply explaining it's being deferred to a follow-up issue.' Step 7 plan table shows action 'decline' for item 3."},
+        {"text": "The decline reply to @alice's review body comment is posted via the issue comments API (POST /issues/{pr_number}/comments), not the review comment reply endpoint", "passed": true, "evidence": "Step 11 explicitly calls 'gh api repos/myorg/myapp/issues/23/comments --method POST' with note 'Endpoint used: repos/{owner}/{repo}/issues/{pr_number}/comments (issue comments API — review body replies go to the PR timeline, not a review comment thread).'"},
+        {"text": "The agent does NOT call resolveReviewThread for either review body item (they have no GraphQL thread ID)", "passed": true, "evidence": "Step 12 explicitly states 'resolveReviewThread is NOT called for review_id 9001 or 9002. These are review body items, not inline comment threads. They cannot be resolved via the GraphQL mutation.' Step 3 noted 'Review body items (9001, 9002) have no GraphQL thread IDs.'"},
+        {"text": "The inline thread from @bob is implemented and committed with Co-authored-by credit", "passed": true, "evidence": "Step 9 applies the None-check fix to src/auth.py. Step 10 shows the commit with 'Co-authored-by: bob <bob@users.noreply.github.com>' and commit hash a3f8c12."},
+        {"text": "The inline thread from @bob is resolved via GraphQL resolveReviewThread after implementation", "passed": true, "evidence": "Step 12 calls the GraphQL mutation 'resolveReviewThread(input: {threadId: \"RT_kwDOABC123\"})' for bob's thread, with simulated response showing 'isResolved: true'."},
+        {"text": "The push/re-request prompt includes @alice (her declined review body was actioned) alongside @bob", "passed": true, "evidence": "Step 13 builds the reviewer list including both 'bob' (co-authored-by) and 'alice' (author of declined comment). The prompt displayed is 'Push and re-request review from @bob, @alice?'"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "review-body-skip-decline",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.71,
+        "passed": 5,
+        "failed": 2,
+        "total": 7,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The bot summary review body comment is classified as skip in the plan — no reply is posted and no action is taken", "passed": true, "evidence": "Step 2 Item 1: 'Classification: SKIP — bot summary comment, nothing to act on. Action: No reply, no code change, no thread resolution.'"},
+        {"text": "The out-of-scope review body comment from @alice is classified as decline in the plan", "passed": true, "evidence": "Step 2 Item 2: 'Classification: DECLINE (out of scope) — the suggestion is explicitly deferred to a future ticket, not a request for action on this PR.'"},
+        {"text": "The decline reply to @alice's review body comment is posted via the issue comments API (POST /issues/{pr_number}/comments), not the review comment reply endpoint", "passed": true, "evidence": "Step 4 shows: 'POST /repos/myorg/myapp/issues/23/comments' with the acknowledgment reply body. Summary table confirms endpoint 'POST /issues/23/comments'."},
+        {"text": "The agent does NOT call resolveReviewThread for either review body item (they have no GraphQL thread ID)", "passed": true, "evidence": "Step 4 note: 'Review body comments do NOT have an associated resolveReviewThread.' Step 3 (bot skip) makes no GraphQL call. Summary table footer confirms no resolveReviewThread for review body items."},
+        {"text": "The inline thread from @bob is implemented and committed with Co-authored-by credit", "passed": false, "evidence": "Step 5c shows the commit but the commit message contains no Co-authored-by line: 'Add error handling for None return from get_user()\\n\\n...Addresses review comment from @bob on PR #23.' No Co-authored-by attribution is present."},
+        {"text": "The inline thread from @bob is resolved via GraphQL resolveReviewThread after implementation", "passed": true, "evidence": "Step 5e calls: 'mutation { resolveReviewThread(input: { threadId: \"RT_kwDOABC123\" }) { thread { isResolved } } }' with simulated response confirming 'isResolved: true'."},
+        {"text": "The push/re-request prompt includes @alice (her declined review body was actioned) alongside @bob", "passed": false, "evidence": "Step 7 mentions @alice as someone who 'may also be re-requested' but the actual POST to /requested_reviewers only sends {\"reviewers\": [\"bob\"]}. Summary table footer states 'Reviewers included in re-request prompt: @bob' — @alice is not included."}
+      ],
+      "notes": ["Baseline correctly used the issue comments API for review body replies and skipped resolveReviewThread for review body items. Failures: Co-authored-by missing from commit; declined review body author (@alice) not included in re-request list."]
+    },
+    {
+      "eval_id": 18,
+      "eval_name": "review-body-reply-question",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The review body comment from @carol is classified as reply in the plan", "passed": true, "evidence": "Step 6 explicitly classifies review 8001 (@carol) as 'reply': 'Classification: reply — post an answer to @carol's question via the issue comments API'. The plan table in Step 7 also shows action 'reply' for item #2."},
+        {"text": "The reply to @carol's review body is posted via the issue comments API (POST /issues/{pr_number}/comments), not the review comment reply endpoint", "passed": true, "evidence": "Step 11 shows: 'gh api repos/myorg/myapp/issues/31/comments --method POST ...'. Transcript notes explicitly: 'The reply to @carol uses repos/myorg/myapp/issues/31/comments (issue comments / PR timeline endpoint), NOT repos/myorg/myapp/pulls/31/comments/{id}/replies'."},
+        {"text": "The agent does NOT call resolveReviewThread for @carol's review body comment", "passed": true, "evidence": "Step 12 explicitly states: 'resolveReviewThread is NOT called for @carol's review body comment.' The only resolveReviewThread mutation in the transcript targets RT_kwDOXYZ789 (@dave's inline thread). Key Decision Summary confirms: 'Was resolveReviewThread called for @carol? No'."},
+        {"text": "The inline thread from @dave is implemented (docstring added) and committed with Co-authored-by credit", "passed": true, "evidence": "Step 9 shows the docstring added to PaymentService in src/payment.py. Step 10 shows the commit with 'Co-authored-by: dave <dave@users.noreply.github.com>'."},
+        {"text": "The push/re-request prompt includes @carol (she was replied to) alongside @dave", "passed": true, "evidence": "Step 13 shows the prompt: 'Push and re-request review from @dave, @carol?' and executes 'gh pr edit 31 --remove-reviewer dave,carol' and 'gh pr edit 31 --add-reviewer dave,carol'."}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 18,
+      "eval_name": "review-body-reply-question",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The review body comment from @carol is classified as reply in the plan", "passed": true, "evidence": "Step 4 Item B: 'Clarifying question — written reply needed. This requires a written explanation, not a code change.' Classified as reply."},
+        {"text": "The reply to @carol's review body is posted via the issue comments API (POST /issues/{pr_number}/comments), not the review comment reply endpoint", "passed": true, "evidence": "Step 8 shows: 'gh api repos/myorg/myapp/issues/31/comments -X POST ...' with endpoint label 'POST /repos/{owner}/{repo}/issues/{issue_number}/comments'. Summary table confirms: Reply endpoint for @carol is 'POST /repos/myorg/myapp/issues/31/comments'."},
+        {"text": "The agent does NOT call resolveReviewThread for @carol's review body comment", "passed": true, "evidence": "Step 8 explicitly states 'There is NO resolveReviewThread call for @carol's comment — it is a review body comment, not an inline thread.' resolveReviewThread is only called for @dave's thread in Step 7."},
+        {"text": "The inline thread from @dave is implemented (docstring added) and committed with Co-authored-by credit", "passed": false, "evidence": "Step 5 shows the docstring was added and Step 9 shows a commit was made, but the commit message 'Add docstring to PaymentService class' has no Co-authored-by trailer."},
+        {"text": "The push/re-request prompt includes @carol (she was replied to) alongside @dave", "passed": true, "evidence": "Step 10 states the prompt: 'Would you like me to re-request review from @carol and @dave?' Both reviewers are included."}
+      ],
+      "notes": ["Baseline correctly used the issue comments API for the review body reply and skipped resolveReviewThread. Only failure: Co-authored-by missing from commit — a skill-specific convention the baseline has no reason to know. Eval 18 is nearly non-discriminating (4/5 without skill); the Co-authored-by assertion is the primary differentiator."]
     }
   ],
   "run_summary": {
@@ -865,8 +965,8 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.3787,
-        "stddev": 0.3226,
+        "mean": 0.4206,
+        "stddev": 0.3409,
         "min": 0.0,
         "max": 1.0
       },
@@ -884,7 +984,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.62",
+      "pass_rate": "+0.58",
       "time_seconds": "+14.0",
       "tokens": "+7351"
     }
@@ -892,9 +992,10 @@
   "notes": [
     "Eval 13 without_skill scored 100% — the baseline independently discovered the correct REST pattern and poll-decline flow without skill guidance.",
     "Eval 16 without_skill scored 100% — the explicit prompt context (prior reply visible in chain) was sufficient for the baseline to skip correctly. This eval does not discriminate between configurations.",
-    "Token run_summary stats (with_skill: n=5 of 16 primary runs, without_skill: n=6 of 16 primary runs) are computed only from primary (run_number=1) runs with recorded token counts; regression runs (run_number=2, evals 12 and 14) and simulated transcripts (tokens: null) are excluded from token aggregates.",
     "Time and token values are unreliable for many runs (simulated transcripts); values above 0 are from actual executor measurements.",
     "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior.",
-    "Evals 12 and 14 have run_number 2 (with_skill only) as regression checks after the Signal 2 poll redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). Both passed 100% — no regression introduced."
+    "Evals 12 and 14 have run_number 2 (with_skill only) as regression checks after the Signal 2 poll redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). Both passed 100% — no regression introduced.",
+    "Evals 17 and 18 cover the v1.7 review body actionable change. Eval 17 (with_skill 7/7, without_skill 5/7): failures on Co-authored-by and re-request list inclusion for declined review body authors. Eval 18 (with_skill 5/5, without_skill 4/5): near non-discriminating — only failure is Co-authored-by, a skill-specific convention. The baseline independently handles review body API endpoints and resolveReviewThread exclusion correctly.",
+    "Token run_summary stats (with_skill: n=5 of 18 primary runs, without_skill: n=6 of 18 primary runs) are computed only from primary (run_number=1) runs with recorded token counts; regression runs (run_number=2, evals 12 and 14) and simulated transcripts (tokens: null) are excluded from token aggregates."
   ]
 }
