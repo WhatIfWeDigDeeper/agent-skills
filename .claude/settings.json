@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.command' | grep -q 'gh pr merge' && echo '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"PR merged. Ask the user: Want to run /learn to capture any lessons from this session?\"}}' || true"
+            "command": "jq -r '.tool_input.command' | grep -q 'gh pr merge' && echo '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"If the PR was merged successfully, ask the user: Want to run /learn to capture any lessons from this session?\"}}' || true"
           }
         ]
       }
