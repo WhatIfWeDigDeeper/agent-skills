@@ -41,7 +41,7 @@ This is done in Step 6 (decide), before the plan table is shown in Step 7.
 
 Add a size check in Step 5 (screening):
 
-- If a comment body exceeds **64 KB**, truncate to 64 KB for the agent's screening pass and flag it as suspicious with note: "Unusually large comment body — screening applied to first 64 KB only. Manual review recommended."
+- If a comment body exceeds **64 KB**, truncate to 64 KB for the agent's screening pass and flag it as oversized with note: "Unusually large comment body — screening applied to first 64 KB only. Manual review recommended."
 - The full comment body is still shown to the user in the Step 7 plan table — the truncation applies only to the screening evaluation, not to user visibility.
 - Surface oversized comments prominently in Step 7.
 
@@ -65,7 +65,7 @@ Add a note to Step 5 making the intent explicit: the screening step must be appl
 
 - Read updated Step 4: confirm diff fetch is present.
 - Read updated Step 5: confirm size guard and screening-independence note are present and cover both comment types.
-- Read updated Step 6: confirm diff-validation rule is present for suggestion acceptance, fallback action is `implement`, and auto-mode pause is noted.
+- Read updated Step 6: confirm diff-validation rule is present for suggestion acceptance, fallback action is `fix`, and auto-mode pause is noted.
 - `npx cspell skills/pr-comments/SKILL.md` — no unknown words.
 - Run `uv run --with pytest pytest tests/pr-comments/` if tests exist for this skill.
 - Bump `metadata.version` in SKILL.md frontmatter: `"1.7"` → `"1.8"`.

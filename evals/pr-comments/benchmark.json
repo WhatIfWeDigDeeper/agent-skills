@@ -66,7 +66,7 @@
           "evidence": "The GraphQL response includes thread 1005 with `isResolved: true`; it is filtered out and does not appear in the Step 7 plan. Thread 1004 is separately excluded due to `isOutdated: true`."
         },
         {
-          "text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes",
+          "text": "The agent presents a plan categorizing comments with actions like fix/accept suggestion/skip before making any changes",
           "passed": true,
           "evidence": "Step 7 shows a plan table with columns for File, Summary, Action, and Note. Actions assigned are `fix` (threads 1001, 1003), `accept suggestion` (thread 1002), and `skip` (thread 1004). This is presented with 'Proceed?' before any edits are applied in Steps 8\u20139."
         },
@@ -120,7 +120,7 @@
           "evidence": "Comment 1004 was skipped, but it was categorized as 'outdated' (a GitHub concept distinct from 'resolved'), and no GraphQL resolution check was performed."
         },
         {
-          "text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes",
+          "text": "The agent presents a plan categorizing comments with actions like fix/accept suggestion/skip before making any changes",
           "passed": false,
           "evidence": "Step 2 shows triage decisions before changes, but metrics.json explicitly records `plan_shown: false`. No 'decline' category is demonstrated, and the plan is not presented as a structured step awaiting user approval."
         },

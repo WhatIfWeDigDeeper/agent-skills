@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "I've got some review comments on my PR. Can you go through them and address whatever makes sense?",
-      "expected_output": "The skill fetches review comments via gh CLI, assesses each comment, presents a plan (accept/implement/decline), implements valid feedback with a commit crediting reviewers, replies to declined comments, and resolves addressed threads.",
+      "expected_output": "The skill fetches review comments via gh CLI, assesses each comment, presents a plan (fix/accept suggestion/reply/decline/skip), implements valid feedback with a commit crediting reviewers, replies to declined comments, and resolves addressed threads.",
       "files": [],
       "assertions": [
         {
@@ -21,7 +21,7 @@
         },
         {
           "id": "presents-plan",
-          "text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes"
+          "text": "The agent presents a plan categorizing comments using the action labels fix / accept suggestion / reply / skip before making any changes"
         },
         {
           "id": "waits-for-confirmation",
