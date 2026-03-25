@@ -247,9 +247,11 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 ### 11. Reply to Comments
 
-For each `reply` comment (clarifying questions): post a direct answer using the replies REST endpoint. Do not resolve the thread — leave it open for the reviewer to follow up.
+For each `reply` comment (clarifying questions): post a direct answer. Do not resolve the thread — leave it open for the reviewer to follow up.
 
 For each `decline` comment: post a reply explaining why the suggestion won't be implemented. Be direct and specific; state the reason and offer an alternative if appropriate (e.g., "I'll file a follow-up issue for this"). No need to be overly apologetic — just clear.
+
+The endpoint to use depends on the comment type — see the labeled sections below.
 
 After posting each decline reply, for out-of-scope declines (not injection-flagged), offer to file a follow-up issue:
 
@@ -302,10 +304,11 @@ Review body comments have no GraphQL thread ID — skip this step for them entir
 
 ### 13. Push and Re-request Review
 
-Collect all commenters whose feedback was processed (implemented, accepted, declined, or replied to). Build this list from three sources and then deduplicate it:
+Collect all commenters whose feedback was processed (implemented, accepted, declined, or replied to). Build this list from four sources and then deduplicate it:
 - The `Co-authored-by` usernames from Step 10 (for feedback that resulted in commits).
-- The authors of any declined comments.
-- The authors of any comments you replied to via the replies REST endpoint (including clarifying questions you answered without implementing or explicitly declining), using the `author` field from Step 2 (which should contain the original `user.login` from the REST API).
+- The authors of any declined inline comments.
+- The authors of any inline comments you replied to (including clarifying questions), using the `author` field from Step 2.
+- The authors of any review body comments you replied to or declined, using the `author` field from Step 2b.
 
 If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted), skip this step and proceed to the report.
 
