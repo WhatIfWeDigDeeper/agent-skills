@@ -6,13 +6,13 @@ This reference is used in two entry points:
 
 ## Manual mode
 
-Offer to poll after the re-request completes:
+Offer to poll after the re-request completes (Step 13), or when pending bot reviewers are detected (Step 3):
 
 ```
 Poll for @bot1, @bot2 to finish reviewing? I'll check for new threads and process them when ready (~2–5 min each).
 ```
 
-Only offer when at least one bot reviewer was re-requested. Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
+Only offer when at least one bot reviewer was re-requested (Step 13) or is pending without having reviewed yet (Step 3). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested or pending, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
 
 ## Auto-mode
 
@@ -22,7 +22,7 @@ Begin polling automatically without prompting. Display a status line:
 Polling for @bot1, @bot2... (iteration N/MAX)
 ```
 
-List all re-requested bot handles in the status line. If a specific bot responds with new threads, attribute them by checking the commenter's login on each thread.
+List all bot handles (re-requested or pending) in the status line. If a specific bot responds with new threads, attribute them by checking the commenter's login on each thread.
 
 ## Polling behavior (both modes)
 
