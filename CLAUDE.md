@@ -83,6 +83,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **Never rewrite history on a PR that has review comments** (from humans or bots). This means no force push, no `git rebase`, no `git commit --amend` on pushed commits. Rewriting history detaches inline comments from their source lines and disrupts reviewers who have already pulled the branch. If commits need fixing after comments exist, add a new commit instead. Squash happens at merge time.
 - This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI).
 - After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge. **Before running `git reset --hard`, check for uncommitted changes (`git status`). If any exist, stash them first (`git stash`) or ask the user — do not silently discard them.**
+- **After pushing follow-up commits to an existing PR branch**, check whether the PR title/body still reflects all commits (`git log main..HEAD --oneline`) and update with `gh pr edit` if needed.
 - After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
   ```bash
   # Get thread IDs
