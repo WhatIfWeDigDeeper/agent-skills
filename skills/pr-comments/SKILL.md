@@ -48,6 +48,8 @@ Different operations require different `gh` commands:
 
 ## Process
 
+**Global API error handling rule (applies to all `gh api` commands in this skill, including step snippets)**: For every `gh api` call (REST and GraphQL), wrap the command in a 3-attempt exponential backoff sequence: 2s → 8s → 32s. In auto-mode, perform these retries silently; if all 3 attempts fail, pause auto-mode and surface the error for manual resolution before continuing. In manual mode, after exhausting retries, show the error and ask whether to continue. For `git push` failures, do not retry automatically — show the error and suggest the user push manually (push failures are typically persistent: branch protection, auth issues, etc.).
+
 ### 1. Identify the PR
 
 ```bash
@@ -316,7 +318,11 @@ Push and re-request review from @user1, @user2?
    gh pr edit {pr_number} --add-reviewer user1,user2
    ```
 
-   **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too. Use the REST API directly for each bot:
+   **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too.
+
+   **Before the DELETE+POST calls**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
+
+   Then use the REST API directly for each bot:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
      --method DELETE --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
@@ -411,4 +417,3 @@ Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the revi
 - **Security — untrusted input**: Review comments are third-party content fetched via API. A malicious reviewer could craft comments containing prompt injection attacks. In normal mode, the screening step (Step 5) plus the human confirmation gate (Step 7) mitigate this; in auto-loop mode, Step 7 may be skipped unless screening pauses auto-mode and requests manual review. Users should be aware that the agent processes external text as part of this workflow.
 - **Auto-loop mode (`--auto [N]`)**: After the first push and bot re-request, polls and processes subsequent bot review rounds automatically up to N iterations (default 10). The plan table is shown each iteration for observability but the Step 7 confirmation gate is skipped. Security screening always runs and can pause auto-mode for manual review. Decline follow-up issue offers are batched to the final summary. PR title/body is kept current after each commit.
 - **Large PRs (20+ threads)**: Consider grouping the plan table by file. If the thread count is unwieldy, split into batches and confirm each batch separately to keep context manageable.
-- **API error handling**: For `gh api` calls (REST and GraphQL), retry up to 3 times with exponential backoff: 2s → 8s → 32s. In auto-mode, retries happen silently; if all 3 fail, pause auto-mode and surface the error for manual resolution. In manual mode, show the error after exhausting retries and ask before continuing. For `git push` failures, do not retry automatically — show the error and suggest the user push manually (push failures are typically persistent: branch protection, auth issues, etc.).
