@@ -368,8 +368,9 @@ Use this template, omitting lines that don't apply:
 - No reviewers: omit, or `No reviewers to re-request (all threads outdated/no replies)`
 
 **Poll status** (only include if polling was attempted, pick one):
-- Poll found threads: `Polled for @<bot-handle> review (~Ns) — found N new threads, processed above`
-- Poll timed out: `@<bot-handle> hasn't responded yet. Re-invoke the pr-comments skill when the review is ready`
+- Poll found threads: `Polled for @bot1, @bot2 (~Ns) — found N new threads, processed above`
+- Poll completed, no new threads: `Polled for @bot1, @bot2 (~Ns) — all reviews completed with no new threads`
+- Poll timed out: `One or more polled bots haven't responded yet. Re-invoke the pr-comments skill when their reviews are ready`
 
 **Auto-loop summary (shown when auto-mode was active, in place of the standard report):**
 
