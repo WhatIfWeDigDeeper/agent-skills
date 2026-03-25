@@ -142,6 +142,7 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 - **Never bundle irreversible actions into option descriptions.** When presenting choices, keep destructive or hard-to-reverse steps (merging a PR, force-pushing, deleting branches) separate from preparatory work. Even if merging is the obvious next step after a cleanup, complete the reversible work first, then explicitly ask "ready to merge?" before executing. A user selecting option "1" authorizes the work described, not every downstream consequence implied by the framing.
 - **Suggest a fresh conversation on topic changes.** When the user starts work on an unrelated skill, feature, or task and the current conversation already has significant history (compressed messages, multiple completed tasks), suggest starting a new conversation to avoid stale context bleeding into unrelated work.
 - **Exit plan mode before running skills.** When a skill is invoked while plan mode is active, silently exit plan mode first so the skill's own confirmation prompts (e.g. `y/N/auto`) work as designed.
+- **"merge" is sufficient authorization.** When the user says "merge" or "merge it" in clear PR context, execute `gh pr merge --squash --delete-branch` without asking for confirmation — the instruction is unambiguous.
 
 ## Persisting Learnings
 
