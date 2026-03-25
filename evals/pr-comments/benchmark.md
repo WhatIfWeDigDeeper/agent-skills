@@ -13,7 +13,7 @@
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 19; without_skill: 6 of 19; i.e., 19 of the 22 primary evals currently have token logs). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
+Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 22; without_skill: 6 of 22; i.e., 19 of the 22 primary evals currently have token logs). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
 
 The skill improves correctness by +60 percentage points. All 22 with-skill evals pass 100%. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the interactive plan/confirmation gate, diff-validation for suggestion blocks, cross-file consistency checks, and early-poll detection for pending bot reviewers — these remain the core discriminators.
 
