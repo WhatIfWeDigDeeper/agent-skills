@@ -120,7 +120,7 @@ If there are no unresolved threads and no review-body items from Step 2b, **befo
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number} \
-  --jq '[.requested_reviewers[] | select(.type == "Bot") | .login]'
+  --jq '[.requested_reviewers[] | select(.type == "Bot" or (.login | endswith("[bot]"))) | .login]'
 ```
 
 If any bots are in the pending reviewer list (the PR was just opened and they haven't reviewed yet):

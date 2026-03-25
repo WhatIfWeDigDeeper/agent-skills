@@ -7,7 +7,7 @@
   - Step 7: add `consistency` to action values table; note auto-mode interaction (forces manual confirmation)
   - Step 10: note consistency changes grouped with originating comment's commit
   - Notes section: add CI/validation note
-  - Version bump: 1.8 → 1.9
+  - Version bump: 1.8 → 1.10
 
 ## Tests
 
@@ -21,6 +21,6 @@
 ## Verification
 
 - [ ] Run `uv run --with pytest pytest tests/pr-comments/` — all existing tests pass
-- [ ] Run eval suite (evals 1–21), update `evals/pr-comments/benchmark.json`
+- [ ] Run eval suite (evals 1–22), update `evals/pr-comments/benchmark.json`
 - [ ] Update `evals/pr-comments/benchmark.md` with new results
 - [ ] Update `Eval Δ` column in `README.md`

@@ -171,7 +171,7 @@ def requires_manual_confirmation(plan_items: list[dict]) -> bool:
     """Returns True if any item in the plan forces manual confirmation.
 
     Per SKILL.md Step 7, `consistency` items always require manual confirmation
-    even in auto-mode (same as security flags and diff-validation declines).
+    even in auto-mode. This helper only models the consistency-based trigger.
     """
     manual_triggers = {"consistency"}
     return any(item.get("action") in manual_triggers for item in plan_items)
