@@ -1,16 +1,18 @@
 # Bot Polling and Auto-Loop
 
-This reference is used by Step 13 when bot reviewers were re-requested.
+This reference is used in two entry points:
+- **Step 13** — after re-requesting bot reviewers following a commit
+- **Step 3** — when the skill is invoked with no review comments yet but bot reviewers are pending (PR just opened)
 
 ## Manual mode
 
-Offer to poll after the re-request completes:
+Offer to poll after the re-request completes (Step 13), or when pending bot reviewers are detected (Step 3):
 
 ```
 Poll for @bot1, @bot2 to finish reviewing? I'll check for new threads and process them when ready (~2–5 min each).
 ```
 
-Only offer when at least one bot reviewer was re-requested. Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
+Only offer when at least one bot reviewer was re-requested (Step 13) or is pending without having reviewed yet (Step 3). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested or pending, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
 
 ## Auto-mode
 
@@ -20,11 +22,11 @@ Begin polling automatically without prompting. Display a status line:
 Polling for @bot1, @bot2... (iteration N/MAX)
 ```
 
-List all re-requested bot handles in the status line. If a specific bot responds with new threads, attribute them by checking the commenter's login on each thread.
+List all bot handles (re-requested or pending) in the status line. If a specific bot responds with new threads, attribute them by checking the commenter's login on each thread.
 
 ## Polling behavior (both modes)
 
-Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`) **before** triggering the re-request. Recording it before the DELETE+POST ensures that even a same-second review submission is captured by Signal 2. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using **two signals**:
+Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`). When entering from **Step 13**, record it **before** the DELETE+POST re-request so that even a same-second review submission is captured by Signal 2. When entering from **Step 3** (no-comments-yet path), record it just before starting to poll — there is no re-request to precede. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — when entering from Step 13, do not reuse the Step 3 results since threads have been resolved since then; when entering from the Step 3 path, the snapshot will be empty. Then poll every 60 seconds using **two signals**:
 
 **Signal 1 — New unresolved threads:**
 ```bash

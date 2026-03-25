@@ -569,6 +569,77 @@
           "text": "The decline note for @eve's suggestion explains that the suggestion targets lines outside the PR diff"
         }
       ]
+    },
+    {
+      "id": 20,
+      "name": "cross-file-consistency-matching-rename",
+      "prompt": "Please address the review comments on my PR. There is one inline thread from @charlie on `src/api.ts` line 15 requesting that the helper function `getData` be renamed to `fetchData`. `src/routes.ts` (also modified in this PR) calls `getData` in an import and invocation on lines 8 and 22 — the same function, same usage pattern — but has no review comment. Process the comment.",
+      "expected_output": "The skill classifies @charlie's comment as fix (rename `getData` to `fetchData` in `src/api.ts`). In Step 6b, it searches other PR-modified files and finds `getData` used in the same pattern in `src/routes.ts`. It adds a `consistency` row to the plan for `src/routes.ts` referencing the originating fix item. The consistency item is not auto-approved even if `--auto` is active — the skill drops to manual confirmation for this iteration.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "original-fix-classified",
+          "text": "The @charlie comment requesting the rename of `getData` to `fetchData` in `src/api.ts` is classified as `fix` in the plan"
+        },
+        {
+          "id": "consistency-row-routes-ts",
+          "text": "`src/routes.ts` appears in the plan table with action `consistency`"
+        },
+        {
+          "id": "consistency-row-references-original",
+          "text": "The consistency row references the originating `fix` item (e.g. by item number or description)"
+        },
+        {
+          "id": "consistency-not-auto-approved",
+          "text": "The consistency item is not auto-approved in auto-mode — the skill drops to manual confirmation when a `consistency` item is present"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "name": "cross-file-consistency-no-false-positive",
+      "prompt": "Please address the review comments on my PR. There is one inline thread from @diana on `src/parser.ts` line 30 requesting that the variable `result` be renamed to `parsedOutput`. `src/logger.ts` (also modified in this PR) has a variable named `result` on line 12, but it represents logging output in a completely unrelated context — it is not the same usage pattern. Process the comment.",
+      "expected_output": "The skill classifies @diana's comment as fix (rename `result` to `parsedOutput` in `src/parser.ts`). In Step 6b, it searches other PR-modified files. Although `src/logger.ts` contains a variable named `result`, the context is completely different (logging output vs. parser result). The skill does NOT flag `src/logger.ts` as a consistency item — only the original fix appears in the plan.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "original-fix-classified",
+          "text": "The @diana comment requesting the rename of `result` to `parsedOutput` in `src/parser.ts` is classified as `fix` in the plan"
+        },
+        {
+          "id": "no-false-positive-logger",
+          "text": "`src/logger.ts` does NOT appear as a `consistency` row in the plan"
+        },
+        {
+          "id": "only-original-fix-in-plan",
+          "text": "Only the original `fix` item for `src/parser.ts` appears in the plan — no extra consistency rows"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "name": "early-poll-bots-pending-no-comments-yet",
+      "prompt": "I just opened a PR and immediately ran the skill. There are no review comments yet. copilot-pull-request-reviewer[bot] is in the requested reviewers list and is currently reviewing. Don't exit — wait for the bot to finish.",
+      "expected_output": "The skill finds no unresolved threads and no review-body items, but detects copilot-pull-request-reviewer[bot] as a pending reviewer via the requested_reviewers API. Instead of exiting with 'No open review threads', it offers to poll (manual mode) or starts polling automatically (auto-mode). It records a snapshot_timestamp and empty thread snapshot before polling. When the bot's review arrives, it loops back to Step 2 to process the new threads.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "detects-pending-bot-reviewer",
+          "text": "The skill checks the requested_reviewers API and detects copilot-pull-request-reviewer[bot] as a pending reviewer"
+        },
+        {
+          "id": "does-not-exit-early",
+          "text": "The skill does NOT exit with 'No open review threads' when a pending bot reviewer is detected"
+        },
+        {
+          "id": "offers-or-starts-polling",
+          "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer"
+        },
+        {
+          "id": "records-snapshot-before-polling",
+          "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll"
+        }
+      ]
     }
   ]
 }

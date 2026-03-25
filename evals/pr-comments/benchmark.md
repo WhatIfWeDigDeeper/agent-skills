@@ -2,20 +2,20 @@
 
 **Model**: claude-sonnet-4-6
 **Date**: 2026-03-25
-**Evals**: 1–19 (1 primary run each per configuration; evals 12 and 14 have supplementary run_number=2 regression checks)
-**Skill version**: 1.8
+**Evals**: 1–22 (1 primary run each per configuration; evals 12 and 14 have supplementary run_number=2 regression checks)
+**Skill version**: 1.10
 
 ## Summary
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 41.2% ± 33.4% | **+59%** |
+| Pass Rate | **100%** ± 0% | 40.1% ± 35.7% | **+60%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 19; without_skill: 6 of 19). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
+Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 22; without_skill: 6 of 22; i.e., 11 of 44 total primary runs across both configurations have token logs). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
 
-The skill improves correctness by +59 percentage points. All 19 with-skill evals pass 100%. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the interactive plan/confirmation gate, and diff-validation for suggestion blocks — these remain the core discriminators.
+The skill improves correctness by +60 percentage points. All 22 with-skill evals pass 100%. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the interactive plan/confirmation gate, diff-validation for suggestion blocks, cross-file consistency checks, and early-poll detection for pending bot reviewers — these remain the core discriminators.
 
 ## Per-Eval Results
 
@@ -40,6 +40,9 @@ The skill improves correctness by +59 percentage points. All 19 with-skill evals
 | 17 | Review body: skip and decline | **7/7 (100%)** | 5/7 (71%) | Co-authored-by missing, declined review body author not included in re-request list |
 | 18 | Review body: reply to question | **5/5 (100%)** | 4/5 (80%) | Nearly non-discriminating — baseline gets API endpoints right; only failure is Co-authored-by |
 | 19 | Diff validation: out-of-scope suggestion | **4/4 (100%)** | 1/4 (25%) | Baseline applies out-of-scope suggestions without checking the diff; diff-validation guard is skill-specific |
+| 20 | Cross-file consistency: matching rename | **4/4 (100%)** | 0/4 (0%) | Baseline addresses only the commented file; no cross-file identifier search, no consistency row, no plan table |
+| 21 | Cross-file consistency: no false positive | **3/3 (100%)** | 3/3 (100%) | Non-discriminating — both configurations correctly avoid flagging unrelated same-named variable in different context |
+| 22 | Early poll: bots pending, no comments yet | **4/4 (100%)** | 0/4 (0%) | Baseline exits on no comments; no concept of checking requested_reviewers or entering a polling loop |
 
 ## What Each Eval Tests
 
@@ -138,6 +141,21 @@ Tests the review body reply path: question classified as `reply`, posted via iss
 
 Tests the v1.8 diff-validation guard: before accepting any suggestion, the skill fetches the PR diff and verifies the suggestion's target line falls within a changed hunk. @alice's suggestion passes and is applied; @eve's fails and is declined with an explanatory note. The baseline applied both suggestions without fetching or checking the diff — strongly discriminating eval (with_skill 4/4, without_skill 1/4).
 
+### Eval 20 — Cross-file consistency: matching rename
+**Prompt**: One inline thread from @charlie on `src/api.ts` requesting `getData` be renamed to `fetchData`. `src/routes.ts` (also in the PR diff) calls `getData` in the same import/usage pattern but has no review comment.
+
+Tests the v1.10 Step 6b cross-file consistency check: after classifying the @charlie fix, the skill searches other PR-modified files for the identifier `getData`, finds it in `src/routes.ts` in an analogous context, and adds a `consistency` row to the plan referencing the originating fix item. The consistency item is not auto-approved even in `--auto` mode. The without-skill baseline addresses only the commented file and produces no plan table or consistency rows — strongly discriminating (with_skill 4/4, without_skill 0/4).
+
+### Eval 21 — Cross-file consistency: no false positive
+**Prompt**: One inline thread from @diana on `src/parser.ts` requesting `result` be renamed to `parsedOutput`. `src/logger.ts` (also in the PR diff) has a `result` variable but in a logging context — completely different from the parser's `result`.
+
+Tests that Step 6b avoids false positives: when a same-named identifier exists in another modified file but the surrounding context is not analogous, no consistency row is added. The with-skill run correctly rejects `src/logger.ts` after checking context. Non-discriminating (both configurations 3/3) — the prompt makes the context difference explicit enough that the baseline also avoids flagging `src/logger.ts`.
+
+### Eval 22 — Early poll: bots pending, no comments yet
+**Prompt**: Skill invoked immediately after PR creation. No review comments yet. `copilot-pull-request-reviewer[bot]` is in the requested reviewers list and currently reviewing.
+
+Tests the v1.10 early-poll path added to Step 3: before exiting with "No open review threads", the skill queries `requested_reviewers` for pending bot accounts. When a bot is found, it records a `snapshot_timestamp` and an (empty) thread snapshot, then enters the bot-polling.md workflow to wait for the review — rather than exiting and requiring the user to re-invoke. The without-skill baseline finds no comments and exits (0/4); this behavior is entirely skill-specific.
+
 ## Notes
 
 - **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the delta.
@@ -147,4 +165,7 @@ Tests the v1.8 diff-validation guard: before accepting any suggestion, the skill
 - **Evals 17 and 18 narrowed the delta from +62% to +59%.** The baseline independently gets review body API routing correct (issue comments API for replies, no resolveReviewThread). The skill's value in these scenarios is Co-authored-by attribution and including declined review body authors in the re-request list.
 - **Eval 18 is nearly non-discriminating.** 4/5 without skill. Consider this a baseline-establishing eval rather than a key differentiator.
 - **Eval 19 is strongly discriminating (+75%).** The diff-validation guard is entirely skill-specific — a general assistant has no reason to fetch the PR diff and validate suggestion targets against changed hunks.
+- **Eval 20 is strongly discriminating (+100%).** Cross-file consistency checking is entirely skill-specific (Step 6b). The baseline focuses only on files with explicit review comments — it never searches for related identifiers in other modified files.
+- **Eval 21 is non-discriminating.** The prompt's explicit "completely different context" framing is sufficient for both configurations to avoid a false positive. Like evals 13 and 16, this establishes a baseline but doesn't contribute to the delta.
+- **Eval 22 is strongly discriminating (+100%).** The early-poll path (checking `requested_reviewers` before exiting when there are no comments) is entirely skill-specific. A general assistant finds no comments and stops; it has no reason to inspect pending reviewers or enter a polling loop.
 - **Time and token values are partially reliable.** Evals 1–6 and 16 have measured timing from executor agents; the remainder used simulated transcripts — time/token fields are `0` or `null` for unmeasured runs (encoding varies by when the eval was added). The pass rates are fully reliable; timing and token numbers are approximate.

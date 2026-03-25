@@ -12,6 +12,7 @@ words:
   - continuerc
   - cursorrules
   - EBADPLATFORM
+  - endswith
   - elif
   - ensurepip
   - evals
@@ -36,6 +37,8 @@ words:
   - pipenv
   - PREOF
   - PRRT
+  - prauthor
+  - reinvocation
   - psql
   - pyproject
   - PYEOF

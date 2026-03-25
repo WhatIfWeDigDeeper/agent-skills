@@ -167,6 +167,16 @@ def should_exit_auto_loop(iteration: int, max_iterations: int, new_threads: int)
     return False
 
 
+def requires_manual_confirmation(plan_items: list[dict]) -> bool:
+    """Returns True if any item in the plan forces manual confirmation.
+
+    Per SKILL.md Step 7, `consistency` items always require manual confirmation
+    even in auto-mode. This helper only models the consistency-based trigger.
+    """
+    manual_triggers = {"consistency"}
+    return any(item.get("action") in manual_triggers for item in plan_items)
+
+
 def extract_coauthors(comments: list[dict]) -> list[str]:
     """Extract unique comment authors for Co-authored-by trailers.
 
