@@ -8,6 +8,7 @@ from conftest import (
     is_bot_login,
     should_exit_auto_loop,
     should_offer_poll,
+    should_repoll_guard_allow,
     should_repoll_on_all_skip,
     split_human_bot,
 )
@@ -188,3 +189,64 @@ class TestRepollGate:
         """Item with no action key is not treated as skip — no repoll."""
         plan = [{"action": "skip"}, {"some_field": "value"}]
         assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is False
+
+
+class TestRepollGuard:
+    """Test Step 6c rapid re-poll guard state tracking."""
+
+    def test_first_all_skip_allows_immediate_refetch(self):
+        """No prior all-skip → allow immediate re-fetch."""
+        assert should_repoll_guard_allow(
+            last_all_skip_happened=False,
+            last_all_skip_bot_set=None,
+            current_bot_set={"bot1[bot]"},
+        ) is True
+
+    def test_second_consecutive_same_bots_blocks(self):
+        """Second consecutive all-skip with same bot set → block."""
+        assert should_repoll_guard_allow(
+            last_all_skip_happened=True,
+            last_all_skip_bot_set={"bot1[bot]"},
+            current_bot_set={"bot1[bot]"},
+        ) is False
+
+    def test_second_consecutive_different_bots_allows(self):
+        """Second all-skip but bot set changed → allow."""
+        assert should_repoll_guard_allow(
+            last_all_skip_happened=True,
+            last_all_skip_bot_set={"bot1[bot]"},
+            current_bot_set={"bot2[bot]"},
+        ) is True
+
+    def test_second_consecutive_superset_allows(self):
+        """Bot set grew (superset) → allow (not exact match)."""
+        assert should_repoll_guard_allow(
+            last_all_skip_happened=True,
+            last_all_skip_bot_set={"bot1[bot]"},
+            current_bot_set={"bot1[bot]", "bot2[bot]"},
+        ) is True
+
+    def test_second_consecutive_empty_set_allows(self):
+        """Bot set went empty → allow (set changed)."""
+        assert should_repoll_guard_allow(
+            last_all_skip_happened=True,
+            last_all_skip_bot_set={"bot1[bot]"},
+            current_bot_set=set(),
+        ) is True
+
+    def test_multiple_bots_same_set_blocks(self):
+        """Multiple bots, same set both times → block."""
+        bots = {"bot1[bot]", "bot2[bot]"}
+        assert should_repoll_guard_allow(
+            last_all_skip_happened=True,
+            last_all_skip_bot_set=bots,
+            current_bot_set=bots,
+        ) is False
+
+    def test_order_independent_same_set_blocks(self):
+        """Set comparison is order-independent."""
+        assert should_repoll_guard_allow(
+            last_all_skip_happened=True,
+            last_all_skip_bot_set={"bot2[bot]", "bot1[bot]"},
+            current_bot_set={"bot1[bot]", "bot2[bot]"},
+        ) is False

@@ -257,7 +257,7 @@ If every item is `skip` (or the plan is empty):
 2. **Check for bot reviews submitted after `fetch_timestamp`** (recorded in Step 2) — a bot may have submitted a review (removing itself from `requested_reviewers`) but its threads arrived after our Step 2 fetch:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-     --jq "[.[] | select((.user.login | endswith(\"[bot]\")) and .submitted_at >= \"${fetch_timestamp}\")]"
+     | jq -s '[.[] | .[] | select((.user.login | endswith("[bot]")) and .submitted_at >= "'"${fetch_timestamp}"'")]'
    ```
 
 3. **If pending bots exist or a bot submitted a review after `fetch_timestamp`:**
@@ -265,7 +265,7 @@ If every item is `skip` (or the plan is empty):
      ```
      All threads skipped — pending bot reviewer(s) detected. Re-polling for @bot1...
      ```
-     Record a new `snapshot_timestamp`, take a fresh thread snapshot (via the Step 3 GraphQL query), and poll using Signal 1 / Signal 2 from `references/bot-polling.md`. On new threads detected, loop back to Step 2 (full re-fetch). This counts as one iteration toward the `--auto N` cap.
+     For the Step 6c polling entry, set `snapshot_timestamp = "${fetch_timestamp}"` (or an earlier timestamp), then take a fresh thread snapshot (via the Step 3 GraphQL query), and poll using Signal 1 / Signal 2 from `references/bot-polling.md`. On new threads detected, loop back to Step 2 (full re-fetch). This counts as one iteration toward the `--auto N` cap.
    - **Manual mode**: Show the all-skip plan, then prompt:
      ```
      All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]

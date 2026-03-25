@@ -7,13 +7,19 @@ This reference is used in three entry points:
 
 ## Manual mode
 
-Offer to poll after the re-request completes (Step 13), or when pending bot reviewers are detected (Step 3):
+Offer to poll after the re-request completes (Step 13), when pending bot reviewers are detected (Step 3), or when all items are classified as `skip` but bots are pending (Step 6c):
 
 ```
 Poll for @bot1, @bot2 to finish reviewing? I'll check for new threads and process them when ready (~2–5 min each).
 ```
 
-Only offer when at least one bot reviewer was re-requested (Step 13) or is pending without having reviewed yet (Step 3). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested or pending, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
+For Step 6c (all-skip path), use a more specific prompt:
+
+```
+All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]
+```
+
+Only offer when at least one bot reviewer was re-requested (Step 13), is pending without having reviewed yet (Step 3), or is pending/recently submitted after all items were classified as skip (Step 6c). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested or pending, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
 
 ## Auto-mode
 
@@ -27,7 +33,7 @@ List all bot handles (re-requested or pending) in the status line. If a specific
 
 ## Polling behavior (both modes)
 
-Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`). When entering from **Step 13**, record it **before** the DELETE+POST re-request so that even a same-second review submission is captured by Signal 2. When entering from **Step 3** (no-comments-yet path) or **Step 6c** (all-skip path), record it just before starting to poll — there is no re-request to precede. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — when entering from Step 13, do not reuse the Step 3 results since threads have been resolved since then; when entering from the Step 3 path, the snapshot will be empty; when entering from the Step 6c path, the snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`). Then poll every 60 seconds using **two signals**:
+Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`). When entering from **Step 13**, record it **before** the DELETE+POST re-request so that even a same-second review submission is captured by Signal 2. When entering from **Step 3** (no-comments-yet path), record it just before starting to poll — there is no re-request to precede. When entering from **Step 6c** (all-skip path), if this entry was triggered because a bot review was already detected after `fetch_timestamp`, reuse that `fetch_timestamp` (or an earlier timestamp from the run) as `snapshot_timestamp` so that Signal 2 can still observe that already-submitted review; otherwise (no post-fetch review detected), record `snapshot_timestamp` just before starting to poll. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — when entering from Step 13, do not reuse the Step 3 results since threads have been resolved since then; when entering from the Step 3 path, the snapshot will be empty; when entering from the Step 6c path, the snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`). Then poll every 60 seconds using **two signals**:
 
 **Signal 1 — New unresolved threads:**
 ```bash

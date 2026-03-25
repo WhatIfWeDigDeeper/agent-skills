@@ -200,6 +200,25 @@ def should_repoll_on_all_skip(
     return has_pending_bots or has_recent_bot_review
 
 
+def should_repoll_guard_allow(
+    last_all_skip_happened: bool,
+    last_all_skip_bot_set: set[str] | None,
+    current_bot_set: set[str],
+) -> bool:
+    """Returns True if the rapid re-poll guard allows an immediate re-fetch.
+
+    Per SKILL.md Step 6c rapid re-poll guard:
+    - First all-skip → allow immediate re-fetch
+    - Second consecutive all-skip with same bot set → block (use 60s polling)
+    - Bot set changed → allow immediate re-fetch
+    """
+    if not last_all_skip_happened:
+        return True
+    if last_all_skip_bot_set is not None and current_bot_set == last_all_skip_bot_set:
+        return False
+    return True
+
+
 def requires_manual_confirmation(plan_items: list[dict]) -> bool:
     """Returns True if any item in the plan forces manual confirmation.
 
