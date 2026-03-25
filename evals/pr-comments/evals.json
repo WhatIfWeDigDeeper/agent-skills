@@ -120,7 +120,7 @@
       "files": [],
       "assertions": [
         {
-          "id": "plan-four-categories",
+          "id": "plan-three-categories",
           "text": "The agent presents a plan categorizing comments as 'accept suggestion', 'fix', and 'decline' before making any changes"
         },
         {
