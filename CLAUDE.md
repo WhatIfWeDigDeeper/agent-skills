@@ -81,7 +81,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 
 - **Never commit directly to `main`.** Always create a feature branch and open a PR for review.
 - **Never rewrite history on a PR that has review comments** (from humans or bots). This means no force push, no `git rebase`, no `git commit --amend` on pushed commits. Rewriting history detaches inline comments from their source lines and disrupts reviewers who have already pulled the branch. If commits need fixing after comments exist, add a new commit instead. Squash happens at merge time.
-- This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI). When merging via `gh pr merge`, a PostToolUse hook will automatically handle prompting for `/learn` on the merged changes; when merging via the GitHub UI or any other method, explicitly ask the user to run `/learn` on the merged PR (or on `main`) so the assistant can update its context.
+- This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI). When merging via `gh pr merge`, a PostToolUse hook will automatically handle prompting for `/learn` on the merged changes; when merging via the GitHub UI or any other method, explicitly ask the user to run `/learn` on the merged PR (or on `main`) so the assistant can update its context. **PostToolUse hooks fire on pattern match, not success**: the grep-based hook triggers on every Bash call containing the pattern — write hook messages as "If [action] succeeded..." not "[action] happened..." to avoid misleading output on failed commands, `--help` calls, or partial matches.
 - After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge. **Before running `git reset --hard`, check for uncommitted changes (`git status`). If any exist, stash them first (`git stash`) or ask the user — do not silently discard them.**
 - **After pushing follow-up commits to an existing PR branch**, check whether the PR title/body still reflects all commits (`git log main..HEAD --oneline`) and update with `gh pr edit` if needed.
 - After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
@@ -133,6 +133,7 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 - **Documentation sync**: Update CLAUDE.md/README.md when major versions change
 - **PR-driven**: Create pull requests for review rather than auto-committing
 - **GitHub suggested changes**: There is no public REST API to accept them. Extract the replacement from the `suggestion` fenced block in the comment body and apply it as a local edit.
+- **Mandatory-step reference links must be imperative**: When a step delegates to an external file for mandatory continuation, write "**you must now execute [file]** — do not skip to the report" rather than "see [file]". Agents treat passive cross-references as informational and will skip them when generating the final output.
 
 ## Interaction Patterns
 
