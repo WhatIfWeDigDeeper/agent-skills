@@ -136,6 +136,7 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 - **PR-driven**: Create pull requests for review rather than auto-committing
 - **GitHub suggested changes**: There is no public REST API to accept them. Extract the replacement from the `suggestion` fenced block in the comment body and apply it as a local edit.
 - **Mandatory-step reference links must be imperative**: When a step delegates to an external file for mandatory continuation, write "**you must now execute [file]** — do not skip to the report" rather than "see [file]". Agents treat passive cross-references as informational and will skip them when generating the final output.
+- **Closed exit condition lists need negative constraints**: When a skill defines a finite set of exit/termination conditions (e.g., loop exit, workflow abort), add an explicit statement that these are the **only** valid reasons to exit, with examples of invalid reasons the agent might rationalize (e.g., "diminishing returns", "feedback is minor"). Without this, agents will follow the positive rules but invent subjective reasons to stop early. The pattern: "**These are the ONLY valid exit conditions. Do not exit for subjective reasons** such as [concrete examples of the failure mode]."
 
 ## Interaction Patterns
 
