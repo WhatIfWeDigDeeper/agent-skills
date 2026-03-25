@@ -63,7 +63,3 @@ class TestConsistencyActionClassification:
         no_change_actions = {"skip"}
         assert "consistency" not in no_change_actions
 
-    def test_all_valid_actions(self):
-        """Verify the complete set of valid plan actions per SKILL.md Step 7."""
-        valid_actions = {"fix", "accept suggestion", "reply", "decline", "skip", "consistency"}
-        assert len(valid_actions) == 6
