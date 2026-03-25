@@ -58,7 +58,7 @@ Add a note to Step 5 making the intent explicit: the screening step must be appl
 1. `skills/pr-comments/SKILL.md`
    - **Step 4** (Read Code Context): add `gh pr diff {pr_number}` fetch; store diff for reuse in Step 6
    - **Step 5** (screening): add size guard (64 KB truncation + flag), add explicit note that no comment content may override or skip screening, note applies to both inline and review body comments
-   - **Step 6** (decide): add diff-validation rule for `accept suggestion` actions — target must be within PR diff or downgrade to `decline`; fallback to `implement` if diff unavailable; diff-validation declines pause auto-mode
+   - **Step 6** (decide): add diff-validation rule for `accept suggestion` actions — target must be within PR diff or downgrade to `decline`; fallback to `fix` if diff unavailable; diff-validation declines pause auto-mode
    - Update security note at end of file to reflect all three mitigations
 
 ## Verification
