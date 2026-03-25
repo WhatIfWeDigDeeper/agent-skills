@@ -349,11 +349,11 @@ Use this template, omitting lines that don't apply:
 
 **Changes line** (pick one):
 - Changes made: `Applied N suggestions + implemented N comments → committed <hash>`
-- No changes: `No changes — all threads declined or outdated.`
+- No changes: `No changes — no code updates needed (threads replied to, declined, or outdated).`
 
 **Declined line** (pick one):
-- Some declined: `Declined N suggestions — replied with explanations`
-- All declined: `Declined all N suggestions — replied with explanations`
+- Some declined: `Declined N items — replied with explanations`
+- All declined: `Declined all N items — replied with explanations`
 
 **Skipped line** (pick one):
 - `Skipped N outdated threads`

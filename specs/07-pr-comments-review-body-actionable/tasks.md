@@ -9,7 +9,7 @@
   - Step 11: add note distinguishing the two reply endpoints; use issue comments API for review body replies
   - Step 12: add note to skip resolveReviewThread for review body items
   - Step 14: remove `{review-body line}` from report template; update Notes section
-  - Version bump: 1.6 → 1.7
+  - Version bump: update the `pr-comments` skill version appropriately (for example, 1.6 → 1.7 at the time of this spec)
 
 ## New Evals
 
