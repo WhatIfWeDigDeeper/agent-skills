@@ -2,20 +2,20 @@
 
 **Model**: claude-sonnet-4-6
 **Date**: 2026-03-25
-**Evals**: 1–22 (1 primary run each per configuration; evals 12 and 14 have supplementary run_number=2 regression checks)
-**Skill version**: 1.10
+**Evals**: 1–23 (1 primary run each per configuration; evals 12 and 14 have supplementary run_number=2 regression checks)
+**Skill version**: 1.11
 
 ## Summary
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 40.1% ± 35.7% | **+60%** |
+| Pass Rate | **100%** ± 0% | 40.1% ± 34.9% | **+60%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 22; without_skill: 6 of 22; i.e., 11 of 44 total primary runs across both configurations have token logs). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
+Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 23; without_skill: 6 of 23; i.e., 11 of 46 total primary runs across both configurations have token logs). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
 
-The skill improves correctness by +60 percentage points. All 22 with-skill evals pass 100%. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the interactive plan/confirmation gate, diff-validation for suggestion blocks, cross-file consistency checks, and early-poll detection for pending bot reviewers — these remain the core discriminators.
+The skill improves correctness by +60 percentage points. All 23 with-skill evals pass 100%. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the interactive plan/confirmation gate, diff-validation for suggestion blocks, cross-file consistency checks, and early-poll detection for pending bot reviewers — these remain the core discriminators.
 
 ## Per-Eval Results
 
@@ -43,6 +43,7 @@ The skill improves correctness by +60 percentage points. All 22 with-skill evals
 | 20 | Cross-file consistency: matching rename | **4/4 (100%)** | 0/4 (0%) | Baseline addresses only the commented file; no cross-file identifier search, no consistency row, no plan table |
 | 21 | Cross-file consistency: no false positive | **3/3 (100%)** | 3/3 (100%) | Non-discriminating — both configurations correctly avoid flagging unrelated same-named variable in different context |
 | 22 | Early poll: bots pending, no comments yet | **4/4 (100%)** | 0/4 (0%) | Baseline exits on no comments; no concept of checking requested_reviewers or entering a polling loop |
+| 23 | All-skip repoll: pending bot | **5/5 (100%)** | 2/5 (40%) | Baseline skips outdated and checks reviewers (prompted), but lacks structured polling, loop-back, iteration cap |
 
 ## What Each Eval Tests
 
@@ -156,6 +157,11 @@ Tests that Step 6b avoids false positives: when a same-named identifier exists i
 
 Tests the v1.10 early-poll path added to Step 3: before exiting with "No open review threads", the skill queries `requested_reviewers` for pending bot accounts. When a bot is found, it records a `snapshot_timestamp` and an (empty) thread snapshot, then enters the bot-polling.md workflow to wait for the review — rather than exiting and requiring the user to re-invoke. The without-skill baseline finds no comments and exits (0/4); this behavior is entirely skill-specific.
 
+### Eval 23 — All-skip repoll: pending bot
+**Prompt**: PR in `--auto` mode with 3 existing outdated threads. `copilot-pull-request-reviewer[bot]` is still in the requested reviewers list and posted a new review after the comment fetch.
+
+Tests the v1.11 Step 6c repoll gate: when all fetched threads are classified as `skip` but a bot reviewer is still pending, the skill should re-poll rather than exiting. The with-skill run correctly detects the all-skip condition, checks for pending bots, enters polling automatically (auto-mode), loops back to Step 2 for a full re-fetch when new threads arrive, and counts the repoll toward the `--auto N` iteration cap. The without-skill run passes 2/5 — it correctly skips outdated threads and (prompted by the user's explicit hint) checks requested_reviewers, but lacks the structured polling workflow, loop-back-to-Step-2 pattern, and iteration cap tracking.
+
 ## Notes
 
 - **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the delta.
@@ -168,4 +174,5 @@ Tests the v1.10 early-poll path added to Step 3: before exiting with "No open re
 - **Eval 20 is strongly discriminating (+100%).** Cross-file consistency checking is entirely skill-specific (Step 6b). The baseline focuses only on files with explicit review comments — it never searches for related identifiers in other modified files.
 - **Eval 21 is non-discriminating.** The prompt's explicit "completely different context" framing is sufficient for both configurations to avoid a false positive. Like evals 13 and 16, this establishes a baseline but doesn't contribute to the delta.
 - **Eval 22 is strongly discriminating (+100%).** The early-poll path (checking `requested_reviewers` before exiting when there are no comments) is entirely skill-specific. A general assistant finds no comments and stops; it has no reason to inspect pending reviewers or enter a polling loop.
+- **Eval 23 is moderately discriminating (+60%).** The all-skip repoll gate (Step 6c) is skill-specific, but the user's explicit prompt hint ("Don't exit just because the old threads are all skip") helps the baseline pass 2 of 5 assertions. Assertions 3–5 (structured polling, loop-back, iteration cap) are fully skill-dependent.
 - **Time and token values are partially reliable.** Evals 1–6 and 16 have measured timing from executor agents; the remainder used simulated transcripts — time/token fields are `0` or `null` for unmeasured runs (encoding varies by when the eval was added). The pass rates are fully reliable; timing and token numbers are approximate.

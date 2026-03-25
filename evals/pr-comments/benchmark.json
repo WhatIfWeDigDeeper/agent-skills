@@ -27,14 +27,15 @@
       19,
       20,
       21,
-      22
+      22,
+      23
     ],
     "runs_per_configuration": 1,
     "regression_run_evals": [
       12,
       14
     ],
-    "skill_version": "1.10"
+    "skill_version": "1.11"
   },
   "runs": [
     {
@@ -2140,6 +2141,96 @@
       "notes": [
         "This is a baseline (without_skill) simulation. All four assertions test skill-specific behaviors that only exist when the pr-comments SKILL.md is active. Natural behavior: check for review comments, find none, report no threads — no awareness of pending reviewers or polling workflows."
       ]
+    },
+    {
+      "eval_id": 23,
+      "eval_name": "all-skip-repoll-pending-bot",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill classifies all existing threads as skip (outdated) and does not attempt to fix, reply, or decline any of them",
+          "passed": true,
+          "evidence": "Step 6 of SKILL.md states: 'Skip (no reply) if: isOutdated is true.' All 3 threads have isOutdated=true, so all are classified as skip. No fix, reply, or decline actions are taken."
+        },
+        {
+          "text": "After classifying all items as skip, the skill checks for pending bot reviewers via the requested_reviewers API rather than exiting immediately",
+          "passed": true,
+          "evidence": "Step 6c explicitly states: 'If every item is skip (or the plan is empty): 1. Check for pending bot reviewers:' followed by the gh api call to requested_reviewers. The skill does not exit — it proceeds to check for bots before deciding whether to exit or repoll."
+        },
+        {
+          "text": "In auto-mode, the skill enters the polling workflow automatically when all items are skip and a bot reviewer is pending, without prompting the user",
+          "passed": true,
+          "evidence": "Step 6c states: 'Auto-mode: Log a status line and enter the polling workflow automatically: All threads skipped — pending bot reviewer(s) detected. Re-polling for @bot1...' This is automatic with no user prompt. The manual-mode path (which does prompt) is a separate branch."
+        },
+        {
+          "text": "When new threads are detected during the repoll, the skill loops back to Step 2 for a full re-fetch of comments rather than only re-classifying",
+          "passed": true,
+          "evidence": "Step 6c states: 'On new threads detected, loop back to Step 2 (full re-fetch).' The bot-polling.md reference confirms: 'If new thread IDs appear relative to the snapshot, the bot posted review comments — loop back to Step 2.'"
+        },
+        {
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "passed": true,
+          "evidence": "Step 6c explicitly states: 'This counts as one iteration toward the --auto N cap.' This is a direct, unambiguous statement in the skill definition."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 23,
+      "eval_name": "all-skip-repoll-pending-bot",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill classifies all existing threads as skip (outdated) and does not attempt to fix, reply, or decline any of them",
+          "passed": true,
+          "evidence": "A baseline assistant recognizes outdated threads as not actionable and skips them. The simulated transcript shows the assistant identifying all 3 threads as outdated with nothing actionable. This is basic GitHub knowledge."
+        },
+        {
+          "text": "After classifying all items as skip, the skill checks for pending bot reviewers via the requested_reviewers API rather than exiting immediately",
+          "passed": true,
+          "evidence": "The user's prompt explicitly says 'Don't exit just because the old threads are all skip' and mentions copilot-pull-request-reviewer[bot] is in requested_reviewers. A capable assistant takes this hint and checks requested_reviewers. However, without the hint, a baseline would likely just exit."
+        },
+        {
+          "text": "In auto-mode, the skill enters the polling workflow automatically when all items are skip and a bot reviewer is pending, without prompting the user",
+          "passed": false,
+          "evidence": "A baseline assistant has no concept of a structured polling workflow with Signal 1/Signal 2 gates. It might ad-hoc wait and re-check, but would not enter a formally defined automatic polling loop. The concept of auto-mode with automatic polling is skill-specific."
+        },
+        {
+          "text": "When new threads are detected during the repoll, the skill loops back to Step 2 for a full re-fetch of comments rather than only re-classifying",
+          "passed": false,
+          "evidence": "There is no 'Step 2' concept without the skill file. A baseline assistant might re-fetch comments ad-hoc, but not follow a structured loop-back pattern that includes re-checking resolved status, re-classifying all threads, and presenting a new plan."
+        },
+        {
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "passed": false,
+          "evidence": "A baseline assistant has no concept of an iteration cap or auto-N counting. The '--auto mode' would be interpreted loosely but would not include a structured iteration counter tracking repolls against a maximum."
+        }
+      ],
+      "notes": [
+        "The user's prompt includes an explicit hint ('Don't exit just because the old threads are all skip') which helps the baseline pass assertion 2. Without this hint, the baseline would likely exit after finding all threads outdated. Assertions 3-5 test skill-specific structured behavior (polling workflow, loop-back-to-Step-2, iteration cap) that has no natural analog."
+      ]
     }
   ],
   "run_summary": {
@@ -2166,7 +2257,7 @@
     "without_skill": {
       "pass_rate": {
         "mean": 0.401,
-        "stddev": 0.357,
+        "stddev": 0.349,
         "min": 0.0,
         "max": 1.0
       },
@@ -2200,6 +2291,7 @@
     "Eval 19 covers the v1.8 diff-validation guard: suggestions targeting lines outside the PR diff should be declined, not applied. with_skill 4/4 (100%), without_skill 1/4 (25%) \u2014 delta +75%. The baseline applies out-of-scope suggestions without checking the diff; this is entirely skill-specific behavior.",
     "Eval 20 covers the v1.10 cross-file consistency check (Step 6b): when a rename in one file also affects another PR-modified file with the same function in an analogous context, a `consistency` row should appear in the plan. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline focuses only on files with explicit review comments and performs no cross-file identifier search.",
     "Eval 21 covers the no-false-positive case for Step 6b: when a same-named variable exists in another PR-modified file but in a completely different context, it should NOT be flagged as a consistency item. with_skill 3/3 (100%), without_skill 3/3 (100%) \u2014 non-discriminating. The prompt makes the context difference explicit, so both configurations correctly avoid flagging the unrelated variable.",
-    "Eval 22 covers the v1.10 early-poll path: when the skill is invoked right after PR creation with no review comments yet, it should detect pending bot reviewers via requested_reviewers API and offer to poll rather than exiting. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline finds no comments and exits; it has no concept of checking requested_reviewers or entering a polling loop."
+    "Eval 22 covers the v1.10 early-poll path: when the skill is invoked right after PR creation with no review comments yet, it should detect pending bot reviewers via requested_reviewers API and offer to poll rather than exiting. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline finds no comments and exits; it has no concept of checking requested_reviewers or entering a polling loop.",
+    "Eval 23 covers the v1.11 all-skip repoll gate (Step 6c): when all fetched threads are outdated but a bot reviewer is still pending, the skill should repoll rather than exiting. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 moderately discriminating. The baseline passes assertions 1 (skip outdated) and 2 (check requested_reviewers, prompted by user hint) but fails on structured polling workflow, loop-back-to-Step-2, and iteration cap tracking."
   ]
 }
