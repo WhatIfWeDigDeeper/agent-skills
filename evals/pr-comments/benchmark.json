@@ -1633,6 +1633,103 @@
       ]
     },
     {
+      "eval_id": 12,
+      "eval_name": "bot-poll-confirms",
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "After re-requesting review from a bot, the agent offers to poll for the bot's response before proceeding to the report",
+          "passed": true,
+          "evidence": "Regression run 3 (post-exit-condition refinement): Agent presents poll offer after re-requesting @copilot. The refined exit condition (requiring Signal 2 confirmation) does not affect the poll offer flow."
+        },
+        {
+          "text": "The agent polls by re-running the GraphQL thread query (Step 3) and comparing unresolved thread IDs against the pre-push snapshot",
+          "passed": true,
+          "evidence": "Polling uses GraphQL thread query with snapshot comparison. Signal 1 fires on iteration 2 when THREAD_C is detected."
+        },
+        {
+          "text": "When new unresolved threads are detected, the agent loops back to Step 2 (fetch comments) without requiring the user to re-invoke the skill",
+          "passed": true,
+          "evidence": "On detecting new thread, agent immediately proceeds to Step 2 re-fetch within the same invocation."
+        },
+        {
+          "text": "The agent presents a new plan for the bot's new comments and waits for user confirmation before implementing",
+          "passed": true,
+          "evidence": "Round 2 shows a new plan table with the bot's comment and waits for confirmation before implementing."
+        },
+        {
+          "text": "After completing round 2 and re-requesting the bot reviewer, the agent offers to poll again (no loop depth cap)",
+          "passed": true,
+          "evidence": "After round 2 push and re-request, agent offers to poll again. User declines, confirming re-offer works."
+        },
+        {
+          "text": "The final report includes a line noting the poll duration and number of new threads found (e.g. 'Polled for @copilot review (~Ns) \u2014 found N new threads, processed above')",
+          "passed": true,
+          "evidence": "Report includes poll status line with duration and thread count."
+        },
+        {
+          "text": "The agent takes a fresh thread snapshot after resolving threads (not reusing the Step 3 results), so already-resolved threads are not counted as 'new' during polling",
+          "passed": true,
+          "evidence": "Before DELETE+POST re-request, agent runs a fresh GraphQL query (not reusing Step 3 results) yielding an empty snapshot since all threads were just resolved."
+        }
+      ],
+      "notes": [
+        "Regression run 3 after exit condition refinement (added 'AND all polled bots responded via Signal 2' + anti-rationalization guardrail). All 7 assertions pass \u2014 no regression. The refined exit condition was not directly exercised because Signal 1 fired (new threads detected), which takes priority."
+      ]
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "bot-poll-timeout",
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent polls at approximately 60-second intervals, not continuously",
+          "passed": true,
+          "evidence": "Regression run 3: 10 polls at 60-second intervals. Exit condition refinement and anti-rationalization guardrail do not change polling interval."
+        },
+        {
+          "text": "The agent stops polling after 10 minutes if no new threads appear",
+          "passed": true,
+          "evidence": "After 10 iterations (600 seconds), the agent hits the timeout condition and stops polling."
+        },
+        {
+          "text": "On timeout, the agent prints a message telling the user to run the skill manually when the review is ready",
+          "passed": true,
+          "evidence": "Timeout message: '@copilot hasn't responded yet. Re-invoke the pr-comments skill when the review is ready.'"
+        },
+        {
+          "text": "The agent does not loop back to Step 2 on timeout \u2014 it exits the poll loop and reports",
+          "passed": true,
+          "evidence": "On timeout, agent proceeds to Step 14 (Report). The anti-rationalization guardrail ('ONLY valid exit conditions') does not interfere with the timeout exit path (condition 3)."
+        }
+      ],
+      "notes": [
+        "Regression run 3 after exit condition refinement + anti-rationalization guardrail. All 4 assertions pass \u2014 timeout path unaffected."
+      ]
+    },
+    {
       "eval_id": 17,
       "eval_name": "review-body-skip-decline",
       "configuration": "with_skill",
@@ -2285,9 +2382,9 @@
     "Eval 16 without_skill scored 100% \u2014 the explicit prompt context (prior reply visible in chain) was sufficient for the baseline to skip correctly. This eval does not discriminate between configurations.",
     "Time and token values are unreliable for many runs (simulated transcripts); values above 0 are from actual executor measurements.",
     "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior.",
-    "Evals 12 and 14 have run_number 2 (with_skill only) as regression checks after the Signal 2 poll redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). Both passed 100% \u2014 no regression introduced.",
+    "Evals 12 and 14 have run_number 2 (with_skill only) as regression checks after the Signal 2 poll redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). Both passed 100% \u2014 no regression introduced. Run_number 3 (with_skill only) added after v1.11 exit condition refinement (added Signal 2 completion requirement + anti-rationalization guardrail). Both passed 100% \u2014 no regression.",
     "Evals 17 and 18 cover the v1.7 review body actionable change. Eval 17 (with_skill 7/7, without_skill 5/7): failures on Co-authored-by and re-request list inclusion for declined review body authors. Eval 18 (with_skill 5/5, without_skill 4/5): near non-discriminating \u2014 only failure is Co-authored-by, a skill-specific convention. The baseline independently handles review body API endpoints and resolveReviewThread exclusion correctly.",
-    "Token run_summary stats (with_skill: n=5 of 22 primary runs, without_skill: n=6 of 22 primary runs; i.e., 11 of 44 total primary runs across both configurations have token logs) are computed only from primary (run_number=1) runs with recorded token counts; regression runs (run_number=2, evals 12 and 14) and simulated transcripts (tokens: null) are excluded from token aggregates.",
+    "Token run_summary stats (with_skill: n=5 of 23 primary runs, without_skill: n=6 of 23 primary runs; i.e., 11 of 46 total primary runs across both configurations have token logs) are computed only from primary (run_number=1) runs with recorded token counts; regression runs (run_number=2 and 3, evals 12 and 14) and simulated transcripts (tokens: null) are excluded from token aggregates.",
     "Eval 19 covers the v1.8 diff-validation guard: suggestions targeting lines outside the PR diff should be declined, not applied. with_skill 4/4 (100%), without_skill 1/4 (25%) \u2014 delta +75%. The baseline applies out-of-scope suggestions without checking the diff; this is entirely skill-specific behavior.",
     "Eval 20 covers the v1.10 cross-file consistency check (Step 6b): when a rename in one file also affects another PR-modified file with the same function in an analogous context, a `consistency` row should appear in the plan. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline focuses only on files with explicit review comments and performs no cross-file identifier search.",
     "Eval 21 covers the no-false-positive case for Step 6b: when a same-named variable exists in another PR-modified file but in a completely different context, it should NOT be flagged as a consistency item. with_skill 3/3 (100%), without_skill 3/3 (100%) \u2014 non-discriminating. The prompt makes the context difference explicit, so both configurations correctly avoid flagging the unrelated variable.",
