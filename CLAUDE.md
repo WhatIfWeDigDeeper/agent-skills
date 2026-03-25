@@ -116,6 +116,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **For structural refactors that move logic to a reference file** (no behavioral change), run only the evals that exercise the moved logic rather than the full suite. Get the old-skill baseline via `git show HEAD:skills/<name>/SKILL.md > "$TMPDIR/<name>-snapshot.md"`.
 - **When adding new evals to `evals.json`, run them immediately** — do not wait for the user to ask. Spawn with_skill and without_skill subagents, grade the results, and update `benchmark.json` as part of the same task.
 - **When a grader flags a missing assertion**, add it to `evals.json` and re-grade the existing transcript — no need to re-spawn the executor if the transcript is detailed enough to provide evidence.
+- **When renaming action labels or vocabulary in a SKILL.md**, search the repo for the old term in `evals.json` assertion `text` fields, `benchmark.json` expectation `text` fields, `expected_output` strings, and spec files — they don't auto-update. In the pr-comments v1.8 session, `implement` → `fix` in SKILL.md required 5+ follow-up review rounds to propagate through evals.json (evals 1 and 4), benchmark.json, plan.md, and tasks.md.
 
 ## Portability
 
