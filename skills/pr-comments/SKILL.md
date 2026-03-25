@@ -38,8 +38,8 @@ If `--auto` is given without `N`, use 10 as the default. Strip and process the `
 
 Different operations require different `gh` commands:
 
-| Task | Command | Why |
-|------|---------|-----|
+| Task | Endpoint / Command | Why |
+|------|--------------------|-----|
 | PR metadata | `gh pr view --json` | High-level; handles branch detection |
 | List review comments | `gh api repos/{owner}/{repo}/pulls/{pr_number}/comments` | REST; simpler than GraphQL for reads |
 | Reply to an inline comment | `gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{id}/replies` | REST; direct reply-to-comment endpoint |
@@ -247,7 +247,9 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 ### 11. Reply to Comments
 
-For each `reply` comment (clarifying questions): post a direct answer. Do not resolve the thread — leave it open for the reviewer to follow up.
+For each inline `reply` comment (a clarifying question in a code thread): post a direct answer. Do not resolve the thread — leave it open for the reviewer to follow up.
+
+For `reply` items in the main review body (not attached to a code thread): just post the answer; there is no thread to resolve.
 
 For each `decline` comment: post a reply explaining why the suggestion won't be implemented. Be direct and specific; state the reason and offer an alternative if appropriate (e.g., "I'll file a follow-up issue for this"). No need to be overly apologetic — just clear.
 
