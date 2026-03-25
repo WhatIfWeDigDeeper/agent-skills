@@ -67,7 +67,7 @@ Loop back to Step 2 within the same skill invocation — do not require the user
   ```
 
   **Auto-loop exit conditions** (checked before starting each new iteration):
-  1. No new unresolved bot threads after poll AND no pending bot reviewers remain → exit loop
+  1. No new unresolved bot threads after poll AND all polled bots have submitted a review (per Signal 2 tracking) → exit loop. Do not use `requested_reviewers` as a completion signal here — the DELETE+POST re-request window makes it unreliable. Instead, track which bots have a `submitted_at >= snapshot_timestamp` review via Signal 2; once every polled bot has responded, consider the poll complete.
   2. Iteration count has reached the maximum (N from `--auto N`, default 10) → exit with note
   3. Poll timeout → exit with timeout message
   4. Security screening flags a comment in this iteration → pause auto-mode, drop to manual confirmation for this iteration; after the user confirms, ask: "Resume auto-approve mode for remaining iterations? [y/N]"

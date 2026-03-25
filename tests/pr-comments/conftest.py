@@ -149,20 +149,29 @@ def parse_auto_flag(args: str) -> dict:
     }
 
 
-def should_exit_auto_loop(iteration: int, max_iterations: int, new_threads: int) -> bool:
+def should_exit_auto_loop(
+    iteration: int,
+    max_iterations: int,
+    new_threads: int,
+    polled_bots_remaining: int = 0,
+) -> bool:
     """Returns True if the auto-loop should exit before starting the next iteration.
 
     `iteration` is the 1-indexed count of the just-completed iteration (e.g.
     iteration=3 means 3 rounds have finished). The loop exits when iteration
     equals max_iterations, preventing a further iteration from starting.
 
-    Per SKILL.md Step 13:
-    - Exit when no new unresolved bot threads are found after poll
+    `polled_bots_remaining` is the count of bots being polled that have NOT yet
+    submitted a review (per Signal 2 tracking). When bots are still outstanding,
+    the loop continues even if no new threads appeared in this cycle.
+
+    Per bot-polling.md exit conditions:
+    - Exit when no new threads AND all polled bots have responded (remaining=0)
     - Exit when iteration count has reached the maximum
     """
-    if new_threads == 0:
-        return True
     if iteration >= max_iterations:
+        return True
+    if new_threads == 0 and polled_bots_remaining == 0:
         return True
     return False
 
@@ -177,12 +186,12 @@ def should_repoll_on_all_skip(
     Per SKILL.md Step 6c: when every plan item is `skip` (or the plan is empty)
     and bot reviewers are pending or submitted a review after fetch_timestamp,
     the skill should re-poll rather than exiting.
+
+    Requires every item's action to be exactly ``skip`` — unknown or missing
+    action values do not count as skip and will prevent the repoll gate from
+    firing.
     """
-    actionable_actions = {"fix", "accept suggestion", "reply", "decline", "consistency"}
-    has_actionable = any(
-        item.get("action") in actionable_actions for item in plan_items
-    )
-    if has_actionable:
+    if plan_items and not all(item.get("action") == "skip" for item in plan_items):
         return False
 
     has_pending_bots = len(pending_bots) > 0

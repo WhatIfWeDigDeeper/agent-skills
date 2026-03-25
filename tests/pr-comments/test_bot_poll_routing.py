@@ -108,6 +108,18 @@ class TestAutoLoopExitConditions:
         """First iteration does not trigger exit when threads are present and max not reached."""
         assert should_exit_auto_loop(iteration=1, max_iterations=10, new_threads=2) is False
 
+    def test_no_threads_but_bots_remaining_continues(self):
+        """No new threads but polled bots haven't responded yet — continue polling."""
+        assert should_exit_auto_loop(iteration=1, max_iterations=10, new_threads=0, polled_bots_remaining=1) is False
+
+    def test_no_threads_no_bots_remaining_exits(self):
+        """No new threads and all bots have responded — exit."""
+        assert should_exit_auto_loop(iteration=1, max_iterations=10, new_threads=0, polled_bots_remaining=0) is True
+
+    def test_max_iterations_overrides_bots_remaining(self):
+        """Max iterations exits even if bots are still outstanding."""
+        assert should_exit_auto_loop(iteration=10, max_iterations=10, new_threads=0, polled_bots_remaining=2) is True
+
 
 class TestRepollGate:
     """Test Step 6c repoll gate: all-skip with pending bot reviewers."""
@@ -166,3 +178,13 @@ class TestRepollGate:
         plan = [{"action": "skip"}]
         recent = [{"author": "bot-a[bot]"}]
         assert should_repoll_on_all_skip(plan, ["bot-b[bot]"], bot_reviews_after_fetch=recent) is True
+
+    def test_unknown_action_prevents_repoll(self):
+        """Unknown action value is not treated as skip — no repoll."""
+        plan = [{"action": "skip"}, {"action": "unknown"}]
+        assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is False
+
+    def test_missing_action_prevents_repoll(self):
+        """Item with no action key is not treated as skip — no repoll."""
+        plan = [{"action": "skip"}, {"some_field": "value"}]
+        assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is False

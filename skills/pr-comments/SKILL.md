@@ -271,7 +271,17 @@ If every item is `skip` (or the plan is empty):
      All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]
      ```
      If confirmed, enter the polling workflow. If declined, proceed to the report.
-   - **Rapid re-poll guard**: If this is the second consecutive all-skip result for the same bot(s) within the current invocation, do not immediately re-fetch — fall into the standard 60-second polling loop from `references/bot-polling.md` instead.
+   - **Rapid re-poll guard**:
+     - Track the guard **per skill invocation only** (no cross-run persistence). Maintain two in-memory variables:
+       - `last_all_skip_bot_set`: the set (or sorted, de-duplicated list) of bot reviewer logins associated with the most recent all-skip result (e.g., `["bot1[bot]","bot2[bot]"]`).
+       - `last_all_skip_happened`: a boolean flag (or equivalently, `last_all_skip_bot_set` is `null`/empty when no prior all-skip has occurred).
+     - On each all-skip outcome:
+       1. Compute `current_bot_set` as the set of bot logins relevant to this guard (typically the pending bot reviewers plus any bots detected by the recent-review check).
+       2. If `last_all_skip_happened` is `true` **and** `current_bot_set` is exactly equal to `last_all_skip_bot_set` (order-independent, same members; no subset/superset logic), then treat this as the **second consecutive** all-skip for the same bot(s) and **do not** immediately re-fetch. Instead, fall into the standard 60-second polling loop from `references/bot-polling.md`.
+       3. Otherwise (no prior all-skip, or the bot set changed in any way, including going to an empty set), allow the immediate re-fetch/poll as described above and update the state:
+          - Set `last_all_skip_happened = true`.
+          - Set `last_all_skip_bot_set = current_bot_set`.
+     - Any non-all-skip plan (i.e., at least one item is not `skip`) should clear the guard state for this invocation (e.g., `last_all_skip_happened = false`, `last_all_skip_bot_set = null`).
 
 4. **If no pending bots and no recent bot review:** Continue to Step 7 as normal.
 
