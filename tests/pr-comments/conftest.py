@@ -167,6 +167,30 @@ def should_exit_auto_loop(iteration: int, max_iterations: int, new_threads: int)
     return False
 
 
+def should_repoll_on_all_skip(
+    plan_items: list[dict],
+    pending_bots: list[str],
+    bot_reviews_after_fetch: list[dict] | None = None,
+) -> bool:
+    """Returns True if the repoll gate (Step 6c) should trigger.
+
+    Per SKILL.md Step 6c: when every plan item is `skip` (or the plan is empty)
+    and bot reviewers are pending or submitted a review after fetch_timestamp,
+    the skill should re-poll rather than exiting.
+    """
+    actionable_actions = {"fix", "accept suggestion", "reply", "decline", "consistency"}
+    has_actionable = any(
+        item.get("action") in actionable_actions for item in plan_items
+    )
+    if has_actionable:
+        return False
+
+    has_pending_bots = len(pending_bots) > 0
+    has_recent_bot_review = bool(bot_reviews_after_fetch)
+
+    return has_pending_bots or has_recent_bot_review
+
+
 def requires_manual_confirmation(plan_items: list[dict]) -> bool:
     """Returns True if any item in the plan forces manual confirmation.
 

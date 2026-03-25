@@ -1,11 +1,16 @@
 """
-Tests for Step 13 bot poll routing logic:
-- Poll offered only when bot reviewers were re-requested
-- Poll not offered for human-only re-requests
-- Poll not offered when reviewer list is empty
+Tests for bot poll routing logic:
+- Step 13: Poll offered only when bot reviewers were re-requested
+- Step 6c: Repoll gate triggers on all-skip with pending bots
 """
 
-from conftest import is_bot_login, should_exit_auto_loop, should_offer_poll, split_human_bot
+from conftest import (
+    is_bot_login,
+    should_exit_auto_loop,
+    should_offer_poll,
+    should_repoll_on_all_skip,
+    split_human_bot,
+)
 
 
 class TestShouldOfferPoll:
@@ -102,3 +107,62 @@ class TestAutoLoopExitConditions:
     def test_first_iteration_continues_when_threads_present(self):
         """First iteration does not trigger exit when threads are present and max not reached."""
         assert should_exit_auto_loop(iteration=1, max_iterations=10, new_threads=2) is False
+
+
+class TestRepollGate:
+    """Test Step 6c repoll gate: all-skip with pending bot reviewers."""
+
+    def test_all_skip_with_pending_bot_triggers_repoll(self):
+        """All items skip + pending bot → should repoll."""
+        plan = [{"action": "skip"}, {"action": "skip"}]
+        assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is True
+
+    def test_all_skip_no_pending_bot_no_repoll(self):
+        """All items skip + no pending bots + no recent reviews → exit normally."""
+        plan = [{"action": "skip"}, {"action": "skip"}]
+        assert should_repoll_on_all_skip(plan, []) is False
+
+    def test_all_skip_bot_reviewed_after_fetch(self):
+        """All items skip + bot submitted review after fetch_timestamp → should repoll."""
+        plan = [{"action": "skip"}]
+        recent_review = [{"author": "some-bot[bot]", "submitted_at": "2026-03-25T12:00:01Z"}]
+        assert should_repoll_on_all_skip(plan, [], bot_reviews_after_fetch=recent_review) is True
+
+    def test_mixed_actions_no_repoll(self):
+        """Some actionable items (fix) + pending bot → no repoll (normal flow)."""
+        plan = [{"action": "fix"}, {"action": "skip"}]
+        assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is False
+
+    def test_empty_plan_with_pending_bot(self):
+        """Empty plan + pending bot → should repoll."""
+        assert should_repoll_on_all_skip([], ["some-bot[bot]"]) is True
+
+    def test_empty_plan_no_bots(self):
+        """Empty plan + no bots → no repoll."""
+        assert should_repoll_on_all_skip([], []) is False
+
+    def test_decline_action_prevents_repoll(self):
+        """A decline item makes the plan actionable — no repoll."""
+        plan = [{"action": "skip"}, {"action": "decline"}]
+        assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is False
+
+    def test_reply_action_prevents_repoll(self):
+        """A reply item makes the plan actionable — no repoll."""
+        plan = [{"action": "reply"}, {"action": "skip"}]
+        assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is False
+
+    def test_consistency_action_prevents_repoll(self):
+        """A consistency item makes the plan actionable — no repoll."""
+        plan = [{"action": "consistency"}]
+        assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is False
+
+    def test_accept_suggestion_prevents_repoll(self):
+        """An accept suggestion item makes the plan actionable — no repoll."""
+        plan = [{"action": "accept suggestion"}]
+        assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is False
+
+    def test_both_pending_and_recent_review(self):
+        """Both pending bots and recent review — should repoll."""
+        plan = [{"action": "skip"}]
+        recent = [{"author": "bot-a[bot]"}]
+        assert should_repoll_on_all_skip(plan, ["bot-b[bot]"], bot_reviews_after_fetch=recent) is True

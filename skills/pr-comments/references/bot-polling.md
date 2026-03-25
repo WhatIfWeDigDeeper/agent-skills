@@ -1,8 +1,9 @@
 # Bot Polling and Auto-Loop
 
-This reference is used in two entry points:
+This reference is used in three entry points:
 - **Step 13** — after re-requesting bot reviewers following a commit
 - **Step 3** — when the skill is invoked with no review comments yet but bot reviewers are pending (PR just opened)
+- **Step 6c** — when all fetched threads are classified as `skip` but bot reviewers are pending or recently submitted a review after the comment fetch
 
 ## Manual mode
 
@@ -26,7 +27,7 @@ List all bot handles (re-requested or pending) in the status line. If a specific
 
 ## Polling behavior (both modes)
 
-Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`). When entering from **Step 13**, record it **before** the DELETE+POST re-request so that even a same-second review submission is captured by Signal 2. When entering from **Step 3** (no-comments-yet path), record it just before starting to poll — there is no re-request to precede. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — when entering from Step 13, do not reuse the Step 3 results since threads have been resolved since then; when entering from the Step 3 path, the snapshot will be empty. Then poll every 60 seconds using **two signals**:
+Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`). When entering from **Step 13**, record it **before** the DELETE+POST re-request so that even a same-second review submission is captured by Signal 2. When entering from **Step 3** (no-comments-yet path) or **Step 6c** (all-skip path), record it just before starting to poll — there is no re-request to precede. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — when entering from Step 13, do not reuse the Step 3 results since threads have been resolved since then; when entering from the Step 3 path, the snapshot will be empty; when entering from the Step 6c path, the snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`). Then poll every 60 seconds using **two signals**:
 
 **Signal 1 — New unresolved threads:**
 ```bash
@@ -66,7 +67,7 @@ Loop back to Step 2 within the same skill invocation — do not require the user
   ```
 
   **Auto-loop exit conditions** (checked before starting each new iteration):
-  1. No new unresolved bot threads after poll → exit loop
+  1. No new unresolved bot threads after poll AND no pending bot reviewers remain → exit loop
   2. Iteration count has reached the maximum (N from `--auto N`, default 10) → exit with note
   3. Poll timeout → exit with timeout message
   4. Security screening flags a comment in this iteration → pause auto-mode, drop to manual confirmation for this iteration; after the user confirms, ask: "Resume auto-approve mode for remaining iterations? [y/N]"

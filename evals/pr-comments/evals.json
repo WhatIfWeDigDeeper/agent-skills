@@ -640,6 +640,35 @@
           "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll"
         }
       ]
+    },
+    {
+      "id": 23,
+      "name": "all-skip-repoll-pending-bot",
+      "prompt": "Address the review comments on my PR using --auto mode. There are 3 existing threads but they're all outdated (isOutdated=true). copilot-pull-request-reviewer[bot] is still in the requested reviewers list — it posted a new review after I fetched the comments but the threads from that review aren't in my initial fetch. Don't exit just because the old threads are all skip.",
+      "expected_output": "The skill fetches comments and classifies all 3 threads as skip (outdated). Before exiting, Step 6c detects that copilot-pull-request-reviewer[bot] is a pending reviewer. In auto-mode, it logs a status line and enters the polling workflow automatically. When the bot's new threads are detected, it loops back to Step 2 for a full re-fetch and processes the new threads.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "classifies-all-as-skip",
+          "text": "The skill classifies all existing threads as skip (outdated) and does not attempt to fix, reply, or decline any of them"
+        },
+        {
+          "id": "detects-pending-bot-on-all-skip",
+          "text": "After classifying all items as skip, the skill checks for pending bot reviewers via the requested_reviewers API rather than exiting immediately"
+        },
+        {
+          "id": "enters-repoll-automatically",
+          "text": "In auto-mode, the skill enters the polling workflow automatically when all items are skip and a bot reviewer is pending, without prompting the user"
+        },
+        {
+          "id": "loops-back-to-step-2",
+          "text": "When new threads are detected during the repoll, the skill loops back to Step 2 for a full re-fetch of comments rather than only re-classifying"
+        },
+        {
+          "id": "counts-toward-iteration-cap",
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap"
+        }
+      ]
     }
   ]
 }
