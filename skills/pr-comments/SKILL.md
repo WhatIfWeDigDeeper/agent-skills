@@ -230,7 +230,7 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 **Commit fallbacks:**
 - If GPG signing fails, retry with `--no-gpg-sign`
-- If heredoc fails with "can't create temp file", write the message to a temp file (`MSG_FILE=$(mktemp)`) and use `git commit -F "$MSG_FILE"`
+- If heredoc fails with "can't create temp file", write the message to a temp file (`MSG_FILE=$(mktemp)`), use `git commit -F "$MSG_FILE"`, and ensure you clean up the temp file afterward (for example, with `trap 'rm -f "$MSG_FILE"' EXIT` or `rm -f "$MSG_FILE"` once the commit succeeds).
 
 ### 11. Reply to Comments
 
@@ -326,7 +326,7 @@ Push and re-request review from @user1, @user2?
 
    **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it auto-triggers a review on push and cannot be re-requested via API. Because it was not explicitly re-requested, do not include it in the polling offer; re-invoke the skill when its review arrives.
 
-**If bot reviewers were re-requested**, see `references/bot-polling.md` for polling behavior and auto-loop logic.
+**If bot reviewers were re-requested**, **you must now execute the polling workflow in `references/bot-polling.md`** — do not skip to the report. Follow that file's instructions for manual mode vs. auto-mode, signal checking, and loop exit conditions.
 
 **If the user declines** the push/re-request prompt, note that they can run `git push` and re-request review manually from the PR page when ready.
 

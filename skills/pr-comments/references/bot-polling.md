@@ -24,7 +24,7 @@ List all re-requested bot handles in the status line. If a specific bot responds
 
 ## Polling behavior (both modes)
 
-Record a `snapshot_timestamp` (ISO 8601) **before** triggering the re-request. Recording it before the DELETE+POST ensures that even a same-second review submission is captured by Signal 2. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using **two signals**:
+Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`) **before** triggering the re-request. Recording it before the DELETE+POST ensures that even a same-second review submission is captured by Signal 2. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3) — do not reuse the Step 3 results, since threads have been resolved since then. Then poll every 60 seconds using **two signals**:
 
 **Signal 1 — New unresolved threads:**
 ```bash
