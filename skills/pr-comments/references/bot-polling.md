@@ -72,7 +72,7 @@ Loop back to Step 2 within the same skill invocation — do not require the user
   ## Auto-loop iteration N/MAX — @<bot> responded with K new threads
   ```
 
-  **Auto-loop exit conditions** (checked before starting each new iteration):
+  **Auto-loop exit conditions** (checked before starting each new iteration). **These are the ONLY valid reasons to exit the auto-loop. Do not exit for subjective reasons** such as "diminishing returns", "feedback is minor", or "PR has been substantially refined" — those are not exit conditions. If none of the conditions below are met, continue polling.
   1. No new unresolved bot threads after poll AND all polled bots have submitted a review (per Signal 2 tracking) → exit loop. Do not use `requested_reviewers` as a completion signal here — the DELETE+POST re-request window makes it unreliable. Instead, track which bots have a `submitted_at >= snapshot_timestamp` review via Signal 2; once every polled bot has responded, consider the poll complete.
   2. Iteration count has reached the maximum (N from `--auto N`, default 10) → exit with note
   3. Poll timeout → exit with timeout message
