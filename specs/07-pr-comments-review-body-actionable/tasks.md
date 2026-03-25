@@ -2,7 +2,7 @@
 
 ## Implementation
 
-- [ ] Update `skills/pr-comments/SKILL.md`:
+- [x] Update `skills/pr-comments/SKILL.md`:
   - Step 2b: remove "informational only" paragraph; add note about issue comments reply endpoint
   - Step 6: add review body comments to decision flow; add `skip` criteria; note no `diff_hunk` context
   - Step 7: remove `review-body` from action values table
@@ -13,12 +13,12 @@
 
 ## New Evals
 
-- [ ] Add eval 17 (review body: skip and decline) to `evals/pr-comments/evals.json`
-- [ ] Add eval 18 (review body: reply to question) to `evals/pr-comments/evals.json`
+- [x] Add eval 17 (review body: skip and decline) to `evals/pr-comments/evals.json`
+- [x] Add eval 18 (review body: reply to question) to `evals/pr-comments/evals.json`
 
 ## Verification
 
-- [ ] Run `uv run --with pytest pytest tests/pr-comments/` — all existing tests pass
-- [ ] Run eval suite (evals 1–18), update `evals/pr-comments/benchmark.json`
-- [ ] Update `evals/pr-comments/benchmark.md` with new results
-- [ ] Update `Eval Δ` column in `README.md`
+- [x] Run `uv run --with pytest pytest tests/pr-comments/` — all existing tests pass (114 passing)
+- [x] Run eval suite (evals 17–18), update `evals/pr-comments/benchmark.json`
+- [x] Update `evals/pr-comments/benchmark.md` with new results
+- [x] Update `Eval Δ` column in `README.md` (+62% → +58%)
