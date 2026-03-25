@@ -230,7 +230,7 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 **Commit fallbacks:**
 - If GPG signing fails, retry with `--no-gpg-sign`
-- If heredoc fails with "can't create temp file", write the message to a temp file and use `git commit -F <file>`
+- If heredoc fails with "can't create temp file", write the message to a temp file (`MSG_FILE=$(mktemp)`) and use `git commit -F "$MSG_FILE"`
 
 ### 11. Reply to Comments
 
@@ -391,6 +391,7 @@ Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the revi
 ## Notes
 
 - **Keyring access required**: `gh` needs OS keyring/credential helper access. If your assistant runs in a sandbox, ensure it can reach the OS keyring.
+- **Temp files**: Use `mktemp` (not a hardcoded `/tmp/` path) when creating temp files — `/tmp/` may not be writable in sandboxed environments.
 - **Review threads vs. PR comments**: This skill handles inline code review threads and surfaces top-level review body comments (Step 2b) as FYI items. See Step 2b for the exclusion rules.
 - **Bot display-name shortening**: See the algorithm in Step 13. Use the full login (including `[bot]`) for API calls.
 - **Multiple reviewers raised the same issue**: Give all of them credit in the commit message.
