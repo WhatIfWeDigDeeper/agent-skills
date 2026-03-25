@@ -32,11 +32,11 @@
   - Verify `comment.path` appears in the diff
   - Verify `comment.line` / `comment.start_line` falls within a changed hunk in that file
   - If target is outside the diff → downgrade to `decline` with note: "Suggestion targets lines outside the PR diff — cannot safely apply."
-  - If the diff cannot be fetched → downgrade all `accept suggestion` actions to `implement` (manual edit) rather than auto-applying the suggestion block
+  - If the diff cannot be fetched → downgrade all `accept suggestion` actions to `fix` (manual edit) rather than auto-applying the suggestion block
 
 - Diff-validation declines pause auto-mode (same as screening flags do — see existing auto-mode handling in Step 7)
 
-- Applies to both inline comments and review body comments (Step 2b) that contain suggestion blocks
+- Diff validation applies to inline comments with `comment.path` and line information. For review body comments (Step 2b) that contain suggestion blocks, never use `accept suggestion`; instead, treat them as `fix` (manual edit) when safe, or `decline` when they cannot be safely applied.
 
 ## Task 4: Update end-of-file security note
 

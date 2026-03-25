@@ -29,9 +29,9 @@ Before applying any `suggestion` block, verify that the target file + line range
 - Parse the diff to extract the set of `(file, line_range)` hunks that are part of the PR.
 - For each comment with `action: accept suggestion` in Step 6, check that `comment.path` appears in the diff and that `comment.line` / `comment.start_line` falls within a changed hunk.
 - If the target is outside the diff, downgrade the action to `decline` with note: "Suggestion targets lines outside the PR diff — cannot safely apply."
-- If the diff cannot be fetched, downgrade all `accept suggestion` actions to `implement` (manual edit) rather than auto-applying the suggestion block.
+- If the diff cannot be fetched, downgrade all `accept suggestion` actions to `fix` (manual edit) rather than auto-applying the suggestion block.
 
-This applies to both inline comments (Step 2) and any review body comments (Step 2b) that contain suggestion blocks.
+This applies to inline comments (Step 2). For review body comments (Step 2b), never use `accept suggestion` — if they contain a suggestion block, treat as `fix` (manual edit) or `decline` rather than accepting it, since review-body items have no `path`/`line` to validate against the diff.
 
 Diff-validation declines should pause auto-mode (same as screening flags already do in Step 7/Step 10).
 
