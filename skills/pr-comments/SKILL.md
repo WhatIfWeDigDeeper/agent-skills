@@ -363,6 +363,8 @@ Use this template, omitting lines that don't apply:
 
 **Skipped line** (pick one):
 - `Skipped N outdated threads`
+- `Skipped N threads already handled in the reply chain`
+- `Skipped N threads (outdated or already handled)`
 
 **Review-body line** (pick one):
 - `N review body comment(s) require manual response from the PR page`
