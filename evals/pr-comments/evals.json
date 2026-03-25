@@ -164,7 +164,8 @@
         {"id": "loops-back-to-step-2-on-new-threads", "text": "When new unresolved threads are detected, the agent loops back to Step 2 (fetch comments) without requiring the user to re-invoke the skill"},
         {"id": "presents-new-plan-for-bot-comments", "text": "The agent presents a new plan for the bot's new comments and waits for user confirmation before implementing"},
         {"id": "re-offers-poll-in-round-2", "text": "After completing round 2 and re-requesting the bot reviewer, the agent offers to poll again (no loop depth cap)"},
-        {"id": "report-includes-poll-line", "text": "The final report includes a line noting the poll duration and number of new threads found (e.g. 'Polled for @copilot review (~Ns) — found N new threads, processed above')"}
+        {"id": "report-includes-poll-line", "text": "The final report includes a line noting the poll duration and number of new threads found (e.g. 'Polled for @copilot review (~Ns) — found N new threads, processed above')"},
+        {"id": "snapshot-taken-after-resolution", "text": "The agent takes a fresh thread snapshot after resolving threads (not reusing the Step 3 results), so already-resolved threads are not counted as 'new' during polling"}
       ]
     },
     {

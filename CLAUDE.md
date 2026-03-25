@@ -70,7 +70,8 @@ When substantially modifying an existing skill, also update its entry in `README
 ## Sandbox Workarounds
 
 - **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` **only as a fallback after a signing failure** — do not use it preemptively. `dangerouslyDisableSandbox: true` (for keyring/network access) and GPG signing are separate; enabling sandbox does not mean GPG will fail.
-- **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first.
+- **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first — use `mktemp` (which respects `$TMPDIR`) or a path under `${TMPDIR:-/private/tmp}` rather than a hardcoded, user-specific directory.
+- **Do not hardcode `/tmp/`** — it is not writable in sandbox mode. Always use `mktemp`, `$TMPDIR`, or a generic `/private/tmp` path (not a user-specific subdirectory) when creating temp files in any shell command.
 
 ## Spell Checking
 
@@ -80,9 +81,9 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 
 - **Never commit directly to `main`.** Always create a feature branch and open a PR for review.
 - **Never rewrite history on a PR that has review comments** (from humans or bots). This means no force push, no `git rebase`, no `git commit --amend` on pushed commits. Rewriting history detaches inline comments from their source lines and disrupts reviewers who have already pulled the branch. If commits need fixing after comments exist, add a new commit instead. Squash happens at merge time.
-- This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI).
+- This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI). When merging via `gh pr merge`, a PostToolUse hook will automatically handle prompting for `/learn` on the merged changes; when merging via the GitHub UI or any other method, explicitly ask the user to run `/learn` on the merged PR (or on `main`) so the assistant can update its context. **PostToolUse hooks fire on pattern match, not success**: the grep-based hook triggers on every Bash call containing the pattern — write hook messages as "If [action] succeeded..." not "[action] happened..." to avoid misleading output on failed commands, `--help` calls, or partial matches.
 - After merging a PR, sync local main with `git reset --hard origin/main` rather than `git pull` — local main may have diverged from origin after a squash merge. **Before running `git reset --hard`, check for uncommitted changes (`git status`). If any exist, stash them first (`git stash`) or ask the user — do not silently discard them.**
-- After merging and syncing main, ask the user: "Want to run `/learn` to capture any lessons from this session?"
+- **After pushing follow-up commits to an existing PR branch**, check whether the PR title/body still reflects all commits (`git log main..HEAD --oneline`) and update with `gh pr edit` if needed.
 - After addressing PR review comments, resolve each thread via the GitHub GraphQL API:
   ```bash
   # Get thread IDs
@@ -112,6 +113,8 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **When prompting eval subagents**, pass the full assertion text strings from `evals.json` explicitly in the prompt — otherwise subagents use assertion IDs as the `text` field in `grading.json` (e.g. `"skips-previously-replied-thread"` instead of the full sentence), which breaks alignment with the eval viewer.
 - **Non-discriminating evals** (both configurations score 100%) are expected when the scenario makes the correct behavior explicit enough for the baseline to handle it. Document them with a note in `benchmark.json` — they establish a baseline but don't contribute to the delta. Evals 13 and 16 in pr-comments are examples.
 - **When adding supplementary regression runs** (run_number > 1 for specific evals): add a `regression_run_evals` field to `metadata` listing which eval IDs have supplementary runs, scope token stats notes to "primary (run_number=1) runs", and update `benchmark.md` accordingly. Keep `runs_per_configuration` equal to the primary suite's value — do not bump it to the max `run_number`, which would misrepresent evals that only have one run.
+- **For structural refactors that move logic to a reference file** (no behavioral change), run only the evals that exercise the moved logic rather than the full suite. Get the old-skill baseline via `git show HEAD:skills/<name>/SKILL.md > "$TMPDIR/<name>-snapshot.md"`.
+- **When a grader flags a missing assertion**, add it to `evals.json` and re-grade the existing transcript — no need to re-spawn the executor if the transcript is detailed enough to provide evidence.
 
 ## Portability
 
@@ -130,6 +133,7 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 - **Documentation sync**: Update CLAUDE.md/README.md when major versions change
 - **PR-driven**: Create pull requests for review rather than auto-committing
 - **GitHub suggested changes**: There is no public REST API to accept them. Extract the replacement from the `suggestion` fenced block in the comment body and apply it as a local edit.
+- **Mandatory-step reference links must be imperative**: When a step delegates to an external file for mandatory continuation, write "**you must now execute [file]** — do not skip to the report" rather than "see [file]". Agents treat passive cross-references as informational and will skip them when generating the final output.
 
 ## Interaction Patterns
 
