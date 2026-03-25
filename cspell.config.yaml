@@ -12,6 +12,7 @@ words:
   - continuerc
   - cursorrules
   - EBADPLATFORM
+  - endswith
   - elif
   - ensurepip
   - evals
