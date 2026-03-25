@@ -244,9 +244,9 @@ After Step 6 completes (all comments classified), before presenting the plan in 
 
 ### 6c. Repoll Gate: All-Skip with Pending Bots
 
-After Step 6b, check whether the plan contains any actionable items — count items classified as `fix`, `accept suggestion`, `reply`, `decline`, or `consistency`. If the count is greater than zero, skip this step entirely and proceed to Step 7.
+After Step 6b, determine whether the plan contains any actionable items. Treat `fix`, `accept suggestion`, `reply`, `decline`, and `consistency` as actionable actions; treat `skip` as non-actionable. If at least one plan row has an actionable action, skip this step entirely and proceed to Step 7.
 
-If every item is `skip` (or the plan is empty):
+Proceed with this step only if the plan is empty or **every** plan row's `Action` value is exactly `skip`.
 
 1. **Check for pending bot reviewers:**
    ```bash
@@ -260,10 +260,12 @@ If every item is `skip` (or the plan is empty):
      | jq -s '[.[] | .[] | select((.user.login | endswith("[bot]")) and .submitted_at >= "'"${fetch_timestamp}"'")]'
    ```
 
-3. **If pending bots exist or a bot submitted a review after `fetch_timestamp`:**
+3. **If a bot submitted a review after `fetch_timestamp`** (the check in step 2 above returned results): the bot's threads may already exist but were missed by our Step 2 fetch. **Immediately loop back to Step 2** (full re-fetch) rather than entering the polling workflow — polling would snapshot the current threads and never detect the already-present new ones. This counts as one iteration toward the `--auto N` cap.
+
+4. **If pending bots exist but NO post-fetch review was detected** (bots are in `requested_reviewers` but haven't submitted yet):
    - **Auto-mode**: Log a status line and enter the polling workflow automatically:
      ```
-     All threads skipped — pending bot reviewer(s) detected. Re-polling for @bot1...
+     All threads skipped — pending bot reviewer(s) detected. Polling for @bot1...
      ```
      For the Step 6c polling entry, set `snapshot_timestamp = "${fetch_timestamp}"` (or an earlier timestamp), then take a fresh thread snapshot (via the Step 3 GraphQL query), and poll using Signal 1 / Signal 2 from `references/bot-polling.md`. On new threads detected, loop back to Step 2 (full re-fetch). This counts as one iteration toward the `--auto N` cap.
    - **Manual mode**: Show the all-skip plan, then prompt:
