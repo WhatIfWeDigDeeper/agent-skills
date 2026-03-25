@@ -42,8 +42,8 @@ This is done in Step 6 (decide), before the plan table is shown in Step 7.
 Add a size check in Step 5 (screening):
 
 - If a comment body exceeds **64 KB**, truncate to 64 KB for the agent's screening pass and flag it as oversized with note: "Unusually large comment body — screening applied to first 64 KB only. Manual review recommended."
-- The full comment body is still shown to the user in the Step 7 plan table — the truncation applies only to the screening evaluation, not to user visibility.
-- Surface oversized comments prominently in Step 7.
+- The full comment body remains available to the user (for example via the GitHub UI or later navigation); the truncation applies only to the screening evaluation, not to what the human can access.
+- Surface oversized comments prominently in the Step 7 plan table (for example, via the one-line summary and notes fields).
 
 64 KB is well above any legitimate code review comment; GitHub's own UI renders comment bodies that large as degraded. This bound prevents resource exhaustion and reduces the risk that length is used to bury injected instructions.
 

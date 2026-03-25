@@ -6,7 +6,7 @@
 
 - Add a size check: if a comment body exceeds 64 KB, truncate to 64 KB for the agent's screening pass
 - Flag oversized comments as oversized (requires manual confirmation, not automatically prompt-injection-suspicious) with note: "Unusually large comment body — screening applied to first 64 KB only. Manual review recommended."
-- Clarify that truncation applies to the screening pass only — the full comment body is still shown to the user in Step 7
+- Clarify that truncation applies to the screening pass only — downstream displays (including Step 7) may use summaries, but the underlying full comment body MUST remain available for manual review or on-demand display
 - Ensure oversized comments surface prominently in the Step 7 plan table (same as other flagged comments)
 - Applies to both inline comments (Step 2) and review body comments (Step 2b)
 

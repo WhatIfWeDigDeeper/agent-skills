@@ -121,7 +121,7 @@
       "assertions": [
         {
           "id": "plan-four-categories",
-          "text": "The agent presents a plan categorizing comments as 'accept suggestion', 'implement', and 'decline' before making any changes"
+          "text": "The agent presents a plan categorizing comments as 'accept suggestion', 'fix', and 'decline' before making any changes"
         },
         {
           "id": "graphql-thread-state",
