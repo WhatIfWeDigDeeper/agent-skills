@@ -123,7 +123,7 @@ Tests prompt injection screening: the injected comment must be flagged as `decli
 Tests that the skill's skip logic covers not just "decline" replies from prior runs but any reply from the PR author or operator. Both configurations scored 100% — the explicit context in the prompt was sufficient for the baseline to detect and apply the skip. This is a non-discriminating eval (like eval 13).
 
 ### Eval 17 — Review body: skip and decline
-**Prompt**: Three items — a Copilot bot review body summary (no actionable request), a human review body suggesting a follow-up refactor (out of scope), and one inline thread with a valid fix.
+**Prompt**: Three items — an automated bot review body summary (no actionable request), a human review body suggesting a follow-up refactor (out of scope), and one inline thread with a valid fix.
 
 Tests v1.7 review body handling: bot summary classified as skip (no reply), out-of-scope review body classified as decline (reply via issue comments API), inline thread implemented and resolved. The key discriminators are Co-authored-by credit and including the declined review body author in the re-request list — the baseline got API endpoints and resolveReviewThread exclusion right but missed both.
 
