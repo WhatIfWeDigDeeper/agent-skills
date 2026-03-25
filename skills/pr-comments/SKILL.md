@@ -416,7 +416,7 @@ Exited: no new threads after iteration 3.
 M out-of-scope declined comments — file follow-up issues? [all/select/none]
 ```
 
-Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the review-body line if there were none. Omit the follow-up issues offer if there were no out-of-scope declines.
+Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the follow-up issues offer if there were no out-of-scope declines.
 
 **Exit reason values:**
 - `Exited: no new threads after iteration N.`

@@ -19,6 +19,6 @@
 ## Verification
 
 - [x] Run `uv run --with pytest pytest tests/pr-comments/` — all existing tests pass (114 passing)
-- [x] Run eval suite (evals 17–18), update `evals/pr-comments/benchmark.json`
+- [x] Run eval suite (evals 1–18; reuse prior results for evals 1–16 if unchanged), update `evals/pr-comments/benchmark.json`
 - [x] Update `evals/pr-comments/benchmark.md` with new results
 - [x] Update `Eval Δ` column in `README.md` (+62% → +58%)
