@@ -24,14 +24,17 @@
       16,
       17,
       18,
-      19
+      19,
+      20,
+      21,
+      22
     ],
     "runs_per_configuration": 1,
     "regression_run_evals": [
       12,
       14
     ],
-    "skill_version": "1.8"
+    "skill_version": "1.10"
   },
   "runs": [
     {
@@ -1907,6 +1910,236 @@
       "notes": [
         "Baseline applied both suggestions without checking whether targets were within the PR diff. The diff-validation guard is entirely skill-specific behavior."
       ]
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "cross-file-consistency-matching-rename",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The @charlie comment requesting the rename of `getData` to `fetchData` in `src/api.ts` is classified as `fix` in the plan",
+          "passed": true,
+          "evidence": "Step 6 classifies the comment as `fix`; plan table row #1 shows src/api.ts:15 with action `fix`"
+        },
+        {
+          "text": "`src/routes.ts` appears in the plan table with action `consistency`",
+          "passed": true,
+          "evidence": "Step 6b finds getData in src/routes.ts lines 8 and 22; plan table row #2 shows src/routes.ts:8,22 with action `consistency`"
+        },
+        {
+          "text": "The consistency row references the originating `fix` item (e.g. by item number or description)",
+          "passed": true,
+          "evidence": "Plan table row #2 summary reads 'Same `getData` usage as #1' and Note column states 'derives from item #1 fix'"
+        },
+        {
+          "text": "The consistency item is not auto-approved in auto-mode — the skill drops to manual confirmation when a `consistency` item is present",
+          "passed": true,
+          "evidence": "Step 7 explicitly flags: 'Consistency items are not auto-approved even in --auto mode — manual confirmation is required', matching SKILL.md Step 7 rule for consistency items"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "cross-file-consistency-matching-rename",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The @charlie comment requesting the rename of `getData` to `fetchData` in `src/api.ts` is classified as `fix` in the plan",
+          "passed": false,
+          "evidence": "No plan table with action classifications was produced. The rename was implemented directly without labeling it as `fix` or any other action type."
+        },
+        {
+          "text": "`src/routes.ts` appears in the plan table with action `consistency`",
+          "passed": false,
+          "evidence": "src/routes.ts was never examined or mentioned. Only src/api.ts (the file with the explicit review comment) was addressed."
+        },
+        {
+          "text": "The consistency row references the originating `fix` item (e.g. by item number or description)",
+          "passed": false,
+          "evidence": "No consistency row existed; src/routes.ts was not included in the plan at all."
+        },
+        {
+          "text": "The consistency item is not auto-approved in auto-mode — the skill drops to manual confirmation when a `consistency` item is present",
+          "passed": false,
+          "evidence": "No auto/manual confirmation distinction was made. Changes were committed in a single step without any special confirmation behavior for consistency items."
+        }
+      ],
+      "notes": [
+        "Baseline behavior without skill guidance focuses only on files with explicit review comments. Cross-file consistency checks are not performed naturally. No structured plan table with action classifications was produced."
+      ]
+    },
+    {
+      "eval_id": 21,
+      "eval_name": "cross-file-consistency-no-false-positive",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The @diana comment requesting the rename of `result` to `parsedOutput` in `src/parser.ts` is classified as `fix` in the plan",
+          "passed": true,
+          "evidence": "Step 6 classified the @diana inline comment as `fix` (technically correct rename, in scope, no conflicts). The plan table in Step 7 shows a single row: src/parser.ts:30 with action `fix`."
+        },
+        {
+          "text": "`src/logger.ts` does NOT appear as a `consistency` row in the plan",
+          "passed": true,
+          "evidence": "Step 6b found `result` in src/logger.ts:12 but determined the context is non-analogous (formatLogEntry output vs. parseTokens output — different semantic domains). No consistency row was added for src/logger.ts."
+        },
+        {
+          "text": "Only the original `fix` item for `src/parser.ts` appears in the plan — no extra consistency rows",
+          "passed": true,
+          "evidence": "The plan table contains exactly one row: item #1 for src/parser.ts:30 with action `fix`. Step 6b produced no consistency rows (the logger.ts match was rejected as non-analogous)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 21,
+      "eval_name": "cross-file-consistency-no-false-positive",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The @diana comment requesting the rename of `result` to `parsedOutput` in `src/parser.ts` is classified as `fix` in the plan",
+          "passed": true,
+          "evidence": "The plan table contains one row for src/parser.ts line 30 with action 'fix' — rename result to parsedOutput per @diana's request."
+        },
+        {
+          "text": "`src/logger.ts` does NOT appear as a `consistency` row in the plan",
+          "passed": true,
+          "evidence": "src/logger.ts does not appear anywhere in the plan. Only src/parser.ts is listed."
+        },
+        {
+          "text": "Only the original `fix` item for `src/parser.ts` appears in the plan — no extra consistency rows",
+          "passed": true,
+          "evidence": "The plan table has exactly one row (src/parser.ts, fix). No consistency rows were added for src/logger.ts or any other file."
+        }
+      ],
+      "notes": [
+        "Baseline behavior naturally avoids adding consistency rows for unrelated variables in other files that have no review comment. The agent correctly scoped the rename to only the commented file and did not propagate it to src/logger.ts. This eval is non-discriminating — both configurations score 100%."
+      ]
+    },
+    {
+      "eval_id": 22,
+      "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill checks the requested_reviewers API and detects copilot-pull-request-reviewer[bot] as a pending reviewer",
+          "passed": true,
+          "evidence": "Step 3 calls `gh api repos/.../pulls/8 --jq '[.requested_reviewers[] | select(.type == \"Bot\") | .login]'` after finding no threads, and receives [\"copilot-pull-request-reviewer[bot]\"]."
+        },
+        {
+          "text": "The skill does NOT exit with 'No open review threads' when a pending bot reviewer is detected",
+          "passed": true,
+          "evidence": "Step 3 specifies exit with 'No open review threads' only when no bots are pending. Bot detected — skill proceeds to snapshot + polling offer instead of exiting."
+        },
+        {
+          "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer",
+          "passed": true,
+          "evidence": "No --auto flag present; manual mode prompt issued: 'Poll for @copilot-pull-request-reviewer to finish reviewing?' per bot-polling.md manual mode instructions."
+        },
+        {
+          "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll",
+          "passed": true,
+          "evidence": "snapshot_timestamp set via `date -u +\"%Y-%m-%dT%H:%M:%SZ\"` and empty GraphQL thread snapshot taken before polling begins, as specified in Step 3 and bot-polling.md."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 22,
+      "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill checks the requested_reviewers API and detects copilot-pull-request-reviewer[bot] as a pending reviewer",
+          "passed": false,
+          "evidence": "No structured step exists to query requested_reviewers before deciding to exit. Natural behavior checks for review comments, finds none, and reports back without inspecting pending reviewers."
+        },
+        {
+          "text": "The skill does NOT exit with 'No open review threads' when a pending bot reviewer is detected",
+          "passed": false,
+          "evidence": "Without skill guidance, finding no review comments leads to an early exit or a note to try again later — not a structured polling offer."
+        },
+        {
+          "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer",
+          "passed": false,
+          "evidence": "No formal polling loop concept exists in baseline behavior. The agent might suggest re-running later but does not offer a structured poll with Signal 1/2 detection."
+        },
+        {
+          "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll",
+          "passed": false,
+          "evidence": "No snapshot_timestamp concept in baseline behavior. Without skill guidance defining this step, no baseline timestamp or thread ID snapshot is recorded."
+        }
+      ],
+      "notes": [
+        "This is a baseline (without_skill) simulation. All four assertions test skill-specific behaviors that only exist when the pr-comments SKILL.md is active. Natural behavior: check for review comments, find none, report no threads — no awareness of pending reviewers or polling workflows."
+      ]
     }
   ],
   "run_summary": {
@@ -1932,8 +2165,8 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.4116,
-        "stddev": 0.334,
+        "mean": 0.401,
+        "stddev": 0.357,
         "min": 0.0,
         "max": 1.0
       },
@@ -1951,7 +2184,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.59",
+      "pass_rate": "+0.60",
       "time_seconds": "+14.0",
       "tokens": "+7351"
     }
@@ -1964,6 +2197,9 @@
     "Evals 12 and 14 have run_number 2 (with_skill only) as regression checks after the Signal 2 poll redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). Both passed 100% \u2014 no regression introduced.",
     "Evals 17 and 18 cover the v1.7 review body actionable change. Eval 17 (with_skill 7/7, without_skill 5/7): failures on Co-authored-by and re-request list inclusion for declined review body authors. Eval 18 (with_skill 5/5, without_skill 4/5): near non-discriminating \u2014 only failure is Co-authored-by, a skill-specific convention. The baseline independently handles review body API endpoints and resolveReviewThread exclusion correctly.",
     "Token run_summary stats (with_skill: n=5 of 19 primary runs, without_skill: n=6 of 19 primary runs) are computed only from primary (run_number=1) runs with recorded token counts; regression runs (run_number=2, evals 12 and 14) and simulated transcripts (tokens: null) are excluded from token aggregates.",
-    "Eval 19 covers the v1.8 diff-validation guard: suggestions targeting lines outside the PR diff should be declined, not applied. with_skill 4/4 (100%), without_skill 1/4 (25%) \u2014 delta +75%. The baseline applies out-of-scope suggestions without checking the diff; this is entirely skill-specific behavior."
+    "Eval 19 covers the v1.8 diff-validation guard: suggestions targeting lines outside the PR diff should be declined, not applied. with_skill 4/4 (100%), without_skill 1/4 (25%) \u2014 delta +75%. The baseline applies out-of-scope suggestions without checking the diff; this is entirely skill-specific behavior.",
+    "Eval 20 covers the v1.9 cross-file consistency check (Step 6b): when a rename in one file also affects another PR-modified file with the same function in an analogous context, a `consistency` row should appear in the plan. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline focuses only on files with explicit review comments and performs no cross-file identifier search.",
+    "Eval 21 covers the no-false-positive case for Step 6b: when a same-named variable exists in another PR-modified file but in a completely different context, it should NOT be flagged as a consistency item. with_skill 3/3 (100%), without_skill 3/3 (100%) \u2014 non-discriminating. The prompt makes the context difference explicit, so both configurations correctly avoid flagging the unrelated variable.",
+    "Eval 22 covers the v1.10 early-poll path: when the skill is invoked right after PR creation with no review comments yet, it should detect pending bot reviewers via requested_reviewers API and offer to poll rather than exiting. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline finds no comments and exits; it has no concept of checking requested_reviewers or entering a polling loop."
   ]
 }
