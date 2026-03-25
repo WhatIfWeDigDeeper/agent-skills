@@ -21,7 +21,7 @@
         },
         {
           "id": "presents-plan",
-          "text": "The agent presents a plan categorizing comments using the action labels fix / accept suggestion / reply / skip before making any changes"
+          "text": "The agent presents a plan categorizing comments using the action labels fix / accept suggestion / reply / decline / skip before making any changes"
         },
         {
           "id": "waits-for-confirmation",

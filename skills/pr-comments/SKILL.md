@@ -220,7 +220,7 @@ Proceed? [y/N/auto]
 
 Wait for the user's go-ahead. They know the codebase and may want to override your judgment.
 
-If `--auto [N]` was passed as an argument, skip this confirmation prompt entirely — show the plan table above but proceed without waiting. If security screening (Step 5) flagged any comment or marked any comment as oversized in this iteration, always drop to manual confirmation regardless of auto-mode.
+If `--auto [N]` was passed as an argument, skip this confirmation prompt entirely — show the plan table above but proceed without waiting. If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, or diff-validation declines from Step 6), always drop to manual confirmation regardless of auto-mode.
 
 ### 8. Apply Accepted Suggestions
 
