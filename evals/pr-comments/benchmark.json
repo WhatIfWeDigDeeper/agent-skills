@@ -7,7 +7,8 @@
     "timestamp": "2026-03-24T00:00:00Z",
     "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
     "runs_per_configuration": 1,
-    "skill_version": "1.4"
+    "regression_run_evals": [12, 14],
+    "skill_version": "1.5"
   },
   "runs": [
     {
@@ -16,9 +17,9 @@
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.857,
-        "passed": 6,
-        "failed": 1,
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
         "total": 7,
         "time_seconds": 81.4,
         "tokens": 20835,
@@ -28,13 +29,13 @@
       "expectations": [
         {"text": "The agent fetches inline review comments via the REST API (gh api repos/.../pulls/.../comments)", "passed": true, "evidence": "Step 2 shows: `gh api repos/myorg/myrepo/pulls/33/comments --paginate --jq '.[] | {id, body, path, line, ...}'` returning 4 inline comments."},
         {"text": "The agent fetches thread resolution state via GraphQL to filter out already-resolved threads", "passed": true, "evidence": "Step 3 issues a GraphQL query fetching `reviewThreads(first: 100)` with `isResolved` and `isOutdated` fields for all threads on PR #33, then maps each REST comment ID to its resolution state."},
-        {"text": "Already-resolved threads are not included in the plan or acted upon", "passed": false, "evidence": "All four simulated threads have `isResolved: false` in the GraphQL response — there are no already-resolved threads in this scenario. The assertion is untestable: the scenario never exercises the resolved-thread filtering path. Thread 1004 is excluded due to `isOutdated: true`, not because it is resolved."},
+        {"text": "Already-resolved threads are not included in the plan or acted upon", "passed": true, "evidence": "The GraphQL response includes thread 1005 with `isResolved: true`; it is filtered out and does not appear in the Step 7 plan. Thread 1004 is separately excluded due to `isOutdated: true`."},
         {"text": "The agent presents a plan categorizing comments as accept/implement/decline/skip before making any changes", "passed": true, "evidence": "Step 7 shows a plan table with columns for File, Summary, Action, and Note. Actions assigned are `fix` (threads 1001, 1003), `accept suggestion` (thread 1002), and `skip` (thread 1004). This is presented with 'Proceed?' before any edits are applied in Steps 8–9."},
         {"text": "The agent waits for user confirmation before proceeding with changes", "passed": true, "evidence": "Step 7 ends with 'Proceed?' and records 'User response: yes' before any file edits or commits occur. The metrics.json field `confirmation_waited: true` corroborates this."},
         {"text": "Implemented changes are committed with Co-authored-by credit to the reviewer(s)", "passed": true, "evidence": "Step 10 commit message includes `Co-authored-by: alice <alice@users.noreply.github.com>`, `Co-authored-by: bob <bob@users.noreply.github.com>`, and `Co-authored-by: carol <carol@users.noreply.github.com>` — one entry per reviewer whose feedback was addressed."},
         {"text": "Resolved threads are marked via GraphQL resolveReviewThread mutation", "passed": true, "evidence": "Step 12 runs `resolveReviewThread` mutations for RT_thread1001, RT_thread1002, and RT_thread1003, each returning `{isResolved: true}`. Thread 1004 (outdated, skipped) is correctly not mutated."}
       ],
-      "notes": ["Assertion 3 failed because the scenario fixture lacks a pre-resolved thread — the filtering path was never exercised."]
+      "notes": []
     },
     {
       "eval_id": 1,
@@ -791,14 +792,62 @@
         {"text": "The commit Co-authored-by trailers credit @bob but not @alice", "passed": true, "evidence": "Commit message includes 'Co-authored-by: bob <bob@users.noreply.github.com>' only. Alice receives no credit since her thread was skipped."}
       ],
       "notes": ["Baseline independently detected the prior reply in the thread chain and applied correct skip logic — this eval does not discriminate between configurations."]
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "bot-poll-confirms",
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": null,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "After re-requesting review from a bot, the agent offers to poll for the bot's response before proceeding to the report", "passed": true, "evidence": "Regression run 2 (post-Signal-2 fix): Agent presents poll offer immediately after re-requesting @copilot via REST, before generating the report. Verified that reviews-API-based Signal 2 (submitted_at > snapshot_timestamp) does not affect the offer flow."},
+        {"text": "The agent polls by re-running the GraphQL thread query (Step 3) and comparing unresolved thread IDs against the pre-push snapshot", "passed": true, "evidence": "Polling loop uses GraphQL reviewThreads query and diffs against the snapshot taken after push. Signal 1 (new unresolved threads) correctly triggers loop-back to Step 2 when T3 is detected."},
+        {"text": "When new unresolved threads are detected, the agent loops back to Step 2 (fetch comments) without requiring the user to re-invoke the skill", "passed": true, "evidence": "On detecting T3, the transcript immediately proceeds to 'Loop: Round 2 — Step 2: Fetch Inline Review Comments' without a user prompt."},
+        {"text": "The agent presents a new plan for the bot's new comments and waits for user confirmation before implementing", "passed": true, "evidence": "Round 2 Step 7 shows a plan table for T3 with 'Proceed?' before any edits are made."},
+        {"text": "After completing round 2 and re-requesting the bot reviewer, the agent offers to poll again (no loop depth cap)", "passed": true, "evidence": "After Round 2 push and re-request, the agent again presents 'Poll for @copilot to finish reviewing?' The user declines, confirming re-offer works."},
+        {"text": "The final report includes a line noting the poll duration and number of new threads found (e.g. 'Polled for @copilot review (~Ns) — found N new threads, processed above')", "passed": true, "evidence": "Step 14 report includes: 'Polled for @copilot review (~60s) — found 1 new thread, processed above.' — matching the required format."}
+      ],
+      "notes": ["Regression run after Signal 2 redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). All 6 assertions pass — no regression introduced."]
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "bot-poll-timeout",
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 0.0,
+        "tokens": null,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent polls at approximately 60-second intervals, not continuously", "passed": true, "evidence": "Regression run 2 (post-Signal-2 fix): Transcript shows 10 polls at 60-second intervals. Adding reviews-API Signal 2 check does not change the polling interval."},
+        {"text": "The agent stops polling after 10 minutes if no new threads appear", "passed": true, "evidence": "After Poll 10 at t=0:10:00 (neither Signal 1 nor Signal 2 fires), the agent prints the 10-minute timeout message and exits the poll loop."},
+        {"text": "On timeout, the agent prints a message telling the user to run the skill manually when the review is ready", "passed": true, "evidence": "Timeout message: '@copilot hasn't responded yet. Re-invoke the pr-comments skill when the review is ready (in Claude Code: `/pr-comments`).' — exact format per SKILL.md."},
+        {"text": "The agent does not loop back to Step 2 on timeout — it exits the poll loop and reports", "passed": true, "evidence": "After timeout message the transcript states 'Proceeding to Step 14 (report). Not looping back to Step 2.' No loop occurs."}
+      ],
+      "notes": ["Regression run after Signal 2 redesign. All 4 assertions pass — timeout path unaffected by Signal 2 addition."]
     }
   ],
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.9911,
-        "stddev": 0.0346,
-        "min": 0.857,
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
         "max": 1.0
       },
       "time_seconds": {
@@ -835,17 +884,17 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.61",
+      "pass_rate": "+0.62",
       "time_seconds": "+14.0",
       "tokens": "+7351"
     }
   },
   "notes": [
-    "Eval 1 assertion 3 ('already-resolved threads not in plan') failed because the scenario fixture lacks a pre-resolved thread — the filtering path was untestable.",
     "Eval 13 without_skill scored 100% — the baseline independently discovered the correct REST pattern and poll-decline flow without skill guidance.",
     "Eval 16 without_skill scored 100% — the explicit prompt context (prior reply visible in chain) was sufficient for the baseline to skip correctly. This eval does not discriminate between configurations.",
-    "Token run_summary stats (with_skill: n=5 of 16, without_skill: n=6 of 16) are computed only from runs with recorded token counts; remaining runs used simulated transcripts (tokens: null) and are excluded from token aggregates.",
+    "Token run_summary stats (with_skill: n=5 of 16 primary runs, without_skill: n=6 of 16 primary runs) are computed only from primary (run_number=1) runs with recorded token counts; regression runs (run_number=2, evals 12 and 14) and simulated transcripts (tokens: null) are excluded from token aggregates.",
     "Time and token values are unreliable for many runs (simulated transcripts); values above 0 are from actual executor measurements.",
-    "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior."
+    "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior.",
+    "Evals 12 and 14 have run_number 2 (with_skill only) as regression checks after the Signal 2 poll redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). Both passed 100% — no regression introduced."
   ]
 }

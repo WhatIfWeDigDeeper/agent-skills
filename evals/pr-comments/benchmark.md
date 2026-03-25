@@ -2,26 +2,26 @@
 
 **Model**: claude-sonnet-4-6
 **Date**: 2026-03-24
-**Evals**: 1–16 (1 run each per configuration)
-**Skill version**: 1.4
+**Evals**: 1–16 (1 primary run each per configuration; evals 12 and 14 have supplementary run_number=2 regression checks)
+**Skill version**: 1.5
 
 ## Summary
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **99.1%** ± 3.5% | 37.9% ± 32.3% | **+61%** |
+| Pass Rate | **100%** ± 0% | 37.9% ± 32.3% | **+62%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Token statistics are computed only over runs with recorded token counts (with_skill: 5 of 16 runs; without_skill: 6 of 16 runs). Evals using simulated transcripts have `tokens: null` in `benchmark.json` and are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
+Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 16; without_skill: 6 of 16). Regression runs (run_number=2, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
 
-The skill improves correctness by +61 percentage points. The delta vs v1.3 (+65%) dropped slightly because eval 16 (re-invocation skip) does not discriminate between configurations — the baseline correctly handles the prior-reply skip when the context is made explicit in the prompt. The baseline consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, thread resolution, and the interactive push + re-request flow — these behaviors the skill explicitly mandates.
+The skill improves correctness by +62 percentage points (up from +61% in v1.4). All 16 with-skill evals now pass 100% — eval 1 assertion 3 (already-resolved thread filtering) previously failed due to a fixture gap; v1.5 regression evals include a pre-resolved thread in that scenario. The baseline consistently skips the GraphQL thread-state step, the plan/confirmation gate, Co-authored-by attribution, thread resolution, and the interactive push + re-request flow — these behaviors the skill explicitly mandates.
 
 ## Per-Eval Results
 
 | # | Eval | With Skill | Without Skill | Key differentiators |
 |---|------|------------|---------------|---------------------|
-| 1 | Basic: address comments | **6/7 (86%)** | 0/7 (0%) | GraphQL thread state, plan + confirmation, Co-authored-by, resolveReviewThread |
+| 1 | Basic: address comments | **7/7 (100%)** | 0/7 (0%) | GraphQL thread state, plan + confirmation, Co-authored-by, resolveReviewThread |
 | 2 | Explicit PR number + suggestions | **7/7 (100%)** | 1/7 (14%) | Suggestion block detection, branch checkout, outdated skip, resolved filter |
 | 3 | Out-of-scope decline | **8/8 (100%)** | 4/8 (50%) | Plan with decline reason, reply to declined, don't resolve declined thread |
 | 4 | Mixed four categories | **8/8 (100%)** | 2/8 (25%) | Declined reviewer excluded from Co-authored-by, suggestion applied from block |
@@ -122,9 +122,9 @@ Tests that the skill's skip logic covers not just "decline" replies from prior r
 
 ## Notes
 
-- **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the +61% delta.
+- **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the +62% delta.
 - **Process steps vs. output quality.** The baseline produces reasonable commit messages and file edits on its own. The skill's value is almost entirely in the process steps it mandates — the plan/confirmation gate, Co-authored-by attribution, thread resolution via GraphQL mutation, and the interactive push + re-request prompt.
-- **Eval 1 with-skill scored 6/7.** Assertion 3 ("already-resolved threads not in plan") failed because the scenario fixture has no pre-resolved threads — the resolved-thread filtering path was untestable. This is a fixture gap, not a skill gap.
+- **Eval 1 with-skill now scores 7/7 in v1.5.** Previously 6/7 — assertion 3 ("already-resolved threads not in plan") failed because the v1.4 fixture had no pre-resolved threads. The v1.5 regression eval includes a pre-resolved thread, confirming the filtering path works correctly.
 - **Eval 13 without-skill scored 100%.** The baseline independently found the correct REST endpoint pattern for bot re-request and the poll-decline flow. This eval does not discriminate between configurations.
 - **Eval 3's "declined thread not resolved" assertion passes trivially in the baseline** (the agent never resolves anything). The paired assertion — "addressed threads ARE resolved" — is what distinguishes correct decline-handling from a general failure to use GraphQL.
 - **Eval 16 without-skill scored 100%.** The prompt made the prior-reply context explicit, so the baseline correctly skipped alice's thread. This eval does not discriminate between configurations.

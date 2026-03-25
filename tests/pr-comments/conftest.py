@@ -104,6 +104,69 @@ def should_offer_poll(bot_reviewers: list[str]) -> bool:
     return len(bot_reviewers) > 0
 
 
+def parse_auto_flag(args: str) -> dict:
+    """Parse the --auto [N] flag from arguments per SKILL.md.
+
+    Returns:
+        {
+            "auto": bool,
+            "max_iterations": int,
+            "remaining_args": str,
+        }
+    where max_iterations defaults to 10 if --auto is present without N,
+    and remaining_args is the original args with any --auto [N] tokens removed.
+    """
+    if not args or not args.strip():
+        return {"auto": False, "max_iterations": 10, "remaining_args": ""}
+
+    tokens = args.strip().split()
+    auto = False
+    max_iterations = 10
+    remaining_tokens: list[str] = []
+
+    i = 0
+    while i < len(tokens):
+        if tokens[i] == "--auto":
+            auto = True
+            # Consume any non-negative integer following --auto to prevent it
+            # from leaking into remaining_args (e.g., "0" being misparsed as PR #0).
+            # Only positive values are used as the iteration cap.
+            if i + 1 < len(tokens) and tokens[i + 1].isdigit():
+                if int(tokens[i + 1]) > 0:
+                    max_iterations = int(tokens[i + 1])
+                i += 2
+            else:
+                i += 1
+        else:
+            remaining_tokens.append(tokens[i])
+            i += 1
+
+    remaining_args = " ".join(remaining_tokens)
+    return {
+        "auto": auto,
+        "max_iterations": max_iterations,
+        "remaining_args": remaining_args,
+    }
+
+
+def should_exit_auto_loop(iteration: int, max_iterations: int, new_threads: int) -> bool:
+    """Returns True if the auto-loop should exit before starting the next iteration.
+
+    `iteration` is the 1-indexed count of the just-completed iteration (e.g.
+    iteration=3 means 3 rounds have finished). The loop exits when iteration
+    equals max_iterations, preventing a further iteration from starting.
+
+    Per SKILL.md Step 13:
+    - Exit when no new unresolved bot threads are found after poll
+    - Exit when iteration count has reached the maximum
+    """
+    if new_threads == 0:
+        return True
+    if iteration >= max_iterations:
+        return True
+    return False
+
+
 def extract_coauthors(comments: list[dict]) -> list[str]:
     """Extract unique comment authors for Co-authored-by trailers.
 

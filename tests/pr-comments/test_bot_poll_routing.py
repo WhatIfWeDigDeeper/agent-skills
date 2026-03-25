@@ -5,7 +5,7 @@ Tests for Step 13 bot poll routing logic:
 - Poll not offered when reviewer list is empty
 """
 
-from conftest import is_bot_login, should_offer_poll, split_human_bot
+from conftest import is_bot_login, should_exit_auto_loop, should_offer_poll, split_human_bot
 
 
 class TestShouldOfferPoll:
@@ -66,3 +66,39 @@ class TestSplitHumanBot:
         humans, bots = split_human_bot([])
         assert humans == []
         assert bots == []
+
+
+class TestAutoLoopExitConditions:
+    """Test should_exit_auto_loop per SKILL.md Step 13 exit conditions."""
+
+    def test_exit_when_no_new_threads(self):
+        """Loop exits when no new unresolved bot threads are found after poll."""
+        assert should_exit_auto_loop(iteration=1, max_iterations=10, new_threads=0) is True
+
+    def test_continue_when_threads_remain(self):
+        """Loop continues when there are new threads and iterations remain."""
+        assert should_exit_auto_loop(iteration=1, max_iterations=10, new_threads=3) is False
+
+    def test_exit_at_max_iterations(self):
+        """Loop exits when iteration count reaches the maximum."""
+        assert should_exit_auto_loop(iteration=10, max_iterations=10, new_threads=2) is True
+
+    def test_exit_beyond_max_iterations(self):
+        """Loop exits if somehow past the maximum."""
+        assert should_exit_auto_loop(iteration=11, max_iterations=10, new_threads=2) is True
+
+    def test_continue_below_max_with_threads(self):
+        """Loop continues when below max and threads are present."""
+        assert should_exit_auto_loop(iteration=3, max_iterations=5, new_threads=1) is False
+
+    def test_exit_at_max_with_no_threads(self):
+        """Both conditions true — still exits."""
+        assert should_exit_auto_loop(iteration=10, max_iterations=10, new_threads=0) is True
+
+    def test_single_iteration_cap(self):
+        """Max iterations of 1 means loop exits after first iteration regardless of threads."""
+        assert should_exit_auto_loop(iteration=1, max_iterations=1, new_threads=5) is True
+
+    def test_first_iteration_continues_when_threads_present(self):
+        """First iteration does not trigger exit when threads are present and max not reached."""
+        assert should_exit_auto_loop(iteration=1, max_iterations=10, new_threads=2) is False
