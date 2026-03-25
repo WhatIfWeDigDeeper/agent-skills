@@ -351,6 +351,16 @@ Use this template, omitting lines that don't apply:
 - Changes made: `Applied N suggestions + implemented N comments → committed <hash>`
 - No changes: `No changes — all threads declined or outdated.`
 
+**Declined line** (pick one):
+- Some declined: `Declined N suggestions — replied with explanations`
+- All declined: `Declined all N suggestions — replied with explanations`
+
+**Skipped line** (pick one):
+- `Skipped N outdated threads`
+
+**Review-body line** (pick one):
+- `N review body comment(s) require manual response from the PR page`
+
 **Push/review status** (pick one):
 - Pushed and re-requested: `Pushed and re-requested review from @user1, @user2`
 - Re-requested only (no new commits): `Re-requested review from @user1, @user2 (no new commits to push)`

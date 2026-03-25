@@ -40,7 +40,7 @@ If new thread IDs appear relative to the snapshot, the bot posted review comment
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
   --jq "[.[] | select(.user.login == \"<bot_login>\" and .submitted_at >= \"${snapshot_timestamp}\")]"
 ```
-Evaluate Signal 2 **per bot**: track which bots have submitted a new review since `snapshot_timestamp`. If all polled bots have a new review with `submitted_at` after `snapshot_timestamp` but Signal 1 has not fired (no new threads), all bots reviewed without inline comments (e.g., approved or left only review-body summaries). Exit the poll cleanly, note it in the report, and proceed to Step 14. If only some bots have responded, continue polling for the remaining ones.
+Evaluate Signal 2 **per bot**: track which bots have submitted a new review since `snapshot_timestamp`. If all polled bots have a new review with `submitted_at` at or after `snapshot_timestamp` but Signal 1 has not fired (no new threads), all bots reviewed without inline comments (e.g., approved or left only review-body summaries). Exit the poll cleanly, note it in the report, and proceed to Step 14. If only some bots have responded, continue polling for the remaining ones.
 
 Check Signal 2 after each poll cycle — but only act on it if Signal 1 has not fired in the same cycle (new threads take priority). Do not use `requested_reviewers` as a completion signal — the DELETE+POST re-request pattern creates a window where the bot is absent before it has finished reviewing.
 
@@ -48,7 +48,7 @@ Attribute new threads (Signal 1) to the responding bot by checking the commenter
 
 **On timeout (10 minutes):** print:
 
-> "@<bot-handle> hasn't responded yet. Re-invoke the pr-comments skill when the review is ready (in Claude Code: `/pr-comments`)."
+> "@<bot-handle> hasn't responded yet. Re-invoke the pr-comments skill when the review is ready."
 
 Then proceed to Step 14 and end the invocation — do not loop back to Step 2 on timeout.
 
