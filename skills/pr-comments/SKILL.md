@@ -11,7 +11,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.11"
+  version: "1.12"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -264,7 +264,7 @@ Proceed with this step only if the plan is empty or **every** plan row's `Action
      ```
      If confirmed, enter the polling workflow. If declined, proceed to the report.
 
-**Rapid re-poll guard**: Before looping back via Step 6c.3, apply the rapid re-poll guard in `references/bot-polling.md` — if the same bot set triggers two consecutive immediate loop-backs with no intervening non-skip plan, fall through to the 60-second polling loop instead.
+**Rapid re-poll guard**: Before looping back via Step 6c.3, **you must now execute `references/bot-polling.md` (Rapid re-poll guard section)** — do not loop back. If the same bot set triggers two consecutive immediate loop-backs with no intervening non-skip plan, fall through to the 60-second polling loop instead.
 
 5. **If no pending bots and no recent bot review:** Continue to Step 7 as normal.
 
@@ -458,7 +458,7 @@ Push and re-request review from @user1, @user2?
 
 ### 14. Report
 
-Generate the final report using the templates in `references/report-templates.md`. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
+**You must now execute `references/report-templates.md`** — do not skip to the report. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
 
 ## Notes
 

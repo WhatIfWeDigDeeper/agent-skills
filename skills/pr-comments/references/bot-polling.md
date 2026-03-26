@@ -118,8 +118,8 @@ Track the guard **per skill invocation only** (no cross-run persistence) using t
 
 On each Step 6c.3 candidate (post-fetch review detected → about to loop back to Step 2):
 
-1. Compute `current_bot_set` from the bot logins whose post-fetch reviews triggered this entry.
-2. If `last_all_skip_happened` is `true` **and** `current_bot_set` equals `last_all_skip_bot_set` (same members, order-independent), this is a second consecutive loop-back for the same bot(s) — **do not loop back again**. Fall through to the standard 60-second polling loop instead.
+1. Compute `current_bot_set` from the bot logins whose post-fetch reviews triggered this entry, and normalize it to a **sorted, de-duplicated list** (same invariant as `last_all_skip_bot_set`).
+2. If `last_all_skip_happened` is `true` **and** `current_bot_set` equals `last_all_skip_bot_set` (simple equality after normalization; effectively the same members, order-independent), this is a second consecutive loop-back for the same bot(s) — **do not loop back again**. Fall through to the standard 60-second polling loop instead. **When falling through from the guard, enter the polling loop's 60-second wait stage directly — do not re-run the Step 6c.2 post-snapshot re-check.** You already know a post-fetch review exists; the 60-second delay allows the bot to finish producing review threads before the next fetch.
 3. Otherwise, allow the immediate Step 2 loop-back and update state: set `last_all_skip_happened = true` and `last_all_skip_bot_set = current_bot_set`.
 
 Any non-all-skip plan (at least one item is not `skip`) clears the guard: `last_all_skip_happened = false`, `last_all_skip_bot_set = null`.
