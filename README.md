@@ -110,6 +110,7 @@ cp -r skills/* ~/.claude/skills/
 
 - Pass a PR number to target a specific PR (e.g., `/pr-comments 42`), or omit it to detect from the current branch.
 - The skill presents a plan for your approval before making any changes — you can override its judgment on which comments to implement vs. decline.
+- Pass `--auto` (or `--auto N`) to enter auto-approve mode: the plan table is shown each iteration but the confirmation gate is skipped. The skill polls for bot reviewer responses and loops automatically up to N iterations (default 10).
 - Implemented comments are committed with `Co-authored-by` trailers crediting each reviewer.
 - Resolved threads are closed via the GitHub GraphQL API; declined threads remain open so reviewers can follow up.
 - Requires `gh` CLI with repo access. Runs with sandbox disabled for keyring access.
@@ -123,18 +124,20 @@ flowchart TD
     B --> C{PR found?}
     C -- No --> Z([Exit: no PR])
     C -- Yes --> D[Checkout PR head branch]
-    D --> E[Fetch inline review comments\nvia REST API]
+    D --> E[Fetch inline + review body\ncomments via REST API]
     E --> F[Fetch thread resolution state\nvia GraphQL]
     F --> G{Any unresolved\nthreads?}
-    G -- No --> Z2([Exit: nothing to do])
+    G -- No, bots pending --> POLL0[Poll for bot review]
+    POLL0 --> E
+    G -- No, nothing pending --> Z2([Exit: nothing to do])
     G -- Yes --> H[Read code context\nfor each thread]
     H --> I[Screen comments\nfor prompt injection]
-    I --> J[Decide action per thread]
+    I --> J[Decide action per thread\n+ cross-file consistency check]
 
     J --> K{Comment type?}
     K -- Suggested change --> L{Accept\nsuggestion?}
     K -- Regular comment --> M{Implement?}
-    K -- Outdated thread --> N[Skip — no action]
+    K -- Outdated / already handled --> N[Skip — no action]
 
     L -- Yes --> O[Accept suggestion]
     L -- No --> P[Decline]
@@ -146,13 +149,24 @@ flowchart TD
     P --> R
     N --> R
 
-    R --> S{User approves?}
-    S -- No / Override --> J
-    S -- Yes --> T[Apply accepted suggestions\nand manual changes]
+    R --> S{--auto mode?}
+    S -- No --> S2{User approves?}
+    S2 -- No / Override --> J
+    S2 -- Yes --> T
+    S -- Yes --> T
+
+    T[Apply changes\nand manual edits]
     T --> U[Commit with Co-authored-by\ncredit for each reviewer]
-    U --> V[Post replies to\ndeclined comments]
+    U --> V[Post replies to\ndeclined / reply-needed comments]
     V --> W[Resolve addressed threads\nvia GraphQL mutation]
-    W --> X([Report summary])
+    W --> X[Push + re-request review\nfrom commenters]
+    X --> Y{Bot reviewers\nre-requested?}
+    Y -- No --> DONE([Report summary])
+    Y -- Yes --> POLL[Poll for bot review\nSignal 1: new threads\nSignal 2: review submitted]
+    POLL --> SIG{New signal?}
+    SIG -- New threads --> E
+    SIG -- Review, no threads --> DONE
+    SIG -- Timeout / max iterations --> DONE
 ```
 </details>
 
