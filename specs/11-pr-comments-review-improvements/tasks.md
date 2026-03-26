@@ -15,8 +15,8 @@
 ### Eval hardening
 - [ ] Eval 13: add assertion that push completes before poll offer is presented
 - [ ] Eval 16: add assertion that reply-author matching uses exact `login` string comparison (not role/pronoun)
-- [ ] Eval 18: add assertion that review body reply uses the issue comments API endpoint (`/issues/{pr}/comments`), not the review comment reply endpoint
 - [ ] Eval 21: rewrite scenario so the identifier appears in similar-looking context in both files (e.g., both inside async functions) but with semantically different usage — making false-positive avoidance non-trivial
+- [ ] Update CLAUDE.md line ~114: remove evals 13 and 16 as examples of "acceptable non-discriminating evals" — after hardening they will be discriminating
 
 ## Verification
 

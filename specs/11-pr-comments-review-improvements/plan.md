@@ -42,8 +42,9 @@ Move the 4-step bot display-name shortening algorithm from Step 13 to bot-pollin
 |------|--------------|--------------|
 | 13 (bot poll decline) | Without-skill independently discovers poll-decline flow (5/5) | Add assertion: push must complete *before* poll offer is presented |
 | 16 (skip previously-replied) | Explicit prompt context makes skip trivial (4/4) | Add assertion: agent checks reply author via exact `login` string match, not role/pronoun |
-| 18 (review body reply) | Only Co-authored-by differentiates (4/5) | Add assertion: review body reply uses issue comments API (`/issues/{pr}/comments`), not review comment reply endpoint |
 | 21 (no false positive consistency) | Both configs avoid flagging when context differences are explicit (3/3) | Replace with scenario where identifier name matches AND surrounding context is similar (e.g., both in async functions) but semantic usage differs |
+
+Eval 18 (`review-body-reply-question`) is excluded: it is already discriminating (~20% delta, 5/5 with skill vs 4/5 without) and already has an assertion covering the issue comments API endpoint distinction. No changes needed.
 
 ## Invariants (unchanged)
 
