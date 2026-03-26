@@ -195,6 +195,11 @@ def should_repoll_on_all_skip(
     Requires every item's action to be exactly ``skip`` — unknown or missing
     action values do not count as skip and will prevent the repoll gate from
     firing.
+
+    ``bot_reviews_after_fetch`` must be a pre-filtered list of bot-authored
+    reviews (entries with ``submitted_at`` set). The caller is responsible for
+    filtering: only pass reviews where the author login ends with ``[bot]`` and
+    ``submitted_at`` is non-null. This helper does not validate the entries.
     """
     if plan_items and not all(item.get("action") == "skip" for item in plan_items):
         return False

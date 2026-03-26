@@ -47,7 +47,7 @@ If new thread IDs appear relative to the snapshot, the bot posted review comment
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  | jq -s '[.[] | .[] | select(.user.login == "<bot_login>" and .submitted_at >= "'"${snapshot_timestamp}"'")]'
+  | jq -s '[.[] | .[] | select(.user.login == "<bot_login>" and .submitted_at != null and .submitted_at >= "'"${snapshot_timestamp}"'")]'
 ```
 Evaluate Signal 2 **per bot**: track which bots have submitted a new review since `snapshot_timestamp`. If all polled bots have a new review with `submitted_at` at or after `snapshot_timestamp` but Signal 1 has not fired (no new threads), all bots reviewed without inline comments (e.g., approved or left only review-body summaries). Exit the poll cleanly, note it in the report, and proceed to Step 14. If only some bots have responded, continue polling for the remaining ones.
 
