@@ -378,7 +378,14 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 - The authors of any inline comments you replied to (including clarifying questions), using the `author` field from Step 2.
 - The authors of any review body comments you replied to or declined, using the `author` field from Step 2b.
 
-If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted), skip this step and proceed to the report.
+**Also include any other bots that have previously reviewed this PR** — they should see the updated code even if their feedback wasn't the direct source of the changes. Fetch the PR's review history and add any bot logins not already in the list:
+```bash
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
+  --jq '[.[] | select(.user.login | endswith("[bot]")) | .user.login] | unique'
+```
+Exclude `claude[bot]` from this augmented list (it cannot be re-requested via API — see the exception below). Merge the result with the commenter list and deduplicate.
+
+If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted, and no other bots have previously reviewed), skip this step and proceed to the report.
 
 **Display names for bot accounts**: The REST comments API exposes each commenter's login as `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), which you should store or reference as the `author` value from Step 2. When building the prompt, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
