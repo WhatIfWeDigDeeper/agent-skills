@@ -121,10 +121,10 @@ This section is executed from Step 6c when the plan is empty or every plan row's
 2. **Check for bot reviews submitted after `fetch_timestamp`** (recorded in Step 2) — a bot may have submitted a review (removing itself from `requested_reviewers`) but its threads arrived after the Step 2 fetch:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-     | jq -s '[.[] | .[] | select((.user.login | endswith("[bot]")) and .submitted_at >= "'"${fetch_timestamp}"'")]'
+     | jq -s '[.[] | .[] | select((.user.login | endswith("[bot]")) and .submitted_at != null and .submitted_at >= "'"${fetch_timestamp}"'")]'
    ```
 
-3. **If a bot submitted a review after `fetch_timestamp`** (step 2 returned results): the bot's threads may already exist but were missed by the Step 2 fetch. Apply the **Rapid re-poll guard** (see below). If the guard allows it, **immediately loop back to Step 2** (full re-fetch) — polling would snapshot current threads and never detect the already-present new ones. This counts as one iteration toward the `--auto N` cap. If the guard fires (second consecutive loop-back for the same bot set), fall through to the 60-second polling loop instead.
+3. **If a bot submitted a review after `fetch_timestamp`** (step 2 returned results): the bot's threads may already exist but were missed by the Step 2 fetch. Apply the **Rapid re-poll guard** (see below). If the guard allows it, **immediately loop back to Step 2** (full re-fetch) — polling would snapshot current threads and never detect the already-present new ones. This counts as one iteration toward the `--auto N` cap. If the guard fires (second consecutive loop-back for the same bot set), fall through to the 60-second polling loop instead — but first take the polling baseline: set `snapshot_timestamp = "${fetch_timestamp}"` and take a fresh unresolved-thread snapshot (via the Step 3 GraphQL query), as in Step 4's auto-mode setup.
 
 4. **If pending bots exist but NO post-fetch review was detected** (bots are in `requested_reviewers` but haven't submitted yet):
    - **Auto-mode**: Log a status line and enter the polling workflow automatically:
