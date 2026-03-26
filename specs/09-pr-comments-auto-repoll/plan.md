@@ -50,7 +50,7 @@ After Step 6 completes classification, before presenting the plan in Step 7:
 
 This is a new **Step 6c** inserted between Step 6b (consistency check) and Step 7 (plan presentation). It only fires when the plan is entirely `skip` items — a narrow condition that doesn't affect the normal workflow.
 
-The step is skipped entirely if `--auto` was not passed and the user is in their first (non-polling) iteration — in that case, the existing Step 3 early-poll logic already handles the "no comments yet" case. Step 6c specifically targets the "comments exist but are all stale/handled" scenario that Step 3 doesn't cover.
+Step 3 remains the handler for the "no comments at all + pending bots" case (early-poll), while Step 6c specifically targets the later "comments exist but are all stale/handled" all-skip scenario that Step 3 doesn't cover, in both manual and `--auto` modes (with the mode-specific behaviors described above).
 
 ### Interaction with Existing Polling
 

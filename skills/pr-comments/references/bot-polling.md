@@ -19,7 +19,7 @@ For Step 6c (all-skip path), use a more specific prompt:
 All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]
 ```
 
-Only offer when at least one bot reviewer was re-requested (Step 13), is pending without having reviewed yet (Step 3), or is pending/recently submitted after all items were classified as skip (Step 6c). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested or pending, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
+Only offer when at least one bot reviewer was re-requested (Step 13), is pending without having reviewed yet (Step 3), or is still pending after all items were classified as skip (Step 6c; if a new bot review was detected after `fetch_timestamp`, skip polling and immediately jump back to Step 2 instead). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested or pending, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
 
 ## Auto-mode
 
