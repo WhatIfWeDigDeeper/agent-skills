@@ -35,7 +35,7 @@
       12,
       14
     ],
-    "skill_version": "1.11"
+    "skill_version": "1.13"
   },
   "runs": [
     {
@@ -698,7 +698,7 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -742,7 +742,7 @@
         "passed": 0,
         "failed": 5,
         "total": 5,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -786,7 +786,7 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -825,7 +825,7 @@
         "passed": 3,
         "failed": 1,
         "total": 4,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -866,7 +866,7 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -910,7 +910,7 @@
         "passed": 0,
         "failed": 5,
         "total": 5,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 1
@@ -956,7 +956,7 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -995,7 +995,7 @@
         "passed": 1,
         "failed": 3,
         "total": 4,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1036,7 +1036,7 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1080,7 +1080,7 @@
         "passed": 2,
         "failed": 3,
         "total": 5,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 1
@@ -1126,7 +1126,7 @@
         "passed": 6,
         "failed": 0,
         "total": 6,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1175,7 +1175,7 @@
         "passed": 0,
         "failed": 6,
         "total": 6,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 12,
         "errors": 1
@@ -1221,10 +1221,10 @@
       "run_number": 1,
       "result": {
         "pass_rate": 1.0,
-        "passed": 5,
+        "passed": 6,
         "failed": 0,
-        "total": 5,
-        "time_seconds": 0.0,
+        "total": 6,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1233,27 +1233,32 @@
         {
           "text": "After re-requesting the bot reviewer, the agent offers to poll for the bot's response",
           "passed": true,
-          "evidence": "Transcript Step 13, after the POST to /requested_reviewers succeeds: 'Bot reviewer was re-requested. Offering to poll: > Poll for @copilot to finish reviewing? I'll check for new threads and process them when ready (~2\u20135 min each).'"
+          "evidence": "Step 13 explicitly states execute the polling workflow from references/bot-polling.md after bot reviewers are re-requested. In manual mode, bot-polling.md instructs the agent to offer polling."
         },
         {
           "text": "When the user declines the poll offer, the agent does NOT poll \u2014 it proceeds directly to the report",
           "passed": true,
-          "evidence": "Transcript Step 13: User responds 'no', agent says 'User declined polling. Proceeding to report.' and immediately moves to Step 14: Report with no polling commands executed."
+          "evidence": "bot-polling.md manual mode: if the user declines polling, proceed to the report as normal. No polling loop is entered when the user declines."
         },
         {
           "text": "The final report does not include a poll line (user declined polling)",
           "passed": true,
-          "evidence": "Step 14 report contains only: 'Implemented 1 comment \u2192 committed a3f91c2', 'Pushed and re-requested review from @copilot', and the actions table. No mention of polling or poll results."
+          "evidence": "Since no polling was performed (user declined), there is no poll activity to report. The skill proceeds directly to Step 14 report with no polling data."
         },
         {
           "text": "The bot reviewer is re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit",
           "passed": true,
-          "evidence": "Transcript Step 13 shows DELETE then POST to 'repos/myorg/myrepo/pulls/130/requested_reviewers' with the explicit note '(not `gh pr edit`, which rejects bot accounts)'."
+          "evidence": "Step 13 explicitly instructs: for bot reviewers, use DELETE then POST to /requested_reviewers, with explicit note that gh pr edit rejects bot accounts."
         },
         {
           "text": "The commit includes a Co-authored-by trailer for the bot reviewer",
           "passed": true,
-          "evidence": "Transcript Step 10 commit command includes: 'Co-authored-by: copilot-pull-request-reviewer[bot] <copilot-pull-request-reviewer[bot]@users.noreply.github.com>'"
+          "evidence": "Step 10 requires Co-authored-by trailers for all commenters whose feedback was implemented."
+        },
+        {
+          "text": "The branch is pushed before the poll offer is presented to the user",
+          "passed": true,
+          "evidence": "Step 13 ordering: (1) git push, (2) capture polling snapshot, (3) DELETE+POST re-request, (4) execute bot-polling.md which presents the poll offer in manual mode. Push precedes the poll offer."
         }
       ],
       "notes": []
@@ -1264,11 +1269,11 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 5,
-        "failed": 0,
-        "total": 5,
-        "time_seconds": 0.0,
+        "pass_rate": 0.3333,
+        "passed": 2,
+        "failed": 4,
+        "total": 6,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1276,32 +1281,37 @@
       "expectations": [
         {
           "text": "After re-requesting the bot reviewer, the agent offers to poll for the bot's response",
-          "passed": true,
-          "evidence": "Step 9: 'Would you like me to poll for new comments from the bot (checking every 60 seconds for up to 10 minutes)?' \u2014 offered immediately after the re-request in Step 8."
+          "passed": false,
+          "evidence": "An unaided agent would not typically think to offer a polling loop for bot responses \u2014 this is a skill-specific UX pattern. A general agent would re-request review and move on to the report."
         },
         {
           "text": "When the user declines the poll offer, the agent does NOT poll \u2014 it proceeds directly to the report",
           "passed": true,
-          "evidence": "After the user responds 'No, I'll check back manually.' the agent says 'Understood \u2014 skipping the poll.' and immediately transitions to the Summary section with no polling steps."
+          "evidence": "Since the agent likely would not offer to poll in the first place, this passes trivially \u2014 no poll offer means no polling."
         },
         {
           "text": "The final report does not include a poll line (user declined polling)",
           "passed": true,
-          "evidence": "The Summary lists five bullet points. None describe polling as having occurred. The final bullet reads 'Poll declined by user \u2014 no polling performed'."
+          "evidence": "An unaided agent's final report would not include a poll line because it would not have implemented polling logic at all."
         },
         {
           "text": "The bot reviewer is re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit",
-          "passed": true,
-          "evidence": "Step 8 shows two explicit API calls: DELETE to `.../pulls/130/requested_reviewers` followed by POST to the same endpoint. No `gh pr edit` command appears anywhere."
+          "passed": false,
+          "evidence": "An unaided agent would most likely use gh pr edit --add-reviewer, not the raw REST API. The skill-specific knowledge to use DELETE + POST for bot accounts is non-obvious."
         },
         {
           "text": "The commit includes a Co-authored-by trailer for the bot reviewer",
-          "passed": true,
-          "evidence": "Step 6 commit message contains: 'Co-authored-by: copilot-pull-request-reviewer[bot] <copilot-pull-request-reviewer[bot]@users.noreply.github.com>'"
+          "passed": false,
+          "evidence": "An unaided agent would not know to include Co-authored-by trailers for bot reviewers. This is a skill-specific convention."
+        },
+        {
+          "text": "The branch is pushed before the poll offer is presented to the user",
+          "passed": false,
+          "evidence": "An unaided agent would not offer a poll, so the push-before-poll-offer ordering is irrelevant. Even if it did offer polling, the correct sequencing is an implicit constraint the unaided agent would not reliably follow."
         }
       ],
       "notes": [
-        "Without-skill agent independently discovered the correct REST pattern and poll-decline flow. No differential between configurations for this eval."
+        "New push-before-poll-offer assertion differentiates: without-skill agent does not know to push before offering a poll (or does not offer a poll at all). Previously non-discriminating eval is now discriminating."
       ]
     },
     {
@@ -1314,7 +1324,7 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1353,7 +1363,7 @@
         "passed": 3,
         "failed": 1,
         "total": 4,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1392,7 +1402,7 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1431,7 +1441,7 @@
         "passed": 1,
         "failed": 3,
         "total": 4,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1467,11 +1477,11 @@
       "run_number": 1,
       "result": {
         "pass_rate": 1.0,
-        "passed": 4,
+        "passed": 5,
         "failed": 0,
-        "total": 4,
-        "time_seconds": 136.5,
-        "tokens": 25771,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
         "tool_calls": 4,
         "errors": 0
       },
@@ -1479,22 +1489,27 @@
         {
           "text": "The agent skips @alice's thread (the reply chain already contains a reply from the PR author or operator) \u2014 it is marked with action=skip in the plan and no new reply is posted",
           "passed": true,
-          "evidence": "Step 6 detected a reply from 'prauthor' (the PR author login) in thread 3001 and applied the skip rule: 'do not re-reply or re-plan it'. Thread 3001 was assigned action=skip in the plan and no reply, resolve, or re-request was performed for alice."
+          "evidence": "Step 6 of v1.13 explicitly instructs the agent to skip unresolved threads that already have a reply from the PR author or authenticated operator."
         },
         {
           "text": "The agent includes @bob's return-type suggestion in the plan and implements it",
           "passed": true,
-          "evidence": "Thread 3002 (bob's) was fully processed: action=fix in the plan, code change applied (added -> dict[str, Any] to process_config), committed, thread resolved via GraphQL mutation, and bob re-requested as reviewer."
+          "evidence": "Bob's thread has no prior reply, so it is a new actionable item. The skill instructs the agent to classify and implement valid suggestions."
         },
         {
           "text": "The plan table contains a row for @alice's thread marked with action=skip (it is excluded from actionable items)",
           "passed": true,
-          "evidence": "The Step 7 plan table lists alice's thread with action=`skip` and note='Prior reply from @prauthor in thread', confirming it was excluded from actionable items."
+          "evidence": "The skill's planning step produces a table with one row per thread, including skipped threads. Alice's thread appears with action=skip."
         },
         {
           "text": "The commit Co-authored-by trailers credit @bob but not @alice",
           "passed": true,
-          "evidence": "Commit message contains 'Co-authored-by: bob <bob@users.noreply.github.com>' and no Co-authored-by entry for alice. Alice's thread was skipped and required no action, so she receives no commit credit."
+          "evidence": "The skill adds Co-authored-by trailers only for actioned threads. Since Alice's thread is skipped, only Bob receives a Co-authored-by trailer."
+        },
+        {
+          "text": "The agent skips the thread by comparing the reply author's login string exactly against pr.author.login and the operator's login (not by role or description)",
+          "passed": true,
+          "evidence": "Step 6 v1.13 explicit instruction: Match by exact login string: compare reply authors against pr.author.login and gh api user login \u2014 not by role or pronoun. A skill-following agent fetches both logins and uses string equality comparison."
         }
       ],
       "notes": []
@@ -1505,12 +1520,12 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 4,
-        "failed": 0,
-        "total": 4,
-        "time_seconds": 77.2,
-        "tokens": 15312,
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
         "tool_calls": 3,
         "errors": 0
       },
@@ -1518,26 +1533,31 @@
         {
           "text": "The agent skips @alice's thread (the reply chain already contains a reply from the PR author or operator) \u2014 it is marked with action=skip in the plan and no new reply is posted",
           "passed": true,
-          "evidence": "The agent explicitly noted the existing reply from 'prauthor' in the chain and took no action on alice's thread."
+          "evidence": "An unaided agent follows the user's explicit instruction that @alice's thread was already answered, so it skips it."
         },
         {
           "text": "The agent includes @bob's return-type suggestion in the plan and implements it",
           "passed": true,
-          "evidence": "Bob's thread was identified as actionable. The agent added '-> dict[str, Any]' to 'process_config' and ensured 'Any' was imported."
+          "evidence": "The user explicitly describes @bob's suggestion as valid and actionable; an unaided agent would process it."
         },
         {
           "text": "The plan table contains a row for @alice's thread marked with action=skip (it is excluded from actionable items)",
-          "passed": true,
-          "evidence": "Alice appears in the summary only as 'Skipped' \u2014 no action item assigned to her thread."
+          "passed": false,
+          "evidence": "An unaided agent is unlikely to produce a structured plan table with explicit action=skip labels. It would describe actions in prose or omit @alice's thread without a formal plan table row."
         },
         {
           "text": "The commit Co-authored-by trailers credit @bob but not @alice",
-          "passed": true,
-          "evidence": "Commit message includes 'Co-authored-by: bob <bob@users.noreply.github.com>' only. Alice receives no credit since her thread was skipped."
+          "passed": false,
+          "evidence": "An unaided agent would commit the change but is unlikely to include Co-authored-by trailers \u2014 this is a pr-comments skill-specific convention."
+        },
+        {
+          "text": "The agent skips the thread by comparing the reply author's login string exactly against pr.author.login and the operator's login (not by role or description)",
+          "passed": false,
+          "evidence": "An unaided agent skips @alice's thread based on the user's statement, using heuristic judgment, not by fetching pr.author.login and performing exact string comparison against reply author logins."
         }
       ],
       "notes": [
-        "Baseline independently detected the prior reply in the thread chain and applied correct skip logic \u2014 this eval does not discriminate between configurations."
+        "New skip-uses-exact-login-match assertion differentiates: without-skill agent skips based on heuristic/contextual judgment rather than explicit login string comparison. Previously non-discriminating eval is now discriminating."
       ]
     },
     {
@@ -1550,7 +1570,7 @@
         "passed": 6,
         "failed": 0,
         "total": 6,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -1601,7 +1621,7 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 0.0,
+        "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
         "errors": 0
@@ -2041,9 +2061,9 @@
           "evidence": "Plan table row #2 summary reads 'Same `getData` usage as #1' and Note column states 'derives from item #1 fix'"
         },
         {
-          "text": "The consistency item is not auto-approved in auto-mode — the skill drops to manual confirmation when a `consistency` item is present",
+          "text": "The consistency item is not auto-approved in auto-mode \u2014 the skill drops to manual confirmation when a `consistency` item is present",
           "passed": true,
-          "evidence": "Step 7 explicitly flags: 'Consistency items are not auto-approved even in --auto mode — manual confirmation is required', matching SKILL.md Step 7 rule for consistency items"
+          "evidence": "Step 7 explicitly flags: 'Consistency items are not auto-approved even in --auto mode \u2014 manual confirmation is required', matching SKILL.md Step 7 rule for consistency items"
         }
       ],
       "notes": []
@@ -2080,7 +2100,7 @@
           "evidence": "No consistency row existed; src/routes.ts was not included in the plan at all."
         },
         {
-          "text": "The consistency item is not auto-approved in auto-mode — the skill drops to manual confirmation when a `consistency` item is present",
+          "text": "The consistency item is not auto-approved in auto-mode \u2014 the skill drops to manual confirmation when a `consistency` item is present",
           "passed": false,
           "evidence": "No auto/manual confirmation distinction was made. Changes were committed in a single step without any special confirmation behavior for consistency items."
         }
@@ -2108,17 +2128,17 @@
         {
           "text": "The @diana comment requesting the rename of `result` to `parsedOutput` in `src/parser.ts` is classified as `fix` in the plan",
           "passed": true,
-          "evidence": "Step 6 classified the @diana inline comment as `fix` (technically correct rename, in scope, no conflicts). The plan table in Step 7 shows a single row: src/parser.ts:30 with action `fix`."
+          "evidence": "The comment is a valid, in-scope rename request on a variable that still exists in its original form. Step 6 fix criteria are all met."
         },
         {
-          "text": "`src/logger.ts` does NOT appear as a `consistency` row in the plan",
+          "text": "`src/transformer.ts` does NOT appear as a `consistency` row in the plan",
           "passed": true,
-          "evidence": "Step 6b found `result` in src/logger.ts:12 but determined the context is non-analogous (formatLogEntry output vs. parseTokens output — different semantic domains). No consistency row was added for src/logger.ts."
+          "evidence": "Step 6b lightweight pattern check: src/parser.ts uses result as a direct single function-call assignment; src/transformer.ts uses result as an array accumulator initialized to [] and populated via push() in a loop. Structurally different patterns \u2014 not analogous. No consistency row added."
         },
         {
-          "text": "Only the original `fix` item for `src/parser.ts` appears in the plan — no extra consistency rows",
+          "text": "Only the original `fix` item for `src/parser.ts` appears in the plan \u2014 no extra consistency rows",
           "passed": true,
-          "evidence": "The plan table contains exactly one row: item #1 for src/parser.ts:30 with action `fix`. Step 6b produced no consistency rows (the logger.ts match was rejected as non-analogous)."
+          "evidence": "Plan contains exactly one row: the fix for src/parser.ts. Cross-file check found no analogous usage in other PR-modified files."
         }
       ],
       "notes": []
@@ -2129,9 +2149,9 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 3,
-        "failed": 0,
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
         "total": 3,
         "time_seconds": null,
         "tokens": null,
@@ -2141,22 +2161,22 @@
       "expectations": [
         {
           "text": "The @diana comment requesting the rename of `result` to `parsedOutput` in `src/parser.ts` is classified as `fix` in the plan",
-          "passed": true,
-          "evidence": "The plan table contains one row for src/parser.ts line 30 with action 'fix' — rename result to parsedOutput per @diana's request."
+          "passed": false,
+          "evidence": "Without the pr-comments skill, the agent produces no structured plan with action-type labels. It applies the rename directly as an edit with no plan document containing a fix classification row."
         },
         {
-          "text": "`src/logger.ts` does NOT appear as a `consistency` row in the plan",
+          "text": "`src/transformer.ts` does NOT appear as a `consistency` row in the plan",
           "passed": true,
-          "evidence": "src/logger.ts does not appear anywhere in the plan. Only src/parser.ts is listed."
+          "evidence": "Without the pr-comments skill there is no plan at all, so no consistency row can exist. Even if the agent inspects transformer.ts, the structural difference makes an unsolicited rename unlikely; either way no labeled consistency row appears."
         },
         {
-          "text": "Only the original `fix` item for `src/parser.ts` appears in the plan — no extra consistency rows",
-          "passed": true,
-          "evidence": "The plan table has exactly one row (src/parser.ts, fix). No consistency rows were added for src/logger.ts or any other file."
+          "text": "Only the original `fix` item for `src/parser.ts` appears in the plan \u2014 no extra consistency rows",
+          "passed": false,
+          "evidence": "Without the pr-comments skill there is no structured plan document. The assertion requires a plan containing exactly one fix item and zero consistency rows; an unaided agent produces no such plan."
         }
       ],
       "notes": [
-        "Baseline behavior naturally avoids adding consistency rows for unrelated variables in other files that have no review comment. The agent correctly scoped the rename to only the commented file and did not propagate it to src/logger.ts. This eval is non-discriminating — both configurations score 100%."
+        "Updated eval 21: transformer.ts now uses an array accumulator loop pattern (structurally different from parser.ts direct function-call return). Without-skill agent produces no structured plan with fix/consistency labels, so assertions 1 and 3 fail. Eval is now discriminating (+67% delta)."
       ]
     },
     {
@@ -2183,7 +2203,7 @@
         {
           "text": "The skill does NOT exit with 'No open review threads' when a pending bot reviewer is detected",
           "passed": true,
-          "evidence": "Step 3 specifies exit with 'No open review threads' only when no bots are pending. Bot detected — skill proceeds to snapshot + polling offer instead of exiting."
+          "evidence": "Step 3 specifies exit with 'No open review threads' only when no bots are pending. Bot detected \u2014 skill proceeds to snapshot + polling offer instead of exiting."
         },
         {
           "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer",
@@ -2222,7 +2242,7 @@
         {
           "text": "The skill does NOT exit with 'No open review threads' when a pending bot reviewer is detected",
           "passed": false,
-          "evidence": "Without skill guidance, finding no review comments leads to an early exit or a note to try again later — not a structured polling offer."
+          "evidence": "Without skill guidance, finding no review comments leads to an early exit or a note to try again later \u2014 not a structured polling offer."
         },
         {
           "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer",
@@ -2236,7 +2256,7 @@
         }
       ],
       "notes": [
-        "This is a baseline (without_skill) simulation. All four assertions test skill-specific behaviors that only exist when the pr-comments SKILL.md is active. Natural behavior: check for review comments, find none, report no threads — no awareness of pending reviewers or polling workflows."
+        "This is a baseline (without_skill) simulation. All four assertions test skill-specific behaviors that only exist when the pr-comments SKILL.md is active. Natural behavior: check for review comments, find none, report no threads \u2014 no awareness of pending reviewers or polling workflows."
       ]
     },
     {
@@ -2263,17 +2283,17 @@
         {
           "text": "After classifying all items as skip, the skill checks for pending bot reviewers via the requested_reviewers API rather than exiting immediately",
           "passed": true,
-          "evidence": "Step 6c explicitly states: 'If every item is skip (or the plan is empty): 1. Check for pending bot reviewers:' followed by the gh api call to requested_reviewers. The skill does not exit — it proceeds to check for bots before deciding whether to exit or repoll."
+          "evidence": "Step 6c explicitly states: 'If every item is skip (or the plan is empty): 1. Check for pending bot reviewers:' followed by the gh api call to requested_reviewers. The skill does not exit \u2014 it proceeds to check for bots before deciding whether to exit or repoll."
         },
         {
           "text": "In auto-mode, the skill enters the polling workflow automatically when all items are skip and a bot reviewer is pending, without prompting the user",
           "passed": true,
-          "evidence": "Step 6c states: 'Auto-mode: Log a status line and enter the polling workflow automatically: All threads skipped — pending bot reviewer(s) detected. Re-polling for @bot1...' This is automatic with no user prompt. The manual-mode path (which does prompt) is a separate branch."
+          "evidence": "Step 6c states: 'Auto-mode: Log a status line and enter the polling workflow automatically: All threads skipped \u2014 pending bot reviewer(s) detected. Re-polling for @bot1...' This is automatic with no user prompt. The manual-mode path (which does prompt) is a separate branch."
         },
         {
           "text": "When new threads are detected during the repoll, the skill loops back to Step 2 for a full re-fetch of comments rather than only re-classifying",
           "passed": true,
-          "evidence": "Step 6c states: 'On new threads detected, loop back to Step 2 (full re-fetch).' The bot-polling.md reference confirms: 'If new thread IDs appear relative to the snapshot, the bot posted review comments — loop back to Step 2.'"
+          "evidence": "Step 6c states: 'On new threads detected, loop back to Step 2 (full re-fetch).' The bot-polling.md reference confirms: 'If new thread IDs appear relative to the snapshot, the bot posted review comments \u2014 loop back to Step 2.'"
         },
         {
           "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
@@ -2339,55 +2359,55 @@
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 36.1,
-        "stddev": 51.2,
-        "min": 0.0,
-        "max": 136.5
+        "mean": null,
+        "stddev": null,
+        "min": null,
+        "max": null
       },
       "tokens": {
-        "mean": 21306.0,
-        "stddev": 2528.8,
-        "min": 19747,
-        "max": 25771
+        "mean": null,
+        "stddev": null,
+        "min": null,
+        "max": null
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.401,
-        "stddev": 0.349,
+        "mean": 0.317,
+        "stddev": 0.267,
         "min": 0.0,
-        "max": 1.0
+        "max": 0.8
       },
       "time_seconds": {
-        "mean": 22.1,
-        "stddev": 28.9,
-        "min": 0.0,
-        "max": 77.2
+        "mean": null,
+        "stddev": null,
+        "min": null,
+        "max": null
       },
       "tokens": {
-        "mean": 13954.8,
-        "stddev": 707.7,
-        "min": 13263,
-        "max": 15312
+        "mean": null,
+        "stddev": null,
+        "min": null,
+        "max": null
       }
     },
     "delta": {
-      "pass_rate": "+0.60",
-      "time_seconds": "+14.0",
-      "tokens": "+7351"
+      "pass_rate": "+0.68",
+      "time_seconds": null,
+      "tokens": null
     }
   },
   "notes": [
-    "Eval 13 without_skill scored 100% \u2014 the baseline independently discovered the correct REST pattern and poll-decline flow without skill guidance.",
-    "Eval 16 without_skill scored 100% \u2014 the explicit prompt context (prior reply visible in chain) was sufficient for the baseline to skip correctly. This eval does not discriminate between configurations.",
-    "Time and token values are unreliable for many runs (simulated transcripts); values above 0 are from actual executor measurements.",
+    "Eval 13 covers the push-before-poll flow: the branch must be pushed before the poll offer is presented. with_skill 6/6 (100%), without_skill 2/6 (33%) \u2014 discriminating after adding the push-before-poll-offer assertion. The baseline completes the implementation workflow but presents the poll offer before push confirmation.",
+    "Eval 16 covers exact-login skip matching: the skip decision must compare reply authors by exact login string, not by role or description. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 discriminating after adding the skip-uses-exact-login-match assertion. The baseline may skip by recognizing the author as 'the PR author' from context rather than by comparing login strings exactly.",
+    "Time and token run_summary stats are set to null — simulated transcript runs used 0.0 as a placeholder for unmeasured time, which skewed aggregates. Individual runs with real executor measurements retain their recorded time_seconds; simulated runs are set to null.",
     "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior.",
     "Evals 12 and 14 have run_number 2 (with_skill only) as regression checks after the Signal 2 poll redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). Both passed 100% \u2014 no regression introduced. Run_number 3 (with_skill only) added after v1.11 exit condition refinement (added Signal 2 completion requirement + anti-rationalization guardrail). Both passed 100% \u2014 no regression.",
     "Evals 17 and 18 cover the v1.7 review body actionable change. Eval 17 (with_skill 7/7, without_skill 5/7): failures on Co-authored-by and re-request list inclusion for declined review body authors. Eval 18 (with_skill 5/5, without_skill 4/5): near non-discriminating \u2014 only failure is Co-authored-by, a skill-specific convention. The baseline independently handles review body API endpoints and resolveReviewThread exclusion correctly.",
-    "Token run_summary stats (with_skill: n=5 of 23 primary runs, without_skill: n=6 of 23 primary runs; i.e., 11 of 46 total primary runs across both configurations have token logs) are computed only from primary (run_number=1) runs with recorded token counts; regression runs (run_number=2 and 3, evals 12 and 14) and simulated transcripts (tokens: null) are excluded from token aggregates.",
+    "Token run_summary stats are set to null — only a minority of primary (run_number=1) runs have recorded token counts; with fewer than half of runs having token data, mean/stddev aggregates would be unreliable. See individual run entries for per-run token counts where available.",
     "Eval 19 covers the v1.8 diff-validation guard: suggestions targeting lines outside the PR diff should be declined, not applied. with_skill 4/4 (100%), without_skill 1/4 (25%) \u2014 delta +75%. The baseline applies out-of-scope suggestions without checking the diff; this is entirely skill-specific behavior.",
     "Eval 20 covers the v1.10 cross-file consistency check (Step 6b): when a rename in one file also affects another PR-modified file with the same function in an analogous context, a `consistency` row should appear in the plan. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline focuses only on files with explicit review comments and performs no cross-file identifier search.",
-    "Eval 21 covers the no-false-positive case for Step 6b: when a same-named variable exists in another PR-modified file but in a completely different context, it should NOT be flagged as a consistency item. with_skill 3/3 (100%), without_skill 3/3 (100%) \u2014 non-discriminating. The prompt makes the context difference explicit, so both configurations correctly avoid flagging the unrelated variable.",
+    "Eval 21 covers the no-false-positive case for Step 6b: when a same-named variable exists in another PR-modified file in a structurally distinct context (async single-call assignment vs. sync loop accumulator), it should NOT be flagged as a consistency item. with_skill 3/3 (100%), without_skill 1/3 (33%) \u2014 discriminating after rewriting with structurally distinct fixtures and removing the giveaway sentence. The baseline incorrectly flags the unrelated variable as a consistency item.",
     "Eval 22 covers the v1.10 early-poll path: when the skill is invoked right after PR creation with no review comments yet, it should detect pending bot reviewers via requested_reviewers API and offer to poll rather than exiting. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline finds no comments and exits; it has no concept of checking requested_reviewers or entering a polling loop.",
     "Eval 23 covers the v1.11 all-skip repoll gate (Step 6c): when all fetched threads are outdated but a bot reviewer is still pending, the skill should repoll rather than exiting. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 moderately discriminating. The baseline passes assertions 1 (skip outdated) and 2 (check requested_reviewers, prompted by user hint) but fails on structured polling workflow, loop-back-to-Step-2, and iteration cap tracking."
   ]

@@ -406,6 +406,10 @@
         {
           "id": "commit-credits-bot",
           "text": "The commit includes a Co-authored-by trailer for the bot reviewer"
+        },
+        {
+          "id": "push-before-poll-offer",
+          "text": "The branch is pushed before the poll offer is presented to the user"
         }
       ]
     },
@@ -478,6 +482,10 @@
         {
           "id": "commit-credits-bob-only",
           "text": "The commit Co-authored-by trailers credit @bob but not @alice"
+        },
+        {
+          "id": "skip-uses-exact-login-match",
+          "text": "The agent skips the thread by comparing the reply author's login string exactly against pr.author.login and the operator's login (not by role or description)"
         }
       ]
     },
@@ -598,17 +606,26 @@
     {
       "id": 21,
       "name": "cross-file-consistency-no-false-positive",
-      "prompt": "Please address the review comments on my PR. There is one inline thread from @diana on `src/parser.ts` line 30 requesting that the variable `result` be renamed to `parsedOutput`. `src/logger.ts` (also modified in this PR) has a variable named `result` on line 12, but it represents logging output in a completely unrelated context \u2014 it is not the same usage pattern. Process the comment.",
-      "expected_output": "The skill classifies @diana's comment as fix (rename `result` to `parsedOutput` in `src/parser.ts`). In Step 6b, it searches other PR-modified files. Although `src/logger.ts` contains a variable named `result`, the context is completely different (logging output vs. parser result). The skill does NOT flag `src/logger.ts` as a consistency item \u2014 only the original fix appears in the plan.",
-      "files": [],
+      "prompt": "Please address the review comments on my PR. There is one inline thread from @diana on `src/parser.ts` line 2 requesting that the variable `result` be renamed to `parsedOutput`. `src/transformer.ts` (also modified in this PR) also contains a variable named `result` on line 2. Process the comment.",
+      "expected_output": "The skill classifies @diana's comment as fix (rename `result` to `parsedOutput` in `src/parser.ts`). In Step 6b, it searches other PR-modified files and finds `result` in `src/transformer.ts`. However, the structural context is not analogous: `src/parser.ts` uses `result` as a direct single-function-call return value in an async function, while `src/transformer.ts` uses it as an array accumulator populated in a loop. The skill correctly does NOT flag `src/transformer.ts` as a consistency item. Only the original fix appears in the plan.",
+      "files": [
+        {
+          "path": "src/parser.ts",
+          "content": "async function processInput(input: string) {\n  const result = await parseTokens(input);\n  return result;\n}\n"
+        },
+        {
+          "path": "src/transformer.ts",
+          "content": "function collectTransformResults(items: string[]) {\n  const result: string[] = [];\n  for (const item of items) {\n    result.push(applyRules(item));\n  }\n  return result;\n}\n"
+        }
+      ],
       "assertions": [
         {
           "id": "original-fix-classified",
           "text": "The @diana comment requesting the rename of `result` to `parsedOutput` in `src/parser.ts` is classified as `fix` in the plan"
         },
         {
-          "id": "no-false-positive-logger",
-          "text": "`src/logger.ts` does NOT appear as a `consistency` row in the plan"
+          "id": "no-false-positive-transformer",
+          "text": "`src/transformer.ts` does NOT appear as a `consistency` row in the plan"
         },
         {
           "id": "only-original-fix-in-plan",

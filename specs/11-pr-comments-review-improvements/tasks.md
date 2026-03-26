@@ -26,6 +26,6 @@
 - [ ] Read through bot-polling.md end-to-end — confirm the three entry points (Step 13, Step 3, Step 6c) are consistently documented
 - [ ] `uv run --with pytest pytest tests/` — no test breakage
 - [ ] `npx cspell skills/pr-comments/SKILL.md skills/pr-comments/references/*.md` — no spelling errors
-- [ ] Re-run evals 13, 16, 18, 21 (with_skill + without_skill) — confirm discrimination improves
+- [ ] Re-run evals 13, 16, 21 (with_skill + without_skill) — confirm discrimination improves
 - [ ] Update `evals/pr-comments/benchmark.json` with new eval results
 - [ ] Update `README.md` Eval Δ column if pass-rate delta changes

@@ -58,7 +58,7 @@ Eval 18 (`review-body-reply-question`) is excluded: it is already discriminating
 - `skills/pr-comments/SKILL.md` — slim Step 6c (~27 lines saved), slim Step 13 (~8 lines saved)
 - `skills/pr-comments/references/security.md` — add 4 screening categories (~19 lines added)
 - `skills/pr-comments/references/bot-polling.md` — add "Entry Point: All-Skip Repoll Gate" (~30 lines) and "Bot Display Names" (~8 lines) sections
-- `evals/pr-comments/evals.json` — modify assertions for evals 13, 16, 18, 21
+- `evals/pr-comments/evals.json` — modify assertions for evals 13, 16, 21
 - `evals/pr-comments/benchmark.json` — update after re-running modified evals
 
 ## Estimated impact

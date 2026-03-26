@@ -11,7 +11,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.12"
+  version: "1.13"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -238,35 +238,7 @@ After Step 6b, determine whether the plan contains any actionable items. Treat `
 
 Proceed with this step only if the plan is empty or **every** plan row's `Action` value is exactly `skip`.
 
-1. **Check for pending bot reviewers:**
-   ```bash
-   gh api repos/{owner}/{repo}/pulls/{pr_number} \
-     --jq '[.requested_reviewers[] | select(.type == "Bot" or (.login | endswith("[bot]"))) | .login]'
-   ```
-
-2. **Check for bot reviews submitted after `fetch_timestamp`** (recorded in Step 2) — a bot may have submitted a review (removing itself from `requested_reviewers`) but its threads arrived after our Step 2 fetch:
-   ```bash
-   gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-     | jq -s '[.[] | .[] | select((.user.login | endswith("[bot]")) and .submitted_at >= "'"${fetch_timestamp}"'")]'
-   ```
-
-3. **If a bot submitted a review after `fetch_timestamp`** (the check in step 2 above returned results): the bot's threads may already exist but were missed by our Step 2 fetch. **Immediately loop back to Step 2** (full re-fetch) rather than entering the polling workflow — polling would snapshot the current threads and never detect the already-present new ones. This counts as one iteration toward the `--auto N` cap.
-
-4. **If pending bots exist but NO post-fetch review was detected** (bots are in `requested_reviewers` but haven't submitted yet):
-   - **Auto-mode**: Log a status line and enter the polling workflow automatically:
-     ```
-     All threads skipped — pending bot reviewer(s) detected. Polling for @bot1...
-     ```
-     For the Step 6c polling entry, set `snapshot_timestamp = "${fetch_timestamp}"` (or an earlier timestamp), then take a fresh thread snapshot (via the Step 3 GraphQL query). **Immediately after taking this snapshot, re-run the Step 6c.2 check for bot reviews submitted after `fetch_timestamp`.** If any such bot reviews are now present, treat this as a post-fetch review case and **immediately loop back to Step 2** (full re-fetch) instead of using this snapshot as the polling baseline. Otherwise, poll using Signal 1 / Signal 2 from `references/bot-polling.md`. On new threads detected during polling, loop back to Step 2 (full re-fetch). This counts as one iteration toward the `--auto N` cap.
-   - **Manual mode**: Show the all-skip plan, then prompt:
-     ```
-     All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]
-     ```
-     If confirmed, enter the polling workflow. If declined, proceed to the report.
-
-**Rapid re-poll guard**: Before looping back via Step 6c.3, **apply the Rapid re-poll guard from `references/bot-polling.md` (Rapid re-poll guard section)**. Only when the guard condition is met — i.e., the same bot set would trigger a second consecutive immediate loop-back with no intervening non-skip plan — should you **skip the loop-back and fall through to the 60-second polling loop instead**; otherwise, perform the immediate loop-back to Step 2 as normal.
-
-5. **If no pending bots and no recent bot review:** Continue to Step 7 as normal.
+**You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all five steps in that section (pending-bot check, post-fetch review check, immediate loop-back or polling branch, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated.
 
 ### 7. Present Plan and Confirm
 
@@ -406,16 +378,17 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 - The authors of any inline comments you replied to (including clarifying questions), using the `author` field from Step 2.
 - The authors of any review body comments you replied to or declined, using the `author` field from Step 2b.
 
-If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted), skip this step and proceed to the report.
+**Also include any other bots that have previously reviewed this PR** — they should see the updated code even if their feedback wasn't the direct source of the changes. Fetch the PR's review history and add any bot logins not already in the list:
+```bash
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
+  --jq '[.[] | select(.user.login | endswith("[bot]")) | .user.login]' \
+  | jq -s 'add | unique'
+```
+Exclude `claude[bot]` from this augmented list (it cannot be re-requested via API — see the exception below). Merge the result with the commenter list and deduplicate.
 
-**Display names for bot accounts**: The REST comments API exposes each commenter's login as `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), which you should store or reference as the `author` value from Step 2. When building the prompt, use the short handle for display — apply this algorithm:
+If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted, and no other bots have previously reviewed), skip this step and proceed to the report.
 
-1. Strip the `[bot]` suffix if present.
-2. If the result contains `-pull-request-reviewer`, strip that segment.
-3. Otherwise, use the first hyphen-separated token (e.g. `dependabot-preview` → `dependabot`).
-4. Fallback: use the full login minus `[bot]`.
-
-Use the full login (including any `[bot]` suffix) for the actual API calls.
+**Display names for bot accounts**: The REST comments API exposes each commenter's login as `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), which you should store or reference as the `author` value from Step 2. When building the prompt, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
 Present a single combined prompt:
 

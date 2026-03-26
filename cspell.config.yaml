@@ -7,6 +7,7 @@ words:
   - anthropics
   - asyncpg
   - bunx
+  - codepoints
   - commenters
   - conftest
   - continuerc
@@ -41,6 +42,7 @@ words:
   - prauthor
   - reinvocation
   - repoll
+  - repolls
   - psql
   - pyproject
   - PYEOF
