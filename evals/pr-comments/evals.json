@@ -606,8 +606,8 @@
     {
       "id": 21,
       "name": "cross-file-consistency-no-false-positive",
-      "prompt": "Please address the review comments on my PR. There is one inline thread from @diana on `src/parser.ts` line 2 requesting that the variable `result` be renamed to `parsedOutput`. The variable `result` holds the return value of `parseTokens(input)` inside an async function `processInput`. `src/transformer.ts` (also modified in this PR) has a variable also named `result` on line 2, also inside an async function (`transformData`), also assigned from a function call (`applyRules(data)`). Both are intermediate return-value holders in async pipeline functions. Despite the similar surrounding context, the two variables serve different semantic roles in distinct subsystems (parsing vs. transformation). Process the comment.",
-      "expected_output": "The skill classifies @diana's comment as fix (rename `result` to `parsedOutput` in `src/parser.ts`). In Step 6b, it searches other PR-modified files and finds `result` in `src/transformer.ts` also inside an async function holding a function-call return value. However, the skill correctly determines that the two usages are in different subsystems with different semantic roles and does NOT flag `src/transformer.ts` as a consistency item. Only the original fix appears in the plan.",
+      "prompt": "Please address the review comments on my PR. There is one inline thread from @diana on `src/parser.ts` line 2 requesting that the variable `result` be renamed to `parsedOutput`. `src/transformer.ts` (also modified in this PR) also contains a variable named `result` on line 2. Process the comment.",
+      "expected_output": "The skill classifies @diana's comment as fix (rename `result` to `parsedOutput` in `src/parser.ts`). In Step 6b, it searches other PR-modified files and finds `result` in `src/transformer.ts`. However, the structural context is not analogous: `src/parser.ts` uses `result` as a direct single-function-call return value in an async function, while `src/transformer.ts` uses it as an array accumulator populated in a loop. The skill correctly does NOT flag `src/transformer.ts` as a consistency item. Only the original fix appears in the plan.",
       "files": [
         {
           "path": "src/parser.ts",
@@ -615,7 +615,7 @@
         },
         {
           "path": "src/transformer.ts",
-          "content": "async function transformData(data: Record<string, unknown>) {\n  const result = applyRules(data);\n  return result;\n}\n"
+          "content": "function collectTransformResults(items: string[]) {\n  const result: string[] = [];\n  for (const item of items) {\n    result.push(applyRules(item));\n  }\n  return result;\n}\n"
         }
       ],
       "assertions": [

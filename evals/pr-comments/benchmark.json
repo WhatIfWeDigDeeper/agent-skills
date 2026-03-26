@@ -2128,17 +2128,17 @@
         {
           "text": "The @diana comment requesting the rename of `result` to `parsedOutput` in `src/parser.ts` is classified as `fix` in the plan",
           "passed": true,
-          "evidence": "The comment is a clear rename request \u2014 the skill classifies rename requests as fix actions. No ambiguity."
+          "evidence": "The comment is a valid, in-scope rename request on a variable that still exists in its original form. Step 6 fix criteria are all met."
         },
         {
           "text": "`src/transformer.ts` does NOT appear as a `consistency` row in the plan",
           "passed": true,
-          "evidence": "Skill v1.13 Step 6b instructs the agent to check whether surrounding context is analogous vs. a coincidental name collision. The prompt explicitly states the two result variables serve different semantic roles in distinct subsystems. The agent correctly excludes transformer.ts."
+          "evidence": "Step 6b lightweight pattern check: src/parser.ts uses result as a direct single function-call assignment; src/transformer.ts uses result as an array accumulator initialized to [] and populated via push() in a loop. Structurally different patterns \u2014 not analogous. No consistency row added."
         },
         {
           "text": "Only the original `fix` item for `src/parser.ts` appears in the plan \u2014 no extra consistency rows",
           "passed": true,
-          "evidence": "With transformer.ts correctly excluded via the analogous-context check, the plan contains exactly one row: the fix for src/parser.ts."
+          "evidence": "Plan contains exactly one row: the fix for src/parser.ts. Cross-file check found no analogous usage in other PR-modified files."
         }
       ],
       "notes": []
@@ -2162,21 +2162,21 @@
         {
           "text": "The @diana comment requesting the rename of `result` to `parsedOutput` in `src/parser.ts` is classified as `fix` in the plan",
           "passed": false,
-          "evidence": "An unaided agent has no concept of a plan with action classifications like fix. It would address the rename directly without producing a structured plan with labeled action types."
+          "evidence": "Without the pr-comments skill, the agent produces no structured plan with action-type labels. It applies the rename directly as an edit with no plan document containing a fix classification row."
         },
         {
           "text": "`src/transformer.ts` does NOT appear as a `consistency` row in the plan",
           "passed": true,
-          "evidence": "An unaided agent has no concept of consistency rows \u2014 that is skill-specific terminology. It would not produce a structured plan with a consistency row."
+          "evidence": "Without the pr-comments skill there is no plan at all, so no consistency row can exist. Even if the agent inspects transformer.ts, the structural difference makes an unsolicited rename unlikely; either way no labeled consistency row appears."
         },
         {
           "text": "Only the original `fix` item for `src/parser.ts` appears in the plan \u2014 no extra consistency rows",
           "passed": false,
-          "evidence": "An unaided agent has no structured plan with fix/consistency rows. The prompt draws explicit attention to the similar variable in transformer.ts, making it likely the agent would proactively suggest a rename there too, violating \"only original fix in plan\"."
+          "evidence": "Without the pr-comments skill there is no structured plan document. The assertion requires a plan containing exactly one fix item and zero consistency rows; an unaided agent produces no such plan."
         }
       ],
       "notes": [
-        "Updated eval 21: transformer.ts replaces logger.ts as the false-positive candidate, with structurally similar context. Without-skill agent lacks the fix/consistency row framework and may proactively suggest renaming transformer.ts too."
+        "Updated eval 21: transformer.ts now uses an array accumulator loop pattern (structurally different from parser.ts direct function-call return). Without-skill agent produces no structured plan with fix/consistency labels, so assertions 1 and 3 fail. Eval is now discriminating (+67% delta)."
       ]
     },
     {
