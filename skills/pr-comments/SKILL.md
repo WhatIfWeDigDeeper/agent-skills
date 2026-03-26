@@ -285,7 +285,7 @@ Proceed with this step only if the plan is empty or **every** plan row's `Action
           - Set `last_all_skip_bot_set = current_bot_set`.
      - Any non-all-skip plan (i.e., at least one item is not `skip`) should clear the guard state for this invocation (e.g., `last_all_skip_happened = false`, `last_all_skip_bot_set = null`).
 
-4. **If no pending bots and no recent bot review:** Continue to Step 7 as normal.
+5. **If no pending bots and no recent bot review:** Continue to Step 7 as normal.
 
 ### 7. Present Plan and Confirm
 

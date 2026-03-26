@@ -20,7 +20,8 @@ Insert a new `### 6c. Repoll Gate: All-Skip with Pending Bots` section between S
 
 - **Trigger condition**: After Step 6b, count items classified as `fix`, `accept suggestion`, `reply`, `decline`, or `consistency`. If count is zero (all `skip` or empty plan), proceed with the gate. Otherwise skip Step 6c entirely.
 - **Pending bot check**: Query `requested_reviewers` for bots (same query as Step 3's early-poll check). Also query reviews API for any bot review with `submitted_at >= fetch_timestamp` (from Step 2) — this catches bots that submitted after our fetch but are no longer in `requested_reviewers`.
-- **Auto-mode behavior**: Log status line (`All threads skipped — pending bot reviewer(s) detected. Re-polling for @bot1...`), record new `snapshot_timestamp`, take fresh thread snapshot, enter polling workflow per `references/bot-polling.md`. On new threads, loop back to Step 2. Counts as one iteration toward `--auto N` cap.
+- **Post-fetch review detected**: If the reviews API shows a bot review with `submitted_at >= fetch_timestamp`, immediately loop back to Step 2 (full re-fetch) — do not enter polling. The bot's threads may already exist and polling's snapshot would miss them. Counts as one iteration toward `--auto N` cap.
+- **Pending bots only (no post-fetch review)**: Enter polling. Auto-mode: log status line (`All threads skipped — pending bot reviewer(s) detected. Polling for @bot1...`), set `snapshot_timestamp = fetch_timestamp`, take fresh thread snapshot, enter polling workflow per `references/bot-polling.md`. On new threads, loop back to Step 2. Counts as one iteration toward `--auto N` cap.
 - **Manual-mode behavior**: Show the all-skip plan, then prompt: `All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]`. If confirmed, enter polling. If declined, proceed to report.
 - **Rapid re-poll guard**: If this is the second consecutive all-skip result for the same bot(s), do not immediately re-fetch — fall into the standard 60-second polling loop from `references/bot-polling.md`.
 - **No pending bots**: Skip this step, continue to Step 7 as normal.
@@ -33,7 +34,7 @@ Insert a new `### 6c. Repoll Gate: All-Skip with Pending Bots` section between S
   ```
   - **Step 6c** — when all fetched threads are classified as `skip` but bot reviewers are pending or recently submitted
   ```
-- In the "Polling behavior" section, add a note about `snapshot_timestamp` for the Step 6c entry: "When entering from Step 6c, record `snapshot_timestamp` just before starting to poll (same as the Step 3 path). The thread snapshot may be non-empty — use the current unresolved thread IDs as the baseline."
+- In the "Polling behavior" section, add a note about `snapshot_timestamp` for the Step 6c entry: "When entering from Step 6c, follow the same `snapshot_timestamp` rules as in the main polling flow: reuse `fetch_timestamp` from Step 2 when appropriate, or record a new `snapshot_timestamp` just before starting to poll. The thread snapshot may be non-empty — use the current unresolved thread IDs as the baseline."
 - In the "On new threads detected" section, confirm that Step 6c follows the same loop-back-to-Step-2 behavior as the other entry points.
 
 ### Task 4: Update auto-loop exit conditions

@@ -29,19 +29,22 @@ After Step 6 completes classification, before presenting the plan in Step 7:
    ```
    Also check Signal 2 (reviews API) for bots that were previously re-requested — a bot may have submitted a review (which removed it from `requested_reviewers`) but its threads arrived after our Step 2 fetch.
 
-3. **If pending bots exist (or a bot submitted a review after our Step 2 fetch timestamp):**
+3. **If a bot submitted a review after our Step 2 fetch timestamp** (detected via reviews API):
+   Immediately loop back to Step 2 (full re-fetch) — the bot's threads may already exist but were missed by our fetch. Do not enter the polling workflow in this case; polling would snapshot current threads and never detect the already-present new ones. This counts as a loop iteration toward the `--auto N` cap.
+
+4. **If pending bots exist but no post-fetch review was detected** (bots are still in `requested_reviewers`):
    - **Auto-mode**: Log a status line and enter the polling workflow automatically:
      ```
-     All threads skipped — pending bot reviewer(s) detected. Re-polling for @bot1...
+     All threads skipped — pending bot reviewer(s) detected. Polling for @bot1...
      ```
-     Record a new `snapshot_timestamp`, take a fresh thread snapshot, and poll using the same Signal 1 / Signal 2 logic from `references/bot-polling.md`. On new threads detected, loop back to Step 2 (not Step 6 — full re-fetch needed). This counts as a loop iteration toward the `--auto N` cap.
+     Set `snapshot_timestamp = fetch_timestamp` (from Step 2), take a fresh thread snapshot, and poll using the same Signal 1 / Signal 2 logic from `references/bot-polling.md`. On new threads detected, loop back to Step 2 (full re-fetch). This counts as a loop iteration toward the `--auto N` cap.
    - **Manual mode**: Show the all-skip plan, then offer to poll:
      ```
      All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]
      ```
      If confirmed, enter the polling workflow. If declined, proceed to the report.
 
-4. **If no pending bots and no recent bot review:** Proceed normally — present the all-skip plan and exit (or continue to Step 7 → Step 14).
+5. **If no pending bots and no recent bot review:** Proceed normally — present the all-skip plan and exit (or continue to Step 7 → Step 14).
 
 ### Where This Fits in the Workflow
 
