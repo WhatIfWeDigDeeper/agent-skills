@@ -47,9 +47,9 @@ Insert a new `### 6c. Repoll Gate: All-Skip with Pending Bots` section between S
   ```
   to:
   ```
-  No new unresolved bot threads after poll AND no pending bot reviewers remain → exit loop
+  No new unresolved bot threads after poll AND all polled bots have submitted a review (Signal 2 complete) → exit loop
   ```
-  This ensures the exit condition aligns with the new repoll gate — we don't exit if bots are still pending.
+  This ensures the exit condition matches the Signal 2 completion-based behavior used by the polling helper and tests.
 
 ### Task 5: Update Notes section
 
