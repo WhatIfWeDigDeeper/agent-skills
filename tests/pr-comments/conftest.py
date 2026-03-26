@@ -149,22 +149,84 @@ def parse_auto_flag(args: str) -> dict:
     }
 
 
-def should_exit_auto_loop(iteration: int, max_iterations: int, new_threads: int) -> bool:
+def should_exit_auto_loop(
+    iteration: int,
+    max_iterations: int,
+    new_threads: int,
+    polled_bots_remaining: int = 0,
+) -> bool:
     """Returns True if the auto-loop should exit before starting the next iteration.
 
     `iteration` is the 1-indexed count of the just-completed iteration (e.g.
     iteration=3 means 3 rounds have finished). The loop exits when iteration
     equals max_iterations, preventing a further iteration from starting.
 
-    Per SKILL.md Step 13:
-    - Exit when no new unresolved bot threads are found after poll
+    `polled_bots_remaining` is the count of bots being polled that have NOT yet
+    submitted a review (per Signal 2 tracking). When bots are still outstanding,
+    the loop continues even if no new threads appeared in this cycle.
+
+    bot-polling.md defines four exit conditions (including timeout and
+    security-screening/manual-confirmation), but this helper only models the
+    subset that can be expressed via its parameters:
+    - Exit when no new threads AND all polled bots have responded (remaining=0)
     - Exit when iteration count has reached the maximum
+
+    Timeout-based and security/manual-confirmation exits are enforced elsewhere
+    and are intentionally not represented in this helper.
     """
-    if new_threads == 0:
-        return True
     if iteration >= max_iterations:
         return True
+    if new_threads == 0 and polled_bots_remaining == 0:
+        return True
     return False
+
+
+def should_repoll_on_all_skip(
+    plan_items: list[dict],
+    pending_bots: list[str],
+    bot_reviews_after_fetch: list[dict] | None = None,
+) -> bool:
+    """Returns True if the repoll gate (Step 6c) should trigger.
+
+    Per SKILL.md Step 6c: when every plan item is `skip` (or the plan is empty)
+    and bot reviewers are pending or submitted a review after fetch_timestamp,
+    the skill should re-poll rather than exiting.
+
+    Requires every item's action to be exactly ``skip`` — unknown or missing
+    action values do not count as skip and will prevent the repoll gate from
+    firing.
+
+    ``bot_reviews_after_fetch`` must be a pre-filtered list of bot-authored
+    reviews (entries with ``submitted_at`` set). The caller is responsible for
+    filtering: only pass reviews where the author login ends with ``[bot]`` and
+    ``submitted_at`` is non-null. This helper does not validate the entries.
+    """
+    if plan_items and not all(item.get("action") == "skip" for item in plan_items):
+        return False
+
+    has_pending_bots = len(pending_bots) > 0
+    has_recent_bot_review = bool(bot_reviews_after_fetch)
+
+    return has_pending_bots or has_recent_bot_review
+
+
+def should_repoll_guard_allow(
+    last_all_skip_happened: bool,
+    last_all_skip_bot_set: set[str] | None,
+    current_bot_set: set[str],
+) -> bool:
+    """Returns True if the rapid re-poll guard allows an immediate re-fetch.
+
+    Per SKILL.md Step 6c rapid re-poll guard:
+    - First all-skip → allow immediate re-fetch
+    - Second consecutive all-skip with same bot set → block (use 60s polling)
+    - Bot set changed → allow immediate re-fetch
+    """
+    if not last_all_skip_happened:
+        return True
+    if last_all_skip_bot_set is not None and current_bot_set == last_all_skip_bot_set:
+        return False
+    return True
 
 
 def requires_manual_confirmation(plan_items: list[dict]) -> bool:

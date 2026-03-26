@@ -39,6 +39,7 @@ words:
   - PRRT
   - prauthor
   - reinvocation
+  - repoll
   - psql
   - pyproject
   - PYEOF

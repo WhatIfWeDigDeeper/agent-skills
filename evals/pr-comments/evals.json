@@ -573,8 +573,8 @@
     {
       "id": 20,
       "name": "cross-file-consistency-matching-rename",
-      "prompt": "Please address the review comments on my PR. There is one inline thread from @charlie on `src/api.ts` line 15 requesting that the helper function `getData` be renamed to `fetchData`. `src/routes.ts` (also modified in this PR) calls `getData` in an import and invocation on lines 8 and 22 — the same function, same usage pattern — but has no review comment. Process the comment.",
-      "expected_output": "The skill classifies @charlie's comment as fix (rename `getData` to `fetchData` in `src/api.ts`). In Step 6b, it searches other PR-modified files and finds `getData` used in the same pattern in `src/routes.ts`. It adds a `consistency` row to the plan for `src/routes.ts` referencing the originating fix item. The consistency item is not auto-approved even if `--auto` is active — the skill drops to manual confirmation for this iteration.",
+      "prompt": "Please address the review comments on my PR. There is one inline thread from @charlie on `src/api.ts` line 15 requesting that the helper function `getData` be renamed to `fetchData`. `src/routes.ts` (also modified in this PR) calls `getData` in an import and invocation on lines 8 and 22 \u2014 the same function, same usage pattern \u2014 but has no review comment. Process the comment.",
+      "expected_output": "The skill classifies @charlie's comment as fix (rename `getData` to `fetchData` in `src/api.ts`). In Step 6b, it searches other PR-modified files and finds `getData` used in the same pattern in `src/routes.ts`. It adds a `consistency` row to the plan for `src/routes.ts` referencing the originating fix item. The consistency item is not auto-approved even if `--auto` is active \u2014 the skill drops to manual confirmation for this iteration.",
       "files": [],
       "assertions": [
         {
@@ -591,15 +591,15 @@
         },
         {
           "id": "consistency-not-auto-approved",
-          "text": "The consistency item is not auto-approved in auto-mode — the skill drops to manual confirmation when a `consistency` item is present"
+          "text": "The consistency item is not auto-approved in auto-mode \u2014 the skill drops to manual confirmation when a `consistency` item is present"
         }
       ]
     },
     {
       "id": 21,
       "name": "cross-file-consistency-no-false-positive",
-      "prompt": "Please address the review comments on my PR. There is one inline thread from @diana on `src/parser.ts` line 30 requesting that the variable `result` be renamed to `parsedOutput`. `src/logger.ts` (also modified in this PR) has a variable named `result` on line 12, but it represents logging output in a completely unrelated context — it is not the same usage pattern. Process the comment.",
-      "expected_output": "The skill classifies @diana's comment as fix (rename `result` to `parsedOutput` in `src/parser.ts`). In Step 6b, it searches other PR-modified files. Although `src/logger.ts` contains a variable named `result`, the context is completely different (logging output vs. parser result). The skill does NOT flag `src/logger.ts` as a consistency item — only the original fix appears in the plan.",
+      "prompt": "Please address the review comments on my PR. There is one inline thread from @diana on `src/parser.ts` line 30 requesting that the variable `result` be renamed to `parsedOutput`. `src/logger.ts` (also modified in this PR) has a variable named `result` on line 12, but it represents logging output in a completely unrelated context \u2014 it is not the same usage pattern. Process the comment.",
+      "expected_output": "The skill classifies @diana's comment as fix (rename `result` to `parsedOutput` in `src/parser.ts`). In Step 6b, it searches other PR-modified files. Although `src/logger.ts` contains a variable named `result`, the context is completely different (logging output vs. parser result). The skill does NOT flag `src/logger.ts` as a consistency item \u2014 only the original fix appears in the plan.",
       "files": [],
       "assertions": [
         {
@@ -612,14 +612,14 @@
         },
         {
           "id": "only-original-fix-in-plan",
-          "text": "Only the original `fix` item for `src/parser.ts` appears in the plan — no extra consistency rows"
+          "text": "Only the original `fix` item for `src/parser.ts` appears in the plan \u2014 no extra consistency rows"
         }
       ]
     },
     {
       "id": 22,
       "name": "early-poll-bots-pending-no-comments-yet",
-      "prompt": "I just opened a PR and immediately ran the skill. There are no review comments yet. copilot-pull-request-reviewer[bot] is in the requested reviewers list and is currently reviewing. Don't exit — wait for the bot to finish.",
+      "prompt": "I just opened a PR and immediately ran the skill. There are no review comments yet. copilot-pull-request-reviewer[bot] is in the requested reviewers list and is currently reviewing. Don't exit \u2014 wait for the bot to finish.",
       "expected_output": "The skill finds no unresolved threads and no review-body items, but detects copilot-pull-request-reviewer[bot] as a pending reviewer via the requested_reviewers API. Instead of exiting with 'No open review threads', it offers to poll (manual mode) or starts polling automatically (auto-mode). It records a snapshot_timestamp and empty thread snapshot before polling. When the bot's review arrives, it loops back to Step 2 to process the new threads.",
       "files": [],
       "assertions": [
@@ -638,6 +638,35 @@
         {
           "id": "records-snapshot-before-polling",
           "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "name": "all-skip-repoll-pending-bot",
+      "prompt": "Address the review comments on my PR using --auto mode. There are 3 existing threads but they're all outdated (isOutdated=true). copilot-pull-request-reviewer[bot] is still in the requested reviewers list and hasn't submitted a review yet. Don't exit just because the old threads are all skip \u2014 the bot is still pending.",
+      "expected_output": "The skill fetches comments and classifies all 3 threads as skip (outdated). Before exiting, Step 6c detects that copilot-pull-request-reviewer[bot] is a pending reviewer. In auto-mode, it logs a status line and enters the polling workflow automatically. When the bot's new threads are detected, it loops back to Step 2 for a full re-fetch and processes the new threads.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "classifies-all-as-skip",
+          "text": "The skill classifies all existing threads as skip (outdated) and does not attempt to fix, reply, or decline any of them"
+        },
+        {
+          "id": "detects-pending-bot-on-all-skip",
+          "text": "After classifying all items as skip, the skill checks for pending bot reviewers via the requested_reviewers API rather than exiting immediately"
+        },
+        {
+          "id": "enters-repoll-automatically",
+          "text": "In auto-mode, the skill enters the polling workflow automatically when all items are skip and a bot reviewer is pending, without prompting the user"
+        },
+        {
+          "id": "loops-back-to-step-2",
+          "text": "When new threads are detected during the repoll, the skill loops back to Step 2 for a full re-fetch of comments rather than only re-classifying"
+        },
+        {
+          "id": "counts-toward-iteration-cap",
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap"
         }
       ]
     }
