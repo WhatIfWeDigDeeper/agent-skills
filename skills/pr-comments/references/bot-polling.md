@@ -107,3 +107,19 @@ Loop back to Step 2 within the same skill invocation — do not require the user
     ```
     If confirmed, use the human re-request logic from Step 13 (`gh pr edit --remove-reviewer` / `--add-reviewer`).
   - Then proceed to Step 14 for the auto-loop summary report.
+
+## Rapid re-poll guard (Step 6c.3 only)
+
+This guard prevents a rapid loop where Step 6c.3 (post-fetch review detected → immediate Step 2 loop-back) triggers repeatedly for the same bot without making progress. It does **not** apply to Step 6c.4's polling entry, which already uses the 60-second interval naturally.
+
+Track the guard **per skill invocation only** (no cross-run persistence) using two in-memory variables:
+- `last_all_skip_bot_set`: sorted, de-duplicated list of bot logins that triggered the most recent Step 6c.3 loop-back (e.g., `["bot1[bot]","bot2[bot]"]`); `null` initially.
+- `last_all_skip_happened`: boolean; `false` initially.
+
+On each Step 6c.3 candidate (post-fetch review detected → about to loop back to Step 2):
+
+1. Compute `current_bot_set` from the bot logins whose post-fetch reviews triggered this entry.
+2. If `last_all_skip_happened` is `true` **and** `current_bot_set` equals `last_all_skip_bot_set` (same members, order-independent), this is a second consecutive loop-back for the same bot(s) — **do not loop back again**. Fall through to the standard 60-second polling loop instead.
+3. Otherwise, allow the immediate Step 2 loop-back and update state: set `last_all_skip_happened = true` and `last_all_skip_bot_set = current_bot_set`.
+
+Any non-all-skip plan (at least one item is not `skip`) clears the guard: `last_all_skip_happened = false`, `last_all_skip_bot_set = null`.
