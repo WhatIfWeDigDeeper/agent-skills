@@ -381,7 +381,8 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 **Also include any other bots that have previously reviewed this PR** — they should see the updated code even if their feedback wasn't the direct source of the changes. Fetch the PR's review history and add any bot logins not already in the list:
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  --jq '[.[] | select(.user.login | endswith("[bot]")) | .user.login] | unique'
+  --jq '[.[] | select(.user.login | endswith("[bot]")) | .user.login]' \
+  | jq -s 'add | unique'
 ```
 Exclude `claude[bot]` from this augmented list (it cannot be re-requested via API — see the exception below). Merge the result with the commenter list and deduplicate.
 
