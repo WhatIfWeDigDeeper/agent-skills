@@ -177,7 +177,7 @@ class TestRepollGate:
     def test_both_pending_and_recent_review(self):
         """Both pending bots and recent review — should repoll."""
         plan = [{"action": "skip"}]
-        recent = [{"author": "bot-a[bot]"}]
+        recent = [{"author": "bot-a[bot]", "submitted_at": "2024-01-01T00:00:00Z"}]
         assert should_repoll_on_all_skip(plan, ["bot-b[bot]"], bot_reviews_after_fetch=recent) is True
 
     def test_unknown_action_prevents_repoll(self):
