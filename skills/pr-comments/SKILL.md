@@ -273,14 +273,15 @@ Proceed with this step only if the plan is empty or **every** plan row's `Action
      All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]
      ```
      If confirmed, enter the polling workflow. If declined, proceed to the report.
-   - **Rapid re-poll guard**:
+   - **Rapid re-poll guard** (applies to Step 6c.3's immediate-loop-back path only):
+     This guard prevents a rapid loop where Step 6c.3 (post-fetch review detected → immediate Step 2 loop-back) triggers repeatedly for the same bot without making progress. It does NOT apply to Step 6c.4's polling entry, which already uses the 60-second interval naturally.
      - Track the guard **per skill invocation only** (no cross-run persistence). Maintain two in-memory variables:
        - `last_all_skip_bot_set`: the set (or sorted, de-duplicated list) of bot reviewer logins associated with the most recent all-skip result (e.g., `["bot1[bot]","bot2[bot]"]`).
        - `last_all_skip_happened`: a boolean flag (or equivalently, `last_all_skip_bot_set` is `null`/empty when no prior all-skip has occurred).
-     - On each all-skip outcome:
-       1. Compute `current_bot_set` as the set of bot logins relevant to this guard (typically the pending bot reviewers plus any bots detected by the recent-review check).
-       2. If `last_all_skip_happened` is `true` **and** `current_bot_set` is exactly equal to `last_all_skip_bot_set` (order-independent, same members; no subset/superset logic), then treat this as the **second consecutive** all-skip for the same bot(s) and **do not** immediately re-fetch. Instead, fall into the standard 60-second polling loop from `references/bot-polling.md`.
-       3. Otherwise (no prior all-skip, or the bot set changed in any way, including going to an empty set), allow the immediate re-fetch/poll as described above and update the state:
+     - On each all-skip outcome where Step 6c.3 would trigger an immediate Step 2 loop-back:
+       1. Compute `current_bot_set` as the set of bot logins whose post-fetch reviews triggered this Step 6c.3 entry.
+       2. If `last_all_skip_happened` is `true` **and** `current_bot_set` is exactly equal to `last_all_skip_bot_set` (order-independent, same members; no subset/superset logic), then treat this as a **second consecutive** immediate-loop-back for the same bot(s) — **do not** loop back to Step 2 again immediately. Instead, fall into the standard 60-second polling loop from `references/bot-polling.md`.
+       3. Otherwise (no prior all-skip, or the bot set changed in any way, including going to an empty set), allow the immediate Step 2 loop-back as described in Step 6c.3 above, and update the state:
           - Set `last_all_skip_happened = true`.
           - Set `last_all_skip_bot_set = current_bot_set`.
      - Any non-all-skip plan (i.e., at least one item is not `skip`) should clear the guard state for this invocation (e.g., `last_all_skip_happened = false`, `last_all_skip_bot_set = null`).
