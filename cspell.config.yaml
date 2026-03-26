@@ -42,6 +42,7 @@ words:
   - prauthor
   - reinvocation
   - repoll
+  - repolls
   - psql
   - pyproject
   - PYEOF
