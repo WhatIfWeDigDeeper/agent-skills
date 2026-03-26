@@ -115,7 +115,7 @@ This section is executed from Step 6c when the plan is empty or every plan row's
 1. **Check for pending bot reviewers:**
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number} \
-     --jq '[.requested_reviewers[] | select(.type == "Bot" or (.login | endswith("[bot]"))) | .login]'
+     --jq '[.requested_reviewers[] | select(.type == "Bot" or ((.login? // "") | endswith("[bot]"))) | .login]'
    ```
 
 2. **Check for bot reviews submitted after `fetch_timestamp`** (recorded in Step 2) — a bot may have submitted a review (removing itself from `requested_reviewers`) but its threads arrived after the Step 2 fetch:

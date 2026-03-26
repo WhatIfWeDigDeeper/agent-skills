@@ -611,7 +611,7 @@
       "files": [
         {
           "path": "src/parser.ts",
-          "content": "async function processInput(input: string) {\n  const result = parseTokens(input);\n  return result;\n}\n"
+          "content": "async function processInput(input: string) {\n  const result = await parseTokens(input);\n  return result;\n}\n"
         },
         {
           "path": "src/transformer.ts",
