@@ -165,9 +165,14 @@ def should_exit_auto_loop(
     submitted a review (per Signal 2 tracking). When bots are still outstanding,
     the loop continues even if no new threads appeared in this cycle.
 
-    Per bot-polling.md exit conditions:
+    bot-polling.md defines four exit conditions (including timeout and
+    security-screening/manual-confirmation), but this helper only models the
+    subset that can be expressed via its parameters:
     - Exit when no new threads AND all polled bots have responded (remaining=0)
     - Exit when iteration count has reached the maximum
+
+    Timeout-based and security/manual-confirmation exits are enforced elsewhere
+    and are intentionally not represented in this helper.
     """
     if iteration >= max_iterations:
         return True
