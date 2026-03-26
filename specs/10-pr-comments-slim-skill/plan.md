@@ -6,7 +6,7 @@
 
 ## Proposed Change
 
-Extract reference material into new/existing reference files and prune duplicated prose from the Notes section. No behavior changes — identical workflow, same steps in same order, same decision logic. No version bump needed.
+Extract reference material into new/existing reference files and prune duplicated prose from the Notes section. No behavior changes — identical workflow, same steps in same order, same decision logic. Version bumped to 1.12 per CLAUDE.md (documentation changes require a version bump).
 
 ## Detailed Changes
 

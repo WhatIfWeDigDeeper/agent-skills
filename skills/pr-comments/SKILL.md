@@ -264,7 +264,7 @@ Proceed with this step only if the plan is empty or **every** plan row's `Action
      ```
      If confirmed, enter the polling workflow. If declined, proceed to the report.
 
-**Rapid re-poll guard**: Before looping back via Step 6c.3, **you must now execute `references/bot-polling.md` (Rapid re-poll guard section)** — do not loop back. If the same bot set triggers two consecutive immediate loop-backs with no intervening non-skip plan, fall through to the 60-second polling loop instead.
+**Rapid re-poll guard**: Before looping back via Step 6c.3, **apply the Rapid re-poll guard from `references/bot-polling.md` (Rapid re-poll guard section)**. Only when the guard condition is met — i.e., the same bot set would trigger a second consecutive immediate loop-back with no intervening non-skip plan — should you **skip the loop-back and fall through to the 60-second polling loop instead**; otherwise, perform the immediate loop-back to Step 2 as normal.
 
 5. **If no pending bots and no recent bot review:** Continue to Step 7 as normal.
 
@@ -458,7 +458,7 @@ Push and re-request review from @user1, @user2?
 
 ### 14. Report
 
-**You must now execute `references/report-templates.md`** — do not skip to the report. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
+**You must now execute `references/report-templates.md`** — use the templates in that file to structure your final report. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
 
 ## Notes
 
