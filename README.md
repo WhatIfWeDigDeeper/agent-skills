@@ -110,7 +110,7 @@ cp -r skills/* ~/.claude/skills/
 
 - Pass a PR number to target a specific PR (e.g., `/pr-comments 42`), or omit it to detect from the current branch.
 - The skill presents a plan for your approval before making any changes — you can override its judgment on which comments to implement vs. decline.
-- Pass `--auto` (or `--auto N`) to enter auto-approve mode: the plan table is shown each iteration but the confirmation gate is skipped. The skill polls for bot reviewer responses and loops automatically up to N iterations (default 10).
+- Pass `--auto` (or `--auto N`) to enter auto-approve mode: the plan table is shown each iteration and the confirmation gate is skipped unless manual confirmation is required (for example, for security screening flags or oversized comments). The skill polls for bot reviewer responses and loops automatically up to N iterations (default 10).
 - Implemented comments are committed with `Co-authored-by` trailers crediting each reviewer.
 - Resolved threads are closed via the GitHub GraphQL API; declined threads remain open so reviewers can follow up.
 - Requires `gh` CLI with repo access. Runs with sandbox disabled for keyring access.
