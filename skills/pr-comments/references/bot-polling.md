@@ -36,7 +36,7 @@ List all bot handles (re-requested or pending) in the status line. If a specific
 Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`). When entering from **Step 13**, record it **before** the DELETE+POST re-request so that even a same-second review submission is captured by Signal 2. When entering from **Step 3** (no-comments-yet path), record it just before starting to poll — there is no re-request to precede. When entering from **Step 6c** (all-skip path), reuse the `fetch_timestamp` from the current run (or an earlier timestamp from the run, if you adjusted it) as `snapshot_timestamp` for the pending-bot polling entry. Step 6c should only enter polling when no post-fetch bot review has been detected. To avoid a race where a bot review lands between the Step 6c post-fetch check and the snapshot, follow this order when entering from Step 6c:
 
 1. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). When entering from Step 13, do not reuse the Step 3 results since threads may have been resolved since then; when entering from the Step 3 path, the snapshot will be empty; when entering from the Step 6c path, the snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`).
-2. Immediately after taking the snapshot (still in Step 6c), perform a final check for any bot reviews with `submitted_at >= fetch_timestamp` (using the reviews API). If any such reviews are found, **do not** continue polling from Step 6c; instead, immediately jump back to **Step 2** for a fresh fetch so that any new threads created by those reviews are re-fetched and re-classified.
+2. Immediately after taking the snapshot (still in Step 6c), perform a final check for any bot reviews with `submitted_at >= fetch_timestamp` (using the reviews API). If any such reviews are found, **do not** continue polling from Step 6c; instead, immediately jump back to **Step 2** for a fresh fetch so that any new threads created by those reviews are re-fetched and re-classified. **Exception:** if the Rapid re-poll guard (see below) fires — i.e., this is a second consecutive immediate loop-back for the same bot set — fall through to the 60-second polling loop instead of jumping to Step 2.
 
 After this initial setup, poll every 60 seconds using **two signals**:
 
@@ -107,3 +107,19 @@ Loop back to Step 2 within the same skill invocation — do not require the user
     ```
     If confirmed, use the human re-request logic from Step 13 (`gh pr edit --remove-reviewer` / `--add-reviewer`).
   - Then proceed to Step 14 for the auto-loop summary report.
+
+## Rapid re-poll guard (Step 6c loop-backs)
+
+This guard prevents a rapid loop where Step 6c loop-backs (post-fetch review detected → immediate Step 2 loop-back, or post-snapshot re-check → Step 2 loop-back) trigger repeatedly for the same bot without making progress. It does **not** apply to Step 6c's ongoing 60-second polling, which already uses the 60-second interval naturally.
+
+Track the guard **per skill invocation only** (no cross-run persistence) using two in-memory variables:
+- `last_all_skip_bot_set`: sorted, de-duplicated list of bot logins that triggered the most recent Step 6c loop-back (e.g., `["bot1[bot]","bot2[bot]"]`); `null` initially.
+- `last_all_skip_happened`: boolean; `false` initially.
+
+On each Step 6c loop-back candidate (post-fetch review detected or post-snapshot re-check → about to loop back to Step 2):
+
+1. Compute `current_bot_set` from the bot logins whose post-fetch reviews triggered this entry, and normalize it to a **sorted, de-duplicated list** (same invariant as `last_all_skip_bot_set`).
+2. If `last_all_skip_happened` is `true` **and** `current_bot_set` equals `last_all_skip_bot_set` (simple equality after normalization; effectively the same members, order-independent), this is a second consecutive loop-back for the same bot(s) — **do not loop back again**. Fall through to the standard 60-second polling loop instead. **When falling through from the guard, enter the polling loop's 60-second wait stage directly — do not re-run the Step 6c.2 post-snapshot re-check.** You already know a post-fetch review exists; the 60-second delay allows the bot to finish producing review threads before the next fetch. The thread-ID snapshot taken in Step 6c.2 and `snapshot_timestamp` (= `fetch_timestamp`) are already in place — no re-initialization needed; sleep 60 seconds, then proceed directly to Signal 1 / Signal 2 checks.
+3. Otherwise, allow the immediate Step 2 loop-back and update state: set `last_all_skip_happened = true` and `last_all_skip_bot_set = current_bot_set`.
+
+Any non-all-skip plan (at least one item is not `skip`) clears the guard: `last_all_skip_happened = false`, `last_all_skip_bot_set = null`.

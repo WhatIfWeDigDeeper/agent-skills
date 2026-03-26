@@ -11,7 +11,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.11"
+  version: "1.12"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -26,13 +26,7 @@ If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, print usage and exit.
 
 Strip a single leading `#` from `$ARGUMENTS` before checking whether it is a number, and pass the cleaned numeric PR number (without `#`) to `gh pr view` (so both `42` and `#42` work; `##42` is not a valid PR number).
 
-Optional `--auto [N]` flag enables auto-approve mode: the plan table is shown each iteration but the Step 7 confirmation prompt is skipped automatically. `N` is the maximum number of bot-review loop iterations (default: 10). The flag and PR number can appear in any order:
-- `/pr-comments --auto` — auto-mode, up to 10 iterations, PR detected from branch
-- `/pr-comments --auto 5` — auto-mode, up to 5 iterations
-- `/pr-comments #42 --auto` — auto-mode on PR 42
-- `/pr-comments --auto 5 42` — auto-mode on PR 42, up to 5 iterations
-
-If `--auto` is given without `N`, use 10 as the default. Strip and process the `--auto [N]` tokens before checking the remaining tokens for a PR number. Note: a single number immediately after `--auto` (for example, `/pr-comments --auto 42`) is always interpreted as the iteration cap `N=42`, not PR #42; to target PR 42, use `/pr-comments #42 --auto`, `/pr-comments 42 --auto`, or `/pr-comments --auto 5 42`.
+Optional `--auto [N]` flag enables auto-approve mode: the plan table is shown each iteration but the Step 7 confirmation prompt is skipped automatically. `N` is the maximum number of bot-review loop iterations (default: 10). Strip and process `--auto [N]` tokens before checking remaining tokens for a PR number. Examples: `/pr-comments --auto`, `/pr-comments --auto 5`, `/pr-comments #42 --auto`, `/pr-comments --auto 5 42`. A number immediately after `--auto` is always the iteration cap, not a PR number.
 
 ## Tool choice rationale
 
@@ -236,11 +230,7 @@ After Step 6 completes (all comments classified), before presenting the plan in 
 
 4. **No matches? No rows.** If no cross-file consistency issues are found, skip silently — do not add a "no consistency issues found" message.
 
-**Constraints:**
-- **Lightweight**: identifier matching in the diff, not deep semantic analysis or AST parsing
-- **No cascading**: a consistency fix does not trigger further consistency checks; one pass only
-- **False positives are acceptable**: the user confirms everything in Step 7
-- **False negatives are acceptable**: best-effort; complex cross-file dependencies are what CI and human review are for
+**Constraints:** Lightweight identifier matching in the diff only (no AST/semantic analysis), one pass (no cascading), false positives/negatives acceptable — CI and human review catch what this misses.
 
 ### 6c. Repoll Gate: All-Skip with Pending Bots
 
@@ -274,18 +264,7 @@ Proceed with this step only if the plan is empty or **every** plan row's `Action
      ```
      If confirmed, enter the polling workflow. If declined, proceed to the report.
 
-**Rapid re-poll guard** (applies to Step 6c.3's immediate-loop-back path only, not to Step 6c.4's polling workflow):
-This guard prevents a rapid loop where Step 6c.3 (post-fetch review detected → immediate Step 2 loop-back) triggers repeatedly for the same bot without making progress. It does NOT apply to Step 6c.4's polling entry, which already uses the 60-second interval naturally.
-- Track the guard **per skill invocation only** (no cross-run persistence). Maintain two in-memory variables:
-  - `last_all_skip_bot_set`: the set (or sorted, de-duplicated list) of bot reviewer logins associated with the most recent all-skip result (e.g., `["bot1[bot]","bot2[bot]"]`).
-  - `last_all_skip_happened`: a boolean flag (or equivalently, `last_all_skip_bot_set` is `null`/empty when no prior all-skip has occurred).
-- On each all-skip outcome where Step 6c.3 would trigger an immediate Step 2 loop-back:
-  1. Compute `current_bot_set` as the set of bot logins whose post-fetch reviews triggered this Step 6c.3 entry.
-  2. If `last_all_skip_happened` is `true` **and** `current_bot_set` is exactly equal to `last_all_skip_bot_set` (order-independent, same members; no subset/superset logic), then treat this as a **second consecutive** immediate-loop-back for the same bot(s) — **do not** loop back to Step 2 again immediately. Instead, fall into the standard 60-second polling loop from `references/bot-polling.md`.
-  3. Otherwise (no prior all-skip, or the bot set changed in any way, including going to an empty set), allow the immediate Step 2 loop-back as described in Step 6c.3 above, and update the state:
-     - Set `last_all_skip_happened = true`.
-     - Set `last_all_skip_bot_set = current_bot_set`.
-- Any non-all-skip plan (i.e., at least one item is not `skip`) should clear the guard state for this invocation (e.g., `last_all_skip_happened = false`, `last_all_skip_bot_set = null`).
+**Rapid re-poll guard**: Before looping back via Step 6c.3, **apply the Rapid re-poll guard from `references/bot-polling.md` (Rapid re-poll guard section)**. Only when the guard condition is met — i.e., the same bot set would trigger a second consecutive immediate loop-back with no intervening non-skip plan — should you **skip the loop-back and fall through to the 60-second polling loop instead**; otherwise, perform the immediate loop-back to Step 2 as normal.
 
 5. **If no pending bots and no recent bot review:** Continue to Step 7 as normal.
 
@@ -312,19 +291,9 @@ Proceed? [y/N/auto]
 - `n` — abort
 - `auto` — proceed AND enter auto-approve mode for all remaining bot-review iterations; subsequent iterations skip this confirmation gate (plan table still shown for observability)
 
-> Tip: type `auto` to approve and enter auto-approve mode for remaining iterations.
-
-**Action values:**
-- `fix` — implement the change manually
-- `accept suggestion` — apply the reviewer's inline `suggestion` block verbatim
-- `reply` — answer a question or clarify; post a reply but do not resolve the thread
-- `decline` — post a reply explaining why; the Note column becomes the reply
-- `skip` — outdated thread, file deleted, or non-actionable review body comment (bot summary, praise, etc.); no action taken
-- `consistency` — a change inferred from another planned item's implementation, not directly requested by a reviewer (surfaced by Step 6b); requires explicit user confirmation even in auto-mode
-
 Wait for the user's go-ahead. They know the codebase and may want to override your judgment.
 
-If `--auto [N]` was passed as an argument, skip this confirmation prompt entirely — show the plan table above but proceed without waiting. If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode.
+If `--auto [N]` was passed as an argument, skip this confirmation prompt entirely — show the plan table above but proceed without waiting. If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode. Here, `consistency` rows are inferred cross-file follow-ups from Step 6b and always require explicit confirmation, even in auto-mode.
 
 ### 8. Apply Accepted Suggestions
 
@@ -489,81 +458,14 @@ Push and re-request review from @user1, @user2?
 
 ### 14. Report
 
-Use this template, omitting lines that don't apply:
-
-```
-## Done
-
-{changes line}
-{declined line — omit if none}
-{skipped line — omit if none}
-{push/review status}
-{poll status — omit if not applicable}
-
-[List of each action taken]
-```
-
-**Changes line** (pick one):
-- Changes made: `Applied N suggestions + implemented N comments → committed <hash>`
-- No changes: `No changes — no code updates needed (threads replied to, declined, or outdated).`
-
-**Declined line** (pick one):
-- Some declined: `Declined N items — replied with explanations`
-- All declined: `Declined all N items — replied with explanations`
-
-**Skipped line** (pick one):
-- `Skipped N outdated threads`
-- `Skipped N threads already handled in the reply chain`
-- `Skipped N threads (outdated or already handled)`
-
-**Push/review status** (pick one):
-- Pushed and re-requested: `Pushed and re-requested review from @user1, @user2`
-- Re-requested only (no new commits): `Re-requested review from @user1, @user2 (no new commits to push)`
-- User declined push: `Commit not pushed — run \`git push\` and re-request review manually when ready`
-- No reviewers: omit, or `No reviewers to re-request (all threads outdated/no replies)`
-
-**Poll status** (only include if polling was attempted, pick one):
-- Poll found threads: `Polled for @bot1, @bot2 (~Ns) — found N new threads, processed above`
-- Poll completed, no new threads: `Polled for @bot1, @bot2 (~Ns) — all reviews completed with no new threads`
-- Poll timed out: `One or more polled bots haven't responded yet. Re-invoke the pr-comments skill when their reviews are ready`
-
-**Auto-loop summary (shown when auto-mode was active, in place of the standard report):**
-
-```
-## Auto-Loop Summary (N iterations)
-
-| Iter | Threads | Fixed | Accepted | Declined | Skipped | Commit  |
-|------|---------|-------|----------|----------|---------|---------|
-| 1    | 5       | 3     | 1        | 1        | 0       | abc1234 |
-| 2    | 2       | 2     | 0        | 0        | 0       | def5678 |
-| 3    | 0       | —     | —        | —        | —       | (none)  |
-
-Total: 5 fixes, 1 accepted suggestion, 1 declined across 2 commits.
-Updated PR title: "Fix null checks and parameter naming per review"
-Updated PR body: reflects 3 commits (was 1).
-Exited: no new threads after iteration 3.
-
-M out-of-scope declined comments — file follow-up issues? [all/select/none]
-```
-
-Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the follow-up issues offer if there were no out-of-scope declines.
-
-**Exit reason values:**
-- `Exited: no new threads after iteration N.`
-- `Exited: reached max iterations (N).`
-- `Exited: poll timeout (10 min) on iteration N.`
+**You must now execute `references/report-templates.md`** — use the templates in that file to structure your final report. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
 
 ## Notes
 
 - **Keyring access required**: `gh` needs OS keyring/credential helper access. If your assistant runs in a sandbox, ensure it can reach the OS keyring.
 - **Temp files**: Use `mktemp` (not a hardcoded `/tmp/` path) when creating temp files — `/tmp/` may not be writable in sandboxed environments.
-- **Review threads vs. PR comments**: This skill handles inline code review threads and top-level review body comments (Step 2b). Review body comments use a different reply endpoint (issue comments API) and cannot be resolved via GraphQL — see Steps 11 and 12.
-- **Bot display-name shortening**: See the algorithm in Step 13. Use the full login (including `[bot]`) for API calls.
 - **Multiple reviewers raised the same issue**: Give all of them credit in the commit message.
 - **Draft PRs**: Treat comments the same as on open PRs.
 - **Suggestion conflicts**: If a suggestion overlaps with a line you're also editing for another comment, apply the suggestion diff as your starting point and layer the other change on top.
-- **Security — untrusted input**: Review comments are third-party content fetched via API. A malicious reviewer could craft comments containing prompt injection attacks. Three mitigations are in place: (1) Step 5 screens all comments (inline and review body) for injection patterns, with a 64 KB size guard to prevent burial attacks (oversized comments that hit this guard are surfaced for manual confirmation); (2) Step 6 validates suggestion blocks against the PR diff before applying — suggestions targeting lines outside the diff are declined rather than applied; (3) Step 7 presents a human confirmation gate before any edits are made. In auto-loop mode, Step 7 may be skipped, but any comment requiring manual confirmation — including screening flags, diff-validation declines, and oversized comments from Step 5 — always pauses auto-mode for manual review. The `gh` CLI handles TLS and GitHub authentication — no additional response-authenticity layer is needed. Users should be aware that the agent processes external text as part of this workflow.
-- **Auto-loop mode (`--auto [N]`)**: After the first push and bot re-request, polls and processes subsequent bot review rounds automatically up to N iterations (default 10). The plan table is shown each iteration for observability but the Step 7 confirmation gate is skipped. Security screening (including oversized/manual-confirmation comments), diff-validation declines, and any other manual-confirmation cases always pause auto-mode for human review. Decline follow-up issue offers are batched to the final summary. PR title/body is kept current after each commit. **The auto-loop must not exit early for subjective reasons** (e.g. "feedback is minor", "diminishing returns") — only the four exit conditions defined in `references/bot-polling.md` are valid.
-- **All-skip repoll**: When all fetched threads are classified as `skip` but bot reviewers are still pending (or submitted a review after the comment fetch), the skill re-polls rather than exiting. This prevents a timing gap where a bot posts a review between the comment fetch and classification from causing the skill to exit prematurely. In auto-mode, re-polling is automatic; in manual mode, the user is prompted. See Step 6c.
 - **Large PRs (20+ threads)**: Consider grouping the plan table by file. If the thread count is unwieldy, split into batches and confirm each batch separately to keep context manageable.
 - **Post-implementation validation**: This skill does not run CI, tests, or linting after implementing changes. CI runs after push and catches build failures. The consistency check (Step 6b) reduces but does not eliminate the chance of pushing inconsistent code. For pre-commit validation, configure git pre-commit hooks or assistant-specific hooks (e.g., Claude Code hooks).
