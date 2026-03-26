@@ -2366,9 +2366,9 @@
       },
       "tokens": {
         "mean": null,
-        "stddev": 2528.8,
-        "min": 19747,
-        "max": 25771
+        "stddev": null,
+        "min": null,
+        "max": null
       }
     },
     "without_skill": {
@@ -2386,15 +2386,15 @@
       },
       "tokens": {
         "mean": null,
-        "stddev": 707.7,
-        "min": 13263,
-        "max": 15312
+        "stddev": null,
+        "min": null,
+        "max": null
       }
     },
     "delta": {
       "pass_rate": "+0.683",
       "time_seconds": "+14.0",
-      "tokens": "+7351"
+      "tokens": null
     }
   },
   "notes": [
