@@ -2,16 +2,16 @@
 
 ## Problem
 
-The pr-comments skill (v1.12, 471 lines + 258 lines in references) is performing well but has three structural issues identified during review:
+The pr-comments skill (v1.12, ~471 lines + ~258 lines in references) is performing well but has four issues (three structural, one eval-signal) identified during review:
 
-1. **Security reference is thin** — `security.md` is 16 lines with 4 bullet points, missing real-world attack vectors relevant to AI agents processing PR comments (unicode tricks, hidden text, URL injection, coordinated multi-comment attacks)
-2. **Step 6c is the densest inline step** — 34 lines of nested conditional logic requiring readers to interleave SKILL.md and bot-polling.md while tracking 4 state variables
-3. **Step 13 is the longest step** (56 lines) — mixes push logic, human/bot re-request, display-name algorithm, claude[bot] exception, and polling handoff
-4. **17% of evals are non-discriminating** — evals 13, 16, 18, 21 score identically (or near-identically) with and without the skill, providing no signal
+1. **Security reference is thin** — `security.md` is ~17 lines with 4 bullet points, missing real-world attack vectors relevant to AI agents processing PR comments (unicode tricks, hidden text, URL injection, coordinated multi-comment attacks)
+2. **Step 6c is the densest inline step** — ~35 lines of nested conditional logic requiring readers to interleave SKILL.md and bot-polling.md while tracking 4 state variables
+3. **Step 13 is the longest step** (~58 lines) — mixes push logic, human/bot re-request, display-name algorithm, claude[bot] exception, and polling handoff
+4. **~13% of evals are fully non-discriminating** — evals 13, 16, 21 score identically with and without the skill; eval 18 is nearly non-discriminating (~20% delta, only Co-authored-by differentiates)
 
 ## Proposed Changes
 
-### 1. Strengthen `references/security.md` (16 → ~35 lines)
+### 1. Strengthen `references/security.md` (~17 → ~35 lines)
 
 Add four new screening categories to the existing criteria:
 
@@ -64,11 +64,13 @@ Move the 4-step bot display-name shortening algorithm from Step 13 to bot-pollin
 
 | Metric | Before | After |
 |--------|--------|-------|
-| SKILL.md lines | 471 | ~440 |
-| bot-polling.md lines | 125 | ~163 |
-| security.md lines | 16 | ~35 |
-| Discriminating evals | 19/23 | 23/23 |
+| SKILL.md lines | ~471 | ~440 |
+| bot-polling.md lines | ~126 | ~163 |
+| security.md lines | ~17 | ~35 |
+| Discriminating evals | 20/23 | 23/23 |
 | Version | 1.12 | 1.13 |
+
+_Line counts are approximate and may drift with future edits._
 
 ## Future work (not in this spec)
 
