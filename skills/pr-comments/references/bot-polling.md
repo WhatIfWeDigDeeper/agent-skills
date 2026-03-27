@@ -38,7 +38,7 @@ Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_t
 1. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). When entering from Step 13, do not reuse the Step 3 results since threads may have been resolved since then; when entering from the Step 3 path, the snapshot will be empty; when entering from the Step 6c path, the snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`).
 2. Immediately after taking the snapshot (still in Step 6c), perform a final check for any bot reviews with `submitted_at >= fetch_timestamp` (using the reviews API). If any such reviews are found, **do not** continue polling from Step 6c; instead, immediately jump back to **Step 2** for a fresh fetch so that any new threads created by those reviews are re-fetched and re-classified. **Exception:** if the Rapid re-poll guard (see below) fires — i.e., this is a second consecutive immediate loop-back for the same bot set — fall through to the 60-second polling loop instead of jumping to Step 2.
 
-After this initial setup, poll every 60 seconds using **two signals**:
+After this initial setup, poll every 60 seconds using **three signals**:
 
 **Signal 1 — New unresolved threads:**
 ```bash
@@ -56,7 +56,16 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
 ```
 Evaluate Signal 2 **per bot**: track which bots have submitted a new review since `snapshot_timestamp`. If all polled bots have a new review with `submitted_at` at or after `snapshot_timestamp` but Signal 1 has not fired (no new threads), all bots reviewed without inline comments (e.g., approved or left only review-body summaries). Exit the poll cleanly, note it in the report, and proceed to Step 14. If only some bots have responded, continue polling for the remaining ones.
 
-Check Signal 2 after each poll cycle — but only act on it if Signal 1 has not fired in the same cycle (new threads take priority). Do not use `requested_reviewers` as a completion signal — the DELETE+POST re-request pattern creates a window where the bot is absent before it has finished reviewing.
+**Signal 3 — New timeline comment from a polled bot:**
+
+```bash
+gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
+  | jq -s '[.[] | .[] | select(.user.login == "<bot_login>" and .created_at != null and .created_at >= "'"${snapshot_timestamp}"'")]'
+```
+
+Evaluate Signal 3 **per bot** (same bot set as Signals 1 and 2 — do not check bots that are not being polled). If Signal 3 fires (new timeline comment from a polled bot), loop back to Step 2 to re-fetch. This captures bots that post only timeline comments without submitting a review.
+
+Check Signals 2 and 3 after each poll cycle — but only act on them if Signal 1 has not fired in the same cycle (new threads take priority). Do not use `requested_reviewers` as a completion signal — the DELETE+POST re-request pattern creates a window where the bot is absent before it has finished reviewing.
 
 Attribute new threads (Signal 1) to the responding bot by checking the commenter's login on each thread.
 
@@ -118,13 +127,16 @@ This section is executed from Step 6c when the plan is empty or every plan row's
      --jq '[.requested_reviewers[] | select(.type == "Bot" or ((.login? // "") | endswith("[bot]"))) | .login]'
    ```
 
-2. **Check for bot reviews submitted after `fetch_timestamp`** (recorded in Step 2) — a bot may have submitted a review (removing itself from `requested_reviewers`) but its threads arrived after the Step 2 fetch:
+2. **Check for bot reviews submitted after `fetch_timestamp`** (recorded in Step 2) — a bot may have submitted a review (removing itself from `requested_reviewers`) but its threads arrived after the Step 2 fetch. Also check for bot timeline comments posted after `fetch_timestamp` — a bot may have responded only via a timeline comment without submitting a formal review:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
      | jq -s '[.[] | .[] | select((.user.login | endswith("[bot]")) and .submitted_at != null and .submitted_at >= "'"${fetch_timestamp}"'")]'
+   gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
+     | jq -s '[.[] | .[] | select((.user.login | endswith("[bot]")) and .created_at != null and .created_at >= "'"${fetch_timestamp}"'")]'
    ```
+   If either query returns results, treat it as a post-fetch bot response.
 
-3. **If a bot submitted a review after `fetch_timestamp`** (step 2 returned results): the bot's threads may already exist but were missed by the Step 2 fetch. Apply the **Rapid re-poll guard** (see below). If the guard allows it, **immediately loop back to Step 2** (full re-fetch) — polling would snapshot current threads and never detect the already-present new ones. This counts as one iteration toward the `--auto N` cap. If the guard fires (second consecutive loop-back for the same bot set), fall through to the 60-second polling loop instead — but first take the polling baseline: set `snapshot_timestamp = "${fetch_timestamp}"` and take a fresh unresolved-thread snapshot (via the Step 3 GraphQL query), as in Step 4's auto-mode setup.
+3. **If a bot submitted a review or posted a timeline comment after `fetch_timestamp`** (step 2 returned results): the bot's threads may already exist but were missed by the Step 2 fetch. Apply the **Rapid re-poll guard** (see below). If the guard allows it, **immediately loop back to Step 2** (full re-fetch) — polling would snapshot current threads and never detect the already-present new ones. This counts as one iteration toward the `--auto N` cap. If the guard fires (second consecutive loop-back for the same bot set), fall through to the 60-second polling loop instead — but first take the polling baseline: set `snapshot_timestamp = "${fetch_timestamp}"` and take a fresh unresolved-thread snapshot (via the Step 3 GraphQL query), as in Step 4's auto-mode setup.
 
 4. **If pending bots exist but NO post-fetch review was detected** (bots are in `requested_reviewers` but haven't submitted yet):
    - **Auto-mode**: Log a status line and enter the polling workflow automatically:
