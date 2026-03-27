@@ -113,6 +113,7 @@ cp -r skills/* ~/.claude/skills/
 - Pass `--auto` (or `--auto N`) to enter auto-approve mode: the plan table is shown each iteration and the confirmation gate is skipped unless manual confirmation is required (for example, for security screening flags or oversized comments). The skill polls for bot reviewer responses and loops automatically up to N iterations (default 10).
 - Implemented comments are committed with `Co-authored-by` trailers crediting each reviewer.
 - Resolved threads are closed via the GitHub GraphQL API; declined threads remain open so reviewers can follow up.
+- When no actionable items are found (plan is empty or all actions are `skip`), routes through the All-Skip Repoll Gate (Step 6c) which checks both `requested_reviewers` and reviews submitted after the fetch timestamp — handles the race condition where a bot submits a review seconds after the fetch and is already off the pending list.
 - Requires `gh` CLI with repo access. Runs with sandbox disabled for keyring access.
 
 <details>
@@ -124,30 +125,18 @@ flowchart TD
     B --> C{PR found?}
     C -- No --> Z([Exit: no PR])
     C -- Yes --> D[Checkout PR head branch]
-    D --> E[Fetch inline + review body\ncomments via REST API]
+    D --> E[Fetch inline + review body\n+ timeline comments via REST API]
     E --> F[Fetch thread resolution state\nvia GraphQL]
     F --> G{Any unresolved\nthreads?}
-    G -- No, bots pending --> POLL0[Poll for bot review]
-    POLL0 --> E
-    G -- No, nothing pending --> Z2([Exit: nothing to do])
+    G -- No threads --> I
     G -- Yes --> H[Read code context\nfor each thread]
     H --> I[Screen comments\nfor prompt injection]
-    I --> J[Decide action per thread\n+ cross-file consistency check]
-
-    J --> K{Comment type?}
-    K -- Suggested change --> L{Accept\nsuggestion?}
-    K -- Regular comment --> M{Implement?}
-    K -- Outdated / already handled --> N[Skip — no action]
-
-    L -- Yes --> O[Accept suggestion]
-    L -- No --> P[Decline]
-    M -- Yes --> Q[Implement fix]
-    M -- No --> P
-
-    O --> R[Present plan to user]
-    Q --> R
-    P --> R
-    N --> R
+    I --> J[Decide action per item\n+ cross-file consistency check]
+    J --> ALLSKIP{All actions skip\nor plan empty?}
+    ALLSKIP -- Bots pending or recent --> POLL0[Poll for bot review]
+    POLL0 --> E
+    ALLSKIP -- No bots --> Z2([Exit: nothing to do])
+    ALLSKIP -- Actionable items --> R[Present plan to user]
 
     R --> S{--auto mode?}
     S -- No --> S2{User approves?}

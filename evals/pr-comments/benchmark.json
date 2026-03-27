@@ -4,7 +4,7 @@
     "skill_path": "skills/pr-comments",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-03-25T00:00:00Z",
+    "timestamp": "2026-03-27T00:00:00Z",
     "evals_run": [
       1,
       2,
@@ -37,9 +37,12 @@
     "runs_per_configuration": 1,
     "regression_run_evals": [
       12,
-      14
+      14,
+      22,
+      23,
+      24
     ],
-    "skill_version": "1.14"
+    "skill_version": "1.15"
   },
   "runs": [
     {
@@ -2656,6 +2659,133 @@
           "evidence": "A general assistant seeing an isOutdated thread with a concern described as already addressed would not post a reply."
         }
       ]
+    },
+    {
+      "eval_id": 22,
+      "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill checks the requested_reviewers API and detects copilot-pull-request-reviewer[bot] as a pending reviewer",
+          "passed": true,
+          "evidence": "Step 6c routes to the All-Skip Repoll Gate (bot-polling.md). Gate Step 1 runs: `gh api repos/{owner}/{repo}/pulls/{pr_number} --jq '[.requested_reviewers[] | select(.type == \"Bot\" or ((.login? // \"\") | endswith(\"[bot]\"))) | .login]'`. The scenario returns requested_reviewers with copilot-pull-request-reviewer[bot] (type: Bot), so the gate detects it as a pending bot reviewer."
+        },
+        {
+          "text": "The skill does NOT exit with 'No open review threads' when a pending bot reviewer is detected",
+          "passed": true,
+          "evidence": "Step 3 explicitly states 'Do not exit early: Step 6c will check for pending and recently-submitted bot reviewers even when Steps 2, 2b, and 2c all returned nothing.' The skill flows through Steps 5→6→6b→6c→All-Skip Repoll Gate rather than terminating."
+        },
+        {
+          "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer",
+          "passed": true,
+          "evidence": "Manual mode (no --auto flag). Gate Step 4 applies: pending bots exist and no post-fetch review was detected. bot-polling.md specifies the manual-mode prompt: 'All items skipped, but @copilot hasn't finished reviewing yet. Poll for new threads? [y/N]' (display name: strip [bot], strip -pull-request-reviewer → @copilot)."
+        },
+        {
+          "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll",
+          "passed": true,
+          "evidence": "bot-polling.md 'Polling behavior' section specifies: when entering from Step 6c, reuse fetch_timestamp as snapshot_timestamp, then immediately take a snapshot of current unresolved thread node IDs via the GraphQL query. This initialization happens before the 60-second polling loop begins."
+        }
+      ],
+      "notes": ["v1.15 regression check — Step 3 no longer has its own bot-check shortcut; routing now goes through Step 6c's All-Skip Repoll Gate. All 4 assertions pass — no regression introduced."]
+    },
+    {
+      "eval_id": 23,
+      "eval_name": "all-skip-repoll-pending-bot",
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill classifies all existing threads as skip (outdated) and does not attempt to fix, reply, or decline any of them",
+          "passed": true,
+          "evidence": "All 3 threads (101, 102, 103) have isOutdated=true with the concern no longer present in current code. Step 6 classifies each as skip; no fix, reply, or decline actions are taken in the first iteration."
+        },
+        {
+          "text": "After classifying all items as skip, the skill checks for pending bot reviewers via the requested_reviewers API rather than exiting immediately",
+          "passed": true,
+          "evidence": "Step 6c (All-Skip Repoll Gate) triggers because the plan is all-skip. Check 1 queries requested_reviewers and finds copilot-pull-request-reviewer[bot] as pending rather than allowing the skill to exit."
+        },
+        {
+          "text": "In auto-mode, the skill enters the polling workflow automatically when all items are skip and a bot reviewer is pending, without prompting the user",
+          "passed": true,
+          "evidence": "With pending bot and no post-fetch review, auto-mode logs 'All threads skipped — pending bot reviewer(s) detected. Polling for @copilot...' and enters the 60s polling loop without any user prompt."
+        },
+        {
+          "text": "When new threads are detected during the repoll, the skill loops back to Step 2 for a full re-fetch of comments rather than only re-classifying",
+          "passed": true,
+          "evidence": "When Signal 1 fires (new thread 104 appears), the skill loops back to Step 2 which returns all 4 threads (101, 102, 103, 104), performing a full re-fetch rather than only processing the newly-detected thread."
+        },
+        {
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "passed": true,
+          "evidence": "The loop-back is displayed as '## Auto-loop iteration 1/10 — @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the default --auto 10 cap."
+        }
+      ],
+      "notes": ["v1.15 regression check — Step 3 routing change and bot-polling.md entry-point cleanup. Step 6c All-Skip Repoll Gate behavior unchanged. All 5 assertions pass — no regression introduced."]
+    },
+    {
+      "eval_id": 24,
+      "eval_name": "bot-timeline-comment",
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill fetches PR timeline comments via the issues comments API (GET .../issues/{pr_number}/comments)",
+          "passed": true,
+          "evidence": "Step 2c explicitly calls gh api .../issues/99/comments, which returns the claude[bot] timeline comment with body 'this function has a potential null pointer dereference'."
+        },
+        {
+          "text": "The claude[bot] timeline comment about the null pointer dereference appears in the plan table",
+          "passed": true,
+          "evidence": "The timeline comment is listed as item #2 in the Step 7 plan table with action 'fix' and summary 'Potential null pointer dereference in function'."
+        },
+        {
+          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated — both appear as separate items (one in the plan, one as skip)",
+          "passed": true,
+          "evidence": "Dedup check: review body fingerprint starts 'Summaryoverallthechangeslookreasonable...' and timeline fingerprint is 'thisfunctionhasapotentialnullpointerdereference' — they do not match, so both are retained. Review body appears as skip (#1), timeline as fix (#2)."
+        },
+        {
+          "text": "The timeline comment about the null pointer dereference is classified as fix or reply — not silently skipped",
+          "passed": true,
+          "evidence": "Timeline comment (id 301) classified as 'fix' in Step 6 — 'null pointer dereference' is a specific, actionable correctness concern."
+        },
+        {
+          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "passed": true,
+          "evidence": "Review body comment (id 201) 'Summary: overall the changes look reasonable but there is one correctness issue.' classified as 'skip' in Step 6 — bot-generated PR summary with no specific actionable request."
+        }
+      ],
+      "notes": ["v1.15 regression check — Step 11 now requires @mention + quote-reply for timeline comments. Assertion coverage doesn't specifically test reply format, but the classification and plan presentation assertions all pass — no regression introduced."]
     }
   ],
   "run_summary": {
@@ -2721,6 +2851,7 @@
     "Eval 24 covers the v1.14 PR timeline comment support (the original bug): a bot posts a timeline comment (issues API) with actionable feedback plus a separate review body comment with different content. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 discriminating. The baseline passes on the content-present assertions (prompt describes both comments explicitly) but fails on fetching the issues/comments endpoint and applying the 200-char dedup rule to keep both as separate items.",
     "Eval 25 covers the v1.14 dedup + already-addressed logic: copilot[bot] posts identical review body and timeline comments (should dedup to one), and @alice posts a question that the PR author answers with an @mention (should be marked already addressed). with_skill 4/4 (100%), without_skill 1/4 (25%) \u2014 strongly discriminating. The baseline recognizes the @alice exchange as addressed (explicit in prompt) but lacks the formal 200-char dedup rule that keeps the review body version and discards the timeline duplicate.",
     "Eval 26 covers outdated-thread-concern-persists: strong discriminator (+1.00) \u2014 default LLM auto-skips isOutdated=true threads without verification; skill reads current file and classifies as fix if concern persists.",
-    "Eval 27 covers outdated-thread-concern-addressed: partial discriminator (+0.67) \u2014 default LLM skips for wrong reason (flag not verified read); skill explicitly reads file before confirming skip."
+    "Eval 27 covers outdated-thread-concern-addressed: partial discriminator (+0.67) \u2014 default LLM skips for wrong reason (flag not verified read); skill explicitly reads file before confirming skip.",
+    "Evals 22, 23, 24 have run_number=2 (with_skill only) as v1.15 regression checks after the Step 3 routing change (removed Step 3's own bot-check shortcut; empty-fetch path now routes through Steps 5\u21926\u21926c). All three passed 100% \u2014 no regression introduced. Step 11 @mention/quote-reply change is not directly covered by existing assertions but classification behavior is unchanged."
   ]
 }

@@ -4,6 +4,7 @@ dictionaryDefinitions: []
 dictionaries: []
 words:
   - actioned
+  - ALLSKIP
   - anthropics
   - asyncpg
   - bunx
