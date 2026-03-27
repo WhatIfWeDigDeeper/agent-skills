@@ -142,6 +142,13 @@ class TestIsAlreadyAddressed:
         same_time = self._make_comment("prowner", "@alice done", "2026-01-01T10:00:00Z")
         assert is_already_addressed(comment, [comment, same_time], pr_author="prowner", auth_user="skillbot") is False
 
+    def test_mention_substring_does_not_count(self):
+        """@alice does not match inside @alice2 or a URL containing 'alice'."""
+        comment = self._make_comment("alice", "This looks wrong.", "2026-01-01T10:00:00Z")
+        # PR author mentions @alice2 (not @alice) — should NOT count
+        later = self._make_comment("prowner", "@alice2 fixed per your suggestion", "2026-01-01T11:00:00Z")
+        assert is_already_addressed(comment, [comment, later], pr_author="prowner", auth_user="skillbot") is False
+
     def test_unrelated_blockquote_does_not_count(self):
         """A later comment with a blockquote unrelated to the original does NOT count."""
         comment = self._make_comment("alice", "This looks wrong.", "2026-01-01T10:00:00Z")

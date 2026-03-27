@@ -309,9 +309,12 @@ def is_already_addressed(
         if later_time <= comment_time:
             continue
         body = later.get("body", "")
-        # Check for @mention
-        if f"@{commenter}" in body:
-            return True
+        # Check for @mention with GitHub-username boundaries so that
+        # "@alice" does not match within "@alice2" or an email/URL.
+        if commenter:
+            mention_pattern = rf"(?<![A-Za-z0-9-])@{re.escape(commenter)}(?![A-Za-z0-9-])"
+            if re.search(mention_pattern, body):
+                return True
         # Check for a blockquote that quotes the original comment's text.
         # A bare ">" with no matching content does not count — the quoted
         # line must overlap with the original comment's body.
