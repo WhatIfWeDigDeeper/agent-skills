@@ -136,20 +136,7 @@ flowchart TD
     ALLSKIP -- Bots pending or recent --> POLL0[Poll for bot review]
     POLL0 --> E
     ALLSKIP -- No bots --> Z2([Exit: nothing to do])
-    ALLSKIP -- Actionable items --> K{Comment type?}
-    K -- Suggested change --> L{Accept\nsuggestion?}
-    K -- Regular comment --> M{Implement?}
-    K -- Outdated / already handled --> N[Skip — no action]
-
-    L -- Yes --> O[Accept suggestion]
-    L -- No --> P[Decline]
-    M -- Yes --> Q[Implement fix]
-    M -- No --> P
-
-    O --> R[Present plan to user]
-    Q --> R
-    P --> R
-    N --> R
+    ALLSKIP -- Actionable items --> R[Present plan to user]
 
     R --> S{--auto mode?}
     S -- No --> S2{User approves?}
