@@ -125,13 +125,13 @@ flowchart TD
     B --> C{PR found?}
     C -- No --> Z([Exit: no PR])
     C -- Yes --> D[Checkout PR head branch]
-    D --> E[Fetch inline + review body\ncomments via REST API]
+    D --> E[Fetch inline + review body\n+ timeline comments via REST API]
     E --> F[Fetch thread resolution state\nvia GraphQL]
     F --> G{Any unresolved\nthreads?}
     G -- No threads --> I
     G -- Yes --> H[Read code context\nfor each thread]
     H --> I[Screen comments\nfor prompt injection]
-    I --> J[Decide action per thread\n+ cross-file consistency check]
+    I --> J[Decide action per item\n+ cross-file consistency check]
     J --> ALLSKIP{All actions skip\nor plan empty?}
     ALLSKIP -- Bots pending or recent --> POLL0[Poll for bot review]
     POLL0 --> E
