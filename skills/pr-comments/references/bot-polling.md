@@ -143,7 +143,7 @@ This section is executed from Step 6c when the plan is empty or every plan row's
      ```
      All threads skipped — pending bot reviewer(s) detected. Polling for @bot1...
      ```
-     Set `snapshot_timestamp = "${fetch_timestamp}"` (or an earlier timestamp), then take a fresh thread snapshot (via the Step 3 GraphQL query). Immediately after taking this snapshot, re-run the step 2 check for bot reviews or timeline comments after `fetch_timestamp`. If any such bot reviews or timeline comments are now present, treat this as a post-fetch bot response and apply the guard / **immediately loop back to Step 2** instead of using this snapshot as the polling baseline. Otherwise, poll using Signal 1 / Signal 2. On new threads detected during polling, loop back to Step 2 (full re-fetch). This counts as one iteration toward the `--auto N` cap.
+     Set `snapshot_timestamp = "${fetch_timestamp}"` (or an earlier timestamp), then take a fresh thread snapshot (via the Step 3 GraphQL query). Immediately after taking this snapshot, re-run the step 2 check for bot reviews or timeline comments after `fetch_timestamp`. If any such bot reviews or timeline comments are now present, treat this as a post-fetch bot response and apply the guard / **immediately loop back to Step 2** instead of using this snapshot as the polling baseline. Otherwise, enter the polling loop using Signals 1–3. When any polling signal fires (new threads, a new bot review, or a bot timeline comment), immediately loop back to Step 2 (full re-fetch). This counts as one iteration toward the `--auto N` cap.
    - **Manual mode**: Show the all-skip plan, then prompt:
      ```
      All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]

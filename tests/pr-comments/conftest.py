@@ -295,7 +295,8 @@ def is_already_addressed(
     Per Step 2c: a timeline comment is considered already addressed only if a
     later timeline comment (by created_at) from the PR author or authenticated
     user either (a) @mentions the original commenter's login, or (b) quotes
-    their text (a line starting with ``>``). A plain unrelated follow-up does
+    some of their text in a blockquote — a ``>`` line whose non-empty content
+    appears in the original comment's body. A plain unrelated follow-up does
     not count.
 
     Note:
