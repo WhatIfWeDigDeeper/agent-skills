@@ -105,7 +105,10 @@ def should_offer_poll(bot_reviewers: list[str]) -> bool:
 
 
 def parse_auto_flag(args: str) -> dict:
-    """Parse the --auto [N] flag from arguments per SKILL.md.
+    """Parse mode flags from arguments per SKILL.md.
+
+    Auto mode is the default. --manual restores the confirmation gate.
+    --auto [N] is accepted for backward compatibility and to set the iteration cap.
 
     Returns:
         {
@@ -113,20 +116,23 @@ def parse_auto_flag(args: str) -> dict:
             "max_iterations": int,
             "remaining_args": str,
         }
-    where max_iterations defaults to 10 if --auto is present without N,
-    and remaining_args is the original args with any --auto [N] tokens removed.
+    where auto defaults to True, max_iterations defaults to 10,
+    and remaining_args is the original args with any mode flag tokens removed.
     """
     if not args or not args.strip():
-        return {"auto": False, "max_iterations": 10, "remaining_args": ""}
+        return {"auto": True, "max_iterations": 10, "remaining_args": ""}
 
     tokens = args.strip().split()
-    auto = False
+    auto = True  # default: auto mode
     max_iterations = 10
     remaining_tokens: list[str] = []
 
     i = 0
     while i < len(tokens):
-        if tokens[i] == "--auto":
+        if tokens[i] == "--manual":
+            auto = False
+            i += 1
+        elif tokens[i] == "--auto":
             auto = True
             # Consume any non-negative integer following --auto to prevent it
             # from leaking into remaining_args (e.g., "0" being misparsed as PR #0).

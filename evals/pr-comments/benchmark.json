@@ -38,11 +38,12 @@
     "regression_run_evals": [
       12,
       14,
+      20,
       22,
       23,
       24
     ],
-    "skill_version": "1.15"
+    "skill_version": "1.16"
   },
   "runs": [
     {
@@ -2684,12 +2685,12 @@
         {
           "text": "The skill does NOT exit with 'No open review threads' when a pending bot reviewer is detected",
           "passed": true,
-          "evidence": "Step 3 explicitly states 'Do not exit early: Step 6c will check for pending and recently-submitted bot reviewers even when Steps 2, 2b, and 2c all returned nothing.' The skill flows through Steps 5→6→6b→6c→All-Skip Repoll Gate rather than terminating."
+          "evidence": "Step 3 explicitly states 'Do not exit early: Step 6c will check for pending and recently-submitted bot reviewers even when Steps 2, 2b, and 2c all returned nothing.' The skill flows through Steps 5\u21926\u21926b\u21926c\u2192All-Skip Repoll Gate rather than terminating."
         },
         {
           "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer",
           "passed": true,
-          "evidence": "Manual mode (no --auto flag). Gate Step 4 applies: pending bots exist and no post-fetch review was detected. bot-polling.md specifies the manual-mode prompt: 'All items skipped, but @copilot hasn't finished reviewing yet. Poll for new threads? [y/N]' (display name: strip [bot], strip -pull-request-reviewer → @copilot)."
+          "evidence": "Manual mode (no --auto flag). Gate Step 4 applies: pending bots exist and no post-fetch review was detected. bot-polling.md specifies the manual-mode prompt: 'All items skipped, but @copilot hasn't finished reviewing yet. Poll for new threads? [y/N]' (display name: strip [bot], strip -pull-request-reviewer \u2192 @copilot)."
         },
         {
           "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll",
@@ -2697,7 +2698,9 @@
           "evidence": "bot-polling.md 'Polling behavior' section specifies: when entering from Step 6c, reuse fetch_timestamp as snapshot_timestamp, then immediately take a snapshot of current unresolved thread node IDs via the GraphQL query. This initialization happens before the 60-second polling loop begins."
         }
       ],
-      "notes": ["v1.15 regression check — Step 3 no longer has its own bot-check shortcut; routing now goes through Step 6c's All-Skip Repoll Gate. All 4 assertions pass — no regression introduced."]
+      "notes": [
+        "v1.15 regression check \u2014 Step 3 no longer has its own bot-check shortcut; routing now goes through Step 6c's All-Skip Repoll Gate. All 4 assertions pass \u2014 no regression introduced."
+      ]
     },
     {
       "eval_id": 23,
@@ -2728,7 +2731,7 @@
         {
           "text": "In auto-mode, the skill enters the polling workflow automatically when all items are skip and a bot reviewer is pending, without prompting the user",
           "passed": true,
-          "evidence": "With pending bot and no post-fetch review, auto-mode logs 'All threads skipped — pending bot reviewer(s) detected. Polling for @copilot...' and enters the 60s polling loop without any user prompt."
+          "evidence": "With pending bot and no post-fetch review, auto-mode logs 'All threads skipped \u2014 pending bot reviewer(s) detected. Polling for @copilot...' and enters the 60s polling loop without any user prompt."
         },
         {
           "text": "When new threads are detected during the repoll, the skill loops back to Step 2 for a full re-fetch of comments rather than only re-classifying",
@@ -2738,10 +2741,12 @@
         {
           "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
           "passed": true,
-          "evidence": "The loop-back is displayed as '## Auto-loop iteration 1/10 — @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the default --auto 10 cap."
+          "evidence": "The loop-back is displayed as '## Auto-loop iteration 1/10 \u2014 @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the default --auto 10 cap."
         }
       ],
-      "notes": ["v1.15 regression check — Step 3 routing change and bot-polling.md entry-point cleanup. Step 6c All-Skip Repoll Gate behavior unchanged. All 5 assertions pass — no regression introduced."]
+      "notes": [
+        "v1.15 regression check \u2014 Step 3 routing change and bot-polling.md entry-point cleanup. Step 6c All-Skip Repoll Gate behavior unchanged. All 5 assertions pass \u2014 no regression introduced."
+      ]
     },
     {
       "eval_id": 24,
@@ -2770,22 +2775,280 @@
           "evidence": "The timeline comment is listed as item #2 in the Step 7 plan table with action 'fix' and summary 'Potential null pointer dereference in function'."
         },
         {
-          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated — both appear as separate items (one in the plan, one as skip)",
+          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated \u2014 both appear as separate items (one in the plan, one as skip)",
           "passed": true,
-          "evidence": "Dedup check: review body fingerprint starts 'Summaryoverallthechangeslookreasonable...' and timeline fingerprint is 'thisfunctionhasapotentialnullpointerdereference' — they do not match, so both are retained. Review body appears as skip (#1), timeline as fix (#2)."
+          "evidence": "Dedup check: review body fingerprint starts 'Summaryoverallthechangeslookreasonable...' and timeline fingerprint is 'thisfunctionhasapotentialnullpointerdereference' \u2014 they do not match, so both are retained. Review body appears as skip (#1), timeline as fix (#2)."
         },
         {
-          "text": "The timeline comment about the null pointer dereference is classified as fix or reply — not silently skipped",
+          "text": "The timeline comment about the null pointer dereference is classified as fix or reply \u2014 not silently skipped",
           "passed": true,
-          "evidence": "Timeline comment (id 301) classified as 'fix' in Step 6 — 'null pointer dereference' is a specific, actionable correctness concern."
+          "evidence": "Timeline comment (id 301) classified as 'fix' in Step 6 \u2014 'null pointer dereference' is a specific, actionable correctness concern."
         },
         {
           "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
           "passed": true,
-          "evidence": "Review body comment (id 201) 'Summary: overall the changes look reasonable but there is one correctness issue.' classified as 'skip' in Step 6 — bot-generated PR summary with no specific actionable request."
+          "evidence": "Review body comment (id 201) 'Summary: overall the changes look reasonable but there is one correctness issue.' classified as 'skip' in Step 6 \u2014 bot-generated PR summary with no specific actionable request."
         }
       ],
-      "notes": ["v1.15 regression check — Step 11 now requires @mention + quote-reply for timeline comments. Assertion coverage doesn't specifically test reply format, but the classification and plan presentation assertions all pass — no regression introduced."]
+      "notes": [
+        "v1.15 regression check \u2014 Step 11 now requires @mention + quote-reply for timeline comments. Assertion coverage doesn't specifically test reply format, but the classification and plan presentation assertions all pass \u2014 no regression introduced."
+      ]
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "cross-file-consistency-matching-rename",
+      "configuration": "with_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The @charlie comment requesting the rename of `getData` to `fetchData` in `src/api.ts` is classified as `fix` in the plan",
+          "passed": true,
+          "evidence": "The plan table shows item #1 as src/api.ts:15 with action `fix` and note \"@charlie's request\" for renaming getData to fetchData."
+        },
+        {
+          "text": "`src/routes.ts` appears in the plan table with action `consistency`",
+          "passed": true,
+          "evidence": "Item #2 in the plan table is src/routes.ts:8,22 with action `consistency`."
+        },
+        {
+          "text": "The consistency row references the originating `fix` item (e.g. by item number or description)",
+          "passed": true,
+          "evidence": "The consistency row note reads \"derives from item #1 fix\", explicitly referencing the originating fix item by number."
+        },
+        {
+          "text": "The consistency item is not auto-approved in auto-mode \u2014 the skill drops to manual confirmation when a `consistency` item is present",
+          "passed": true,
+          "evidence": "The skill states the presence of a `consistency` item mandates dropping to manual confirmation and displays `Proceed? [y/N/auto]` waiting for explicit user approval, even though default mode is auto."
+        }
+      ],
+      "notes": [
+        "v1.16 regression check \u2014 auto mode is now the default; consistency items still force manual confirmation gate. All 4 assertions pass."
+      ]
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "cross-file-consistency-matching-rename",
+      "configuration": "without_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The @charlie comment requesting the rename of `getData` to `fetchData` in `src/api.ts` is classified as `fix` in the plan",
+          "passed": false,
+          "evidence": "A baseline assistant without the pr-comments skill has no concept of a structured plan table with action labels like `fix`; it would simply apply the rename directly without producing any classified plan."
+        },
+        {
+          "text": "`src/routes.ts` appears in the plan table with action `consistency`",
+          "passed": false,
+          "evidence": "The baseline assistant produces no plan table at all, and even if it checked `src/routes.ts`, it would not label that work as a `consistency` action row \u2014 that concept is specific to the pr-comments skill."
+        },
+        {
+          "text": "The consistency row references the originating `fix` item (e.g. by item number or description)",
+          "passed": false,
+          "evidence": "Since no plan table is produced, there is no consistency row and no cross-reference to an originating fix item."
+        },
+        {
+          "text": "The consistency item is not auto-approved in auto-mode \u2014 the skill drops to manual confirmation when a `consistency` item is present",
+          "passed": true,
+          "evidence": "The baseline assistant has no auto-mode confirmation gate concept, so no auto-approval of a consistency item occurs \u2014 though the structured 'drop to manual' behavior is also absent."
+        }
+      ],
+      "notes": [
+        "v1.16 regression check \u2014 baseline behavior unchanged at 1/4."
+      ]
+    },
+    {
+      "eval_id": 22,
+      "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill checks the requested_reviewers API and detects copilot-pull-request-reviewer[bot] as a pending reviewer",
+          "passed": true,
+          "evidence": "Step 6c runs the requested_reviewers API query and returns [\"copilot-pull-request-reviewer[bot]\"], confirming detection of the pending bot reviewer."
+        },
+        {
+          "text": "The skill does NOT exit with 'No open review threads' when a pending bot reviewer is detected",
+          "passed": true,
+          "evidence": "Because the requested_reviewers API returns a pending bot reviewer, Step 6c Step 4 triggers polling rather than exiting, bypassing any early-exit path."
+        },
+        {
+          "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer",
+          "passed": true,
+          "evidence": "Since default mode is AUTO (no --manual flag passed), the skill logs 'All threads skipped \u2014 pending bot reviewer(s) detected. Polling for @copilot...' and enters the 60-second polling loop automatically without prompting the user."
+        },
+        {
+          "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll",
+          "passed": true,
+          "evidence": "Step 6c Step 4 explicitly records snapshot_timestamp = fetch_timestamp and takes a fresh thread snapshot via GraphQL before entering the polling loop."
+        }
+      ],
+      "notes": [
+        "v1.16 regression check \u2014 auto mode is now the default; bare invocation now polls automatically instead of offering to poll. Assertion 3 covers both modes so all 4 pass."
+      ]
+    },
+    {
+      "eval_id": 22,
+      "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "configuration": "without_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill checks the requested_reviewers API and detects copilot-pull-request-reviewer[bot] as a pending reviewer",
+          "passed": true,
+          "evidence": "The prompt explicitly mentions the bot is in requested_reviewers and reviewing, so a capable baseline assistant would check requested_reviewers or acknowledge the bot's presence."
+        },
+        {
+          "text": "The skill does NOT exit with 'No open review threads' when a pending bot reviewer is detected",
+          "passed": true,
+          "evidence": "A baseline assistant, having been explicitly told not to exit and that the bot is reviewing, would comply with the instruction and not exit."
+        },
+        {
+          "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer",
+          "passed": false,
+          "evidence": "A baseline assistant without the structured polling protocol would not implement a proper poll loop \u2014 it might say 'I'll wait' without executing repeated API checks using Signal 1/Signal 2 detection."
+        },
+        {
+          "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll",
+          "passed": false,
+          "evidence": "The baseline assistant has no concept of snapshot_timestamp or the structured GraphQL thread snapshot mechanism, and would not perform this step before waiting for the bot reviewer."
+        }
+      ],
+      "notes": [
+        "v1.16 regression check \u2014 without_skill baseline improved from 0/4 to 2/4 due to explicit prompt hints about the bot. Assertions 3-4 test skill-specific structured polling behavior that baseline cannot satisfy."
+      ]
+    },
+    {
+      "eval_id": 23,
+      "eval_name": "all-skip-repoll-pending-bot",
+      "configuration": "with_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill classifies all existing threads as skip (outdated) and does not attempt to fix, reply, or decline any of them",
+          "passed": true,
+          "evidence": "All 3 threads have isOutdated=true and the skill applies the Step 6 rule classifying each as skip; no fix/reply/decline actions are taken."
+        },
+        {
+          "text": "After classifying all items as skip, the skill checks for pending bot reviewers via the requested_reviewers API rather than exiting immediately",
+          "passed": true,
+          "evidence": "The Step 6c All-Skip Repoll Gate triggers when all 3 items are skip, querying requested_reviewers and finding copilot-pull-request-reviewer[bot] as a pending reviewer."
+        },
+        {
+          "text": "In auto-mode, the skill enters the polling workflow automatically when all items are skip and a bot reviewer is pending, without prompting the user",
+          "passed": true,
+          "evidence": "With auto=True active, the skill logs 'All threads skipped \u2014 pending bot reviewer(s) detected. Polling for @copilot...' and enters the 60-second polling loop automatically, with no user prompt issued."
+        },
+        {
+          "text": "When new threads are detected during the repoll, the skill loops back to Step 2 for a full re-fetch of comments rather than only re-classifying",
+          "passed": true,
+          "evidence": "When Signal 1 fires (new threads from copilot detected), the skill loops back to Step 2 for a full re-fetch of all comments rather than a local re-classification of the existing snapshot."
+        },
+        {
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "passed": true,
+          "evidence": "Per the Step 6c workflow, the loop-back is displayed as '## Auto-loop iteration 1/10 \u2014 @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the --auto N cap."
+        }
+      ],
+      "notes": [
+        "v1.16 regression check \u2014 auto mode is now the default; --auto in the prompt is still consumed for backward compat. All 5 assertions pass."
+      ]
+    },
+    {
+      "eval_id": 23,
+      "eval_name": "all-skip-repoll-pending-bot",
+      "configuration": "without_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill classifies all existing threads as skip (outdated) and does not attempt to fix, reply, or decline any of them",
+          "passed": true,
+          "evidence": "A baseline assistant with basic GitHub knowledge would recognize isOutdated=true threads as not actionable and skip all three without attempting fixes or replies."
+        },
+        {
+          "text": "After classifying all items as skip, the skill checks for pending bot reviewers via the requested_reviewers API rather than exiting immediately",
+          "passed": true,
+          "evidence": "The prompt explicitly states the bot is still pending, so a capable baseline assistant would likely check requested_reviewers before concluding there is nothing to do."
+        },
+        {
+          "text": "In auto-mode, the skill enters the polling workflow automatically when all items are skip and a bot reviewer is pending, without prompting the user",
+          "passed": false,
+          "evidence": "A baseline assistant has no concept of a structured All-Skip Repoll Gate or automatic polling workflow in auto-mode."
+        },
+        {
+          "text": "When new threads are detected during the repoll, the skill loops back to Step 2 for a full re-fetch of comments rather than only re-classifying",
+          "passed": false,
+          "evidence": "A baseline assistant has no concept of a formal Step 2 loop structure for re-fetching comments."
+        },
+        {
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "passed": false,
+          "evidence": "A baseline assistant has no concept of an iteration cap counter or the mechanism by which repoll cycles are tracked against an --auto N limit."
+        }
+      ],
+      "notes": [
+        "v1.16 regression check \u2014 baseline unchanged at 2/5 (0.4)."
+      ]
     }
   ],
   "run_summary": {

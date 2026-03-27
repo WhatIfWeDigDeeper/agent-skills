@@ -12,7 +12,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.15"
+  version: "1.16"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -27,7 +27,21 @@ If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, print usage and exit.
 
 Strip a single leading `#` from `$ARGUMENTS` before checking whether it is a number, and pass the cleaned numeric PR number (without `#`) to `gh pr view` (so both `42` and `#42` work; `##42` is not a valid PR number).
 
-Optional `--auto [N]` flag enables auto-approve mode: the plan table is shown each iteration but the Step 7 confirmation prompt is skipped automatically. `N` is the maximum number of bot-review loop iterations (default: 10). Strip and process `--auto [N]` tokens before checking remaining tokens for a PR number. Examples: `/pr-comments --auto`, `/pr-comments --auto 5`, `/pr-comments #42 --auto`, `/pr-comments --auto 5 42`. A number immediately after `--auto` is always the iteration cap, not a PR number.
+**Auto mode is the default.** The Step 7 confirmation prompt is skipped automatically — the plan table is shown each iteration for observability, but no user approval is required.
+
+Optional `--manual` flag restores the confirmation gate: the skill pauses at Step 7 with a `Proceed? [y/N/auto]` prompt before applying any changes. Use this when you want to review and approve the plan before each iteration.
+
+Optional `--auto [N]` flag sets the maximum number of bot-review loop iterations (`N`, default: 10). The `--auto` flag alone is a no-op since auto is already the default, but `--auto N` with a positive integer caps the loop. Strip and process `--auto [N]` and `--manual` tokens before checking remaining tokens for a PR number. A number immediately after `--auto` is always the iteration cap, not a PR number.
+
+| Invocation | Mode | Iterations |
+|---|---|---|
+| `/pr-comments` | auto | 10 |
+| `/pr-comments 42` | auto | 10 |
+| `/pr-comments --auto 5` | auto | 5 |
+| `/pr-comments --auto 1` | auto | 1 (one pass, no looping) |
+| `/pr-comments --manual` | manual | n/a |
+| `/pr-comments --manual 42` | manual | n/a |
+| `/pr-comments --auto 5 42` | auto | 5 |
 
 ## Tool choice rationale
 
@@ -263,14 +277,16 @@ Before touching anything, show the user a clear summary as a table:
 Proceed? [y/N/auto]
 ```
 
-**Responses:**
+**Responses (manual mode only):**
 - `y` — proceed normally
 - `n` — abort
-- `auto` — proceed AND enter auto-approve mode for all remaining bot-review iterations; subsequent iterations skip this confirmation gate (plan table still shown for observability)
+- `auto` — proceed AND switch to auto mode for all remaining bot-review iterations; subsequent iterations skip this confirmation gate (plan table still shown for observability)
 
-Wait for the user's go-ahead. They know the codebase and may want to override your judgment.
+If `--manual` was passed, show the `Proceed? [y/N/auto]` prompt above and wait for the user's go-ahead. They know the codebase and may want to override your judgment.
 
-If `--auto [N]` was passed as an argument, skip this confirmation prompt entirely — show the plan table above but proceed without waiting. If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode. Here, `consistency` rows are inferred cross-file follow-ups from Step 6b and always require explicit confirmation, even in auto-mode.
+Otherwise (auto mode, the default), skip this confirmation prompt entirely — show the plan table above but proceed without waiting.
+
+If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode. Here, `consistency` rows are inferred cross-file follow-ups from Step 6b and always require explicit confirmation, even in auto-mode.
 
 ### 8. Apply Accepted Suggestions
 
