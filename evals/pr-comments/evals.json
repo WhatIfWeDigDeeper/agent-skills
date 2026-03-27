@@ -686,7 +686,7 @@
           "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap"
         }
       ]
-    }
+    },
     {
       "id": 24,
       "name": "bot-timeline-comment",
