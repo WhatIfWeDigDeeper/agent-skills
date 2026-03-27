@@ -297,6 +297,14 @@ def is_already_addressed(
     user either (a) @mentions the original commenter's login, or (b) quotes
     their text (a line starting with ``>``). A plain unrelated follow-up does
     not count.
+
+    Note:
+        ``all_timeline_comments`` must be the full, unfiltered timeline as
+        returned by the GitHub API. In particular, do not pass in the result
+        of :func:`filter_timeline_comments` (or any other list that removes
+        comments from the PR author or authenticated user), otherwise this
+        function will never see the addressing replies and will return False
+        incorrectly.
     """
     commenter = comment.get("author", "")
     comment_time = comment.get("created_at", "")

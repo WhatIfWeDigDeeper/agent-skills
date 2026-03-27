@@ -119,13 +119,13 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
   | jq -s '[.[] | .[] | {id, body, created_at, author: .user.login}]'
 ```
 
-Apply the following filters:
+Apply the following filters to define your **actionable timeline comments** set, but keep a copy of the full raw timeline comments list (including PR author/auth user comments) for linkage/response detection:
 
-1. **Exclude PR author's own comments** (using `pr.author.login` from Step 1) — these are responses, not review feedback.
-2. **Exclude authenticated user's own comments** (using the login from Step 1) — these are prior skill replies.
-3. **Dedup against Step 2b**: If a timeline comment's author matches a review body comment's author AND their first 200 non-whitespace characters match, discard the timeline comment and keep the review body version (which carries review state metadata).
+1. **Exclude PR author's own comments** (using `pr.author.login` from Step 1) from the actionable set — these are responses, not review feedback.
+2. **Exclude authenticated user's own comments** (using the login from Step 1) from the actionable set — these are prior skill replies.
+3. **Dedup against Step 2b**: If a timeline comment's author matches a review body comment's author AND their first 200 non-whitespace characters match, discard the timeline comment from the actionable set and keep the review body version (which carries review state metadata).
 
-**Already-addressed detection**: A timeline comment is considered already addressed (classify as `skip` in Step 6) only if a later timeline comment (by `created_at`) from the PR author or authenticated user either (a) `@mentions` the original commenter's login, or (b) quotes their text — a line starting with `>` whose content is a substring of the original comment body. A bare `>` with unrelated content does not count, nor does a plain follow-up with no explicit linkage. Comments that pass neither check flow through to Step 6 classification as normal.
+**Already-addressed detection**: For each actionable timeline comment that survives filters 1–3, use the **full raw timeline comments list (before filters 1–2)** to check whether it is already addressed. A timeline comment is considered already addressed (classify as `skip` in Step 6) only if a later entry in the raw list (by `created_at`) from the PR author or authenticated user either (a) `@mentions` the original commenter's login, or (b) quotes their text — a line starting with `>` whose content is a substring of the original comment body. A bare `>` with unrelated content does not count, nor does a plain follow-up with no explicit linkage. Comments that pass neither check flow through to Step 6 classification as normal.
 
 Timeline comments share the same structural properties as review body comments: no GraphQL thread ID (cannot be resolved), no `diff_hunk` or file reference, and replies use the same `POST .../issues/{pr_number}/comments` endpoint (see Step 11).
 
