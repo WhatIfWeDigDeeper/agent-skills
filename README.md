@@ -113,7 +113,7 @@ cp -r skills/* ~/.claude/skills/
 - Pass `--auto` (or `--auto N`) to enter auto-approve mode: the plan table is shown each iteration and the confirmation gate is skipped unless manual confirmation is required (for example, for security screening flags or oversized comments). The skill polls for bot reviewer responses and loops automatically up to N iterations (default 10).
 - Implemented comments are committed with `Co-authored-by` trailers crediting each reviewer.
 - Resolved threads are closed via the GitHub GraphQL API; declined threads remain open so reviewers can follow up.
-- When no review comments are found, routes through the All-Skip Repoll Gate (Step 6c) which checks both `requested_reviewers` and reviews submitted after the fetch timestamp — handles the race condition where a bot submits a review seconds after the fetch and is already off the pending list.
+- When no actionable items are found (plan is empty or all actions are `skip`), routes through the All-Skip Repoll Gate (Step 6c) which checks both `requested_reviewers` and reviews submitted after the fetch timestamp — handles the race condition where a bot submits a review seconds after the fetch and is already off the pending list.
 - Requires `gh` CLI with repo access. Runs with sandbox disabled for keyring access.
 
 <details>
@@ -128,15 +128,15 @@ flowchart TD
     D --> E[Fetch inline + review body\ncomments via REST API]
     E --> F[Fetch thread resolution state\nvia GraphQL]
     F --> G{Any unresolved\nthreads?}
-    G -- No threads --> ALLSKIP[Step 6c: check for pending\nor recently-submitted bot reviews]
-    ALLSKIP -- Bots found --> POLL0[Poll for bot review]
-    POLL0 --> E
-    ALLSKIP -- None --> Z2([Exit: nothing to do])
+    G -- No threads --> I
     G -- Yes --> H[Read code context\nfor each thread]
     H --> I[Screen comments\nfor prompt injection]
     I --> J[Decide action per thread\n+ cross-file consistency check]
-
-    J --> K{Comment type?}
+    J --> ALLSKIP{All actions skip\nor plan empty?}
+    ALLSKIP -- Bots pending or recent --> POLL0[Poll for bot review]
+    POLL0 --> E
+    ALLSKIP -- No bots --> Z2([Exit: nothing to do])
+    ALLSKIP -- Actionable items --> K{Comment type?}
     K -- Suggested change --> L{Accept\nsuggestion?}
     K -- Regular comment --> M{Implement?}
     K -- Outdated / already handled --> N[Skip — no action]
