@@ -28,14 +28,16 @@
       20,
       21,
       22,
-      23
+      23,
+      24,
+      25
     ],
     "runs_per_configuration": 1,
     "regression_run_evals": [
       12,
       14
     ],
-    "skill_version": "1.13"
+    "skill_version": "1.14"
   },
   "runs": [
     {
@@ -2348,6 +2350,168 @@
       "notes": [
         "The user's prompt includes an explicit hint ('Don't exit just because the old threads are all skip') which helps the baseline pass assertion 2. Without this hint, the baseline would likely exit after finding all threads outdated. Assertions 3-5 test skill-specific structured behavior (polling workflow, loop-back-to-Step-2, iteration cap) that has no natural analog."
       ]
+    },
+    {
+      "eval_id": 24,
+      "eval_name": "bot-timeline-comment",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill fetches PR timeline comments via the issues comments API (GET .../issues/{pr_number}/comments)",
+          "passed": true,
+          "evidence": "Step 2c explicitly instructs fetching via `gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate`, which maps to the issues comments API endpoint described in the assertion."
+        },
+        {
+          "text": "The claude[bot] timeline comment about the null pointer dereference appears in the plan table",
+          "passed": true,
+          "evidence": "Since the timeline comment is not deduplicated (different content from the review body comment), it is retained and classified as fix or reply, which means it appears in the Step 7 plan table with a *(timeline)* source marker in the File column."
+        },
+        {
+          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated — both appear as separate items (one in the plan, one as skip)",
+          "passed": true,
+          "evidence": "The dedup rule requires same author AND first 200 non-whitespace characters to match; the content differs ('null pointer dereference' vs 'Summary: overall the changes look reasonable...'), so the 200-char prefix does not match and both are kept as separate items."
+        },
+        {
+          "text": "The timeline comment about the null pointer dereference is classified as fix or reply — not silently skipped",
+          "passed": true,
+          "evidence": "Step 6 classification for a comment stating 'this function has a potential null pointer dereference' identifies a clear actionable code-level request, which maps to `fix` (or possibly `reply` if clarification is needed), not `skip`."
+        },
+        {
+          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "passed": true,
+          "evidence": "The review body comment reads 'Summary: overall the changes look reasonable but there is one correctness issue' — this is a bot PR summary comment with no direct actionable request, matching the Step 6 `skip` criterion for bot PR summaries."
+        }
+      ]
+    },
+    {
+      "eval_id": 24,
+      "eval_name": "bot-timeline-comment",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill fetches PR timeline comments via the issues comments API (GET .../issues/{pr_number}/comments)",
+          "passed": false,
+          "evidence": "A baseline assistant without the skill would not independently include the issues/comments endpoint in its standard PR review workflow. It would rely on pulls/comments and pulls/reviews endpoints, missing the timeline comments API unless explicitly told to use it."
+        },
+        {
+          "text": "The claude[bot] timeline comment about the null pointer dereference appears in the plan table",
+          "passed": true,
+          "evidence": "The prompt explicitly describes the timeline comment content ('null pointer dereference'), so even without fetching the endpoint, a baseline assistant would incorporate this described feedback into its action plan since it was provided as input."
+        },
+        {
+          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated — both appear as separate items (one in the plan, one as skip)",
+          "passed": false,
+          "evidence": "A baseline assistant has no dedup rules or logic to reason about 200-char prefix matching between comment sources. Without structured dedup logic, the handling would be ad hoc and not systematically ensure both are preserved as separate items with the correct classification."
+        },
+        {
+          "text": "The timeline comment about the null pointer dereference is classified as fix or reply — not silently skipped",
+          "passed": true,
+          "evidence": "Since the prompt explicitly labels the timeline comment as 'actionable feedback' about a null pointer dereference, a baseline assistant would recognize this as requiring action and not skip it."
+        },
+        {
+          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "passed": false,
+          "evidence": "A baseline assistant has no structured classification rules for bot PR summary comments. It might attempt to act on the review body comment ('one correctness issue') rather than correctly classifying it as a non-actionable summary, since it lacks skill-defined rules distinguishing summary comments from actionable ones."
+        }
+      ]
+    },
+    {
+      "eval_id": 25,
+      "eval_name": "timeline-dedup-and-already-addressed",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The copilot[bot] timeline comment is discarded as a duplicate of the review body comment (same author and matching content)",
+          "passed": true,
+          "evidence": "The skill's Step 2c dedup rule explicitly matches on same author (copilot[bot]) and matching 200-char non-whitespace prefix. Since both conditions are met with identical content, the timeline comment is discarded."
+        },
+        {
+          "text": "The copilot[bot] review body comment (not the timeline duplicate) is kept and appears in the plan",
+          "passed": true,
+          "evidence": "The dedup rule keeps the review body version and discards the timeline version. The review body comment about the never-called helper function proceeds to classification and appears in the plan."
+        },
+        {
+          "text": "The @alice timeline question is classified as skip because the PR author's later comment @mentions @alice",
+          "passed": true,
+          "evidence": "The already-addressed detection rule identifies that the PR author's reply contains '@alice', satisfying condition (a) — @mention of the original commenter. Since this reply was posted after alice's question, alice's question is marked as already addressed and classified as skip."
+        },
+        {
+          "text": "The copilot[bot] feedback does not appear twice in the plan — only one item for it",
+          "passed": true,
+          "evidence": "Because the timeline duplicate was discarded during Step 2c dedup, only one item representing the review body comment about the never-called helper function appears in the plan, preventing double-counting."
+        }
+      ]
+    },
+    {
+      "eval_id": 25,
+      "eval_name": "timeline-dedup-and-already-addressed",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The copilot[bot] timeline comment is discarded as a duplicate of the review body comment (same author and matching content)",
+          "passed": false,
+          "evidence": "A baseline assistant has no formal 200-char prefix dedup rule and no concept of 'discard timeline, keep review body' ordering. It would likely treat both comments as independent items or handle the duplicate informally without the specific discard rule."
+        },
+        {
+          "text": "The copilot[bot] review body comment (not the timeline duplicate) is kept and appears in the plan",
+          "passed": false,
+          "evidence": "Without a formal dedup rule that explicitly preserves the review body version over the timeline version, a baseline assistant would not reliably select the review body comment as the canonical one to keep — it might keep both or arbitrarily keep one."
+        },
+        {
+          "text": "The @alice timeline question is classified as skip because the PR author's later comment @mentions @alice",
+          "passed": true,
+          "evidence": "The prompt explicitly states that the PR author replied with '@alice I tried a map initially...' — a baseline assistant can recognize from the explicit context that the question has already been answered and would classify it as addressed/skip."
+        },
+        {
+          "text": "The copilot[bot] feedback does not appear twice in the plan — only one item for it",
+          "passed": false,
+          "evidence": "Without a formal deduplication rule, a baseline assistant processing both a review body comment and a timeline comment with identical content from copilot[bot] would likely include both in the plan, resulting in duplicate entries rather than a single consolidated item."
+        }
+      ]
     }
   ],
   "run_summary": {
@@ -2374,7 +2538,7 @@
     "without_skill": {
       "pass_rate": {
         "mean": 0.317,
-        "stddev": 0.267,
+        "stddev": 0.257,
         "min": 0.0,
         "max": 0.8
       },
@@ -2409,6 +2573,8 @@
     "Eval 20 covers the v1.10 cross-file consistency check (Step 6b): when a rename in one file also affects another PR-modified file with the same function in an analogous context, a `consistency` row should appear in the plan. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline focuses only on files with explicit review comments and performs no cross-file identifier search.",
     "Eval 21 covers the no-false-positive case for Step 6b: when a same-named variable exists in another PR-modified file in a structurally distinct context (async single-call assignment vs. sync loop accumulator), it should NOT be flagged as a consistency item. with_skill 3/3 (100%), without_skill 1/3 (33%) \u2014 discriminating after rewriting with structurally distinct fixtures and removing the giveaway sentence. The baseline incorrectly flags the unrelated variable as a consistency item.",
     "Eval 22 covers the v1.10 early-poll path: when the skill is invoked right after PR creation with no review comments yet, it should detect pending bot reviewers via requested_reviewers API and offer to poll rather than exiting. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline finds no comments and exits; it has no concept of checking requested_reviewers or entering a polling loop.",
-    "Eval 23 covers the v1.11 all-skip repoll gate (Step 6c): when all fetched threads are outdated but a bot reviewer is still pending, the skill should repoll rather than exiting. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 moderately discriminating. The baseline passes assertions 1 (skip outdated) and 2 (check requested_reviewers, prompted by user hint) but fails on structured polling workflow, loop-back-to-Step-2, and iteration cap tracking."
+    "Eval 23 covers the v1.11 all-skip repoll gate (Step 6c): when all fetched threads are outdated but a bot reviewer is still pending, the skill should repoll rather than exiting. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 moderately discriminating. The baseline passes assertions 1 (skip outdated) and 2 (check requested_reviewers, prompted by user hint) but fails on structured polling workflow, loop-back-to-Step-2, and iteration cap tracking.",
+    "Eval 24 covers the v1.14 PR timeline comment support (the original bug): a bot posts a timeline comment (issues API) with actionable feedback plus a separate review body comment with different content. with_skill 5/5 (100%), without_skill 2/5 (40%) — discriminating. The baseline passes on the content-present assertions (prompt describes both comments explicitly) but fails on fetching the issues/comments endpoint and applying the 200-char dedup rule to keep both as separate items.",
+    "Eval 25 covers the v1.14 dedup + already-addressed logic: copilot[bot] posts identical review body and timeline comments (should dedup to one), and @alice posts a question that the PR author answers with an @mention (should be marked already addressed). with_skill 4/4 (100%), without_skill 1/4 (25%) — strongly discriminating. The baseline recognizes the @alice exchange as addressed (explicit in prompt) but lacks the formal 200-char dedup rule that keeps the review body version and discards the timeline duplicate."
   ]
 }
