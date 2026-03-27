@@ -142,6 +142,19 @@ class TestIsAlreadyAddressed:
         same_time = self._make_comment("prowner", "@alice done", "2026-01-01T10:00:00Z")
         assert is_already_addressed(comment, [comment, same_time], pr_author="prowner", auth_user="skillbot") is False
 
+    def test_unrelated_blockquote_does_not_count(self):
+        """A later comment with a blockquote unrelated to the original does NOT count."""
+        comment = self._make_comment("alice", "This looks wrong.", "2026-01-01T10:00:00Z")
+        # PR author quotes something else entirely (not alice's comment body)
+        later = self._make_comment("prowner", "> See the contributing guide.\nUpdated accordingly.", "2026-01-01T11:00:00Z")
+        assert is_already_addressed(comment, [comment, later], pr_author="prowner", auth_user="skillbot") is False
+
+    def test_empty_blockquote_does_not_count(self):
+        """A bare '>' with no quoted text does not count."""
+        comment = self._make_comment("alice", "This looks wrong.", "2026-01-01T10:00:00Z")
+        later = self._make_comment("prowner", ">\nYep, fixed.", "2026-01-01T11:00:00Z")
+        assert is_already_addressed(comment, [comment, later], pr_author="prowner", auth_user="skillbot") is False
+
 
 class TestSignal3:
     def test_fires_when_bot_timeline_comment_present(self):

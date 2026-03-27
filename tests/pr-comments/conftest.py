@@ -312,9 +312,15 @@ def is_already_addressed(
         # Check for @mention
         if f"@{commenter}" in body:
             return True
-        # Check for a line starting with >
-        if any(line.startswith(">") for line in body.splitlines()):
-            return True
+        # Check for a blockquote that quotes the original comment's text.
+        # A bare ">" with no matching content does not count — the quoted
+        # line must overlap with the original comment's body.
+        original_body = comment.get("body", "")
+        for line in body.splitlines():
+            if line.startswith(">"):
+                quoted = line[1:].strip()
+                if quoted and quoted in original_body:
+                    return True
     return False
 
 

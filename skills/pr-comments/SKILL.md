@@ -125,7 +125,7 @@ Apply the following filters:
 2. **Exclude authenticated user's own comments** (using the login from Step 1) — these are prior skill replies.
 3. **Dedup against Step 2b**: If a timeline comment's author matches a review body comment's author AND their first 200 non-whitespace characters match, discard the timeline comment and keep the review body version (which carries review state metadata).
 
-**Already-addressed detection**: A timeline comment is considered already addressed (classify as `skip` in Step 6) only if a later timeline comment (by `created_at`) from the PR author or authenticated user either (a) `@mentions` the original commenter's login, or (b) quotes their text (a line starting with `>`). A plain unrelated follow-up from the PR author does not count — without explicit mention or quote linkage, there is no reliable signal the feedback was addressed. Comments that pass neither check flow through to Step 6 classification as normal.
+**Already-addressed detection**: A timeline comment is considered already addressed (classify as `skip` in Step 6) only if a later timeline comment (by `created_at`) from the PR author or authenticated user either (a) `@mentions` the original commenter's login, or (b) quotes their text — a line starting with `>` whose content is a substring of the original comment body. A bare `>` with unrelated content does not count, nor does a plain follow-up with no explicit linkage. Comments that pass neither check flow through to Step 6 classification as normal.
 
 Timeline comments share the same structural properties as review body comments: no GraphQL thread ID (cannot be resolved), no `diff_hunk` or file reference, and replies use the same `POST .../issues/{pr_number}/comments` endpoint (see Step 11).
 
