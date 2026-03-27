@@ -691,7 +691,7 @@
       "id": 24,
       "name": "bot-timeline-comment",
       "prompt": "Address the review comments on my PR. claude[bot] posted a timeline comment (via the issue comments API) with actionable feedback: 'this function has a potential null pointer dereference'. The same bot also submitted a review body comment with different content: 'Summary: overall the changes look reasonable but there is one correctness issue.' There are no inline review threads.",
-      "expected_output": "The skill fetches PR timeline comments via GET .../issues/{pr}/comments (Step 2c) and finds the claude[bot] timeline comment. It also fetches review body comments (Step 2b) and finds the claude[bot] review body comment. Since the two comments have different content (the 200-char prefix does not match), both are processed — not deduped. The timeline comment ('null pointer dereference') is classified as fix or reply and appears in the plan table with a *(timeline)* source marker. The review body summary is classified as skip (bot PR summary, no action needed). The skill proceeds to implement or reply to the null pointer feedback.",
+      "expected_output": "The skill fetches PR timeline comments via GET .../issues/{pr}/comments (Step 2c) and finds the claude[bot] timeline comment. It also fetches review body comments (Step 2b) and finds the claude[bot] review body comment. Since the two comments have different content (the 200-char prefix does not match), both are processed \u2014 not deduped. The timeline comment ('null pointer dereference') is classified as fix or reply and appears in the plan table with a *(timeline)* source marker. The review body summary is classified as skip (bot PR summary, no action needed). The skill proceeds to implement or reply to the null pointer feedback.",
       "files": [],
       "assertions": [
         {
@@ -704,11 +704,11 @@
         },
         {
           "id": "timeline-not-deduped-with-review-body",
-          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated — both appear as separate items (one in the plan, one as skip)"
+          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated \u2014 both appear as separate items (one in the plan, one as skip)"
         },
         {
           "id": "timeline-comment-classified-fix-or-reply",
-          "text": "The timeline comment about the null pointer dereference is classified as fix or reply — not silently skipped"
+          "text": "The timeline comment about the null pointer dereference is classified as fix or reply \u2014 not silently skipped"
         },
         {
           "id": "review-body-summary-skipped",
@@ -719,7 +719,7 @@
     {
       "id": 25,
       "name": "timeline-dedup-and-already-addressed",
-      "prompt": "Address the review comments on my PR. There are two scenarios: (1) copilot[bot] posted both a review body comment AND a timeline comment with identical content: 'The helper function on line 42 is never called — consider removing it.' (2) @alice posted a timeline comment asking 'Why did you choose this approach over using a map?' and the PR author later replied in a timeline comment: '@alice I tried a map initially but it was slower in practice.' There are no inline review threads.",
+      "prompt": "Address the review comments on my PR. There are two scenarios: (1) copilot[bot] posted both a review body comment AND a timeline comment with identical content: 'The helper function on line 42 is never called \u2014 consider removing it.' (2) @alice posted a timeline comment asking 'Why did you choose this approach over using a map?' and the PR author later replied in a timeline comment: '@alice I tried a map initially but it was slower in practice.' There are no inline review threads.",
       "expected_output": "For scenario 1: the skill fetches both the copilot[bot] review body comment (Step 2b) and timeline comment (Step 2c). Since they have the same author and matching 200-char prefix, the timeline comment is discarded as a duplicate and only the review body version is kept. The review body comment is classified as skip or fix. For scenario 2: the skill detects that the PR author's later comment @mentions @alice, so the original alice question is already addressed and classified as skip. Only the non-duplicate, non-addressed items appear in the plan.",
       "files": [],
       "assertions": [
@@ -737,7 +737,53 @@
         },
         {
           "id": "no-duplicate-in-plan",
-          "text": "The copilot[bot] feedback does not appear twice in the plan — only one item for it"
+          "text": "The copilot[bot] feedback does not appear twice in the plan \u2014 only one item for it"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "name": "outdated-thread-concern-persists",
+      "prompt": "Address the review comments on my PR. There is one review thread marked isOutdated=true. The comment says: \"The final check in Step 6c only checks bot reviews (submitted_at >= fetch_timestamp) but not bot timeline comments \u2014 a bot that posts only a timeline comment between fetch and snapshot will be missed.\" The surrounding code was refactored (unrelated lines changed), which caused the thread to become outdated. Reading the current file confirms the concern is still valid: the final check paragraph still only references the reviews API, not the issues/comments API.",
+      "expected_output": "The skill reads the current file at the thread location and confirms the concern (missing timeline comment check) still applies in the current code. It does NOT classify the thread as skip just because isOutdated is true. Instead it classifies it as fix or reply, notes in the plan that the thread location has shifted, implements the fix (adding the timeline comment check to the final check paragraph), and does not attempt to call resolveReviewThread on the outdated thread.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "outdated-thread-not-auto-skipped",
+          "text": "The outdated thread is NOT automatically classified as skip \u2014 the skill reads the current file to check whether the concern persists"
+        },
+        {
+          "id": "outdated-concern-persists-classified-fix",
+          "text": "Because the concern still applies in the current code, the thread is classified as fix or reply (not skip)"
+        },
+        {
+          "id": "outdated-thread-no-resolve-mutation",
+          "text": "The skill does not call resolveReviewThread on the outdated thread"
+        },
+        {
+          "id": "outdated-plan-note",
+          "text": "The plan table notes that the thread location has shifted (outdated) while still treating the concern as actionable"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "name": "outdated-thread-concern-addressed",
+      "prompt": "Address the review comments on my PR. There is one review thread marked isOutdated=true. The comment says: \"This function is missing a null check before dereferencing user.name.\" Reading the current file shows that the code was refactored and now includes an explicit null guard:  before any access to user.name. The thread became outdated because those exact lines were rewritten to address this concern.",
+      "expected_output": "The skill reads the current file at the thread location and confirms the null check concern has already been addressed \u2014 the code now includes the null guard. Because the concern no longer applies, the thread is classified as skip (outdated and addressed). The skill does not post a reply and does not call resolveReviewThread.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "outdated-addressed-reads-current-file",
+          "text": "The skill reads the current file to verify whether the concern (missing null check) is still present"
+        },
+        {
+          "id": "outdated-addressed-classified-skip",
+          "text": "Because the null check is now present in the current code, the thread is classified as skip (concern resolved)"
+        },
+        {
+          "id": "outdated-addressed-no-reply",
+          "text": "The skill does not post a reply to the outdated thread since the concern is already addressed"
         }
       ]
     }

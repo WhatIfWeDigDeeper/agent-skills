@@ -30,7 +30,9 @@
       22,
       23,
       24,
-      25
+      25,
+      26,
+      27
     ],
     "runs_per_configuration": 1,
     "regression_run_evals": [
@@ -2378,19 +2380,19 @@
           "evidence": "Since the timeline comment is not deduplicated (different content from the review body comment), it is retained and classified as fix or reply, which means it appears in the Step 7 plan table with a *(timeline)* source marker in the File column."
         },
         {
-          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated — both appear as separate items (one in the plan, one as skip)",
+          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated \u2014 both appear as separate items (one in the plan, one as skip)",
           "passed": true,
           "evidence": "The dedup rule requires same author AND first 200 non-whitespace characters to match; the content differs ('null pointer dereference' vs 'Summary: overall the changes look reasonable...'), so the 200-char prefix does not match and both are kept as separate items."
         },
         {
-          "text": "The timeline comment about the null pointer dereference is classified as fix or reply — not silently skipped",
+          "text": "The timeline comment about the null pointer dereference is classified as fix or reply \u2014 not silently skipped",
           "passed": true,
           "evidence": "Step 6 classification for a comment stating 'this function has a potential null pointer dereference' identifies a clear actionable code-level request, which maps to `fix` (or possibly `reply` if clarification is needed), not `skip`."
         },
         {
           "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
           "passed": true,
-          "evidence": "The review body comment reads 'Summary: overall the changes look reasonable but there is one correctness issue' — this is a bot PR summary comment with no direct actionable request, matching the Step 6 `skip` criterion for bot PR summaries."
+          "evidence": "The review body comment reads 'Summary: overall the changes look reasonable but there is one correctness issue' \u2014 this is a bot PR summary comment with no direct actionable request, matching the Step 6 `skip` criterion for bot PR summaries."
         }
       ]
     },
@@ -2421,12 +2423,12 @@
           "evidence": "The prompt explicitly describes the timeline comment content ('null pointer dereference'), so even without fetching the endpoint, a baseline assistant would incorporate this described feedback into its action plan since it was provided as input."
         },
         {
-          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated — both appear as separate items (one in the plan, one as skip)",
+          "text": "The timeline comment and the review body comment from claude[bot] are NOT deduplicated \u2014 both appear as separate items (one in the plan, one as skip)",
           "passed": false,
           "evidence": "A baseline assistant has no dedup rules or logic to reason about 200-char prefix matching between comment sources. Without structured dedup logic, the handling would be ad hoc and not systematically ensure both are preserved as separate items with the correct classification."
         },
         {
-          "text": "The timeline comment about the null pointer dereference is classified as fix or reply — not silently skipped",
+          "text": "The timeline comment about the null pointer dereference is classified as fix or reply \u2014 not silently skipped",
           "passed": true,
           "evidence": "Since the prompt explicitly labels the timeline comment as 'actionable feedback' about a null pointer dereference, a baseline assistant would recognize this as requiring action and not skip it."
         },
@@ -2466,10 +2468,10 @@
         {
           "text": "The @alice timeline question is classified as skip because the PR author's later comment @mentions @alice",
           "passed": true,
-          "evidence": "The already-addressed detection rule identifies that the PR author's reply contains '@alice', satisfying condition (a) — @mention of the original commenter. Since this reply was posted after alice's question, alice's question is marked as already addressed and classified as skip."
+          "evidence": "The already-addressed detection rule identifies that the PR author's reply contains '@alice', satisfying condition (a) \u2014 @mention of the original commenter. Since this reply was posted after alice's question, alice's question is marked as already addressed and classified as skip."
         },
         {
-          "text": "The copilot[bot] feedback does not appear twice in the plan — only one item for it",
+          "text": "The copilot[bot] feedback does not appear twice in the plan \u2014 only one item for it",
           "passed": true,
           "evidence": "Because the timeline duplicate was discarded during Step 2c dedup, only one item representing the review body comment about the never-called helper function appears in the plan, preventing double-counting."
         }
@@ -2499,17 +2501,159 @@
         {
           "text": "The copilot[bot] review body comment (not the timeline duplicate) is kept and appears in the plan",
           "passed": false,
-          "evidence": "Without a formal dedup rule that explicitly preserves the review body version over the timeline version, a baseline assistant would not reliably select the review body comment as the canonical one to keep — it might keep both or arbitrarily keep one."
+          "evidence": "Without a formal dedup rule that explicitly preserves the review body version over the timeline version, a baseline assistant would not reliably select the review body comment as the canonical one to keep \u2014 it might keep both or arbitrarily keep one."
         },
         {
           "text": "The @alice timeline question is classified as skip because the PR author's later comment @mentions @alice",
           "passed": true,
-          "evidence": "The prompt explicitly states that the PR author replied with '@alice I tried a map initially...' — a baseline assistant can recognize from the explicit context that the question has already been answered and would classify it as addressed/skip."
+          "evidence": "The prompt explicitly states that the PR author replied with '@alice I tried a map initially...' \u2014 a baseline assistant can recognize from the explicit context that the question has already been answered and would classify it as addressed/skip."
         },
         {
-          "text": "The copilot[bot] feedback does not appear twice in the plan — only one item for it",
+          "text": "The copilot[bot] feedback does not appear twice in the plan \u2014 only one item for it",
           "passed": false,
           "evidence": "Without a formal deduplication rule, a baseline assistant processing both a review body comment and a timeline comment with identical content from copilot[bot] would likely include both in the plan, resulting in duplicate entries rather than a single consolidated item."
+        }
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "outdated-thread-concern-persists",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The outdated thread is NOT automatically classified as skip \u2014 the skill reads the current file to check whether the concern persists",
+          "passed": true,
+          "evidence": "Step 4 of SKILL.md mandates reading the current file for every unresolved inline thread. Step 6 requires verifying by reading the current file before classifying an isOutdated thread as skip."
+        },
+        {
+          "text": "Because the concern still applies in the current code, the thread is classified as fix or reply (not skip)",
+          "passed": true,
+          "evidence": "SKILL.md Step 6: 'If the concern persists despite the thread being outdated, treat it as a regular comment (fix/reply/decline) with a note that the thread location has shifted.'"
+        },
+        {
+          "text": "The skill does not call resolveReviewThread on the outdated thread",
+          "passed": true,
+          "evidence": "SKILL.md Step 6 explicitly states 'do not attempt to resolve the thread (no resolveReviewThread mutation on outdated threads).'"
+        },
+        {
+          "text": "The plan table notes that the thread location has shifted (outdated) while still treating the concern as actionable",
+          "passed": true,
+          "evidence": "SKILL.md Step 6 instructs treating as fix/reply/decline 'with a note that the thread location has shifted.' The plan table includes a Note column entry marking the thread outdated while keeping action as fix."
+        }
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "outdated-thread-concern-persists",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The outdated thread is NOT automatically classified as skip \u2014 the skill reads the current file to check whether the concern persists",
+          "passed": false,
+          "evidence": "Default LLM behavior treats isOutdated=true as a signal the concern no longer applies. The assistant skips without reading the current file."
+        },
+        {
+          "text": "Because the concern still applies in the current code, the thread is classified as fix or reply (not skip)",
+          "passed": false,
+          "evidence": "The thread was classified as skip based solely on the isOutdated flag, without verifying the concern persists."
+        },
+        {
+          "text": "The skill does not call resolveReviewThread on the outdated thread",
+          "passed": false,
+          "evidence": "Default LLM would likely call resolveReviewThread, misreading outdated as 'already resolved by code movement'."
+        },
+        {
+          "text": "The plan table notes that the thread location has shifted (outdated) while still treating the concern as actionable",
+          "passed": false,
+          "evidence": "No plan table entry produced \u2014 the thread was skipped entirely."
+        }
+      ]
+    },
+    {
+      "eval_id": 27,
+      "eval_name": "outdated-thread-concern-addressed",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill reads the current file to verify whether the concern (missing null check) is still present",
+          "passed": true,
+          "evidence": "SKILL.md Step 4 mandates reading the current file for every inline thread. Step 6 reinforces this for isOutdated threads before classifying as skip."
+        },
+        {
+          "text": "Because the null check is now present in the current code, the thread is classified as skip (concern resolved)",
+          "passed": true,
+          "evidence": "SKILL.md Step 6: 'Skip if isOutdated is true AND the substance of the comment has been addressed in the current code.' The null guard is confirmed present."
+        },
+        {
+          "text": "The skill does not post a reply to the outdated thread since the concern is already addressed",
+          "passed": true,
+          "evidence": "Skip classification means no reply is posted. Step 11 only posts replies for reply and decline items."
+        }
+      ]
+    },
+    {
+      "eval_id": 27,
+      "eval_name": "outdated-thread-concern-addressed",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill reads the current file to verify whether the concern (missing null check) is still present",
+          "passed": false,
+          "evidence": "Without SKILL.md, a general assistant has no instruction to proactively read the current file for an isOutdated thread. It relies on the stated context in the prompt rather than actively reading."
+        },
+        {
+          "text": "Because the null check is now present in the current code, the thread is classified as skip (concern resolved)",
+          "passed": false,
+          "evidence": "Without the skill's policy, the general assistant skips because isOutdated=true \u2014 not because it verified the concern via file read. The reasoning is wrong even if the outcome appears correct."
+        },
+        {
+          "text": "The skill does not post a reply to the outdated thread since the concern is already addressed",
+          "passed": true,
+          "evidence": "A general assistant seeing an isOutdated thread with a concern described as already addressed would not post a reply."
         }
       ]
     }
@@ -2520,7 +2664,8 @@
         "mean": 1.0,
         "stddev": 0.0,
         "min": 1.0,
-        "max": 1.0
+        "max": 1.0,
+        "n": 27
       },
       "time_seconds": {
         "mean": null,
@@ -2537,10 +2682,11 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.317,
-        "stddev": 0.257,
+        "mean": 0.31,
+        "stddev": 0.25,
         "min": 0.0,
-        "max": 0.8
+        "max": 0.8,
+        "n": 27
       },
       "time_seconds": {
         "mean": null,
@@ -2556,7 +2702,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.68",
+      "pass_rate": "+0.69",
       "time_seconds": null,
       "tokens": null
     }
@@ -2564,17 +2710,19 @@
   "notes": [
     "Eval 13 covers the push-before-poll flow: the branch must be pushed before the poll offer is presented. with_skill 6/6 (100%), without_skill 2/6 (33%) \u2014 discriminating after adding the push-before-poll-offer assertion. The baseline completes the implementation workflow but presents the poll offer before push confirmation.",
     "Eval 16 covers exact-login skip matching: the skip decision must compare reply authors by exact login string, not by role or description. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 discriminating after adding the skip-uses-exact-login-match assertion. The baseline may skip by recognizing the author as 'the PR author' from context rather than by comparing login strings exactly.",
-    "Time and token run_summary stats are set to null — simulated transcript runs used 0.0 as a placeholder for unmeasured time, which skewed aggregates. Individual runs with real executor measurements retain their recorded time_seconds; simulated runs are set to null.",
+    "Time and token run_summary stats are set to null \u2014 simulated transcript runs used 0.0 as a placeholder for unmeasured time, which skewed aggregates. Individual runs with real executor measurements retain their recorded time_seconds; simulated runs are set to null.",
     "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior.",
     "Evals 12 and 14 have run_number 2 (with_skill only) as regression checks after the Signal 2 poll redesign (replaced requested_reviewers check with reviews API submitted_at > snapshot_timestamp). Both passed 100% \u2014 no regression introduced. Run_number 3 (with_skill only) added after v1.11 exit condition refinement (added Signal 2 completion requirement + anti-rationalization guardrail). Both passed 100% \u2014 no regression.",
     "Evals 17 and 18 cover the v1.7 review body actionable change. Eval 17 (with_skill 7/7, without_skill 5/7): failures on Co-authored-by and re-request list inclusion for declined review body authors. Eval 18 (with_skill 5/5, without_skill 4/5): near non-discriminating \u2014 only failure is Co-authored-by, a skill-specific convention. The baseline independently handles review body API endpoints and resolveReviewThread exclusion correctly.",
-    "Token run_summary stats are set to null — only a minority of primary (run_number=1) runs have recorded token counts; with fewer than half of runs having token data, mean/stddev aggregates would be unreliable. See individual run entries for per-run token counts where available.",
+    "Token run_summary stats are set to null \u2014 only a minority of primary (run_number=1) runs have recorded token counts; with fewer than half of runs having token data, mean/stddev aggregates would be unreliable. See individual run entries for per-run token counts where available.",
     "Eval 19 covers the v1.8 diff-validation guard: suggestions targeting lines outside the PR diff should be declined, not applied. with_skill 4/4 (100%), without_skill 1/4 (25%) \u2014 delta +75%. The baseline applies out-of-scope suggestions without checking the diff; this is entirely skill-specific behavior.",
     "Eval 20 covers the v1.10 cross-file consistency check (Step 6b): when a rename in one file also affects another PR-modified file with the same function in an analogous context, a `consistency` row should appear in the plan. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline focuses only on files with explicit review comments and performs no cross-file identifier search.",
     "Eval 21 covers the no-false-positive case for Step 6b: when a same-named variable exists in another PR-modified file in a structurally distinct context (async single-call assignment vs. sync loop accumulator), it should NOT be flagged as a consistency item. with_skill 3/3 (100%), without_skill 1/3 (33%) \u2014 discriminating after rewriting with structurally distinct fixtures and removing the giveaway sentence. The baseline incorrectly flags the unrelated variable as a consistency item.",
     "Eval 22 covers the v1.10 early-poll path: when the skill is invoked right after PR creation with no review comments yet, it should detect pending bot reviewers via requested_reviewers API and offer to poll rather than exiting. with_skill 4/4 (100%), without_skill 0/4 (0%) \u2014 strongly discriminating. The baseline finds no comments and exits; it has no concept of checking requested_reviewers or entering a polling loop.",
     "Eval 23 covers the v1.11 all-skip repoll gate (Step 6c): when all fetched threads are outdated but a bot reviewer is still pending, the skill should repoll rather than exiting. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 moderately discriminating. The baseline passes assertions 1 (skip outdated) and 2 (check requested_reviewers, prompted by user hint) but fails on structured polling workflow, loop-back-to-Step-2, and iteration cap tracking.",
-    "Eval 24 covers the v1.14 PR timeline comment support (the original bug): a bot posts a timeline comment (issues API) with actionable feedback plus a separate review body comment with different content. with_skill 5/5 (100%), without_skill 2/5 (40%) — discriminating. The baseline passes on the content-present assertions (prompt describes both comments explicitly) but fails on fetching the issues/comments endpoint and applying the 200-char dedup rule to keep both as separate items.",
-    "Eval 25 covers the v1.14 dedup + already-addressed logic: copilot[bot] posts identical review body and timeline comments (should dedup to one), and @alice posts a question that the PR author answers with an @mention (should be marked already addressed). with_skill 4/4 (100%), without_skill 1/4 (25%) — strongly discriminating. The baseline recognizes the @alice exchange as addressed (explicit in prompt) but lacks the formal 200-char dedup rule that keeps the review body version and discards the timeline duplicate."
+    "Eval 24 covers the v1.14 PR timeline comment support (the original bug): a bot posts a timeline comment (issues API) with actionable feedback plus a separate review body comment with different content. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 discriminating. The baseline passes on the content-present assertions (prompt describes both comments explicitly) but fails on fetching the issues/comments endpoint and applying the 200-char dedup rule to keep both as separate items.",
+    "Eval 25 covers the v1.14 dedup + already-addressed logic: copilot[bot] posts identical review body and timeline comments (should dedup to one), and @alice posts a question that the PR author answers with an @mention (should be marked already addressed). with_skill 4/4 (100%), without_skill 1/4 (25%) \u2014 strongly discriminating. The baseline recognizes the @alice exchange as addressed (explicit in prompt) but lacks the formal 200-char dedup rule that keeps the review body version and discards the timeline duplicate.",
+    "Eval 26 covers outdated-thread-concern-persists: strong discriminator (+1.00) \u2014 default LLM auto-skips isOutdated=true threads without verification; skill reads current file and classifies as fix if concern persists.",
+    "Eval 27 covers outdated-thread-concern-addressed: partial discriminator (+0.67) \u2014 default LLM skips for wrong reason (flag not verified read); skill explicitly reads file before confirming skip."
   ]
 }
