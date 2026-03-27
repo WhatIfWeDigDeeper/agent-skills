@@ -131,7 +131,7 @@ Timeline comments share the same structural properties as review body comments: 
 
 ### 3. Fetch Thread Resolution State
 
-**Skip this step if the inline comments list from Step 2 is empty** — there are no threads to resolve, so the GraphQL call is unnecessary. Proceed directly to Steps 6–7. Do not exit early: Step 6c will check for pending and recently-submitted bot reviewers even when Steps 2, 2b, and 2c all returned nothing.
+**Skip this step if the inline comments list from Step 2 is empty** — there are no threads to resolve, so the GraphQL call is unnecessary. Proceed directly to Step 5 (skipping Step 4) and then continue with Steps 6–7. Do not exit early: Step 6c will check for pending and recently-submitted bot reviewers even when Steps 2, 2b, and 2c all returned nothing.
 
 The REST API doesn't expose whether a thread is resolved. Use GraphQL to get thread node IDs, resolution state, and outdated status — see `references/graphql-queries.md` for the full query and pagination handling.
 
