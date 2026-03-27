@@ -365,7 +365,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
   --field body="[Your reply]"
 ```
 
-**Timeline comment** reply and decline — use the same issue comments endpoint. Quote the original commenter's text in the reply body (prefix with `>`) to provide context, since the timeline is flat and has no thread nesting:
+**Timeline comment** reply and decline — use the same issue comments endpoint. Start the reply with `@{commenter_login}` to notify them, then quote the specific part of their comment you are responding to (prefix with `>`) to provide context, since the timeline is flat and has no thread nesting:
 
 ```bash
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
