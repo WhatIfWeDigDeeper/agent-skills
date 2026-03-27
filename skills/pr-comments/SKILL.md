@@ -160,7 +160,7 @@ For each unresolved inline thread, read the current file at the referenced path.
 
 Review body comments and timeline comments (Steps 2b and 2c) have no `diff_hunk` or file reference — skip this step for them and rely on the comment text alone when making decisions in Step 6.
 
-If the referenced file no longer exists (deleted in a later commit), note this in the plan — the thread is effectively outdated and should be treated like an `isOutdated` thread (skip without reply).
+If the referenced file no longer exists (deleted in a later commit), note this in the plan — the thread is effectively outdated and should be skipped without reply (the code it referenced is gone, so the concern cannot persist).
 
 Also fetch the PR diff once here for use in Step 6:
 
@@ -210,7 +210,7 @@ Most of these are non-actionable — classify them as `skip` and move on. Common
 - The comment is a question or request for clarification — answer it, but leave the thread open so the reviewer can follow up. Don't resolve: the conversation isn't finished.
 
 *Skip (no reply) if:*
-- `isOutdated` is true — the code has already moved on; treat this as part of the *skipping — outdated* category in your plan/report and do not post a new reply or resolve the thread
+- `isOutdated` is true **and** the substance of the comment has been addressed in the current code — verify by reading the current file and confirming the concern no longer applies. If the concern persists despite the thread being outdated, treat it as a regular comment (`fix`/`reply`/`decline`) with a note that the thread location has shifted; do not attempt to resolve the thread (no `resolveReviewThread` mutation on outdated threads). A thread outdated because the exact lines were edited to address the concern is different from one outdated because unrelated surrounding code changed.
 - The thread is unresolved but already has a reply from either the PR author or the authenticated GitHub user — it was handled in a prior run; do not re-reply or re-plan it. **Match by exact `login` string**: compare reply authors against `pr.author.login` and the login returned by `gh api user` (from Step 1) — not by role or pronoun.
 
 *Decline if:*
