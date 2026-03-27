@@ -11,6 +11,7 @@ words:
   - commenters
   - conftest
   - continuerc
+  - dedup
   - cursorrules
   - EBADPLATFORM
   - endswith

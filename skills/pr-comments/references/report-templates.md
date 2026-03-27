@@ -28,6 +28,7 @@ Use these templates for Step 14, omitting lines that don't apply.
 - `Skipped N outdated threads`
 - `Skipped N threads already handled in the reply chain`
 - `Skipped N threads (outdated or already handled)`
+- `Skipped N timeline comments (already addressed or non-actionable)`
 
 **Push/review status** (pick one):
 - Pushed and re-requested: `Pushed and re-requested review from @user1, @user2`

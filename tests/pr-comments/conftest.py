@@ -185,29 +185,31 @@ def should_repoll_on_all_skip(
     plan_items: list[dict],
     pending_bots: list[str],
     bot_reviews_after_fetch: list[dict] | None = None,
+    bot_timeline_after_fetch: list[dict] | None = None,
 ) -> bool:
     """Returns True if the repoll gate (Step 6c) should trigger.
 
     Per SKILL.md Step 6c: when every plan item is `skip` (or the plan is empty)
-    and bot reviewers are pending or submitted a review after fetch_timestamp,
-    the skill should re-poll rather than exiting.
+    and bot reviewers are pending or submitted a review/timeline comment after
+    fetch_timestamp, the skill should re-poll rather than exiting.
 
     Requires every item's action to be exactly ``skip`` — unknown or missing
     action values do not count as skip and will prevent the repoll gate from
     firing.
 
     ``bot_reviews_after_fetch`` must be a pre-filtered list of bot-authored
-    reviews (entries with ``submitted_at`` set). The caller is responsible for
-    filtering: only pass reviews where the author login ends with ``[bot]`` and
-    ``submitted_at`` is non-null. This helper does not validate the entries.
+    reviews (entries with ``submitted_at`` set). ``bot_timeline_after_fetch``
+    must be a pre-filtered list of bot-authored timeline comments (entries with
+    ``created_at`` set). The caller is responsible for filtering in both cases.
     """
     if plan_items and not all(item.get("action") == "skip" for item in plan_items):
         return False
 
     has_pending_bots = len(pending_bots) > 0
     has_recent_bot_review = bool(bot_reviews_after_fetch)
+    has_recent_bot_timeline = bool(bot_timeline_after_fetch)
 
-    return has_pending_bots or has_recent_bot_review
+    return has_pending_bots or has_recent_bot_review or has_recent_bot_timeline
 
 
 def should_repoll_guard_allow(
@@ -237,6 +239,110 @@ def requires_manual_confirmation(plan_items: list[dict]) -> bool:
     """
     manual_triggers = {"consistency"}
     return any(item.get("action") in manual_triggers for item in plan_items)
+
+
+def _nonwhitespace_prefix(body: str, length: int = 200) -> str:
+    """Return first `length` non-whitespace characters of body."""
+    return re.sub(r"\s+", "", body)[:length]
+
+
+def filter_timeline_comments(
+    timeline_comments: list[dict],
+    pr_author: str,
+    auth_user: str,
+    review_body_comments: list[dict],
+) -> list[dict]:
+    """Filter raw timeline comments per Step 2c rules.
+
+    Applies three filters in order:
+    1. Exclude comments by the PR author.
+    2. Exclude comments by the authenticated user (prior skill replies).
+    3. Dedup against review body comments: discard a timeline comment if its
+       author matches a review body comment's author AND their first 200
+       non-whitespace characters match.
+
+    Returns the filtered list.
+    """
+    result = []
+    for tc in timeline_comments:
+        author = tc.get("author", "")
+        if author == pr_author:
+            continue
+        if author == auth_user:
+            continue
+        # Dedup: check against review body comments from the same author
+        tc_prefix = _nonwhitespace_prefix(tc.get("body", ""))
+        duplicate = False
+        for rb in review_body_comments:
+            if rb.get("author") == author:
+                rb_prefix = _nonwhitespace_prefix(rb.get("body", ""))
+                if tc_prefix == rb_prefix:
+                    duplicate = True
+                    break
+        if not duplicate:
+            result.append(tc)
+    return result
+
+
+def is_already_addressed(
+    comment: dict,
+    all_timeline_comments: list[dict],
+    pr_author: str,
+    auth_user: str,
+) -> bool:
+    """Return True if a timeline comment is already addressed.
+
+    Per Step 2c: a timeline comment is considered already addressed only if a
+    later timeline comment (by created_at) from the PR author or authenticated
+    user either (a) @mentions the original commenter's login, or (b) quotes
+    some of their text in a blockquote — a ``>`` line whose non-empty content
+    appears in the original comment's body. A plain unrelated follow-up does
+    not count.
+
+    Note:
+        ``all_timeline_comments`` must be the full, unfiltered timeline as
+        returned by the GitHub API. In particular, do not pass in the result
+        of :func:`filter_timeline_comments` (or any other list that removes
+        comments from the PR author or authenticated user), otherwise this
+        function will never see the addressing replies and will return False
+        incorrectly.
+    """
+    commenter = comment.get("author", "")
+    comment_time = comment.get("created_at", "")
+
+    for later in all_timeline_comments:
+        later_author = later.get("author", "")
+        later_time = later.get("created_at", "")
+        if later_author not in (pr_author, auth_user):
+            continue
+        if later_time <= comment_time:
+            continue
+        body = later.get("body", "")
+        # Check for @mention with GitHub-username boundaries so that
+        # "@alice" does not match within "@alice2" or an email/URL.
+        if commenter:
+            mention_pattern = rf"(?<![A-Za-z0-9-])@{re.escape(commenter)}(?![A-Za-z0-9-])"
+            if re.search(mention_pattern, body):
+                return True
+        # Check for a blockquote that quotes the original comment's text.
+        # A bare ">" with no matching content does not count — the quoted
+        # line must overlap with the original comment's body.
+        original_body = comment.get("body", "")
+        for line in body.splitlines():
+            if line.startswith(">"):
+                quoted = line[1:].strip()
+                if quoted and quoted in original_body:
+                    return True
+    return False
+
+
+def should_signal3_fire(new_bot_timeline_comments: list[dict]) -> bool:
+    """Return True if Signal 3 should trigger a loop-back to Step 2.
+
+    Per bot-polling.md Signal 3: fires when a polled bot has posted a new
+    timeline comment since snapshot_timestamp.
+    """
+    return len(new_bot_timeline_comments) > 0
 
 
 def extract_coauthors(comments: list[dict]) -> list[str]:

@@ -1,0 +1,25 @@
+{
+  "summary": {"passed": 0, "failed": 4, "total": 4, "pass_rate": 0.0},
+  "expectations": [
+    {
+      "text": "The outdated thread is NOT automatically classified as skip — the skill reads the current file to check whether the concern persists",
+      "passed": false,
+      "evidence": "Default LLM behavior treats isOutdated=true as a signal that the concern no longer applies due to code movement. The assistant skipped the thread without reading the current file, reasoning that the refactor likely addressed or superseded the concern."
+    },
+    {
+      "text": "Because the concern still applies in the current code, the thread is classified as fix or reply (not skip)",
+      "passed": false,
+      "evidence": "The thread was classified as skip/resolved based solely on the isOutdated flag. The assistant did not verify whether the concern persisted in the current code, so it never reached a fix or reply classification."
+    },
+    {
+      "text": "The skill does not call resolveReviewThread on the outdated thread",
+      "passed": false,
+      "evidence": "Default LLM behavior, when treating an outdated thread as resolved, would likely call resolveReviewThread to clean up the thread, or at minimum mark it as handled — the outdated status is misread as 'already resolved by code movement'."
+    },
+    {
+      "text": "The plan table notes that the thread location has shifted (outdated) while still treating the concern as actionable",
+      "passed": false,
+      "evidence": "No plan table was produced. The default behavior skipped the thread entirely without creating any plan entry. There was no acknowledgment that the thread location shifted while keeping the concern actionable."
+    }
+  ]
+}
