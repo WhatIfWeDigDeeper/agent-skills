@@ -23,6 +23,8 @@ Evals live under `evals/` at the repo root, not inside `skills/` — they are de
 
 **Spec step numbers drift**: When editing or reviewing specs for an existing skill, verify step numbers (e.g. "Step 5", "Step 6") against the current SKILL.md — they shift as skills evolve and specs can silently fall out of sync.
 
+**Check off spec tasks as you complete them**: When working through a `specs/*/tasks.md`, mark each `- [ ]` item as `- [x]` immediately after completing it — do not batch updates at the end.
+
 **Before writing a spec for an existing skill**, verify the current version (`grep version skills/<name>/SKILL.md`) so baseline metrics (line counts, version numbers) are accurate. Writing "v1.11" when the skill is at v1.12 causes cascading errors in the spec's problem statement and impact table.
 
 **Eval fixtures with intentionally old/pinned versions** (e.g. `evals/uv-deps/fixtures/`) may conflict when a skill like `uv-deps` runs on main and updates those same files. During a merge, keep `--ours` to preserve the intentionally pinned versions.
