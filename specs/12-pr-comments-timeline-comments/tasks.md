@@ -29,11 +29,10 @@
 - [ ] Add test cases for all-skip repoll gate: post-fetch bot timeline comment triggers immediate re-fetch
 
 ### Evals
-- [ ] Add eval 24 to `evals/pr-comments/evals.json` (bot timeline comment -- the original bug)
-- [ ] Add eval 25 to `evals/pr-comments/evals.json` (dedup + already-addressed)
-- [ ] Run evals 24, 25 with_skill and without_skill
+- [ ] Add evals 24–27 to `evals/pr-comments/evals.json`
+- [ ] Run evals 24–27 with_skill and without_skill
 - [ ] Grade results and update `evals/pr-comments/benchmark.json`
-- [ ] Update `benchmark.json` metadata: append eval IDs 24, 25 to `metadata.evals_run`; set `metadata.skill_version` to `"1.14"`
+- [ ] Update `benchmark.json` metadata: append eval IDs 24–27 to `metadata.evals_run`; set `metadata.skill_version` to `"1.14"`
 - [ ] Update `README.md` Eval delta column if pass-rate delta changes
 
 ## Verification
