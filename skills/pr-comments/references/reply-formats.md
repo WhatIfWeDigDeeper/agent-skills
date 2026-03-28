@@ -7,7 +7,7 @@ Use the correct endpoint and body format based on the comment type being replied
 Use the review comment replies endpoint:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
+gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/replies \
   --method POST \
   --field body="[Your reply]"
 ```
