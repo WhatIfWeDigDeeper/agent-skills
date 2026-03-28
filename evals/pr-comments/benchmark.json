@@ -1256,7 +1256,7 @@
         {
           "text": "The bot reviewer is re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
           "passed": true,
-          "evidence": "Step 13 explicitly instructs: for bot reviewers, use DELETE then POST to /requested_reviewers, with explicit note that gh pr edit rejects bot accounts."
+          "evidence": "Step 13 explicitly instructs: for bot reviewers, send a single POST to /requested_reviewers (no prior DELETE), with explicit note that gh pr edit rejects bot accounts."
         },
         {
           "text": "The commit includes a Co-authored-by trailer for the bot reviewer",
