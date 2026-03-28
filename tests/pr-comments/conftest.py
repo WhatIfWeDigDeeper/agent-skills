@@ -197,7 +197,7 @@ def should_repoll_on_all_skip(
     """Returns True if the repoll gate (Step 6c) should trigger.
 
     Per SKILL.md Step 6c: when every plan item is `skip` (or the plan is empty)
-    and bot reviewers are pending, submitted a review/timeline comment after
+    and bot reviewers are pending, have submitted a review/timeline comment after
     fetch_timestamp, or have not yet reviewed the current HEAD commit, the skill
     should re-poll rather than exiting.
 
