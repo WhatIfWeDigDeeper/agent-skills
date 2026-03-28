@@ -205,13 +205,14 @@ def should_repoll_on_all_skip(
     action values do not count as skip and will prevent the repoll gate from
     firing.
 
-    ``bot_reviews_after_fetch`` must be a pre-filtered list of bot-authored
-    reviews (entries with ``submitted_at`` set). ``bot_timeline_after_fetch``
-    must be a pre-filtered list of bot-authored timeline comments (entries with
-    ``created_at`` set). ``stale_head_bots`` must be a pre-filtered list of bot
-    logins whose most recent submitted review was on an older commit (excludes
-    ``claude[bot]`` and PENDING reviews). The caller is responsible for
-    filtering in all cases.
+    ``bot_reviews_after_fetch`` may be ``None`` or a pre-filtered list of
+    bot-authored reviews (entries with ``submitted_at`` set).
+    ``bot_timeline_after_fetch`` may be ``None`` or a pre-filtered list of
+    bot-authored timeline comments (entries with ``created_at`` set).
+    ``stale_head_bots`` may be ``None`` or a pre-filtered list of bot logins
+    whose most recent submitted review was on an older commit (excludes
+    ``claude[bot]`` and PENDING reviews). When provided, the caller is
+    responsible for pre-filtering in all cases.
     """
     if plan_items and not all(item.get("action") == "skip" for item in plan_items):
         return False
