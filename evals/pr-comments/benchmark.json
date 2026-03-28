@@ -893,7 +893,7 @@
         {
           "text": "Bot reviewers are re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
           "passed": true,
-          "evidence": "Step 13 states 'gh pr edit is NOT used for bots' and uses `gh api repos/myorg/myrepo/pulls/88/requested_reviewers --method DELETE` then `--method POST`."
+          "evidence": "Step 13 states 'gh pr edit is NOT used for bots' and shows a single call: `gh api repos/myorg/myrepo/pulls/88/requested_reviewers --method POST` to re-request the bot reviewer."
         },
         {
           "text": "The push/re-request prompt uses the shortened bot handle (e.g. @copilot) not the full login with [bot] suffix",
