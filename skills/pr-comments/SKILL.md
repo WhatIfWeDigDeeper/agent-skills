@@ -256,7 +256,7 @@ After Step 6b, determine whether the plan contains any actionable items. Treat `
 
 Proceed with this step only if the plan is empty or **every** plan row's `Action` value is exactly `skip`.
 
-**You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all six steps in that section (pending-bot check, post-fetch review check, immediate loop-back or polling branch, stale-HEAD bot check, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated.
+**You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all six steps in that section (pending-bot check, post-fetch review check, loop-back if post-fetch review found, polling if pending-but-not-yet-reviewed, stale-HEAD bot check, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated.
 
 ### 7. Present Plan and Confirm
 

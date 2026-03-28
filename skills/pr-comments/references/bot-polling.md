@@ -32,10 +32,10 @@ Only offer when at least one bot reviewer was re-requested (Step 13), or is stil
 
 ## Polling behavior (both modes)
 
-Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`).
+Set `snapshot_timestamp` (ISO 8601 UTC, ending in `Z`) according to the entry path — **do not use a single "record now" rule for both paths**:
 
-- When entering from **Step 13**, record `snapshot_timestamp` **before** the POST re-request so that even a same-second review submission is captured by Signal 2.
-- When entering from **Step 6c** (all-skip path), reuse the `fetch_timestamp` from the current run (or an earlier timestamp from the run, if you adjusted it) as `snapshot_timestamp` for the pending-bot polling entry. Step 6c should only enter polling when no post-fetch bot review has been detected.
+- **Step 13**: take a fresh timestamp **before** the POST re-request — `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")` — so that even a same-second review is captured by Signal 2.
+- **Step 6c** (all-skip path): assign `snapshot_timestamp = fetch_timestamp` (or an earlier adjusted timestamp from this run). Do **not** record a fresh timestamp — reusing `fetch_timestamp` ensures any bot reviews that arrived after the Step 2 fetch are captured. Step 6c should only enter polling when no post-fetch bot review has been detected.
 
 To avoid races, follow these orders:
 
