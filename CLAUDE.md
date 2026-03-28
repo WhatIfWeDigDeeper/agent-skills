@@ -66,7 +66,7 @@ Valid frontmatter fields: `name`, `description` (required), `license`, `compatib
 4. Document the workflow with numbered process steps
 5. Add bash code blocks for commands that should be executed
 6. Include example outputs where helpful
-7. Create a symlink so Claude Code can discover it: `ln -s ../../skills/<skill-name> .claude/skills/<skill-name>` (local only — `.claude/skills/` is gitignored). **After editing an existing skill, verify the symlink still resolves correctly** — a skill invocation may load a stale version if the symlink points to a cached or wrong path.
+7. Create a symlink so Claude Code can discover it: `ln -s ../../skills/<skill-name> .claude/skills/<skill-name>` (local only — `.claude/skills/` is gitignored). **After editing an existing skill, verify the symlink still resolves correctly** — a skill invocation may load a stale version if the symlink points to a cached or wrong path. **Claude Code also caches skill content at session load** — edits to a skill file don't take effect until a fresh session is started.
 8. Update `README.md` — add the skill to the table and add a notes section
 
 When substantially modifying an existing skill, also update its entry in `README.md`.
@@ -78,6 +78,7 @@ When substantially modifying an existing skill, also update its entry in `README
 - **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` **only as a fallback after a signing failure** — do not use it preemptively. `dangerouslyDisableSandbox: true` (for keyring/network access) and GPG signing are separate concerns; disabling the sandbox does not guarantee GPG will succeed.
 - **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first — use `mktemp` (which respects `$TMPDIR`) or a path under `${TMPDIR:-/private/tmp}` rather than a hardcoded, user-specific directory.
 - **Do not hardcode `/tmp/`** — it is not writable in sandbox mode. Always use `mktemp`, `$TMPDIR`, or a generic `/private/tmp` path (not a user-specific subdirectory) when creating temp files in any shell command.
+- **HTTPS `git push` credential hang**: In sandbox mode, `git push` over HTTPS may hang indefinitely waiting for keychain access. Workaround: `TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=https://github.com/" push`
 
 ## Spell Checking
 
@@ -127,7 +128,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **When a grader flags a missing assertion**, add it to `evals.json` and re-grade the existing transcript — no need to re-spawn the executor if the transcript is detailed enough to provide evidence.
 - **`run_summary.delta.pass_rate` must use 2-decimal precision** (e.g., `"+0.68"`, not `"+0.683"`). All benchmark files in the repo use this format — extra decimals create inconsistency without adding information since the README percentage is already rounded.
 - **When a reviewer suggests specific computed values for `benchmark.json`** (mean, stddev, etc.), verify independently using the actual run data — the reviewer may have computed from a different dataset. Always recompute from the `runs` array rather than copying a suggested number.
-- **When renaming action labels or vocabulary in a SKILL.md**, search the repo for the old term in `evals.json` assertion `text` fields, `benchmark.json` expectation `text` fields, `expected_output` strings, and spec files — they don't auto-update. In the pr-comments v1.8 session, `implement` → `fix` in SKILL.md required 5+ follow-up review rounds to propagate through evals.json (evals 1 and 4), benchmark.json, plan.md, and tasks.md.
+- **When renaming action labels or vocabulary in a SKILL.md**, search the repo for the old term in `evals.json` assertion `text` fields, `benchmark.json` expectation `text` fields, `expected_output` strings, and spec files — they don't auto-update. In the pr-comments v1.8 session, `implement` → `fix` in SKILL.md required 5+ follow-up review rounds to propagate through evals.json (evals 1 and 4), benchmark.json, plan.md, and tasks.md. This applies to **any vocabulary change** — not just action label renames. Mode/behavior terminology changes (e.g. renaming default mode semantics) also require propagation to `evals.json` `expected_output` and `prompt` strings.
 - **For conditional rules (if X → do A; if not X → do B), add an eval for each branch** — they discriminate on different failure modes. E.g., pr-comments isOutdated: eval 26 (concern persists → fix) scored 0% without-skill (auto-skips on flag alone), eval 27 (concern addressed → skip) scored 33% without-skill (skips for wrong reason, not verified read). A single eval would not have caught both failure modes.
 
 ## Portability
