@@ -11,7 +11,7 @@ Append this footer to **every** reply body (inline, review body, and timeline). 
 🤖 Generated with [AssistantName](url)
 ```
 
-For example, Claude Code uses `[Claude Code](https://claude.ai/claude-code)`.
+For example, Claude Code uses `[Claude Code](https://claude.com/claude-code)`.
 
 ## Inline comment (Step 2)
 
