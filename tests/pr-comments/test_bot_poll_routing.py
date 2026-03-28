@@ -6,12 +6,67 @@ Tests for bot poll routing logic:
 
 from conftest import (
     is_bot_login,
+    parse_auto_flag,
     should_exit_auto_loop,
     should_offer_poll,
     should_repoll_guard_allow,
     should_repoll_on_all_skip,
     split_human_bot,
 )
+
+
+class TestModeRouting:
+    """Test that default mode is auto and --manual restores the confirmation gate.
+
+    These tests verify the Step 7 and Step 6c routing decisions based on parsed mode flags.
+    Auto mode (default): skip confirmation gate, enter polling automatically.
+    Manual mode (--manual): show Proceed? [y/N/auto] gate, prompt before polling.
+    """
+
+    def test_bare_invocation_is_auto(self):
+        """No flags → auto mode (Step 7 gate skipped, polling automatic)."""
+        assert parse_auto_flag("")["auto"] is True
+
+    def test_pr_number_only_is_auto(self):
+        """Bare PR number with no mode flag → auto mode."""
+        assert parse_auto_flag("42")["auto"] is True
+
+    def test_auto_flag_is_auto(self):
+        """Explicit --auto → auto mode (backward compat)."""
+        assert parse_auto_flag("--auto")["auto"] is True
+
+    def test_manual_flag_triggers_confirmation_gate(self):
+        """--manual → manual mode (Step 7 gate shown)."""
+        assert parse_auto_flag("--manual")["auto"] is False
+
+    def test_manual_with_pr_number_is_manual(self):
+        """--manual with PR number → manual mode, PR number preserved."""
+        result = parse_auto_flag("--manual 42")
+        assert result["auto"] is False
+        assert result["remaining_args"] == "42"
+
+    def test_auto_cap_with_manual_is_manual(self):
+        """--manual wins over --auto when both present (last write wins)."""
+        result = parse_auto_flag("--auto --manual")
+        assert result["auto"] is False
+
+    def test_repoll_gate_enters_auto_without_manual_flag(self):
+        """Step 6c: all-skip with pending bot + no --manual → auto polling (no prompt)."""
+        mode = parse_auto_flag("")
+        plan = [{"action": "skip"}]
+        pending_bots = ["copilot-pull-request-reviewer[bot]"]
+        # Gate fires (needs polling), mode is auto → enters polling automatically
+        assert should_repoll_on_all_skip(plan, pending_bots) is True
+        assert mode["auto"] is True
+
+    def test_repoll_gate_with_manual_flag_shows_prompt(self):
+        """Step 6c: all-skip with pending bot + --manual → prompt shown before polling."""
+        mode = parse_auto_flag("--manual")
+        plan = [{"action": "skip"}]
+        pending_bots = ["copilot-pull-request-reviewer[bot]"]
+        # Gate fires (needs polling), mode is manual → prompt shown
+        assert should_repoll_on_all_skip(plan, pending_bots) is True
+        assert mode["auto"] is False
 
 
 class TestShouldOfferPoll:

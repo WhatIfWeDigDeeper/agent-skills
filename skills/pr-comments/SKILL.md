@@ -12,7 +12,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.15"
+  version: "1.16"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -27,7 +27,21 @@ If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, print usage and exit.
 
 Strip a single leading `#` from `$ARGUMENTS` before checking whether it is a number, and pass the cleaned numeric PR number (without `#`) to `gh pr view` (so both `42` and `#42` work; `##42` is not a valid PR number).
 
-Optional `--auto [N]` flag enables auto-approve mode: the plan table is shown each iteration but the Step 7 confirmation prompt is skipped automatically. `N` is the maximum number of bot-review loop iterations (default: 10). Strip and process `--auto [N]` tokens before checking remaining tokens for a PR number. Examples: `/pr-comments --auto`, `/pr-comments --auto 5`, `/pr-comments #42 --auto`, `/pr-comments --auto 5 42`. A number immediately after `--auto` is always the iteration cap, not a PR number.
+**Auto mode is the default.** The Step 7 confirmation prompt is skipped automatically — the plan table is shown each iteration for observability, but no user approval is required.
+
+Optional `--manual` flag restores the confirmation gate: the skill pauses at Step 7 with a `Proceed? [y/N/auto]` prompt before applying any changes. Use this when you want to review and approve the plan before each iteration.
+
+Optional `--auto [N]` flag sets the maximum number of bot-review loop iterations (`N`, default: 10). The `--auto` flag alone is a no-op since auto is already the default, but `--auto N` with a positive integer caps the loop. Strip and process `--auto [N]` and `--manual` tokens before checking remaining tokens for a PR number. A number immediately after `--auto` is always the iteration cap, not a PR number.
+
+| Invocation | Mode | Iterations |
+|---|---|---|
+| `/pr-comments` | auto | 10 |
+| `/pr-comments 42` | auto | 10 |
+| `/pr-comments --auto 5` | auto | 5 |
+| `/pr-comments --auto 1` | auto | 1 (one pass, no looping) |
+| `/pr-comments --manual` | manual | n/a |
+| `/pr-comments --manual 42` | manual | n/a |
+| `/pr-comments --auto 5 42` | auto | 5 |
 
 ## Tool choice rationale
 
@@ -263,14 +277,16 @@ Before touching anything, show the user a clear summary as a table:
 Proceed? [y/N/auto]
 ```
 
-**Responses:**
+**Responses (when the confirmation prompt is shown):**
 - `y` — proceed normally
 - `n` — abort
-- `auto` — proceed AND enter auto-approve mode for all remaining bot-review iterations; subsequent iterations skip this confirmation gate (plan table still shown for observability)
+- `auto` — proceed AND switch to auto mode for all remaining bot-review iterations; subsequent iterations skip this confirmation gate (plan table still shown for observability)
 
-Wait for the user's go-ahead. They know the codebase and may want to override your judgment.
+If `--manual` was passed, show the `Proceed? [y/N/auto]` prompt above and wait for the user's go-ahead. They know the codebase and may want to override your judgment.
 
-If `--auto [N]` was passed as an argument, skip this confirmation prompt entirely — show the plan table above but proceed without waiting. If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode. Here, `consistency` rows are inferred cross-file follow-ups from Step 6b and always require explicit confirmation, even in auto-mode.
+Otherwise (auto mode, the default), skip this confirmation prompt entirely — show the plan table above but proceed without waiting.
+
+If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode. Here, `consistency` rows are inferred cross-file follow-ups from Step 6b and always require explicit confirmation, even in auto-mode.
 
 ### 8. Apply Accepted Suggestions
 
@@ -322,8 +338,6 @@ For `reply` items in the main review body (not attached to a code thread): just 
 
 For each `decline` comment: post a reply explaining why the suggestion won't be implemented. Be direct and specific; state the reason and offer an alternative if appropriate (e.g., "I'll file a follow-up issue for this"). No need to be overly apologetic — just clear.
 
-The endpoint to use depends on the comment type — see the labeled sections below.
-
 After posting each decline reply, for out-of-scope declines (not injection-flagged), offer to file a follow-up issue:
 
 ```
@@ -349,29 +363,7 @@ This offer is per declined comment, not batch — the user controls which sugges
 
 **In auto-loop mode**, defer all follow-up issue prompts — do not ask per-item during the loop. Collect out-of-scope declines and present them as a batch offer in the final summary report (Step 14).
 
-**Inline comment** reply and decline — use the review comment replies endpoint:
-
-```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
-  --method POST \
-  --field body="[Your reply]"
-```
-
-**Review body comment** reply and decline — use the issue comments endpoint (replies go to the PR timeline):
-
-```bash
-gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
-  --method POST \
-  --field body="[Your reply]"
-```
-
-**Timeline comment** reply and decline — use the same issue comments endpoint. Start the reply with `@{commenter_login}` to notify them, then quote the specific part of their comment you are responding to (prefix with `>`) to provide context, since the timeline is flat and has no thread nesting:
-
-```bash
-gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
-  --method POST \
-  --field body="[Your reply]"
-```
+See `references/reply-formats.md` for the correct REST reply endpoints and request body formats to use for each comment type (inline, review body, timeline).
 
 ### 12. Resolve Addressed Threads
 
@@ -392,22 +384,33 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 - The authors of any review body comments you replied to or declined, using the `author` field from Step 2b.
 - The authors of any timeline comments you replied to or declined, using the `author` field from Step 2c.
 
-**Also include any other bots that have previously reviewed this PR** — they should see the updated code even if their feedback wasn't the direct source of the changes. Fetch the PR's review history and add any bot logins not already in the list:
+**Also include bots that have previously reviewed this PR but haven't yet seen the current HEAD** — fetch each bot's most recent review and compare its `commit_id` to HEAD; only add bots where they differ:
 ```bash
+head_sha=$(git rev-parse HEAD)
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  --jq '[.[] | select(.user.login | endswith("[bot]")) | .user.login]' \
-  | jq -s 'add | unique'
+  | jq -s --arg head "$head_sha" '
+      [.[] | .[]]
+      | group_by(.user.login)
+      | map(sort_by(.submitted_at) | last)
+      | map(select((.user.login | endswith("[bot]")) and .commit_id != $head))
+      | [.[].user.login]'
 ```
 Exclude `claude[bot]` from this augmented list (it cannot be re-requested via API — see the exception below). Merge the result with the commenter list and deduplicate.
 
-If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted, and no other bots have previously reviewed), skip this step and proceed to the report.
+If the deduplicated reviewer list is empty, skip this step and proceed to the report.
 
 **Display names for bot accounts**: The REST comments API exposes each commenter's login as `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), which you should store or reference as the `author` value from Step 2. When building the prompt, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
-Present a single combined prompt:
+Present a combined prompt. If a commit was made in Step 10, include the push:
 
 ```
 Push and re-request review from @user1, @user2?
+```
+
+If no commit was made in Step 10 (nothing to push), omit the push:
+
+```
+Re-request review from @user1, @user2? (no new commits to push)
 ```
 
 **If the user confirms:**

@@ -8,7 +8,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 |-------------|-------------|----------|--------|
 | [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps", "/js-deps typescript", "/js-deps help" | [+38%](evals/js-deps/benchmark.md) |
 | [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn", "/learn help" | [+13%](evals/learn/benchmark.md) |
-| [pr-comments](skills/pr-comments/SKILL.md) | Address review comments on your own PR: implement valid suggestions, reply to invalid ones, resolve threads, credit commenters in commits, push and re-request review, poll for bot reviewers, and optionally run in auto-approve mode to process multiple bot review rounds hands-free | "address PR comments", "implement PR feedback", "respond to review comments", "/pr-comments", "/pr-comments 42", "/pr-comments --auto", "/pr-comments --auto 5" | [+69%](evals/pr-comments/benchmark.md) |
+| [pr-comments](skills/pr-comments/SKILL.md) | Address review comments on your own PR: implement valid suggestions, reply to invalid ones, resolve threads, credit commenters in commits, push and re-request review, and poll for bot reviewers across multiple rounds hands-free (auto mode by default; use `--manual` to confirm each iteration) | "address PR comments", "implement PR feedback", "respond to review comments", "/pr-comments", "/pr-comments 42", "/pr-comments --auto 5", "/pr-comments --manual" | [+69%](evals/pr-comments/benchmark.md) |
 | [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "/ship-it" "/ship-it fix login timeout", "/ship-it help" | [+38%](evals/ship-it/benchmark.md) |
 | [uv-deps](skills/uv-deps/SKILL.md) | Security audits and dependency updates for Python projects using uv | "audit Python packages", "update pyproject.toml", "fix Python CVEs", "/uv-deps", "/uv-deps fastapi", "/uv-deps help" | [+83%](evals/uv-deps/benchmark.md) |
 
@@ -109,8 +109,9 @@ cp -r skills/* ~/.claude/skills/
 ### `pr-comments`
 
 - Pass a PR number to target a specific PR (e.g., `/pr-comments 42`), or omit it to detect from the current branch.
-- The skill presents a plan for your approval before making any changes — you can override its judgment on which comments to implement vs. decline.
-- Pass `--auto` (or `--auto N`) to enter auto-approve mode: the plan table is shown each iteration and the confirmation gate is skipped unless manual confirmation is required (for example, for security screening flags or oversized comments). The skill polls for bot reviewer responses and loops automatically up to N iterations (default 10).
+- **Auto mode is the default**: the plan table is shown each iteration and the skill proceeds without a confirmation prompt (unless manual confirmation is required for security screening flags, oversized comments, or `consistency` items). The skill polls for bot reviewer responses and loops automatically up to 10 iterations.
+- Pass `--manual` to restore the confirmation gate: the skill pauses at each iteration with a `Proceed? [y/N/auto]` prompt before applying any changes.
+- Pass `--auto N` to cap the number of bot-review loop iterations (e.g., `/pr-comments --auto 1` for a single pass).
 - Implemented comments are committed with `Co-authored-by` trailers crediting each reviewer.
 - Resolved threads are closed via the GitHub GraphQL API; declined threads remain open so reviewers can follow up.
 - When no actionable items are found (plan is empty or all actions are `skip`), routes through the All-Skip Repoll Gate (Step 6c) which checks both `requested_reviewers` and reviews submitted after the fetch timestamp — handles the race condition where a bot submits a review seconds after the fetch and is already off the pending list.
@@ -138,11 +139,11 @@ flowchart TD
     ALLSKIP -- No bots --> Z2([Exit: nothing to do])
     ALLSKIP -- Actionable items --> R[Present plan to user]
 
-    R --> S{--auto mode?}
-    S -- No --> S2{User approves?}
+    R --> S{--manual mode?}
+    S -- No\n(auto default) --> T
+    S -- Yes --> S2{User approves?}
     S2 -- No / Override --> J
     S2 -- Yes --> T
-    S -- Yes --> T
 
     T[Apply changes\nand manual edits]
     T --> U[Commit with Co-authored-by\ncredit for each reviewer]

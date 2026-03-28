@@ -2,8 +2,8 @@
 
 **Model**: claude-sonnet-4-6
 **Date**: 2026-03-25
-**Evals**: 1–23 (1 primary run each per configuration; evals 12 and 14 have supplementary run_number=2 and run_number=3 regression checks)
-**Skill version**: 1.11
+**Evals**: 1–27 (1 primary run each per configuration; evals 12, 14, 20, 22, 23, and 24 have supplementary regression runs)
+**Skill version**: 1.16
 
 ## Summary
 

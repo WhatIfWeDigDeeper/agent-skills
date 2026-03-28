@@ -4,7 +4,17 @@ This reference is used in two entry points:
 - **Step 13** — after re-requesting bot reviewers following a commit
 - **Step 6c** — when all fetched threads are classified as `skip` but bot reviewers are pending or recently submitted a review after the comment fetch
 
-## Manual mode
+## Auto mode (default)
+
+Begin polling automatically without prompting. Display a status line:
+
+```
+Polling for @bot1, @bot2... (iteration N/MAX)
+```
+
+List all bot handles (re-requested or pending) in the status line. If a specific bot responds with new threads, attribute them by checking the commenter's login on each thread.
+
+## Manual mode (requires `--manual`)
 
 Offer to poll after the re-request completes (Step 13), or when all items are classified as `skip` but bots are pending (Step 6c):
 
@@ -19,16 +29,6 @@ All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads
 ```
 
 Only offer when at least one bot reviewer was re-requested (Step 13), or is still pending after all items were classified as skip (Step 6c; if a new bot review was detected after `fetch_timestamp`, skip polling and immediately jump back to Step 2 instead). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested or pending, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
-
-## Auto-mode
-
-Begin polling automatically without prompting. Display a status line:
-
-```
-Polling for @bot1, @bot2... (iteration N/MAX)
-```
-
-List all bot handles (re-requested or pending) in the status line. If a specific bot responds with new threads, attribute them by checking the commenter's login on each thread.
 
 ## Polling behavior (both modes)
 
@@ -78,8 +78,8 @@ Then proceed to Step 14 and end the invocation — do not loop back to Step 2 on
 
 Loop back to Step 2 within the same skill invocation — do not require the user to re-invoke the skill.
 
-- **Manual mode**: Run the full workflow again (Steps 2–14), including the Step 7 plan/confirm gate. Nothing is applied automatically. After each subsequent round that re-requests a bot reviewer, offer to poll again — the user decides each time.
-- **Auto-mode**: Skip Step 7 confirmation gate (plan table still shown for observability). Display per-iteration progress:
+- **Manual mode (requires `--manual`)**: Run the full workflow again (Steps 2–14), including the Step 7 plan/confirm gate. Nothing is applied automatically. After each subsequent round that re-requests a bot reviewer, offer to poll again — the user decides each time.
+- **Auto mode (default)**: Skip Step 7 confirmation gate (plan table still shown for observability). Display per-iteration progress:
 
   ```
   ## Auto-loop iteration N/MAX — @<bot> responded with K new threads
@@ -89,7 +89,7 @@ Loop back to Step 2 within the same skill invocation — do not require the user
   1. No new unresolved bot threads after poll AND all polled bots have submitted a review (per Signal 2 tracking) → exit loop. Do not use `requested_reviewers` as a completion signal here — the DELETE+POST re-request window makes it unreliable. Instead, track which bots have a `submitted_at >= snapshot_timestamp` review via Signal 2; once every polled bot has responded, consider the poll complete.
   2. Iteration count has reached the maximum (N from `--auto N`, default 10) → exit with note
   3. Poll timeout → exit with timeout message
-  4. Security screening flags a comment in this iteration → pause auto-mode, drop to manual confirmation for this iteration; after the user confirms, ask: "Resume auto-approve mode for remaining iterations? [y/N]"
+  4. Security screening flags a comment in this iteration → pause auto-mode, drop to manual confirmation for this iteration; after the user confirms, ask: "Resume auto mode for remaining iterations? [y/N]"
 
   **After each auto-loop commit**, check whether the PR title or description is stale relative to the current commit log:
 
@@ -138,12 +138,12 @@ This section is executed from Step 6c when the plan is empty or every plan row's
 3. **If a bot submitted a review or posted a timeline comment after `fetch_timestamp`** (step 2 returned results): the bot's threads may already exist but were missed by the Step 2 fetch. Apply the **Rapid re-poll guard** (see below). If the guard allows it, **immediately loop back to Step 2** (full re-fetch) — polling would snapshot current threads and never detect the already-present new ones. This counts as one iteration toward the `--auto N` cap. If the guard fires (second consecutive loop-back for the same bot set), fall through to the 60-second polling loop instead — but first take the polling baseline: set `snapshot_timestamp = "${fetch_timestamp}"` and take a fresh unresolved-thread snapshot (via the Step 3 GraphQL query), as in Step 4's auto-mode setup.
 
 4. **If pending bots exist but NO post-fetch review was detected** (bots are in `requested_reviewers` but haven't submitted yet):
-   - **Auto-mode**: Log a status line and enter the polling workflow automatically:
+   - **Auto mode (default)**: Log a status line and enter the polling workflow automatically:
      ```
      All threads skipped — pending bot reviewer(s) detected. Polling for @bot1...
      ```
      Set `snapshot_timestamp = "${fetch_timestamp}"` (or an earlier timestamp), then take a fresh thread snapshot (via the Step 3 GraphQL query). Immediately after taking this snapshot, re-run the step 2 check for bot reviews or timeline comments after `fetch_timestamp`. If any such bot reviews or timeline comments are now present, treat this as a post-fetch bot response and apply the guard / **immediately loop back to Step 2** instead of using this snapshot as the polling baseline. Otherwise, enter the polling loop using Signals 1–3. When any polling signal fires (new threads, a new bot review, or a bot timeline comment), immediately loop back to Step 2 (full re-fetch). This counts as one iteration toward the `--auto N` cap.
-   - **Manual mode**: Show the all-skip plan, then prompt:
+   - **Manual mode (requires `--manual`)**: Show the all-skip plan, then prompt:
      ```
      All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]
      ```

@@ -116,13 +116,15 @@ class TestAutoFlagParsing:
         result = parse_auto_flag("--auto 5 42")
         assert result == {"auto": True, "max_iterations": 5, "remaining_args": "42"}
 
-    def test_no_auto_flag_empty(self):
+    def test_no_flags_empty_defaults_to_auto(self):
+        """Empty args default to auto mode."""
         result = parse_auto_flag("")
-        assert result == {"auto": False, "max_iterations": 10, "remaining_args": ""}
+        assert result == {"auto": True, "max_iterations": 10, "remaining_args": ""}
 
-    def test_no_auto_flag_pr_number_only(self):
+    def test_no_flags_pr_number_only_defaults_to_auto(self):
+        """Bare PR number with no flags defaults to auto mode."""
         result = parse_auto_flag("42")
-        assert result == {"auto": False, "max_iterations": 10, "remaining_args": "42"}
+        assert result == {"auto": True, "max_iterations": 10, "remaining_args": "42"}
 
     def test_auto_zero_not_treated_as_count(self):
         """--auto 0 is not a valid positive count; 0 is consumed (not leaked to remaining_args)."""
@@ -133,6 +135,42 @@ class TestAutoFlagParsing:
         """Negative numbers are not consumed as count; land in remaining_args."""
         result = parse_auto_flag("--auto -1")
         assert result == {"auto": True, "max_iterations": 10, "remaining_args": "-1"}
+
+
+class TestManualFlagParsing:
+    """Test --manual flag parsing per SKILL.md."""
+
+    def test_manual_flag_alone(self):
+        result = parse_auto_flag("--manual")
+        assert result == {"auto": False, "max_iterations": 10, "remaining_args": ""}
+
+    def test_manual_flag_with_pr_number_trailing(self):
+        result = parse_auto_flag("42 --manual")
+        assert result == {"auto": False, "max_iterations": 10, "remaining_args": "42"}
+
+    def test_manual_flag_with_pr_number_leading(self):
+        result = parse_auto_flag("--manual 42")
+        assert result == {"auto": False, "max_iterations": 10, "remaining_args": "42"}
+
+    def test_manual_flag_with_hash_prefixed_pr(self):
+        result = parse_auto_flag("--manual #42")
+        assert result == {"auto": False, "max_iterations": 10, "remaining_args": "#42"}
+
+    def test_manual_overrides_auto(self):
+        """--manual after --auto sets mode to manual."""
+        result = parse_auto_flag("--auto --manual")
+        assert result["auto"] is False
+
+    def test_auto_overrides_manual(self):
+        """--auto after --manual sets mode back to auto."""
+        result = parse_auto_flag("--manual --auto")
+        assert result["auto"] is True
+
+    def test_manual_does_not_consume_following_number(self):
+        """--manual does not consume a following PR number as an iteration cap."""
+        result = parse_auto_flag("--manual 42")
+        assert result["remaining_args"] == "42"
+        assert result["max_iterations"] == 10
 
 
 class TestCombinedAutoAndPRNumberParsing:
