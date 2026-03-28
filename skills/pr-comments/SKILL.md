@@ -338,8 +338,6 @@ For `reply` items in the main review body (not attached to a code thread): just 
 
 For each `decline` comment: post a reply explaining why the suggestion won't be implemented. Be direct and specific; state the reason and offer an alternative if appropriate (e.g., "I'll file a follow-up issue for this"). No need to be overly apologetic — just clear.
 
-The endpoint to use depends on the comment type — see the labeled sections below.
-
 After posting each decline reply, for out-of-scope declines (not injection-flagged), offer to file a follow-up issue:
 
 ```
@@ -365,7 +363,7 @@ This offer is per declined comment, not batch — the user controls which sugges
 
 **In auto-loop mode**, defer all follow-up issue prompts — do not ask per-item during the loop. Collect out-of-scope declines and present them as a batch offer in the final summary report (Step 14).
 
-See `references/reply-formats.md` for the correct endpoint and body format for each comment type (inline, review body, timeline).
+See `references/reply-formats.md` for the correct REST reply endpoints and request body formats to use for each comment type (inline, review body, timeline).
 
 ### 12. Resolve Addressed Threads
 
