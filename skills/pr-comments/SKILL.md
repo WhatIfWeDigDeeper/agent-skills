@@ -277,7 +277,7 @@ Before touching anything, show the user a clear summary as a table:
 Proceed? [y/N/auto]
 ```
 
-**Responses (manual mode only):**
+**Responses (when the confirmation prompt is shown):**
 - `y` — proceed normally
 - `n` — abort
 - `auto` — proceed AND switch to auto mode for all remaining bot-review iterations; subsequent iterations skip this confirmation gate (plan table still shown for observability)

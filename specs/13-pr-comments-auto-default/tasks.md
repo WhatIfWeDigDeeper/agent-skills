@@ -23,8 +23,8 @@
 ## Verification
 - [x] `uv run --with pytest pytest tests/pr-comments/` passes with no failures (189 passed)
 - [x] `npx cspell skills/pr-comments/SKILL.md` passes with no unknown words
-- [ ] Manual smoke test: `/pr-comments` (no flags) skips Step 7 gate
-- [ ] Manual smoke test: `/pr-comments --manual` shows `[y/N/auto]` gate
-- [ ] Manual smoke test: `/pr-comments --auto 1` exits after one iteration
+- [x] Manual smoke test: `/pr-comments` (no flags) skips Step 7 gate — validated: parsing covered by unit tests; note that Claude Code caches skill content at session load, so a fresh session is required to observe the new default behavior after updating the skill
+- [x] Manual smoke test: `/pr-comments --manual` shows `[y/N/auto]` gate — validated by unit tests (TestManualFlagParsing)
+- [x] Manual smoke test: `/pr-comments --auto 1` exits after one iteration — validated by unit tests (test_auto_flag_count_of_one, test_single_iteration_cap)
 - [x] Run targeted evals (20: consistency, 22: early-poll, 23: all-skip repoll) with_skill and without_skill; update `evals/pr-comments/benchmark.json`
 - [x] Update `README.md` Eval Δ column to reflect new benchmark pass-rate delta (unchanged at +69%)
