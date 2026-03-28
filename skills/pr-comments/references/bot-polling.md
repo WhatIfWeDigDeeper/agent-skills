@@ -2,7 +2,7 @@
 
 This reference is used in two entry points:
 - **Step 13** — after re-requesting bot reviewers following a commit
-- **Step 6c** — when all fetched threads are classified as `skip` but bot reviewers are pending or recently submitted a review after the comment fetch
+- **Step 6c** — when all fetched threads are classified as `skip` but bot reviewers are pending, recently submitted a review after the comment fetch, or have not yet reviewed the current HEAD commit
 
 ## Auto mode (default)
 
@@ -165,7 +165,28 @@ This section is executed from Step 6c when the plan is empty or every plan row's
      ```
      If confirmed, enter the polling workflow. If declined, proceed to the report.
 
-5. **If no pending bots and no recent bot review:** Fall through to Step 7 as normal.
+5. **If no pending bots and no recent bot review — check for stale-HEAD bot reviewers:** Some bots (e.g. `copilot-pull-request-reviewer[bot]`) do not always auto-trigger on push and may not appear in `requested_reviewers` even though they haven't reviewed the latest commit. Get the current HEAD SHA and find any previously-reviewing bots whose most recent review was on an older commit:
+   ```bash
+   head_sha=$(git rev-parse HEAD)
+   gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
+     | jq -s --arg head_sha "$head_sha" '
+         [.[] | .[]]
+         | map(select((.user.login | endswith("[bot]"))))
+         | group_by(.user.login)
+         | map(sort_by(.submitted_at) | last)
+         | map(select(.commit_id != $head_sha))
+         | map(.user.login)'
+   ```
+   If this returns any bots (stale-HEAD bots), re-request them using the **Step 13 entry path**: record a fresh `snapshot_timestamp`, take a fresh unresolved-thread snapshot, POST the re-request for each stale bot, then begin the 60-second polling loop (Signals 1–3). In auto mode, log:
+   ```
+   All threads skipped — @bot1 has not reviewed HEAD. Re-requesting and polling...
+   ```
+   In manual mode, prompt:
+   ```
+   All items skipped, but @bot1 hasn't reviewed the latest commit. Re-request and poll? [y/N]
+   ```
+
+6. **If no pending bots, no recent bot review, and no stale-HEAD bots:** Fall through to Step 7 as normal.
 
 ## Bot Display Names
 

@@ -12,7 +12,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.18"
+  version: "1.19"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -145,7 +145,7 @@ Timeline comments share the same structural properties as review body comments: 
 
 ### 3. Fetch Thread Resolution State
 
-**Skip this step if the inline comments list from Step 2 is empty** — there are no threads to resolve, so the GraphQL call is unnecessary. Proceed directly to Step 5 (skipping Step 4) and then continue with Steps 6–7. Do not exit early: Step 6c will check for pending and recently-submitted bot reviewers even when Steps 2, 2b, and 2c all returned nothing.
+**Skip this step if the inline comments list from Step 2 is empty** — there are no threads to resolve, so the GraphQL call is unnecessary. Proceed directly to Step 5 (skipping Step 4) and then continue with Steps 6–7. Do not exit early: Step 6c will check for pending, recently-submitted, and stale-HEAD bot reviewers even when Steps 2, 2b, and 2c all returned nothing.
 
 The REST API doesn't expose whether a thread is resolved. Use GraphQL to get thread node IDs, resolution state, and outdated status — see `references/graphql-queries.md` for the full query and pagination handling.
 
@@ -256,7 +256,7 @@ After Step 6b, determine whether the plan contains any actionable items. Treat `
 
 Proceed with this step only if the plan is empty or **every** plan row's `Action` value is exactly `skip`.
 
-**You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all five steps in that section (pending-bot check, post-fetch review check, immediate loop-back or polling branch, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated.
+**You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all six steps in that section (pending-bot check, post-fetch review check, immediate loop-back or polling branch, stale-HEAD bot check, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated.
 
 ### 7. Present Plan and Confirm
 
