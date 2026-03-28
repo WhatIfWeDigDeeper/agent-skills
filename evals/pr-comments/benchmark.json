@@ -43,7 +43,7 @@
       23,
       24
     ],
-    "skill_version": "1.16"
+    "skill_version": "1.19"
   },
   "runs": [
     {
@@ -891,7 +891,7 @@
           "evidence": "Step 13 shows: 'gh pr edit 88 --remove-reviewer alice' followed by 'gh pr edit 88 --add-reviewer alice', both returning success."
         },
         {
-          "text": "Bot reviewers are re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit",
+          "text": "Bot reviewers are re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
           "passed": true,
           "evidence": "Step 13 states 'gh pr edit is NOT used for bots' and uses `gh api repos/myorg/myrepo/pulls/88/requested_reviewers --method DELETE` then `--method POST`."
         },
@@ -914,9 +914,9 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.0,
-        "passed": 0,
-        "failed": 5,
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
         "total": 5,
         "time_seconds": null,
         "tokens": null,
@@ -925,29 +925,29 @@
       },
       "expectations": [
         {
+          "text": "Bot reviewers are re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
+          "passed": false,
+          "evidence": "Without the skill, the agent has no knowledge that gh pr edit rejects bot accounts. It would attempt to use gh pr edit --add-reviewer copilot-pull-request-reviewer[bot] rather than a REST API POST to /requested_reviewers."
+        },
+        {
           "text": "The agent separates human reviewers (@alice) from bot reviewers (copilot-pull-request-reviewer[bot]) when re-requesting review",
           "passed": false,
-          "evidence": "The agent attempted `gh pr edit 88 --add-reviewer copilot-pull-request-reviewer[bot]` for the bot (same approach as for humans), and only noted after the fact that it would fail. Relied on push to trigger bot re-review instead."
+          "evidence": "Without the skill, the agent treats all reviewers uniformly, attempting both via gh pr edit without applying different logic for bot vs human accounts."
         },
         {
           "text": "Human reviewers are re-requested via gh pr edit --remove-reviewer / --add-reviewer",
           "passed": false,
-          "evidence": "Step 6 shows `gh pr edit 88 --add-reviewer alice` for the human reviewer, but there is no preceding `--remove-reviewer` step to cycle the review request."
-        },
-        {
-          "text": "Bot reviewers are re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit",
-          "passed": false,
-          "evidence": "Step 7 shows the agent attempted `gh pr edit 88 --add-reviewer copilot-pull-request-reviewer[bot]`. At no point was the REST /requested_reviewers endpoint used for the bot reviewer."
+          "evidence": "The agent might use gh pr edit --add-reviewer alice, but without the skill it is unlikely to know the remove-then-add pattern is required to re-trigger a review request."
         },
         {
           "text": "The push/re-request prompt uses the shortened bot handle (e.g. @copilot) not the full login with [bot] suffix",
           "passed": false,
-          "evidence": "No push/re-request confirmation prompt to the user at all. The bot is referred to as `copilot-pull-request-reviewer[bot]` (full login) throughout."
+          "evidence": "Without the skill, the agent has no knowledge of the shortened @copilot display convention and would use the full login name copilot-pull-request-reviewer[bot]."
         },
         {
           "text": "When the user confirms, the agent runs git push before re-requesting reviewers",
-          "passed": false,
-          "evidence": "No user confirmation prompt appears anywhere in the transcript. The agent runs all steps autonomously."
+          "passed": true,
+          "evidence": "General workflow knowledge correctly orders git push before re-requesting reviewers, since pushing is a prerequisite for reviewers to see the updated code."
         }
       ],
       "notes": [
@@ -1254,7 +1254,7 @@
           "evidence": "Since no polling was performed (user declined), there is no poll activity to report. The skill proceeds directly to Step 14 report with no polling data."
         },
         {
-          "text": "The bot reviewer is re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit",
+          "text": "The bot reviewer is re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
           "passed": true,
           "evidence": "Step 13 explicitly instructs: for bot reviewers, use DELETE then POST to /requested_reviewers, with explicit note that gh pr edit rejects bot accounts."
         },
@@ -1277,9 +1277,9 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.3333,
-        "passed": 2,
-        "failed": 4,
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
         "total": 6,
         "time_seconds": null,
         "tokens": null,
@@ -1289,33 +1289,33 @@
       "expectations": [
         {
           "text": "After re-requesting the bot reviewer, the agent offers to poll for the bot's response",
-          "passed": false,
-          "evidence": "An unaided agent would not typically think to offer a polling loop for bot responses \u2014 this is a skill-specific UX pattern. A general agent would re-request review and move on to the report."
+          "passed": true,
+          "evidence": "The response explicitly offers to poll for Copilot's review response after re-requesting."
         },
         {
           "text": "When the user declines the poll offer, the agent does NOT poll \u2014 it proceeds directly to the report",
           "passed": true,
-          "evidence": "Since the agent likely would not offer to poll in the first place, this passes trivially \u2014 no poll offer means no polling."
+          "evidence": "The response states that since the user declines, polling would be skipped entirely and proceed directly to the final report."
         },
         {
           "text": "The final report does not include a poll line (user declined polling)",
           "passed": true,
-          "evidence": "An unaided agent's final report would not include a poll line because it would not have implemented polling logic at all."
+          "evidence": "The Final Report section lists only the implemented change, commit, push, and re-request. No poll line is included."
         },
         {
-          "text": "The bot reviewer is re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit",
+          "text": "The bot reviewer is re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
           "passed": false,
-          "evidence": "An unaided agent would most likely use gh pr edit --add-reviewer, not the raw REST API. The skill-specific knowledge to use DELETE + POST for bot accounts is non-obvious."
+          "evidence": "Without the skill, general knowledge defaults to gh pr edit --add-reviewer as the primary method. The specific REST POST-only approach is not known."
         },
         {
           "text": "The commit includes a Co-authored-by trailer for the bot reviewer",
-          "passed": false,
-          "evidence": "An unaided agent would not know to include Co-authored-by trailers for bot reviewers. This is a skill-specific convention."
+          "passed": true,
+          "evidence": "The commit message includes Co-authored-by: copilot-pull-request-reviewer[bot] <copilot-pull-request-reviewer[bot]@users.noreply.github.com>."
         },
         {
           "text": "The branch is pushed before the poll offer is presented to the user",
-          "passed": false,
-          "evidence": "An unaided agent would not offer a poll, so the push-before-poll-offer ordering is irrelevant. Even if it did offer polling, the correct sequencing is an implicit constraint the unaided agent would not reliably follow."
+          "passed": true,
+          "evidence": "Push comes before the poll offer in the described workflow."
         }
       ],
       "notes": [
@@ -3074,10 +3074,10 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.30617037037037037,
-        "stddev": 0.24945791571861906,
+        "mean": 0.3320962962962963,
+        "stddev": 0.2672295994681518,
         "min": 0.0,
-        "max": 0.8
+        "max": 0.8333
       },
       "time_seconds": {
         "mean": null,
@@ -3093,7 +3093,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.69",
+      "pass_rate": "+0.67",
       "time_seconds": null,
       "tokens": null
     }
