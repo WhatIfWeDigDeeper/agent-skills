@@ -90,7 +90,7 @@ Tests the decline path: the skill presents the combined push prompt first (regar
 ### Eval 9 — Bot reviewer handling
 **Prompt**: @alice suggests improving error messages, copilot-pull-request-reviewer[bot] suggests adding a null check. After addressing both, push and re-request review from both.
 
-Tests that the skill correctly separates human and bot reviewers when re-requesting review: humans via `gh pr edit --remove-reviewer/--add-reviewer`, bots via the REST `/requested_reviewers` endpoint (DELETE + POST). Also tests that the bot's display name is shortened for the prompt (e.g. `@copilot`, not `@copilot-pull-request-reviewer[bot]`). The without-skill run pushed the branch but attempted to use `gh pr edit` for the bot reviewer, which would fail or omit the bot entirely.
+Tests that the skill correctly separates human and bot reviewers when re-requesting review: humans via `gh pr edit --remove-reviewer/--add-reviewer`, bots via the REST `/requested_reviewers` endpoint (POST only — no prior DELETE needed). Also tests that the bot's display name is shortened for the prompt (e.g. `@copilot`, not `@copilot-pull-request-reviewer[bot]`). The without-skill run pushed the branch but attempted to use `gh pr edit` for the bot reviewer, which would fail or omit the bot entirely.
 
 ### Eval 10 — All threads outdated — no reviewer list
 **Prompt**: Three threads, all marked as outdated (code has already changed past those comments).
