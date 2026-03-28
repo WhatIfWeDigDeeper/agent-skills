@@ -365,29 +365,7 @@ This offer is per declined comment, not batch — the user controls which sugges
 
 **In auto-loop mode**, defer all follow-up issue prompts — do not ask per-item during the loop. Collect out-of-scope declines and present them as a batch offer in the final summary report (Step 14).
 
-**Inline comment** reply and decline — use the review comment replies endpoint:
-
-```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
-  --method POST \
-  --field body="[Your reply]"
-```
-
-**Review body comment** reply and decline — use the issue comments endpoint (replies go to the PR timeline):
-
-```bash
-gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
-  --method POST \
-  --field body="[Your reply]"
-```
-
-**Timeline comment** reply and decline — use the same issue comments endpoint. Start the reply with `@{commenter_login}` to notify them, then quote the specific part of their comment you are responding to (prefix with `>`) to provide context, since the timeline is flat and has no thread nesting:
-
-```bash
-gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
-  --method POST \
-  --field body="[Your reply]"
-```
+See `references/reply-formats.md` for the correct endpoint and body format for each comment type (inline, review body, timeline).
 
 ### 12. Resolve Addressed Threads
 
