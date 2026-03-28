@@ -386,22 +386,33 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 - The authors of any review body comments you replied to or declined, using the `author` field from Step 2b.
 - The authors of any timeline comments you replied to or declined, using the `author` field from Step 2c.
 
-**Also include any other bots that have previously reviewed this PR** — they should see the updated code even if their feedback wasn't the direct source of the changes. Fetch the PR's review history and add any bot logins not already in the list:
+**Also include bots that have previously reviewed this PR but haven't yet seen the current HEAD** — fetch each bot's most recent review and compare its `commit_id` to HEAD; only add bots where they differ:
 ```bash
+head_sha=$(git rev-parse HEAD)
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  --jq '[.[] | select(.user.login | endswith("[bot]")) | .user.login]' \
-  | jq -s 'add | unique'
+  | jq -s --arg head "$head_sha" '
+      [.[] | .[]]
+      | group_by(.user.login)
+      | map(sort_by(.submitted_at) | last)
+      | map(select((.user.login | endswith("[bot]")) and .commit_id != $head))
+      | [.[].user.login]'
 ```
 Exclude `claude[bot]` from this augmented list (it cannot be re-requested via API — see the exception below). Merge the result with the commenter list and deduplicate.
 
-If the deduplicated reviewer list is empty (e.g., all threads were outdated and no replies were posted, and no other bots have previously reviewed), skip this step and proceed to the report.
+If the deduplicated reviewer list is empty, skip this step and proceed to the report.
 
 **Display names for bot accounts**: The REST comments API exposes each commenter's login as `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), which you should store or reference as the `author` value from Step 2. When building the prompt, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
-Present a single combined prompt:
+Present a combined prompt. If a commit was made in Step 10, include the push:
 
 ```
 Push and re-request review from @user1, @user2?
+```
+
+If no commit was made in Step 10 (nothing to push), omit the push:
+
+```
+Re-request review from @user1, @user2? (no new commits to push)
 ```
 
 **If the user confirms:**
