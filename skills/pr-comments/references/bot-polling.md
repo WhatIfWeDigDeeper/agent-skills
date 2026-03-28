@@ -39,7 +39,7 @@ Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_t
 
 To avoid races, follow these orders:
 
-**When entering from Step 13 (after re-requesting bot reviewers):**
+**When entering from Step 13 (take snapshots before POST, then re-request):**
 
 1. Record `snapshot_timestamp` as above.
 2. Take a **fresh** snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). Do **not** reuse the Step 3 results, since threads may have been resolved since then.
