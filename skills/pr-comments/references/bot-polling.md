@@ -172,6 +172,7 @@ This section is executed from Step 6c when the plan is empty or every plan row's
      | jq -s --arg head_sha "$head_sha" '
          [.[] | .[]]
          | map(select((.user.login | endswith("[bot]"))))
+         | sort_by(.user.login)
          | group_by(.user.login)
          | map(sort_by(.submitted_at) | last)
          | map(select(.commit_id != $head_sha))
