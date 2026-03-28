@@ -165,20 +165,20 @@ This section is executed from Step 6c when the plan is empty or every plan row's
      ```
      If confirmed, enter the polling workflow. If declined, proceed to the report.
 
-5. **If no pending bots and no recent bot review — check for stale-HEAD bot reviewers:** Some bots (e.g. `copilot-pull-request-reviewer[bot]`) do not always auto-trigger on push and may not appear in `requested_reviewers` even though they haven't reviewed the latest commit. Get the current HEAD SHA and find any previously-reviewing bots whose most recent review was on an older commit:
+5. **If no pending bots and no recent bot review — check for stale-HEAD bot reviewers:** Some bots (e.g. `copilot-pull-request-reviewer[bot]`) do not always auto-trigger on push and may not appear in `requested_reviewers` even though they haven't reviewed the latest commit. Get the current HEAD SHA and find any previously-reviewing bots whose most recent submitted review was on an older commit. Exclude `claude[bot]` (cannot be re-requested via `/requested_reviewers`) and filter to submitted reviews only (state != PENDING, submitted_at != null):
    ```bash
    head_sha=$(git rev-parse HEAD)
    gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
      | jq -s --arg head_sha "$head_sha" '
          [.[] | .[]]
-         | map(select((.user.login | endswith("[bot]"))))
+         | map(select((.user.login | endswith("[bot]")) and .user.login != "claude[bot]" and .state != "PENDING" and .submitted_at != null))
          | sort_by(.user.login)
          | group_by(.user.login)
          | map(sort_by(.submitted_at) | last)
          | map(select(.commit_id != $head_sha))
          | map(.user.login)'
    ```
-   If this returns any bots (stale-HEAD bots), re-request them using the **Step 13 entry path**: record a fresh `snapshot_timestamp`, take a fresh unresolved-thread snapshot, POST the re-request for each stale bot, then begin the 60-second polling loop (Signals 1–3). In auto mode, log:
+   If this returns any bots (stale-HEAD bots that can be re-requested), re-request them using the **Step 13 entry path**: record a fresh `snapshot_timestamp`, take a fresh unresolved-thread snapshot, POST the re-request for each stale bot, then begin the 60-second polling loop (Signals 1–3). In auto mode, log:
    ```
    All threads skipped — @bot1 has not reviewed HEAD. Re-requesting and polling...
    ```
