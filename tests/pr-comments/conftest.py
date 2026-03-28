@@ -192,12 +192,14 @@ def should_repoll_on_all_skip(
     pending_bots: list[str],
     bot_reviews_after_fetch: list[dict] | None = None,
     bot_timeline_after_fetch: list[dict] | None = None,
+    stale_head_bots: list[str] | None = None,
 ) -> bool:
     """Returns True if the repoll gate (Step 6c) should trigger.
 
     Per SKILL.md Step 6c: when every plan item is `skip` (or the plan is empty)
-    and bot reviewers are pending or submitted a review/timeline comment after
-    fetch_timestamp, the skill should re-poll rather than exiting.
+    and bot reviewers are pending, submitted a review/timeline comment after
+    fetch_timestamp, or have not yet reviewed the current HEAD commit, the skill
+    should re-poll rather than exiting.
 
     Requires every item's action to be exactly ``skip`` — unknown or missing
     action values do not count as skip and will prevent the repoll gate from
@@ -206,7 +208,10 @@ def should_repoll_on_all_skip(
     ``bot_reviews_after_fetch`` must be a pre-filtered list of bot-authored
     reviews (entries with ``submitted_at`` set). ``bot_timeline_after_fetch``
     must be a pre-filtered list of bot-authored timeline comments (entries with
-    ``created_at`` set). The caller is responsible for filtering in both cases.
+    ``created_at`` set). ``stale_head_bots`` must be a pre-filtered list of bot
+    logins whose most recent submitted review was on an older commit (excludes
+    ``claude[bot]`` and PENDING reviews). The caller is responsible for
+    filtering in all cases.
     """
     if plan_items and not all(item.get("action") == "skip" for item in plan_items):
         return False
@@ -214,8 +219,9 @@ def should_repoll_on_all_skip(
     has_pending_bots = len(pending_bots) > 0
     has_recent_bot_review = bool(bot_reviews_after_fetch)
     has_recent_bot_timeline = bool(bot_timeline_after_fetch)
+    has_stale_head_bots = bool(stale_head_bots)
 
-    return has_pending_bots or has_recent_bot_review or has_recent_bot_timeline
+    return has_pending_bots or has_recent_bot_review or has_recent_bot_timeline or has_stale_head_bots
 
 
 def should_repoll_guard_allow(
