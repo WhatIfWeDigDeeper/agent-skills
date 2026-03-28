@@ -221,7 +221,12 @@ def should_repoll_on_all_skip(
     has_recent_bot_timeline = bool(bot_timeline_after_fetch)
     has_stale_head_bots = bool(stale_head_bots)
 
-    return has_pending_bots or has_recent_bot_review or has_recent_bot_timeline or has_stale_head_bots
+    return (
+        has_pending_bots
+        or has_recent_bot_review
+        or has_recent_bot_timeline
+        or has_stale_head_bots
+    )
 
 
 def should_repoll_guard_allow(
