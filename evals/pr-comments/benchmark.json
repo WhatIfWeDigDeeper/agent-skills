@@ -2690,7 +2690,7 @@
         {
           "text": "The skill offers to poll (manual mode) or begins polling automatically (auto-mode) for the pending bot reviewer",
           "passed": true,
-          "evidence": "Manual mode (no --auto flag). Gate Step 4 applies: pending bots exist and no post-fetch review was detected. bot-polling.md specifies the manual-mode prompt: 'All items skipped, but @copilot hasn't finished reviewing yet. Poll for new threads? [y/N]' (display name: strip [bot], strip -pull-request-reviewer \u2192 @copilot)."
+          "evidence": "Manual mode (`--manual` flag; auto mode is the default when `--manual` is not provided). Gate Step 4 applies: pending bots exist and no post-fetch review was detected. bot-polling.md specifies the manual-mode prompt: 'All items skipped, but @copilot hasn't finished reviewing yet. Poll for new threads? [y/N]' (display name: strip [bot], strip -pull-request-reviewer \u2192 @copilot)."
         },
         {
           "text": "The skill records a snapshot_timestamp and takes a snapshot of current thread IDs before starting to poll",
