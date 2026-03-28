@@ -12,7 +12,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.17"
+  version: "1.18"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -430,16 +430,14 @@ Re-request review from @user1, @user2? (no new commits to push)
 
    **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too.
 
-   **Before the DELETE+POST calls**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
+   **Before the POST call**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
 
    Then use the REST API directly for each bot:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-     --method DELETE --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
-   gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
      --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
    ```
-   Note: the DELETE may return 422 for some bot accounts ("Could not resolve to User node"). If it does, proceed with the POST alone — re-requesting without first removing is sufficient to re-trigger the review.
+   Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed.
 
    **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it auto-triggers a review on push and cannot be re-requested via API. Because it was not explicitly re-requested, do not include it in the polling offer; re-invoke the skill when its review arrives.
 
