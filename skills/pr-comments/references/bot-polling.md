@@ -32,10 +32,25 @@ Only offer when at least one bot reviewer was re-requested (Step 13), or is stil
 
 ## Polling behavior (both modes)
 
-Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`). When entering from **Step 13**, record it **before** the POST re-request so that even a same-second review submission is captured by Signal 2. When entering from **Step 6c** (all-skip path), reuse the `fetch_timestamp` from the current run (or an earlier timestamp from the run, if you adjusted it) as `snapshot_timestamp` for the pending-bot polling entry. Step 6c should only enter polling when no post-fetch bot review has been detected. To avoid a race where a bot review lands between the Step 6c post-fetch check and the snapshot, follow this order when entering from Step 6c:
+Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`).
 
-1. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). When entering from Step 13, do not reuse the Step 3 results since threads may have been resolved since then; when entering from the Step 6c path, the snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`).
+- When entering from **Step 13**, record `snapshot_timestamp` **before** the POST re-request so that even a same-second review submission is captured by Signal 2.
+- When entering from **Step 6c** (all-skip path), reuse the `fetch_timestamp` from the current run (or an earlier timestamp from the run, if you adjusted it) as `snapshot_timestamp` for the pending-bot polling entry. Step 6c should only enter polling when no post-fetch bot review has been detected.
+
+To avoid races, follow these orders:
+
+**When entering from Step 13 (after re-requesting bot reviewers):**
+
+1. Record `snapshot_timestamp` as above.
+2. Take a **fresh** snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). Do **not** reuse the Step 3 results, since threads may have been resolved since then.
+3. POST the bot re-request for the relevant reviewers.
+4. Begin the 60-second polling loop described below (Signals 1–3).
+
+**When entering from Step 6c (all-skip path with pending bots):**
+
+1. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). The snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`).
 2. Immediately after taking the snapshot (still in Step 6c), perform a final check for any bot reviews with `submitted_at >= fetch_timestamp` (using the reviews API) **or** bot timeline comments with `created_at >= fetch_timestamp` (using the issues comments API). If any such reviews or timeline comments are found, **do not** continue polling from Step 6c; instead, immediately jump back to **Step 2** for a fresh fetch so that any new threads or timeline comments created by those bots are re-fetched and re-classified. **Exception:** if the Rapid re-poll guard (see below) fires — i.e., this is a second consecutive immediate loop-back for the same bot set — fall through to the 60-second polling loop instead of jumping to Step 2.
+3. If the final check in step 2 finds no new bot activity (or the Rapid re-poll guard forces a fall-through), begin the 60-second polling loop described below (Signals 1–3).
 
 After this initial setup, poll every 60 seconds using **three signals**:
 
