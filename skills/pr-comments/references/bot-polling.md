@@ -48,9 +48,10 @@ To avoid races, follow these orders:
 
 **When entering from Step 6c (all-skip path with pending bots):**
 
-1. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). The snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`).
-2. Immediately after taking the snapshot (still in Step 6c), perform a final check for any bot reviews with `submitted_at >= fetch_timestamp` (using the reviews API) **or** bot timeline comments with `created_at >= fetch_timestamp` (using the issues comments API). If any such reviews or timeline comments are found, **do not** continue polling from Step 6c; instead, immediately jump back to **Step 2** for a fresh fetch so that any new threads or timeline comments created by those bots are re-fetched and re-classified. **Exception:** if the Rapid re-poll guard (see below) fires — i.e., this is a second consecutive immediate loop-back for the same bot set — fall through to the 60-second polling loop instead of jumping to Step 2.
-3. If the final check in step 2 finds no new bot activity (or the Rapid re-poll guard forces a fall-through), begin the 60-second polling loop described below (Signals 1–3).
+1. Set or confirm `snapshot_timestamp` for this polling entry by assigning it to the `fetch_timestamp` from the current run (or an earlier adjusted timestamp from this run, if applicable).
+2. Immediately after confirming `snapshot_timestamp`, take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). The snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`).
+3. Immediately after taking the snapshot (still in Step 6c), perform a final check for any bot reviews with `submitted_at >= snapshot_timestamp` (using the reviews API) **or** bot timeline comments with `created_at >= snapshot_timestamp` (using the issues comments API). If any such reviews or timeline comments are found, **do not** continue polling from Step 6c; instead, immediately jump back to **Step 2** for a fresh fetch so that any new threads or timeline comments created by those bots are re-fetched and re-classified. **Exception:** if the Rapid re-poll guard (see below) fires — i.e., this is a second consecutive immediate loop-back for the same bot set — fall through to the 60-second polling loop instead of jumping to Step 2.
+4. If the final check in step 3 finds no new bot activity (or the Rapid re-poll guard forces a fall-through), begin the 60-second polling loop described below (Signals 1–3).
 
 After this initial setup, poll every 60 seconds using **three signals**:
 
