@@ -85,10 +85,14 @@ When substantially modifying an existing skill, also update its entry in `README
 - **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first — use `mktemp` (which respects `$TMPDIR`) or a path under `${TMPDIR:-/private/tmp}` rather than a hardcoded, user-specific directory.
 - **Do not hardcode `/tmp/`** — it is not writable in sandbox mode. Always use `mktemp`, `$TMPDIR`, or a generic `/private/tmp` path (not a user-specific subdirectory) when creating temp files in any shell command.
 - **HTTPS `git push` credential hang**: In sandbox mode, `git push` over HTTPS may hang indefinitely waiting for keychain access. Workaround: `TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=https://github.com/" push`
+- **Worktree directory outlives git registration**: `git worktree remove` unregisters the worktree but does not delete the directory. Run `rm -rf .claude/worktrees/<id>` manually afterward.
+- **`git checkout` runs in the bash tool's cwd**: when the shell context is inside a worktree, `git checkout` affects that worktree — not the main repo. Use `git -C /path/to/main/repo checkout <branch>` when switching branches in the main repo from a worktree shell context.
 
 ## Spell Checking
 
 This repo uses cspell. When you see a cspell diagnostic — whether from the IDE, a linter run, or noticing an unknown-word warning on a file you just edited — immediately add the term to the `words` list in `cspell.config.yaml`. Do not wait for the user to point it out. Use `npx cspell <file>` to check any file you've modified before finishing a task. Conversely, when you change phrasing that caused a word to be added, remove it if it no longer appears anywhere in the repo (use `rg -w <word>` to confirm) — stale wordlist entries accumulate silently and are caught by reviewers, not linters. Before merging a new cspell CI step (or after changing the set of files it scans), run `npx cspell "skills/**/*.md" "specs/**/*.md"` against all in-scope files locally to backfill any pre-existing wordlist gaps — otherwise CI will fail immediately on the first PR.
+
+**Intentional non-ASCII content** (e.g. Cyrillic homoglyph examples in eval prompts or spec descriptions) must use `<!-- cspell:disable-line -->` on that line rather than adding non-ASCII entries to the `words` list. Non-ASCII wordlist entries look wrong in review and don't generalize to other contexts.
 
 ## Git Workflow
 
@@ -157,6 +161,7 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 - **Parallelization**: Use Task subagents for processing multiple items concurrently
 - **Documentation sync**: Update CLAUDE.md/README.md when major versions change
 - **PR-driven**: Create pull requests for review rather than auto-committing
+- **Spec tracking files belong on the implementation PR branch**: plan.md, tasks.md, and CLAUDE.md learnings from a spec should be committed to the same branch as the implementation — not a separate tracking branch that requires cherry-picking to consolidate later.
 - **GitHub suggested changes**: There is no public REST API to accept them. Extract the replacement from the `suggestion` fenced block in the comment body and apply it as a local edit.
 - **Mandatory-step reference links must be imperative**: When a step delegates to an external file for mandatory continuation, write "**you must now execute [file]** — do not skip to the report" rather than "see [file]". Agents treat passive cross-references as informational and will skip them when generating the final output.
 - **`gh api --paginate --jq` applies the filter per page**: `--jq '[.[] | filter] | unique'` deduplicates only within each page response. To merge all pages before deduplicating, omit the outer array wrapper in `--jq` and pipe to `| jq -s 'add | unique'` (or `| jq -s '.'` to collect a flat array). Example: `gh api .../reviews --paginate --jq '[.[] | .user.login]' | jq -s 'add | unique'`. When omitting `--jq` entirely and piping to `jq -s`, each page arrives as a separate array so the input is a stream of arrays — use `[.[] | .[] | select(...)]` (double-unwrap) to filter individual items across all pages; `[.[] | select(...)]` runs select on the page arrays themselves and silently matches nothing.
