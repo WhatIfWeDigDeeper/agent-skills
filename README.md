@@ -20,7 +20,7 @@ All skills support `help`, `--help`, `-h`, or `?` as arguments to show interacti
 
 ### Using the skills package
 
-Vercel's [skills package](https://github.com/vercel-labs/skills?tab=readme-ov-file#skills) is supported by almost all coding assistants. The skills in this repo are available on the skills.sh site at [skills.sh/whatifwedigdeeper/agent-skills](https://skills.sh/whatifwedigdeeper/agent-skills)
+Vercel's [skills package](https://github.com/vercel-labs/skills?tab=readme-ov-file#skills) is supported by almost all coding assistants. The skills in this repo are available on Vercel's skills site at [https://skills.sh/whatifwedigdeeper/agent-skills](https://skills.sh/whatifwedigdeeper/agent-skills)
 
 ```bash
 # prompts for which skills to install
