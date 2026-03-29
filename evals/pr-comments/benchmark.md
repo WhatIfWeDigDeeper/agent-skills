@@ -9,11 +9,11 @@
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 32.0% ± 24.3% | **+68%** |
+| Pass Rate | **100%** ± 0% | 32.4% ± 23.9% | **+68%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 35; without_skill: 6 of 35; i.e., 11 of 70 total primary runs across both configurations have token logs). Regression runs (run_number=2 and run_number=3, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
+Time and token statistics in this table are computed only over primary runs (`run_number = 1`) that have recorded, non-null `time_seconds` / `tokens` values in `benchmark.json`. Runs with `time_seconds: null` or `tokens: null` (including simulated transcripts), as well as all regression runs (`run_number > 1`), are excluded from these aggregates, so the reported means/stddevs may differ from a full-suite measurement; the top-level `run_summary.time_seconds` and `run_summary.tokens` fields remain `null` by design.
 
 The skill improves correctness by +68 percentage points. All 35 with-skill evals pass 100%. Evals 9 and 13 were re-run for v1.17 to update POST-only bot re-request assertions (previously DELETE+POST). Eval 1 was re-run for v1.17 to reflect auto-mode behavior (default since v1.16). The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the plan table format, diff-validation for suggestion blocks, cross-file consistency checks, early-poll detection for pending bot reviewers, and auto-mode iteration management — these remain the core discriminators.
 
@@ -38,7 +38,7 @@ All run entries recorded against v1.17. Full-suite validation against v1.18 was 
 | 13 | Bot poll — user declines poll | **5/5 (100%)** | 5/5 (100%) | Non-discriminating — baseline independently followed correct REST pattern and poll-decline flow |
 | 14 | Bot poll — timeout | **4/4 (100%)** | 3/4 (75%) | 60s interval, 10-min timeout, timeout message, no loop on timeout |
 | 15 | Security screening | **4/4 (100%)** | 1/4 (25%) | Prompt injection flagged as decline, injection not executed, legit comment implemented |
-| 16 | Re-invocation: skip prior reply | **4/4 (100%)** | 2/5 (40%) | Exact login match for skip, prior reply detection |
+| 16 | Re-invocation: skip prior reply | **5/5 (100%)** | 2/5 (40%) | Exact login match for skip, prior reply detection |
 | 17 | Review body: skip and decline | **7/7 (100%)** | 5/7 (71%) | Co-authored-by missing, declined review body author not included in re-request list |
 | 18 | Review body: reply to question | **5/5 (100%)** | 4/5 (80%) | Nearly non-discriminating — baseline gets API endpoints right; only failure is Co-authored-by |
 | 19 | Diff validation: out-of-scope suggestion | **4/4 (100%)** | 1/4 (25%) | Baseline applies out-of-scope suggestions without checking the diff; diff-validation guard is skill-specific |
@@ -242,7 +242,8 @@ Tests the timeline reply format specified in reply-formats.md: reply posted via 
 - **Process steps vs. output quality.** The baseline produces reasonable commit messages and file edits on its own. The skill's value is almost entirely in the process steps it mandates — the plan table presentation, Co-authored-by attribution, thread resolution via GraphQL mutation, and the interactive push + re-request prompt.
 - **Auto mode (default) shows the plan but has no confirmation gate.** Since v1.16, the default invocation skips the `Proceed? [y/N/auto]` prompt. The plan table is still shown for observability. The confirmation gate appears only when `--manual` is passed or when a special condition forces it (security flags, oversized comments, consistency items, diff-validation declines).
 - **Eval 13 without-skill scored 100%.** The baseline independently found the correct REST endpoint pattern for bot re-request and the poll-decline flow. This eval does not discriminate between configurations.
-- **Evals 13, 16, 21 are non-discriminating.** Eval 16 without_skill scored 2/5 — the explicit prompt context is sufficient for some assertions but the exact-login skip mechanism is still skill-specific. Eval 13 is fully non-discriminating. Eval 21 is non-discriminating.
+- **Evals 13 and 21 are non-discriminating.** Eval 13 is fully non-discriminating (baseline independently followed correct REST pattern and poll-decline flow). Eval 21 is non-discriminating — the explicit "completely different context" framing is sufficient for both configurations to avoid a false positive.
+- **Eval 16 is discriminating (+60%).** without_skill scored 2/5 — the baseline handles the straightforward suggestion but lacks the exact-login comparison mechanism to reliably detect prior-reply skips. The 5th assertion (`skip-uses-exact-login-match`) is entirely skill-specific.
 - **Evals 17 and 18 narrowed the delta.** The baseline independently gets review body API routing correct (issue comments API for replies, no resolveReviewThread). The skill's value in these scenarios is Co-authored-by attribution and including declined review body authors in the re-request list.
 - **Eval 18 is nearly non-discriminating.** 4/5 without skill. Consider this a baseline-establishing eval rather than a key differentiator.
 - **Eval 19 is strongly discriminating (+75%).** The diff-validation guard is entirely skill-specific — a general assistant has no reason to fetch the PR diff and validate suggestion targets against changed hunks.

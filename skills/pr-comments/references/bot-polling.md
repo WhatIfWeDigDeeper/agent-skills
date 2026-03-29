@@ -98,13 +98,15 @@ List all bot handles (re-requested or pending) in the status line.
 
 ### Manual mode (requires `--manual`)
 
-Offer to poll after the re-request completes (Step 13), or when all items are classified as `skip` but bots are pending (Step 6c):
+**Note**: This polling offer applies to Step 13 entries only. For Step 6c entries, the specific all-skip prompts shown in the "Entry from Step 6c" section above apply instead; those prompts are shown before entering the Shared polling loop.
+
+Offer to poll after the re-request completes (Step 13):
 
 ```
 Poll for @bot1, @bot2 to finish reviewing? I'll check for new threads and process them when ready (~2–5 min each).
 ```
 
-Only offer when at least one bot reviewer was re-requested (Step 13), or is still pending after all items were classified as skip (Step 6c). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested or pending, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
+Only offer when at least one bot reviewer was re-requested (Step 13). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
 
 ### Signals
 
@@ -195,5 +197,6 @@ When building display prompts for bot accounts (e.g., the push/re-request prompt
 
 1. Strip the `[bot]` suffix if present.
 2. If the result contains hyphens, take the first hyphen-separated token (e.g. `copilot-pull-request-reviewer` → `copilot`, `dependabot-preview` → `dependabot`).
+3. Otherwise, keep the remaining login as-is (e.g. `renovate[bot]` → `renovate`).
 
 Use the full login (including any `[bot]` suffix) for the actual API calls.

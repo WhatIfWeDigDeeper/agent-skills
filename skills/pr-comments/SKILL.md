@@ -324,7 +324,7 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 `consistency` changes (from Step 6b) are included in the same commit as the originating comment's changes. Credit goes to the original commenter — their suggestion triggered the parallel change. No separate `Co-authored-by` entry is needed for the consistency item itself since it derives from the same reviewer's feedback.
 
-**Commit fallbacks:** If the commit fails due to GPG signing, retry with `--no-gpg-sign`. If the heredoc fails, write the message to a temp file via `mktemp`.
+**Commit fallbacks:** If the commit fails due to GPG signing, retry the same command with `--no-gpg-sign`. If the heredoc for the commit message fails, write it to a temp file instead: `msg_file="$(mktemp)"`, write the message into it, run `git commit -F "$msg_file"`, then clean up with `rm -f "$msg_file"` (or set `trap 'rm -f "$msg_file"' EXIT` before writing).
 
 ### 11. Reply to Comments
 
