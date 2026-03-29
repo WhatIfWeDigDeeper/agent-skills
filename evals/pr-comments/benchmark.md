@@ -9,13 +9,13 @@
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 32.4% ± 23.9% | **+68%** |
+| Pass Rate | **100%** ± 0% | 32.5% ± 23.9% | **+68%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
 Time and token statistics in this table are computed only over primary runs (`run_number = 1`) that have recorded, non-null `time_seconds` / `tokens` values in `benchmark.json` (with_skill: 3 of 35; without_skill: 5 of 35; i.e., 8 of 70 total primary runs). Runs with `time_seconds: null` or `tokens: null` (including simulated transcripts), as well as all regression runs (`run_number > 1`), are excluded from these aggregates, so the reported means/stddevs may differ from a full-suite measurement; the top-level `run_summary.time_seconds` and `run_summary.tokens` fields remain `null` by design.
 
-The skill improves correctness by +68 percentage points. All 35 with-skill evals pass 100%. Evals 9 and 13 were re-run for v1.17 to update POST-only bot re-request assertions (previously DELETE+POST). Eval 1 was re-run for v1.17 to reflect auto-mode behavior (default since v1.16). The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the plan table format, diff-validation for suggestion blocks, cross-file consistency checks, early-poll detection for pending bot reviewers, and auto-mode iteration management — these remain the core discriminators.
+The skill improves correctness by +68 percentage points. All 35 with-skill evals pass 100%. Evals 9 and 13 were re-run for v1.17 to update POST-only bot re-request assertions (previously DELETE+POST). For eval 1, the v1.17 with-skill entry was replaced with a synthetic transcript reflecting auto-mode behavior (default since v1.16), with metrics nulled. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the plan table format, diff-validation for suggestion blocks, cross-file consistency checks, early-poll detection for pending bot reviewers, and auto-mode iteration management — these remain the core discriminators.
 
 All run entries recorded against v1.17. Full-suite validation against v1.18 was performed and passed but runs are not re-recorded; re-run evals to obtain v1.18 benchmark data.
 
