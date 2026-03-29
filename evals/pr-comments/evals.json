@@ -268,7 +268,7 @@
     {
       "id": 9,
       "prompt": "Please address the review comments on my PR. Two threads have feedback: @alice suggested improving error messages (valid), and copilot-pull-request-reviewer[bot] suggested adding a missing null check (valid). After addressing them, push and re-request review from both.",
-      "expected_output": "The skill implements both suggestions, commits with Co-authored-by credit for alice and copilot-pull-request-reviewer[bot], then presents 'Push and re-request review from @alice, @copilot?' On confirmation, runs git push. Re-requests @alice via gh pr edit (--remove-reviewer then --add-reviewer). Re-requests the bot via the REST requested_reviewers endpoint (DELETE then POST), NOT gh pr edit, because gh pr edit rejects bot accounts.",
+      "expected_output": "The skill implements both suggestions, commits with Co-authored-by credit for alice and copilot-pull-request-reviewer[bot], then presents 'Push and re-request review from @alice, @copilot?' On confirmation, runs git push. Re-requests @alice via gh pr edit (--remove-reviewer then --add-reviewer). Re-requests the bot via a single POST to the REST requested_reviewers endpoint, NOT gh pr edit (which rejects bot accounts) and NOT a prior DELETE (POST alone re-triggers the review).",
       "files": [],
       "assertions": [
         {
@@ -281,7 +281,7 @@
         },
         {
           "id": "bot-via-rest-api",
-          "text": "Bot reviewers are re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit"
+          "text": "Bot reviewers are re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit"
         },
         {
           "id": "bot-display-name-shortened",
@@ -401,7 +401,7 @@
         },
         {
           "id": "bot-via-rest-api",
-          "text": "The bot reviewer is re-requested via the REST /requested_reviewers endpoint (DELETE + POST), not gh pr edit"
+          "text": "The bot reviewer is re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit"
         },
         {
           "id": "commit-credits-bot",

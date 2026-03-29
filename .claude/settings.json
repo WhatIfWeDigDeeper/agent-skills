@@ -3,11 +3,12 @@
   "permissions": {
     "allow": [
       "Bash",
-      "Read(*)",
-      "Edit(*)",
-      "Search(*)",
-      "Glob(*)",
-      "Grep(*)"
+      "Read",
+      "Edit",
+      "Search",
+      "Glob",
+      "Grep",
+      "WebFetch"
     ],
     "deny": [
       "Read(.env*)",
@@ -79,6 +80,7 @@
       ],
       "allowLocalBinding": true,
       "allowedHosts": [
+        "api.github.com",
         "github.com",
         "registry.npmjs.org"
       ]

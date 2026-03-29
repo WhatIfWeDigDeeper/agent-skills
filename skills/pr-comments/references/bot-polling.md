@@ -2,7 +2,7 @@
 
 This reference is used in two entry points:
 - **Step 13** — after re-requesting bot reviewers following a commit
-- **Step 6c** — when all fetched threads are classified as `skip` but bot reviewers are pending or recently submitted a review after the comment fetch
+- **Step 6c** — when all fetched threads are classified as `skip` but bot reviewers are pending, recently submitted a review after the comment fetch, or have not yet reviewed the current HEAD commit
 
 ## Auto mode (default)
 
@@ -32,10 +32,26 @@ Only offer when at least one bot reviewer was re-requested (Step 13), or is stil
 
 ## Polling behavior (both modes)
 
-Record a `snapshot_timestamp` (ISO 8601 UTC, ending in `Z` — e.g., `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")`). When entering from **Step 13**, record it **before** the DELETE+POST re-request so that even a same-second review submission is captured by Signal 2. When entering from **Step 6c** (all-skip path), reuse the `fetch_timestamp` from the current run (or an earlier timestamp from the run, if you adjusted it) as `snapshot_timestamp` for the pending-bot polling entry. Step 6c should only enter polling when no post-fetch bot review has been detected. To avoid a race where a bot review lands between the Step 6c post-fetch check and the snapshot, follow this order when entering from Step 6c:
+Set `snapshot_timestamp` (ISO 8601 UTC, ending in `Z`) according to the entry path — **do not use a single "record now" rule for both paths**:
 
-1. Immediately take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). When entering from Step 13, do not reuse the Step 3 results since threads may have been resolved since then; when entering from the Step 6c path, the snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`).
-2. Immediately after taking the snapshot (still in Step 6c), perform a final check for any bot reviews with `submitted_at >= fetch_timestamp` (using the reviews API) **or** bot timeline comments with `created_at >= fetch_timestamp` (using the issues comments API). If any such reviews or timeline comments are found, **do not** continue polling from Step 6c; instead, immediately jump back to **Step 2** for a fresh fetch so that any new threads or timeline comments created by those bots are re-fetched and re-classified. **Exception:** if the Rapid re-poll guard (see below) fires — i.e., this is a second consecutive immediate loop-back for the same bot set — fall through to the 60-second polling loop instead of jumping to Step 2.
+- **Step 13**: take a fresh timestamp **before** the POST re-request — `snapshot_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")` — so that even a same-second review is captured by Signal 2.
+- **Step 6c** (all-skip path): assign `snapshot_timestamp = fetch_timestamp` (or an earlier adjusted timestamp from this run). Do **not** record a fresh timestamp — reusing `fetch_timestamp` ensures any bot reviews that arrived after the Step 2 fetch are captured. Step 6c should only enter polling when no post-fetch bot review has been detected.
+
+To avoid races, follow these orders:
+
+**When entering from Step 13 (take snapshots before POST, then re-request):**
+
+1. Record `snapshot_timestamp` as above.
+2. Take a **fresh** snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). Do **not** reuse the Step 3 results, since threads may have been resolved since then.
+3. POST the bot re-request for the relevant reviewers.
+4. Begin the 60-second polling loop described below (Signals 1–3).
+
+**When entering from Step 6c (all-skip path with pending bots):**
+
+1. Set or confirm `snapshot_timestamp` for this polling entry by assigning it to the `fetch_timestamp` from the current run (or an earlier adjusted timestamp from this run, if applicable).
+2. Immediately after confirming `snapshot_timestamp`, take a snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). The snapshot may be non-empty (it contains the current unresolved thread IDs, which were all classified as `skip`).
+3. Immediately after taking the snapshot (still in Step 6c), perform a final check for any bot reviews with `submitted_at >= snapshot_timestamp` (using the reviews API) **or** bot timeline comments with `created_at >= snapshot_timestamp` (using the issues comments API). If any such reviews or timeline comments are found, **do not** continue polling from Step 6c; instead, immediately jump back to **Step 2** for a fresh fetch so that any new threads or timeline comments created by those bots are re-fetched and re-classified. **Exception:** if the Rapid re-poll guard (see below) fires — i.e., this is a second consecutive immediate loop-back for the same bot set — fall through to the 60-second polling loop instead of jumping to Step 2.
+4. If the final check in step 3 finds no new bot activity (or the Rapid re-poll guard forces a fall-through), begin the 60-second polling loop described below (Signals 1–3).
 
 After this initial setup, poll every 60 seconds using **three signals**:
 
@@ -64,7 +80,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
 
 Evaluate Signal 3 **per bot** (same bot set as Signals 1 and 2 — do not check bots that are not being polled). If Signal 3 fires (new timeline comment from a polled bot), loop back to Step 2 to re-fetch. This captures bots that post only timeline comments without submitting a review.
 
-Check Signals 2 and 3 after each poll cycle — but only act on them if Signal 1 has not fired in the same cycle (new threads take priority). Do not use `requested_reviewers` as a completion signal — the DELETE+POST re-request pattern creates a window where the bot is absent before it has finished reviewing.
+Check Signals 2 and 3 after each poll cycle — but only act on them if Signal 1 has not fired in the same cycle (new threads take priority). Do not use `requested_reviewers` as a completion signal — its state after a POST re-request is unreliable for detecting review completion.
 
 Attribute new threads (Signal 1) to the responding bot by checking the commenter's login on each thread.
 
@@ -86,7 +102,7 @@ Loop back to Step 2 within the same skill invocation — do not require the user
   ```
 
   **Auto-loop exit conditions** (checked before starting each new iteration). **These are the ONLY valid reasons to exit the auto-loop. Do not exit for subjective reasons** such as "diminishing returns", "feedback is minor", or "PR has been substantially refined" — those are not exit conditions. If none of the conditions below are met, continue polling.
-  1. No new unresolved bot threads after poll AND all polled bots have submitted a review (per Signal 2 tracking) → exit loop. Do not use `requested_reviewers` as a completion signal here — the DELETE+POST re-request window makes it unreliable. Instead, track which bots have a `submitted_at >= snapshot_timestamp` review via Signal 2; once every polled bot has responded, consider the poll complete.
+  1. No new unresolved bot threads after poll AND all polled bots have submitted a review (per Signal 2 tracking) → exit loop. Do not use `requested_reviewers` as a completion signal here — its state after a POST re-request is unreliable. Instead, track which bots have a `submitted_at >= snapshot_timestamp` review via Signal 2; once every polled bot has responded, consider the poll complete.
   2. Iteration count has reached the maximum (N from `--auto N`, default 10) → exit with note
   3. Poll timeout → exit with timeout message
   4. Security screening flags a comment in this iteration → pause auto-mode, drop to manual confirmation for this iteration; after the user confirms, ask: "Resume auto mode for remaining iterations? [y/N]"
@@ -149,7 +165,29 @@ This section is executed from Step 6c when the plan is empty or every plan row's
      ```
      If confirmed, enter the polling workflow. If declined, proceed to the report.
 
-5. **If no pending bots and no recent bot review:** Fall through to Step 7 as normal.
+5. **If no pending bots and no recent bot review or timeline comment — check for stale-HEAD bot reviewers:** Some bots (e.g. `copilot-pull-request-reviewer[bot]`) do not always auto-trigger on push and may not appear in `requested_reviewers` even though they haven't reviewed the latest commit. Get the PR's canonical HEAD SHA from the API (not `git rev-parse HEAD`, which may diverge from the remote) and find any previously-reviewing bots whose most recent submitted review was on an older commit. Exclude `claude[bot]` (cannot be re-requested via `/requested_reviewers`) and filter to submitted reviews only (state != PENDING, submitted_at != null):
+   ```bash
+   head_sha=$(gh api repos/{owner}/{repo}/pulls/{pr_number} --jq '.head.sha')
+   gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
+     | jq -s --arg head_sha "$head_sha" '
+         [.[] | .[]]
+         | map(select((.user.login | endswith("[bot]")) and .user.login != "claude[bot]" and .state != "PENDING" and .submitted_at != null))
+         | sort_by(.user.login)
+         | group_by(.user.login)
+         | map(sort_by(.submitted_at) | last)
+         | map(select(.commit_id != $head_sha))
+         | map(.user.login)'
+   ```
+   If this returns any bots (stale-HEAD bots that can be re-requested), re-request them using the **Step 13 entry path**: record a fresh `snapshot_timestamp`, take a fresh unresolved-thread snapshot, POST the re-request for each stale bot, then begin the 60-second polling loop (Signals 1–3). In auto mode, log:
+   ```
+   All threads skipped — @bot1 has not reviewed HEAD. Re-requesting and polling...
+   ```
+   In manual mode, prompt:
+   ```
+   All items skipped, but @bot1 hasn't reviewed the latest commit. Re-request and poll? [y/N]
+   ```
+
+6. **If no pending bots, no recent bot review or timeline comment, and no stale-HEAD bots:** Fall through to Step 7 as normal.
 
 ## Bot Display Names
 

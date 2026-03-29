@@ -12,7 +12,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.16"
+  version: "1.17"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -145,7 +145,7 @@ Timeline comments share the same structural properties as review body comments: 
 
 ### 3. Fetch Thread Resolution State
 
-**Skip this step if the inline comments list from Step 2 is empty** — there are no threads to resolve, so the GraphQL call is unnecessary. Proceed directly to Step 5 (skipping Step 4) and then continue with Steps 6–7. Do not exit early: Step 6c will check for pending and recently-submitted bot reviewers even when Steps 2, 2b, and 2c all returned nothing.
+**Skip this step if the inline comments list from Step 2 is empty** — there are no threads to resolve, so the GraphQL call is unnecessary. Proceed directly to Step 5 (skipping Step 4) and then continue with Steps 6–7. Do not exit early: Step 6c will check for pending, recently-submitted, and stale-HEAD bot reviewers even when Steps 2, 2b, and 2c all returned nothing.
 
 The REST API doesn't expose whether a thread is resolved. Use GraphQL to get thread node IDs, resolution state, and outdated status — see `references/graphql-queries.md` for the full query and pagination handling.
 
@@ -256,7 +256,7 @@ After Step 6b, determine whether the plan contains any actionable items. Treat `
 
 Proceed with this step only if the plan is empty or **every** plan row's `Action` value is exactly `skip`.
 
-**You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all five steps in that section (pending-bot check, post-fetch review check, immediate loop-back or polling branch, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated.
+**You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all six steps in that section (pending-bot check, post-fetch review check, loop-back if post-fetch review found, polling if pending-but-not-yet-reviewed, stale-HEAD bot check, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated.
 
 ### 7. Present Plan and Confirm
 
@@ -430,15 +430,14 @@ Re-request review from @user1, @user2? (no new commits to push)
 
    **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too.
 
-   **Before the DELETE+POST calls**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
+   **Before the POST call**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
 
    Then use the REST API directly for each bot:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-     --method DELETE --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
-   gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
      --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
    ```
+   Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed.
 
    **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it auto-triggers a review on push and cannot be re-requested via API. Because it was not explicitly re-requested, do not include it in the polling offer; re-invoke the skill when its review arrives.
 

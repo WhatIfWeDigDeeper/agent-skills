@@ -2,6 +2,17 @@
 
 Use the correct endpoint and body format based on the comment type being replied to.
 
+## Byline
+
+Append this footer to **every** reply body (inline, review body, and timeline). Substitute your assistant's name and URL:
+
+```
+---
+🤖 Generated with [AssistantName](url)
+```
+
+For example, Claude Code uses `[Claude Code](https://claude.com/claude-code)`.
+
 ## Inline comment (Step 2)
 
 Use the review comment replies endpoint:
@@ -9,7 +20,10 @@ Use the review comment replies endpoint:
 ```bash
 gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/replies \
   --method POST \
-  --field body="[Your reply]"
+  --field body="[Your reply]
+
+---
+🤖 Generated with [AssistantName](url)"
 ```
 
 ## Review body comment (Step 2b)
@@ -19,7 +33,10 @@ Use the issue comments endpoint (replies go to the PR timeline):
 ```bash
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
   --method POST \
-  --field body="[Your reply]"
+  --field body="[Your reply]
+
+---
+🤖 Generated with [AssistantName](url)"
 ```
 
 ## Timeline comment (Step 2c)
@@ -32,6 +49,9 @@ Required format:
 > [relevant excerpt from their comment]
 
 [Your response]
+
+---
+🤖 Generated with [AssistantName](url)
 ```
 
 ```bash
@@ -40,5 +60,8 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
   --field body="@{commenter_login}
 > [relevant excerpt]
 
-[Your response]"
+[Your response]
+
+---
+🤖 Generated with [AssistantName](url)"
 ```

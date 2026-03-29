@@ -245,6 +245,25 @@ class TestRepollGate:
         plan = [{"action": "skip"}, {"some_field": "value"}]
         assert should_repoll_on_all_skip(plan, ["copilot-pull-request-reviewer[bot]"]) is False
 
+    def test_stale_head_bot_triggers_repoll(self):
+        """All items skip + bot hasn't reviewed HEAD → should repoll."""
+        plan = [{"action": "skip"}, {"action": "skip"}]
+        assert should_repoll_on_all_skip(plan, [], stale_head_bots=["copilot-pull-request-reviewer[bot]"]) is True
+
+    def test_stale_head_bot_empty_plan_triggers_repoll(self):
+        """Empty plan + stale-HEAD bot → should repoll."""
+        assert should_repoll_on_all_skip([], [], stale_head_bots=["copilot-pull-request-reviewer[bot]"]) is True
+
+    def test_no_stale_head_bots_no_repoll(self):
+        """All items skip + no pending bots + no recent reviews + no stale-HEAD bots → exit normally."""
+        plan = [{"action": "skip"}]
+        assert should_repoll_on_all_skip(plan, [], stale_head_bots=[]) is False
+
+    def test_stale_head_bot_with_actionable_plan_no_repoll(self):
+        """Actionable plan item + stale-HEAD bot → no repoll (normal flow takes over)."""
+        plan = [{"action": "fix"}, {"action": "skip"}]
+        assert should_repoll_on_all_skip(plan, [], stale_head_bots=["copilot-pull-request-reviewer[bot]"]) is False
+
 
 class TestRepollGuard:
     """Test Step 6c rapid re-poll guard state tracking."""

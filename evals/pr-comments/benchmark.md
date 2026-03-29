@@ -1,21 +1,21 @@
 # Skill Benchmark: pr-comments
 
 **Model**: claude-sonnet-4-6
-**Date**: 2026-03-25
+**Date**: 2026-03-28
 **Evals**: 1–27 (1 primary run each per configuration; evals 12, 14, 20, 22, 23, and 24 have supplementary regression runs)
-**Skill version**: 1.16
+**Skill version**: 1.17
 
 ## Summary
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 40.1% ± 34.9% | **+60%** |
+| Pass Rate | **100%** ± 0% | 33.2% ± 26.7% | **+67%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 23; without_skill: 6 of 23; i.e., 11 of 46 total primary runs across both configurations have token logs). Regression runs (run_number=2 and run_number=3, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
+Token statistics are computed only over primary (run_number=1) runs with recorded token counts (with_skill: 5 of 27; without_skill: 6 of 27; i.e., 11 of 54 total primary runs across both configurations have token logs). Regression runs (run_number=2 and run_number=3, evals 12 and 14) and simulated transcripts (`tokens: null`) are excluded from token aggregates, so these numbers may differ from a full-suite measurement.
 
-The skill improves correctness by +60 percentage points. All 23 with-skill evals pass 100%. The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the interactive plan/confirmation gate, diff-validation for suggestion blocks, cross-file consistency checks, and early-poll detection for pending bot reviewers — these remain the core discriminators.
+The skill improves correctness by +67 percentage points. All 27 with-skill evals pass 100%. Evals 9 and 13 were re-run for v1.17 to update POST-only bot re-request assertions (previously DELETE+POST). The baseline continues to miss Co-authored-by attribution, GraphQL thread-state fetching, the interactive plan/confirmation gate, diff-validation for suggestion blocks, cross-file consistency checks, and early-poll detection for pending bot reviewers — these remain the core discriminators.
 
 ## Per-Eval Results
 
@@ -90,7 +90,7 @@ Tests the decline path: the skill presents the combined push prompt first (regar
 ### Eval 9 — Bot reviewer handling
 **Prompt**: @alice suggests improving error messages, copilot-pull-request-reviewer[bot] suggests adding a null check. After addressing both, push and re-request review from both.
 
-Tests that the skill correctly separates human and bot reviewers when re-requesting review: humans via `gh pr edit --remove-reviewer/--add-reviewer`, bots via the REST `/requested_reviewers` endpoint (DELETE + POST). Also tests that the bot's display name is shortened for the prompt (e.g. `@copilot`, not `@copilot-pull-request-reviewer[bot]`). The without-skill run pushed the branch but attempted to use `gh pr edit` for the bot reviewer, which would fail or omit the bot entirely.
+Tests that the skill correctly separates human and bot reviewers when re-requesting review: humans via `gh pr edit --remove-reviewer/--add-reviewer`, bots via the REST `/requested_reviewers` endpoint. Also tests that the bot's display name is shortened for the prompt (e.g. `@copilot`, not `@copilot-pull-request-reviewer[bot]`). The without-skill run pushed the branch but attempted to use `gh pr edit` for the bot reviewer, which would fail or omit the bot entirely. _Note: The benchmark metrics in this document are from the historical 1.16 implementation (using DELETE+POST for bot reviewers); this description has been updated to reflect the v1.17 POST-only + stale-HEAD detection behavior for future runs._
 
 ### Eval 10 — All threads outdated — no reviewer list
 **Prompt**: Three threads, all marked as outdated (code has already changed past those comments).
