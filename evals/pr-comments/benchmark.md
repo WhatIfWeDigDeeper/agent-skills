@@ -23,7 +23,7 @@ All run entries recorded against v1.17. Full-suite validation against v1.18 was 
 
 | # | Eval | With Skill | Without Skill | Key differentiators |
 |---|------|------------|---------------|---------------------|
-| 1 | Basic: address comments | **7/7 (100%)** | 0/7 (0%) | GraphQL thread state, plan table, Co-authored-by, resolveReviewThread, auto-mode (no prompt) |
+| 1 | Basic: address comments | **7/7 (100%)** | 1/7 (14%) | GraphQL thread state, plan table, Co-authored-by, resolveReviewThread, auto-mode (no prompt) |
 | 2 | Explicit PR number + suggestions | **7/7 (100%)** | 1/7 (14%) | Suggestion block detection, branch checkout, outdated skip, resolved filter |
 | 3 | Out-of-scope decline | **8/8 (100%)** | 4/8 (50%) | Plan with decline reason, reply to declined, don't resolve declined thread |
 | 4 | Mixed four categories | **8/8 (100%)** | 2/8 (25%) | Declined reviewer excluded from Co-authored-by, suggestion applied from block |
@@ -64,7 +64,7 @@ All run entries recorded against v1.17. Full-suite validation against v1.18 was 
 ### Eval 1 — Basic: address comments
 **Prompt**: User has review comments on their PR and wants them addressed.
 
-Tests the core end-to-end workflow: REST comment fetch, GraphQL thread-state fetch, filtering resolved threads from the plan, plan presentation (in auto mode — the default since v1.16 — the plan table is shown but no confirmation prompt appears), Co-authored-by trailers, and resolveReviewThread mutation. The without-skill run fetched comments via REST but skipped all four of the skill-mandated process steps — no GraphQL call, no plan, no confirmation, no Co-authored-by, no thread resolution. Only the basic REST fetch passed.
+Tests the core end-to-end workflow: REST comment fetch, GraphQL thread-state fetch, filtering resolved threads from the plan, plan presentation (in auto mode — the default since v1.16 — the plan table is shown but no confirmation prompt appears), Co-authored-by trailers, and resolveReviewThread mutation. The without-skill run attempted to address the PR without using any of the skill-mandated process steps — no GraphQL call, no plan, no confirmation, no Co-authored-by, no thread resolution — and it also failed the REST comment fetch assertion. The only passing assertion for the without-skill configuration was the auto-mode no-confirmation behavior; all other checks, including the REST fetch, failed.
 
 ### Eval 2 — Explicit PR number + suggestions
 **Prompt**: Address review comments on PR #47, including several suggested changes.

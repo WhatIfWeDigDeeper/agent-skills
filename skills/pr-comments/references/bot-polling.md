@@ -16,8 +16,11 @@ This reference defines the polling workflow for two distinct entry points and a 
 
 3. POST the bot re-request for each bot reviewer:
    ```bash
-   gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-     --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
+   bot_reviewers=("BOT_LOGIN_1" "BOT_LOGIN_2")
+   for bot_reviewer in "${bot_reviewers[@]}"; do
+     gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
+       --method POST --field "reviewers[]=${bot_reviewer}"
+   done
    ```
 
 4. Proceed to the **Shared polling loop** below.
