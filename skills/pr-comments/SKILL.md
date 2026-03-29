@@ -286,7 +286,7 @@ If `--manual` was passed, show the `Proceed? [y/N/auto]` prompt above and **stop
 
 Otherwise (auto mode, the default), skip this confirmation prompt entirely — show the plan table above but proceed without waiting.
 
-If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode — show the `Proceed? [y/N/auto]` prompt and **stop generating** until the user replies. Here, `consistency` rows are inferred cross-file follow-ups from Step 6b and always require explicit confirmation, even in auto-mode.
+If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode — show the `Proceed? [y/N/auto]` prompt above and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Output the prompt as your final message and wait. Resume only after the user replies with `y`, `n`, or `auto`. Here, `consistency` rows are inferred cross-file follow-ups from Step 6b and always require explicit confirmation, even in auto-mode.
 
 ### 8. Apply Accepted Suggestions
 

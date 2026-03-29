@@ -167,7 +167,7 @@ Loop back to Step 2 within the same skill invocation — do not require the user
   1. No new unresolved bot threads after poll AND all polled bots have submitted a review (per Signal 2 tracking) → exit loop. Do not use `requested_reviewers` as a completion signal here — instead, track which bots have a `submitted_at >= snapshot_timestamp` review via Signal 2; once every polled bot has responded, consider the poll complete.
   2. Iteration count has reached the maximum (N from `--auto N`, default 10) → exit with note
   3. Poll timeout → exit with timeout message
-  4. Security screening flags a comment in this iteration → pause auto-mode, drop to manual confirmation for this iteration; after the user confirms, ask: "Resume auto mode for remaining iterations? [y/N]"
+  4. Security screening flags a comment in this iteration → pause auto-mode, drop to manual confirmation for this iteration; after the user confirms, ask: "Resume auto mode for remaining iterations? [y/N]". The agent MUST output this prompt as its final message for the iteration and MUST stop generating further output until the user responds. The agent MUST NOT answer this prompt on the user's behalf; it may resume auto mode only after receiving an explicit user response.
 
   **After each auto-loop commit**, check whether the PR title or description is stale relative to the current commit log:
 
