@@ -12,7 +12,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.17"
+  version: "1.18"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -59,7 +59,7 @@ Different operations require different `gh` commands:
 
 ## Process
 
-**Global API error handling rule (applies to all `gh api` commands in this skill, including step snippets)**: For every `gh api` call (REST and GraphQL), wrap the command in a 3-attempt exponential backoff sequence: 2s → 8s → 32s. In auto-mode, perform these retries silently; if all 3 attempts fail, pause auto-mode and surface the error for manual resolution before continuing. In manual mode, after exhausting retries, show the error and ask whether to continue. For `git push` failures, do not retry automatically — show the error and suggest the user push manually (push failures are typically persistent: branch protection, auth issues, etc.).
+**Global API error handling rule (applies to all `gh api` commands in this skill, including step snippets)**: For every `gh api` call (REST and GraphQL), wrap the command in a 3-attempt retry with exponential backoff. In auto-mode, perform these retries silently; if all 3 attempts fail, pause auto-mode and surface the error for manual resolution before continuing. In manual mode, after exhausting retries, show the error and ask whether to continue. For `git push` failures, do not retry automatically — show the error and suggest the user push manually (push failures are typically persistent: branch protection, auth issues, etc.).
 
 ### 1. Identify the PR
 
@@ -324,9 +324,7 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 `consistency` changes (from Step 6b) are included in the same commit as the originating comment's changes. Credit goes to the original commenter — their suggestion triggered the parallel change. No separate `Co-authored-by` entry is needed for the consistency item itself since it derives from the same reviewer's feedback.
 
-**Commit fallbacks:**
-- If GPG signing fails, retry with `--no-gpg-sign`
-- If heredoc fails with "can't create temp file", write the message to a temp file (`MSG_FILE=$(mktemp)`), use `git commit -F "$MSG_FILE"`, and ensure you clean up the temp file afterward (for example, with `trap 'rm -f "$MSG_FILE"' EXIT` or `rm -f "$MSG_FILE"` once the commit succeeds).
+**Commit fallbacks:** If the commit fails due to GPG signing, retry with `--no-gpg-sign`. If the heredoc fails, write the message to a temp file via `mktemp`.
 
 ### 11. Reply to Comments
 
