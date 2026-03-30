@@ -1,5 +1,8 @@
 {
   "model": "opusplan",
+  "remote": {
+    "enabled": true
+  },
   "permissions": {
     "allow": [
       "Bash",

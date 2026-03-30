@@ -8,7 +8,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 |-------------|-------------|----------|--------|
 | [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps", "/js-deps typescript", "/js-deps help" | [+38%](evals/js-deps/benchmark.md) |
 | [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn", "/learn help" | [+13%](evals/learn/benchmark.md) |
-| [pr-comments](skills/pr-comments/SKILL.md) | Address review comments on your own PR: implement valid suggestions, reply to invalid ones, resolve threads, credit commenters in commits, push and re-request review, and poll for bot reviewers across multiple rounds hands-free (auto mode by default; use `--manual` to confirm each iteration) | "address PR comments", "implement PR feedback", "respond to review comments", "/pr-comments", "/pr-comments 42", "/pr-comments --auto 5", "/pr-comments --manual" | [+67%](evals/pr-comments/benchmark.md) |
+| [pr-comments](skills/pr-comments/SKILL.md) | Address review comments on your own PR: implement valid suggestions, reply to invalid ones, resolve threads, credit commenters in commits, push and re-request review, and poll for bot reviewers across multiple rounds hands-free (auto mode by default; use `--manual` to confirm each iteration) | "address PR comments", "implement PR feedback", "respond to review comments", "/pr-comments", "/pr-comments 42", "/pr-comments --auto 5", "/pr-comments --manual" | [+68%](evals/pr-comments/benchmark.md) |
 | [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "/ship-it" "/ship-it fix login timeout", "/ship-it help" | [+38%](evals/ship-it/benchmark.md) |
 | [uv-deps](skills/uv-deps/SKILL.md) | Security audits and dependency updates for Python projects using uv | "audit Python packages", "update pyproject.toml", "fix Python CVEs", "/uv-deps", "/uv-deps fastapi", "/uv-deps help" | [+83%](evals/uv-deps/benchmark.md) |
 
@@ -20,7 +20,7 @@ All skills support `help`, `--help`, `-h`, or `?` as arguments to show interacti
 
 ### Using the skills package
 
-Vercel's [skills package](https://github.com/vercel-labs/skills?tab=readme-ov-file#skills) is supported by almost all coding assistants. The skills in this repo are available on the skills.sh site at [skills.sh/whatifwedigdeeper/agent-skills](https://skills.sh/whatifwedigdeeper/agent-skills)
+Vercel's [skills package](https://github.com/vercel-labs/skills?tab=readme-ov-file#skills) is supported by almost all coding assistants. The skills in this repo are available on Vercel's skills site at [https://skills.sh/whatifwedigdeeper/agent-skills](https://skills.sh/whatifwedigdeeper/agent-skills)
 
 ```bash
 # prompts for which skills to install

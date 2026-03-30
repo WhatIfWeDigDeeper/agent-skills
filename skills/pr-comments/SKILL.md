@@ -12,7 +12,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.17"
+  version: "1.18"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -59,7 +59,7 @@ Different operations require different `gh` commands:
 
 ## Process
 
-**Global API error handling rule (applies to all `gh api` commands in this skill, including step snippets)**: For every `gh api` call (REST and GraphQL), wrap the command in a 3-attempt exponential backoff sequence: 2s → 8s → 32s. In auto-mode, perform these retries silently; if all 3 attempts fail, pause auto-mode and surface the error for manual resolution before continuing. In manual mode, after exhausting retries, show the error and ask whether to continue. For `git push` failures, do not retry automatically — show the error and suggest the user push manually (push failures are typically persistent: branch protection, auth issues, etc.).
+**Global API error handling rule (applies to all `gh api` commands in this skill, including step snippets)**: For every `gh api` call (REST and GraphQL), wrap the command in a 3-attempt retry with exponential backoff. In auto-mode, perform these retries silently; if all 3 attempts fail, pause auto-mode and surface the error for manual resolution before continuing. In manual mode, after exhausting retries, show the error and ask whether to continue. For `git push` failures, do not retry automatically — show the error and suggest the user push manually (push failures are typically persistent: branch protection, auth issues, etc.).
 
 ### 1. Identify the PR
 
@@ -282,11 +282,11 @@ Proceed? [y/N/auto]
 - `n` — abort
 - `auto` — proceed AND switch to auto mode for all remaining bot-review iterations; subsequent iterations skip this confirmation gate (plan table still shown for observability)
 
-If `--manual` was passed, show the `Proceed? [y/N/auto]` prompt above and wait for the user's go-ahead. They know the codebase and may want to override your judgment.
+If `--manual` was passed, show the `Proceed? [y/N/auto]` prompt above and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Output the prompt as your final message and wait. Resume only after the user replies with `y`, `n`, or `auto`.
 
 Otherwise (auto mode, the default), skip this confirmation prompt entirely — show the plan table above but proceed without waiting.
 
-If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode. Here, `consistency` rows are inferred cross-file follow-ups from Step 6b and always require explicit confirmation, even in auto-mode.
+If any condition requires manual confirmation in this iteration (for example, security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), always drop to manual confirmation regardless of auto-mode — show the `Proceed? [y/N/auto]` prompt above and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Output the prompt as your final message and wait. Resume only after the user replies with `y`, `n`, or `auto`. Here, `consistency` rows are inferred cross-file follow-ups from Step 6b and always require explicit confirmation, even in auto-mode.
 
 ### 8. Apply Accepted Suggestions
 
@@ -324,11 +324,15 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 `consistency` changes (from Step 6b) are included in the same commit as the originating comment's changes. Credit goes to the original commenter — their suggestion triggered the parallel change. No separate `Co-authored-by` entry is needed for the consistency item itself since it derives from the same reviewer's feedback.
 
-**Commit fallbacks:**
-- If GPG signing fails, retry with `--no-gpg-sign`
-- If heredoc fails with "can't create temp file", write the message to a temp file (`MSG_FILE=$(mktemp)`), use `git commit -F "$MSG_FILE"`, and ensure you clean up the temp file afterward (for example, with `trap 'rm -f "$MSG_FILE"' EXIT` or `rm -f "$MSG_FILE"` once the commit succeeds).
+**Commit fallbacks:** If the commit fails due to GPG signing, retry the same command with `--no-gpg-sign`. If the heredoc for the commit message fails, write it to a temp file instead: `msg_file="$(mktemp)"`, write the message into it, run `git commit -F "$msg_file"`, then clean up with `rm -f "$msg_file"` (or set `trap 'rm -f "$msg_file"' EXIT` before writing).
 
 ### 11. Reply to Comments
+
+**Every reply body — inline, review body, and timeline — MUST end with the standard byline. Do not omit it, and do not hardcode a specific assistant — substitute the current assistant name and URL as defined in `references/reply-formats.md`.**
+```
+---
+🤖 Generated with [AssistantName](url)
+```
 
 `consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
 

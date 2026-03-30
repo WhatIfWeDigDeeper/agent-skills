@@ -4,6 +4,7 @@ dictionaryDefinitions: []
 dictionaries: []
 words:
   - actioned
+  - stddevs
   - ALLSKIP
   - anthropics
   - asyncpg
@@ -55,6 +56,7 @@ words:
   - runbooks
   - sandboxed
   - splitlines
+  - substeps
   - startswith
   - stddev
   - subshell
