@@ -113,7 +113,7 @@ Poll for @bot1, @bot2 to finish reviewing? I'll check for new threads and proces
 
 Output this prompt as the final message of the turn and **stop generating**. Do not assume a default response; resume only after the user replies explicitly.
 
-Only offer when at least one bot reviewer was re-requested (Step 13). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
+Only offer when at least one bot reviewer was re-requested (Step 13). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal. If the user accepts polling, ensure `snapshot_timestamp` and the unresolved-thread snapshot from the Step 13 setup exist (creating them now if they do not), then immediately enter the **Shared polling loop** described in the Signals section below.
 
 ### Signals
 
@@ -141,6 +141,8 @@ Evaluate Signal 2 **per bot**: track which bots have submitted a new review sinc
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
   | jq -s '[.[] | .[] | select(.user.login == "<bot_login>" and .created_at != null and .created_at >= "'"${snapshot_timestamp}"'")]'
 ```
+
+In both Signal 2 and Signal 3, `<bot_login>` must be the exact `.user.login` value returned by the GitHub API — this is typically the full login including any `[bot]` suffix (e.g. `copilot-pull-request-reviewer[bot]`). Do not use the shortened display name here.
 
 Evaluate Signal 3 **per bot** (same bot set as Signals 1 and 2 — do not check bots that are not being polled). If Signal 3 fires (new timeline comment from a polled bot), loop back to Step 2 to re-fetch.
 
