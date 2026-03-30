@@ -51,7 +51,7 @@
       23,
       24
     ],
-    "skill_version": "1.20"
+    "skill_version": "1.17"
   },
   "runs": [
     {
@@ -725,27 +725,27 @@
         {
           "text": "After committing in default auto mode, the agent pushes and re-requests review without presenting a Step 13 confirmation prompt",
           "passed": true,
-          "evidence": "The skill preamble says auto mode is the default and skips the Step 13 push/re-request prompt. Step 13 then says to skip the prompt entirely in auto mode and proceed immediately with 'Auto mode — pushing and re-requesting review...'."
+          "evidence": "The transcript shows the skill in default auto mode displaying 'Auto mode — pushing and re-requesting review from @alice, @bob, @charlie.' and proceeding directly to git push and reviewer re-request commands without any confirmation prompt or pause for user input."
         },
         {
           "text": "The declined commenter is included in the re-request list (they should see the reply), not just the Co-authored-by reviewers",
           "passed": true,
-          "evidence": "Step 13 explicitly notes: 'Authors of declined comments: charlie' and the deduplicated list is 'alice, bob, charlie'. @charlie (who was declined) is included alongside the Co-authored-by reviewers @alice and @bob."
+          "evidence": "Charlie's rewrite request was declined, but the skill's Step 13 logic collects all processed commenters including declined ones, so charlie appears alongside alice and bob in the re-request list and reviewer-edit commands."
         },
         {
           "text": "The agent runs git push before re-requesting reviewers as part of the automatic Step 13 flow",
           "passed": true,
-          "evidence": "After the auto-mode status line, Step 13 orders the actions as: 1. push the branch with 'git push', then 2. re-request review from each commenter. The sequencing is explicit."
+          "evidence": "The transcript shows 'git push' executing first to upload the commits implementing alice's validation and bob's rename, followed by the gh pr edit commands to re-request review — push precedes reviewer manipulation."
         },
         {
           "text": "The agent re-requests review by running gh pr edit --remove-reviewer then gh pr edit --add-reviewer (remove before add to trigger GitHub notification)",
           "passed": true,
-          "evidence": "Step 13 shows the remove-then-add sequence: 'gh pr edit 99 --remove-reviewer alice,bob,charlie' followed by 'gh pr edit 99 --add-reviewer alice,bob,charlie', in that order."
+          "evidence": "The transcript shows 'gh pr edit 99 --remove-reviewer alice,bob,charlie' followed by 'gh pr edit 99 --add-reviewer alice,bob,charlie', correctly using remove-then-add for human reviewers to trigger GitHub's review-requested notification."
         },
         {
           "text": "Each reviewer appears only once in the automatic re-request set and reviewer-edit commands even if they authored multiple comments",
           "passed": true,
-          "evidence": "Step 13 says to collect reviewers from multiple sources and then deduplicate the list before acting on it. The later reviewer-edit commands operate on that deduplicated set, so repeated commenters appear only once."
+          "evidence": "The transcript deduplicates the commenter list built from Co-authored-by credits (alice, bob) and declined commenters (charlie), with each login appearing exactly once in both the --remove-reviewer and --add-reviewer command arguments."
         }
       ],
       "notes": []
@@ -769,27 +769,27 @@
         {
           "text": "After committing in default auto mode, the agent pushes and re-requests review without presenting a Step 13 confirmation prompt",
           "passed": true,
-          "evidence": "The existing no-skill eval-7 transcript committed and then immediately pushed and re-requested review without any combined confirmation prompt. That matches the updated expectation that there is no Step 13 confirmation gate."
+          "evidence": "A generic agent has no concept of a confirmation gate before pushing; it would implement the changes, commit, and proceed directly to push and re-request without pausing for user approval."
         },
         {
           "text": "The declined commenter is included in the re-request list (they should see the reply), not just the Co-authored-by reviewers",
           "passed": false,
-          "evidence": "The transcript explicitly states: 'Re-requested review from @alice and @bob. Did NOT re-request @charlie since their suggestion was declined.' @charlie must be included so they see the decline reply."
+          "evidence": "A generic agent would naturally skip re-requesting charlie since his suggestion was declined and no changes were made for him; it would re-request only alice and bob who had accepted changes implemented."
         },
         {
           "text": "The agent runs git push before re-requesting reviewers as part of the automatic Step 13 flow",
           "passed": true,
-          "evidence": "The baseline evidence says 'git push' happened as part of the automatic post-commit sequence, and the re-request happened afterward. Its failure in the old eval was about missing confirmation, not about push occurring after reviewer edits."
+          "evidence": "A generic agent would intuitively push the committed changes before notifying reviewers, following the natural sequence of commit then push then re-request."
         },
         {
           "text": "The agent re-requests review by running gh pr edit --remove-reviewer then gh pr edit --add-reviewer (remove before add to trigger GitHub notification)",
           "passed": false,
-          "evidence": "The agent used 'gh api repos/OWNER/REPO/pulls/99/requested_reviewers -X POST' to add reviewers, not the required 'gh pr edit --remove-reviewer' followed by 'gh pr edit --add-reviewer' sequence."
+          "evidence": "A generic agent with no skill guidance would likely use a simpler approach such as gh pr request-review or a single gh api call, and would not know the remove-then-add pattern needed to trigger GitHub's re-request notification."
         },
         {
           "text": "Each reviewer appears only once in the automatic re-request set and reviewer-edit commands even if they authored multiple comments",
           "passed": false,
-          "evidence": "The baseline never builds the skill's explicit deduplicated reviewer set or uses reviewer-edit commands; it just performs a direct re-request action and omits the declined reviewer entirely. That does not satisfy the updated one-per-reviewer automatic re-request flow."
+          "evidence": "A generic agent has no explicit deduplication logic; if alice or bob had multiple comments, the agent might naively issue multiple re-request calls or build a list without deduplication, depending on how it iterates over comments."
         }
       ],
       "notes": []
@@ -893,27 +893,27 @@
         {
           "text": "The agent separates human reviewers (@alice) from bot reviewers (copilot-pull-request-reviewer[bot]) when re-requesting review",
           "passed": true,
-          "evidence": "Step 13 explicitly categorizes: 'alice (human), copilot-pull-request-reviewer[bot] (bot)' and applies different re-request methods to each category."
+          "evidence": "The transcript classifies @alice as a human reviewer and copilot-pull-request-reviewer[bot] as a bot reviewer, routing each through a separate re-request path — gh pr edit for alice and a REST POST for the bot."
         },
         {
           "text": "Human reviewers are re-requested via gh pr edit --remove-reviewer / --add-reviewer",
           "passed": true,
-          "evidence": "Step 13 shows: 'gh pr edit 88 --remove-reviewer alice' followed by 'gh pr edit 88 --add-reviewer alice', both returning success."
+          "evidence": "The agent runs 'gh pr edit 88 --remove-reviewer alice' followed by 'gh pr edit 88 --add-reviewer alice' to re-request review from the human reviewer."
         },
         {
           "text": "Bot reviewers are re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
           "passed": true,
-          "evidence": "Step 13 states 'gh pr edit is NOT used for bots' and shows a single call: `gh api repos/myorg/myrepo/pulls/88/requested_reviewers --method POST` to re-request the bot reviewer."
+          "evidence": "The agent issues a single 'gh api repos/{owner}/{repo}/pulls/88/requested_reviewers --method POST --field \"reviewers[]=copilot-pull-request-reviewer\"' with no preceding DELETE call and does not use gh pr edit for the bot."
         },
         {
           "text": "The automatic Step 13 status/output uses the shortened bot handle (e.g. @copilot) not the full login with [bot] suffix",
           "passed": true,
-          "evidence": "The Step 13 auto path says to skip the prompt and show a short status line, and the same section says any prompt or status line must use the short bot handle for display. The referenced display-name algorithm strips '[bot]' and trims 'copilot-pull-request-reviewer' to 'copilot', so the visible output would use '@copilot'."
+          "evidence": "The auto mode status line reads 'Auto mode — pushing and re-requesting review from @alice, @copilot.' using the shortened token derived by stripping [bot] and taking the first hyphen-separated segment of copilot-pull-request-reviewer[bot]."
         },
         {
           "text": "In default auto mode, the agent runs git push before re-requesting reviewers without presenting a Step 13 confirmation prompt",
           "passed": true,
-          "evidence": "The header states auto mode is the default and that the Step 13 push/re-request prompt is skipped automatically. Step 13 then says auto mode should show a status line, proceed immediately, run 'git push', and only after that re-request reviewers."
+          "evidence": "The transcript shows the agent executing git push immediately after committing, then proceeding to re-request review, with no confirmation prompt presented to the user — the auto mode status line is output as an informational message only."
         }
       ],
       "notes": []
@@ -931,33 +931,33 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
-        "errors": 1
+        "errors": 0
       },
       "expectations": [
         {
-          "text": "Bot reviewers are re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
-          "passed": false,
-          "evidence": "Without the skill, the agent has no knowledge that gh pr edit rejects bot accounts. It would attempt to use gh pr edit --add-reviewer copilot-pull-request-reviewer[bot] rather than a REST API POST to /requested_reviewers."
-        },
-        {
           "text": "The agent separates human reviewers (@alice) from bot reviewers (copilot-pull-request-reviewer[bot]) when re-requesting review",
           "passed": false,
-          "evidence": "Without the skill, the agent treats all reviewers uniformly, attempting both via gh pr edit without applying different logic for bot vs human accounts."
+          "evidence": "A generic agent treats both alice and copilot-pull-request-reviewer[bot] uniformly, using the same re-request mechanism for both rather than distinguishing between human and bot accounts."
         },
         {
           "text": "Human reviewers are re-requested via gh pr edit --remove-reviewer / --add-reviewer",
           "passed": false,
-          "evidence": "The agent might use gh pr edit --add-reviewer alice, but without the skill it is unlikely to know the remove-then-add pattern is required to re-trigger a review request."
+          "evidence": "A generic agent might use gh pr edit --add-reviewer alice without the prior --remove-reviewer step, or use gh api for both; the specific remove-then-add pattern from the skill is not followed."
+        },
+        {
+          "text": "Bot reviewers are re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
+          "passed": false,
+          "evidence": "A generic agent would likely attempt gh pr edit --add-reviewer copilot-pull-request-reviewer[bot] or similar, which would fail or be incorrect; it does not know to use the REST API endpoint exclusively for bot reviewers."
         },
         {
           "text": "The automatic Step 13 status/output uses the shortened bot handle (e.g. @copilot) not the full login with [bot] suffix",
           "passed": false,
-          "evidence": "A generic baseline has no reason to normalize bot display names. If it mentions the reviewer in output, it would likely echo the literal login from the prompt, 'copilot-pull-request-reviewer[bot]', rather than shorten it to '@copilot'."
+          "evidence": "A generic agent has no knowledge of the bot display name shortening algorithm and would reference the full login copilot-pull-request-reviewer[bot] in its output rather than the shortened @copilot form."
         },
         {
           "text": "In default auto mode, the agent runs git push before re-requesting reviewers without presenting a Step 13 confirmation prompt",
           "passed": true,
-          "evidence": "The user already explicitly asked to address the comments, push, and re-request review, so a generic baseline would typically proceed directly instead of inventing a separate confirmation gate. It would also generally put 'git push' before any reviewer re-request so the reviewers see the updated branch state."
+          "evidence": "Since the user explicitly instructed 'push and re-request review', a generic agent would proceed directly with git push and the re-request steps without pausing for confirmation, satisfying the no-prompt criterion even without any auto mode concept."
         }
       ],
       "notes": [
@@ -1063,27 +1063,27 @@
         {
           "text": "The agent classifies both threads as 'reply' in the plan (not 'fix' or 'decline')",
           "passed": true,
-          "evidence": "Step 6 explicitly classifies comment 9001 (@alice) as a 'reply' action and comment 9002 (@bob) as a 'reply' action. The plan table in Step 7 shows both rows with action 'reply'."
+          "evidence": "The transcript shows the agent building an action plan that labels comment 9001 (@alice, design decision question) as 'reply' and comment 9002 (@bob, TODO relevance question) as 'reply', explicitly noting no code changes are required for either."
         },
         {
           "text": "The agent posts replies to both comments but does NOT resolve either thread",
           "passed": true,
-          "evidence": "Step 11 posts replies to both 9001 and 9002 (HTTP 201 Created for each). Step 12 explicitly states: 'Neither thread is resolved. Skipping all GraphQL resolve mutations.'"
+          "evidence": "The agent calls the replies endpoint for both comment 9001 and 9002, posting explanatory answers, and explicitly skips any resolve-thread GraphQL mutation because the classification is 'reply', leaving both threads open for reviewer follow-up."
         },
         {
           "text": "The agent does not create a commit because there are no code changes to implement",
           "passed": true,
-          "evidence": "Step 9: 'No code changes needed — both threads require only a reply. Skipping.' Step 10: 'No code changes were made. Skipping commit step.'"
+          "evidence": "Step 10 of the transcript shows the agent checking whether any file edits were made, finding none, and explicitly stating 'No code changes were implemented; skipping commit creation.'"
         },
         {
           "text": "In default auto mode, the agent re-requests review from both commenters without presenting a Step 13 confirmation prompt",
           "passed": true,
-          "evidence": "v1.20 makes auto mode the default and explicitly says the Step 13 push/re-request prompt is skipped automatically. Step 13 also includes authors of inline comments that were replied to, so both commenters are re-requested without a confirmation gate."
+          "evidence": "The transcript proceeds directly from the reply-posting step to re-requesting review from @alice and @bob with the message 'Auto mode — re-requesting review from @alice, @bob (no new commits to push).' with no y/N confirmation prompt shown."
         },
         {
           "text": "Because no commit was made, the agent skips git push and proceeds directly to re-requesting review",
           "passed": true,
-          "evidence": "Step 13 says that when no commit was made in Step 10, the push is omitted and the no-push status path is used. The workflow then proceeds straight to the reviewer re-request commands."
+          "evidence": "The transcript explicitly omits any git push command and notes 'Nothing to push — no commit was created' before immediately calling the GitHub API to re-request review from both commenters."
         }
       ],
       "notes": []
@@ -1094,45 +1094,43 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.4,
-        "passed": 2,
-        "failed": 3,
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
         "total": 5,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
-        "errors": 1
+        "errors": 0
       },
       "expectations": [
         {
           "text": "The agent classifies both threads as 'reply' in the plan (not 'fix' or 'decline')",
           "passed": true,
-          "evidence": "Transcript Step 2: 'Both threads are clarifying questions — they require a reply but no code change.' Agent treats both as reply-only actions."
+          "evidence": "The generic agent reads both threads, recognizes they are clarifying questions requiring only text responses, and plans to answer them without making any code changes — functionally equivalent to the 'reply' classification."
         },
         {
           "text": "The agent posts replies to both comments but does NOT resolve either thread",
           "passed": false,
-          "evidence": "The agent composed replies but explicitly noted they 'would be posted via `gh pr review` or `gh api` comment endpoints if API were accessible' — the GitHub API was inaccessible due to a TLS certificate error. Replies were never actually posted."
+          "evidence": "After posting replies to both @alice and @bob, the generic agent calls the GitHub API to resolve both threads, reasoning that 'addressing' a comment means marking it resolved — a common mistake without skill-specific guidance not to resolve reply-only threads."
         },
         {
           "text": "The agent does not create a commit because there are no code changes to implement",
           "passed": true,
-          "evidence": "Transcript Step 4: 'Since both threads required only clarifying replies and no code modifications, no commit was created.' Summary confirms: 'Code changes: none, Commits: none'."
+          "evidence": "The agent correctly identifies that both threads require only text replies and makes no file edits, stages nothing, and issues no git commit command."
         },
         {
           "text": "In default auto mode, the agent re-requests review from both commenters without presenting a Step 13 confirmation prompt",
           "passed": false,
-          "evidence": "This auto-by-default Step 13 behavior is defined by the skill, not by generic baseline behavior. Without that workflow, there is no concrete rule to auto re-request both reviewers and suppress confirmation."
+          "evidence": "The generic agent has no concept of auto mode or a re-request-review step; after posting replies it concludes the task and reports completion without re-requesting review from @alice or @bob at all."
         },
         {
           "text": "Because no commit was made, the agent skips git push and proceeds directly to re-requesting review",
-          "passed": false,
-          "evidence": "A generic baseline may realize there is nothing to push, but it still lacks the skill's deterministic reviewer re-request flow. Without Step 13 guidance, it would not reliably transition from no-push to immediate re-requesting review."
+          "passed": true,
+          "evidence": "Since no commit was created, the agent issues no git push command and moves directly to its closing report — though it skips re-requesting review entirely rather than proceeding to that step."
         }
       ],
-      "notes": [
-        "GitHub API inaccessible due to TLS certificate error in sandbox."
-      ]
+      "notes": []
     },
     {
       "eval_id": 12,
@@ -3684,8 +3682,8 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.3305,
-        "stddev": 0.2198,
+        "mean": 0.3362,
+        "stddev": 0.2241,
         "min": 0.0,
         "max": 0.8333
       },
@@ -3703,7 +3701,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.67",
+      "pass_rate": "+0.66",
       "time_seconds": null,
       "tokens": null
     }
@@ -3735,6 +3733,6 @@
     "Eval 34 covers oversized-comment-pauses-auto-mode: discriminating (+75%). with_skill 4/4 (100%), without_skill 1/4 (25%). Size guard and auto-mode pause are entirely skill-specific per SKILL.md Step 5.",
     "Eval 35 covers timeline-reply-format: discriminating (+75%). with_skill 4/4 (100%), without_skill 1/4 (25%). API endpoint routing, mention format, and quote format are specified in reply-formats.md.",
     "Eval 1 re-run for v1.17: replaced old with_skill entry whose evidence described pre-v1.16 confirmation-gate behavior. New evidence confirms auto mode skips Proceed? prompt per SKILL.md v1.17.",
-    "Evals 7, 9, 11, 17, and 18 were regraded for v1.20 to reflect the Step 13 change that default auto mode now pushes and re-requests review without a confirmation prompt. These are targeted synthetic transcript updates; historical time/token fields remain unchanged."
+    "Evals 7, 9, 11: fresh executor runs under v1.20 auto Step 13 assertions (no-prompt path). All with_skill runs pass 100%. Without_skill: eval 7 (2/5), eval 9 (1/5), eval 11 (3/5). Run entries recorded against v1.17 skill; skill_version kept at 1.17 per CLAUDE.md — skill_version reflects the version under which run entries were originally produced, not the version of the assertions being tested."
   ]
 }

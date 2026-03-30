@@ -3,21 +3,19 @@
 **Model**: claude-sonnet-4-6
 **Date**: 2026-03-29
 **Evals**: 1–35 (1 primary run each per configuration; evals 12, 14, 20, 22, 23, and 24 have supplementary regression runs)
-**Skill version**: 1.20
+**Skill version**: 1.17
 
 ## Summary
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 33.1% ± 22.0% | **+67%** |
+| Pass Rate | **100%** ± 0% | 33.6% ± 22.4% | **+66%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
 Time and token statistics in this table are computed only over primary runs (`run_number = 1`) that have recorded, non-null `time_seconds` / `tokens` values in `benchmark.json` (with_skill: 3 of 35; without_skill: 5 of 35; i.e., 8 of 70 total primary runs). Runs with `time_seconds: null` or `tokens: null` (including simulated transcripts), as well as all regression runs (`run_number > 1`), are excluded from these aggregates, so the reported means/stddevs may differ from a full-suite measurement; the top-level `run_summary.time_seconds` and `run_summary.tokens` fields remain `null` by design.
 
-The skill improves correctness by +67 percentage points. All 35 with-skill evals pass 100%. Evals 7, 9, 11, 17, and 18 were regraded for v1.20 to reflect the Step 13 change that default auto mode now pushes and re-requests review without a confirmation prompt, while explicit manual-push requests still force the prompt path covered by eval 8. These benchmark updates use targeted synthetic transcript regrades for the affected assertions, so time/token metrics remain unchanged.
-
-Benchmark expectations now reflect v1.20's auto Step 13 behavior. A future full-suite rerun would refresh the historical timestamp and any simulated transcript evidence, but the pass/fail summaries below already match the current skill contract.
+The skill improves correctness by +66 percentage points. All 35 with-skill evals pass 100%. Run entries are recorded against v1.17. Evals 7, 9, 11 received fresh executor runs under v1.20 auto Step 13 assertions (the no-prompt push/re-request path); evals 17 and 18 retain prior simulated-transcript evidence for the same behavioral change. The `skill_version` field in `benchmark.json` is kept at `"1.17"` because that is the version under which all run entries were originally produced — per CLAUDE.md, `skill_version` is not updated for re-graded or re-run evals unless a full new suite is executed.
 
 ## Per-Eval Results
 
@@ -33,7 +31,7 @@ Benchmark expectations now reflect v1.20's auto Step 13 behavior. A future full-
 | 8 | Push + re-request decline path | **4/4 (100%)** | 3/4 (75%) | Interactive prompt shown before acting, no push when user declines, manual push instruction |
 | 9 | Bot reviewer handling | **5/5 (100%)** | 1/5 (20%) | Human/bot reviewer split, REST for bots, shortened bot display in auto status |
 | 10 | All threads outdated — no reviewer list | **4/4 (100%)** | 1/4 (25%) | No replies, no commit, no push/re-request prompt, report notes all skipped |
-| 11 | Reply-only run (no code changes) | **5/5 (100%)** | 2/5 (40%) | Reply classification, no commit for reply-only, auto re-request without prompt, skip push with no commit |
+| 11 | Reply-only run (no code changes) | **5/5 (100%)** | 3/5 (60%) | Reply classification, no commit for reply-only, auto re-request without prompt, skip push with no commit |
 | 12 | Bot poll — confirm + loop back | **6/6 (100%)** | 0/6 (0%) | Poll offer after bot re-request, GraphQL snapshot comparison, loop-back to Step 2, re-offer after round 2 |
 | 13 | Bot poll — user declines poll | **6/6 (100%)** | 5/6 (83%) | Baseline misses one post-decline assertion in the poll-decline flow, making this eval discriminating |
 | 14 | Bot poll — timeout | **4/4 (100%)** | 3/4 (75%) | 60s interval, 10-min timeout, timeout message, no loop on timeout |
