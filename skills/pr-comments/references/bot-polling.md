@@ -84,6 +84,7 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
    All items skipped, but @bot1 hasn't reviewed the latest commit. Re-request and poll? [y/N]
    ```
    Output this prompt as the final message of the turn and **stop generating**. Do not assume a default response; resume only after the user replies explicitly.
+   If confirmed, follow the Step 13 entry path actions; if declined, proceed to the report.
 
 6. **If no pending bots, no recent bot review or timeline comment, and no stale-HEAD bots:** Fall through to Step 7 as normal.
 
