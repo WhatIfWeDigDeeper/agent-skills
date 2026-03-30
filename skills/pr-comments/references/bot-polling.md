@@ -59,6 +59,7 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
      ```
      All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]
      ```
+     Output this prompt as the final message of the turn and **stop generating**. Do not assume a default response; resume only after the user replies explicitly.
      If confirmed, set `snapshot_timestamp = "${fetch_timestamp}"`, take a fresh thread snapshot, then proceed to the Shared polling loop. If declined, proceed to the report.
 
 5. **If no pending bots and no recent bot review or timeline comment — check for stale-HEAD bot reviewers:** Some bots (e.g. `copilot-pull-request-reviewer[bot]`) may not appear in `requested_reviewers` even though they haven't reviewed the latest commit. Get the PR's canonical HEAD SHA from the API (not `git rev-parse HEAD`, which may diverge) and find any previously-reviewing bots whose most recent submitted review was on an older commit. Exclude `claude[bot]` (cannot be re-requested via API) and filter to submitted reviews only (state != PENDING, submitted_at != null):
@@ -82,6 +83,7 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
    ```
    All items skipped, but @bot1 hasn't reviewed the latest commit. Re-request and poll? [y/N]
    ```
+   Output this prompt as the final message of the turn and **stop generating**. Do not assume a default response; resume only after the user replies explicitly.
 
 6. **If no pending bots, no recent bot review or timeline comment, and no stale-HEAD bots:** Fall through to Step 7 as normal.
 
@@ -108,6 +110,8 @@ Offer to poll after the re-request completes (Step 13):
 ```
 Poll for @bot1, @bot2 to finish reviewing? I'll check for new threads and process them when ready (~2–5 min each).
 ```
+
+Output this prompt as the final message of the turn and **stop generating**. Do not assume a default response; resume only after the user replies explicitly.
 
 Only offer when at least one bot reviewer was re-requested (Step 13). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal.
 
@@ -191,7 +195,7 @@ Loop back to Step 2 within the same skill invocation — do not require the user
     ```
     Re-request review from human reviewers @user1, @user2 (PR has changed significantly)? [y/N]
     ```
-    If confirmed, use the human re-request logic from Step 13 (`gh pr edit --remove-reviewer` / `--add-reviewer`).
+    The agent MUST output this prompt as its final message at this point and MUST stop generating further output until the user responds. The agent MUST NOT answer this prompt on the user's behalf; it may proceed only after receiving an explicit user response. If the user explicitly confirms, use the human re-request logic from Step 13 (`gh pr edit --remove-reviewer` / `--add-reviewer`).
   - Then proceed to Step 14 for the auto-loop summary report.
 
 ## Bot Display Names
