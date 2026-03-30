@@ -328,10 +328,10 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 ### 11. Reply to Comments
 
-**Every reply body — inline, review body, and timeline — MUST end with this byline. Do not omit it.**
+**Every reply body — inline, review body, and timeline — MUST end with the standard byline. Do not omit it, and do not hardcode a specific assistant — substitute the current assistant name and URL as defined in `references/reply-formats.md`.**
 ```
 ---
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+🤖 Generated with [AssistantName](url)
 ```
 
 `consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
