@@ -44,7 +44,7 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
    gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
      | jq -s '[.[] | .[] | select(.user.type == "Bot") | .user.login] | unique'
    ```
-   Build the polling set as the union of both lists — include bots that appear in `requested_reviewers` (by `.type == "Bot"` match) and any canonical login found in the reviews history. Use the canonical login (from the reviews API) for Signals 2 and 3; fall back to `endswith("[bot]")` filtering if a bot has no prior review to resolve against.
+   Treat the reviews result as the source of canonical bot logins. For each pending bot in `requested_reviewers`, map it to a canonical login from the reviews list (for example, by matching a shortened name like `"Copilot"` to `"copilot-pull-request-reviewer[bot]"`). Build the polling set from canonical logins only: include mapped canonical logins for all pending bot reviewers, plus any `[bot]`-suffixed logins that appear as pending reviewers but have no prior reviews. Do not keep unmatched, non-`[bot]` pending logins (such as `"Copilot"`) in the polling set. Use the canonical login for Signals 2 and 3; if a bot has no prior review and therefore no canonical login, fall back to `endswith("[bot]")` filtering.
 
 2. **Check for bot activity after `fetch_timestamp`** — a bot may have submitted a review (removing itself from `requested_reviewers`) or posted a timeline comment between the Step 2 fetch and now:
    ```bash
@@ -150,7 +150,11 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
   | jq -s '[.[] | .[] | select(.user.login == "<bot_login>" and .created_at != null and .created_at >= "'"${snapshot_timestamp}"'")]'
 ```
 
-In both Signal 2 and Signal 3, `<bot_login>` must be the canonical `.user.login` value from the reviews or comments API — **not** the login from `requested_reviewers`, which may be a shortened form (e.g. `"Copilot"` instead of `"copilot-pull-request-reviewer[bot]"`). Use the canonical login resolved in the Step 6c setup above. If no prior review exists to resolve against, fall back to `(.user.login | endswith("[bot]"))` filtering for that bot.
+In both Signal 2 and Signal 3, `<bot_login>` must be the canonical `.user.login` value from the reviews or comments API — **not** the login from `requested_reviewers`, which may be a shortened form (e.g. `"Copilot"` instead of `"copilot-pull-request-reviewer[bot]"`). Use the canonical login resolved in the Step 6c setup above. If no prior review exists to resolve against, substitute `(.user.login | endswith("[bot]"))` for the entire `.user.login == "<bot_login>"` condition — for example, Signal 2 becomes:
+```bash
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
+  | jq -s '[.[] | .[] | select((.user.login | endswith("[bot]")) and .submitted_at != null and .submitted_at >= "'"${snapshot_timestamp}"'")]'
+```
 
 Evaluate Signal 3 **per bot** (same bot set as Signals 1 and 2 — do not check bots that are not being polled). If Signal 3 fires (new timeline comment from a polled bot), loop back to Step 2 to re-fetch.
 
