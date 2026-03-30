@@ -1,6 +1,6 @@
 {
   "chat.tools.terminal.autoApprove": {
-    "gh": true,
+    "gh": false,
     "npx cspell": true
   }
 }
