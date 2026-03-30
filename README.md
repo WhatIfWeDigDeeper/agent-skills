@@ -62,6 +62,7 @@ cp -r skills/* ~/.claude/skills/
 ### `learn`
 
 - Use `/learn help` to choose where learnings go (auto-route, skills only, or config only) and whether to write to all detected assistant configs at once.
+- **Eval cost**: +25.8 seconds, +1,902 tokens over baseline ([details](evals/learn/benchmark.md))
 - You can tell Coding Agent to focus on a particular problem if you like. If it is a long conversation, it may result in "context rot" so it is more likely that it may miss a problem you want to avoid in the future.
 
   ```text
@@ -75,6 +76,7 @@ cp -r skills/* ~/.claude/skills/
 - **Pre-push validation** is left to your git hooks (pre-commit, pre-push). The skill does not run build/lint/test itself — configure hooks to enforce those checks.
 - **Default branch detection** is automatic via local remote refs. Works with `main`, `master`, or any custom default.
 - **Co-authorship**: By default, agents append their own co-author trailer per their conventions. To skip this, include "no co-author" in your arguments (e.g., `/ship-it fix login, no co-author`).
+- **Eval cost**: +41.0 seconds, +5,073 tokens over baseline ([details](evals/ship-it/benchmark.md))
 
 ### `js-deps`
 
@@ -91,6 +93,8 @@ cp -r skills/* ~/.claude/skills/
   /js-deps typescript
   ```
 
+- **Eval cost**: +23.3 seconds, +5,708 tokens over baseline ([details](evals/js-deps/benchmark.md))
+
 ### `uv-deps`
 
 - Use `/uv-deps help` to choose between updating dependencies or fixing security vulnerabilities, then pick version filters or vulnerability severity levels.
@@ -104,6 +108,7 @@ cp -r skills/* ~/.claude/skills/
   ```
 
 - Requires `uv` and `uvx` to be installed and accessible. All git and `gh` commands run with sandbox disabled for keyring access.
+- **Eval cost**: +74.8 seconds, +28,200 tokens over baseline ([details](evals/uv-deps/benchmark.md))
 
 
 ### `pr-comments`
@@ -116,6 +121,7 @@ cp -r skills/* ~/.claude/skills/
 - Resolved threads are closed via the GitHub GraphQL API; declined threads remain open so reviewers can follow up.
 - When no actionable items are found (plan is empty or all actions are `skip`), routes through the All-Skip Repoll Gate (Step 6c) which checks both `requested_reviewers` and reviews submitted after the fetch timestamp — handles the race condition where a bot submits a review seconds after the fetch and is already off the pending list.
 - Requires `gh` CLI with repo access. Runs with sandbox disabled for keyring access.
+- **Eval cost**: +14.0 seconds, +7,351 tokens over baseline (computed from runs with recorded metrics; most evals use simulated transcripts — [details](evals/pr-comments/benchmark.md))
 
 <details>
 <summary>Flow Chart</summary>
