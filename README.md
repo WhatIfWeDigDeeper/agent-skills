@@ -114,8 +114,8 @@ cp -r skills/* ~/.claude/skills/
 ### `pr-comments`
 
 - Pass a PR number to target a specific PR (e.g., `/pr-comments 42`), or omit it to detect from the current branch.
-- **Auto mode is the default**: the plan table is shown each iteration and the skill proceeds without a confirmation prompt (unless manual confirmation is required for security screening flags, oversized comments, or `consistency` items). The skill polls for bot reviewer responses and loops automatically up to 10 iterations.
-- Pass `--manual` to restore the confirmation gate: the skill pauses at each iteration with a `Proceed? [y/N/auto]` prompt before applying any changes.
+- **Auto mode is the default**: the plan table is shown each iteration and the skill proceeds without confirmation prompts, including the Step 13 push/re-request phase (unless manual confirmation is required for security screening flags, oversized comments, `consistency` items, or the user explicitly says they want to push manually). The skill pushes, re-requests review, polls for bot reviewer responses, and loops automatically up to 10 iterations.
+- Pass `--manual` to restore the confirmation gates: the skill pauses at each iteration with a `Proceed? [y/N/auto]` prompt before applying changes and pauses again before pushing or re-requesting review.
 - Pass `--auto N` to cap the number of bot-review loop iterations (e.g., `/pr-comments --auto 1` for a single pass).
 - Implemented comments are committed with `Co-authored-by` trailers crediting each reviewer.
 - Resolved threads are closed via the GitHub GraphQL API; declined threads remain open so reviewers can follow up.
