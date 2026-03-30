@@ -328,6 +328,12 @@ Deduplicate co-authors — one entry per person regardless of how many suggestio
 
 ### 11. Reply to Comments
 
+**Every reply body — inline, review body, and timeline — MUST end with this byline. Do not omit it.**
+```
+---
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+
 `consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
 
 For each inline `reply` comment (a clarifying question in a code thread): post a direct answer. Do not resolve the thread — leave it open for the reviewer to follow up.
