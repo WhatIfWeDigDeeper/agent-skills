@@ -114,7 +114,7 @@ Poll for @bot1, @bot2 to finish reviewing? I'll check for new threads and proces
 
 Output this prompt as the final message of the turn and **stop generating**. Do not assume a default response; resume only after the user replies explicitly.
 
-Only offer when at least one bot reviewer was re-requested (Step 13). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal. If the user accepts polling, ensure `snapshot_timestamp` and the unresolved-thread snapshot from the Step 13 setup exist (creating them now if they do not), then immediately enter the **Shared polling loop** described in the Signals section below.
+Only offer when at least one bot reviewer was re-requested (Step 13). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal. If the user accepts polling, use the `snapshot_timestamp` and unresolved-thread snapshot already taken during the Step 13 setup (both recorded **before** the POST re-request); do not re-create them here. Then immediately enter the **Shared polling loop** described in the Signals section below.
 
 ### Signals
 
