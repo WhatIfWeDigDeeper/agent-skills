@@ -16,7 +16,7 @@ Evals belong under `evals/` at the repo root, not inside skill directories.
 - Preserve the existing workflow style in `SKILL.md`: numbered process sections, executable bash blocks, tables where useful, and examples where useful.
 - When substantially modifying a skill, update its `README.md` entry and notes.
 - Bump `metadata.version` on every `SKILL.md` change or reference-file change that affects the skill.
-- On an active PR branch, check whether a version bump already exists before proposing another one:
+- On an active PR branch, re-run the check below before committing **any** `SKILL.md` change — not just when you intend to bump — to confirm no bump already exists relative to `origin/main`:
 
 ```bash
 git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  version:'

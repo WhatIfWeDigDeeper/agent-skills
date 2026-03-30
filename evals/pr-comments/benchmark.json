@@ -792,7 +792,9 @@
           "evidence": "A generic agent has no explicit deduplication logic; if alice or bob had multiple comments, the agent might naively issue multiple re-request calls or build a list without deduplication, depending on how it iterates over comments."
         }
       ],
-      "notes": []
+      "notes": [
+        "This without-skill run is a hypothetical/simulated baseline; the expectation evidence describes expected generic-agent behavior rather than an actual transcript."
+      ]
     },
     {
       "eval_id": 8,
@@ -1094,9 +1096,9 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.6,
-        "passed": 3,
-        "failed": 2,
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
         "total": 5,
         "time_seconds": null,
         "tokens": null,
@@ -1126,11 +1128,13 @@
         },
         {
           "text": "Because no commit was made, the agent skips git push and proceeds directly to re-requesting review",
-          "passed": true,
-          "evidence": "Since no commit was created, the agent issues no git push command and moves directly to its closing report — though it skips re-requesting review entirely rather than proceeding to that step."
+          "passed": false,
+          "evidence": "Since no commit was created, the agent issues no git push command, but it also skips re-requesting review entirely — moving directly to its closing report rather than proceeding to the re-request step."
         }
       ],
-      "notes": []
+      "notes": [
+        "This without-skill run is a hypothetical/simulated baseline; the expectation evidence describes expected generic-agent behavior rather than an actual transcript."
+      ]
     },
     {
       "eval_id": 12,
@@ -3682,8 +3686,8 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.3362,
-        "stddev": 0.2241,
+        "mean": 0.3305,
+        "stddev": 0.2198,
         "min": 0.0,
         "max": 0.8333
       },
@@ -3701,7 +3705,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.66",
+      "pass_rate": "+0.67",
       "time_seconds": null,
       "tokens": null
     }
