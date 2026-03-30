@@ -65,6 +65,15 @@ M out-of-scope declined comments — file follow-up issues? [all/select/none]
 Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the follow-up issues offer if there were no out-of-scope declines.
 
 **Closing line** (append to both standard and auto-loop reports):
+
+Before writing the closing line, check CI status:
+```bash
+gh pr checks {pr_number}
+```
+- If all checks pass (or no checks exist): use `PR #N is ready for your final review.`
+- If any check is failing: use `PR #N has failing CI — fix before merging.` and list the failing check names.
+- If checks are still running: use `PR #N — CI still running, re-check before merging.`
+
 ```
 PR #N is ready for your final review.
 <PR URL>
