@@ -64,6 +64,12 @@ M out-of-scope declined comments — file follow-up issues? [all/select/none]
 
 Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the follow-up issues offer if there were no out-of-scope declines.
 
+**Closing line** (append to both standard and auto-loop reports):
+```
+PR #N is ready for your final review.
+<PR URL>
+```
+
 ## Exit reason values
 
 - `Exited: no new threads after iteration N.`
