@@ -150,11 +150,10 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
   | jq -s '[.[] | .[] | select(.user.login == "<bot_login>" and .created_at != null and .created_at >= "'"${snapshot_timestamp}"'")]'
 ```
 
-In both Signal 2 and Signal 3, `<bot_login>` must be the canonical `.user.login` value from the reviews or comments API — **not** the login from `requested_reviewers`, which may be a shortened form (e.g. `"Copilot"` instead of `"copilot-pull-request-reviewer[bot]"`). Use the canonical login resolved in the Step 6c setup above. If no prior review exists to resolve against, substitute `(.user.login | endswith("[bot]"))` for the entire `.user.login == "<bot_login>"` condition — for example, Signal 2 becomes:
-```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  | jq -s '[.[] | .[] | select((.user.login | endswith("[bot]")) and .submitted_at != null and .submitted_at >= "'"${snapshot_timestamp}"'")]'
-```
+In both Signal 2 and Signal 3, `<bot_login>` must be the canonical `.user.login` value from the reviews or comments API — **not** the login from `requested_reviewers`, which may be a shortened form (e.g. `"Copilot"` instead of `"copilot-pull-request-reviewer[bot]"`). Use the canonical login resolved in the Step 6c setup above. Do **not** replace the equality check with a broad pattern such as `(.user.login | endswith("[bot]"))`, because that will match unrelated bots (Dependabot, CI bots, etc.) and can cause false positives in the polling logic. If you cannot yet determine the canonical login for a given bot (for example, because it has never left a review or comment), either:
+
+- preconfigure a mapping from the requested reviewer name to its canonical login, or
+- skip Signals 2 and 3 for that bot until a first review/comment is observed and its `.user.login` can be recorded.
 
 Evaluate Signal 3 **per bot** (same bot set as Signals 1 and 2 — do not check bots that are not being polled). If Signal 3 fires (new timeline comment from a polled bot), loop back to Step 2 to re-fetch.
 
