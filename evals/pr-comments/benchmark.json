@@ -1966,7 +1966,7 @@
         }
       ],
       "notes": [
-        "Baseline correctly used the issue comments API for the review body reply and skipped resolveReviewThread. Only failure: Co-authored-by missing from commit — a skill-specific convention the baseline has no reason to know. Eval 18 is nearly non-discriminating (4/5 without skill); the Co-authored-by assertion is the primary differentiator."
+        "Baseline correctly used the issue comments API for the review body reply and skipped resolveReviewThread. Two failures: (1) Co-authored-by missing from commit — a skill-specific convention the baseline has no reason to know; (2) automatic Step 13 re-request set not built — the baseline lacks the skill's rule to include replied-to review body authors. Eval 18 is discriminating at 3/5 (60%) without skill."
       ]
     },
     {
