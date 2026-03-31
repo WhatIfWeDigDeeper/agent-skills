@@ -367,7 +367,7 @@ This offer is per declined comment, not batch — the user controls which sugges
 
 **In auto-loop mode**, defer all follow-up issue prompts — do not ask per-item during the loop. Collect out-of-scope declines and present them as a batch offer in the final summary report (Step 14).
 
-See `references/reply-formats.md` for the correct REST reply endpoints and request body formats to use for each comment type (inline, review body, timeline).
+**Before posting any reply, read `references/reply-formats.md`** — it contains the endpoint and byline-bearing body template for each comment type (inline, review body, timeline). Do not post a reply without consulting it.
 
 ### 12. Resolve Addressed Threads
 
