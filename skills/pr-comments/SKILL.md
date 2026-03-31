@@ -12,7 +12,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.19"
+  version: "1.20"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -27,9 +27,9 @@ If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, print usage and exit.
 
 Strip a single leading `#` from `$ARGUMENTS` before checking whether it is a number, and pass the cleaned numeric PR number (without `#`) to `gh pr view` (so both `42` and `#42` work; `##42` is not a valid PR number).
 
-**Auto mode is the default.** The Step 7 confirmation prompt is skipped automatically — the plan table is shown each iteration for observability, but no user approval is required.
+**Auto mode is the default.** The Step 7 confirmation prompt and the Step 13 push/re-request prompt are skipped automatically — the plan table is shown each iteration for observability, but no user approval is required before applying changes, pushing follow-up commits, or re-requesting review.
 
-Optional `--manual` flag restores the confirmation gate: the skill pauses at Step 7 with a `Proceed? [y/N/auto]` prompt before applying any changes. Use this when you want to review and approve the plan before each iteration.
+Optional `--manual` flag restores the confirmation gates: the skill pauses at Step 7 with a `Proceed? [y/N/auto]` prompt before applying any changes and pauses again at Step 13 before pushing or re-requesting review. Use this when you want to review and approve each iteration end-to-end.
 
 Optional `--auto [N]` flag sets the maximum number of bot-review loop iterations (`N`, default: 10). The `--auto` flag alone is a no-op since auto is already the default, but `--auto N` with a positive integer caps the loop. Strip and process `--auto [N]` and `--manual` tokens before checking remaining tokens for a PR number. A number immediately after `--auto` is always the iteration cap, not a PR number.
 
@@ -367,7 +367,7 @@ This offer is per declined comment, not batch — the user controls which sugges
 
 **In auto-loop mode**, defer all follow-up issue prompts — do not ask per-item during the loop. Collect out-of-scope declines and present them as a batch offer in the final summary report (Step 14).
 
-See `references/reply-formats.md` for the correct REST reply endpoints and request body formats to use for each comment type (inline, review body, timeline).
+**Before posting any reply, read `references/reply-formats.md`** — it contains the endpoint and byline-bearing body template for each comment type (inline, review body, timeline). Do not post a reply without consulting it.
 
 ### 12. Resolve Addressed Threads
 
@@ -403,21 +403,35 @@ Exclude `claude[bot]` from this augmented list (it cannot be re-requested via AP
 
 If the deduplicated reviewer list is empty, skip this step and proceed to the report.
 
-**Display names for bot accounts**: The REST comments API exposes each commenter's login as `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), which you should store or reference as the `author` value from Step 2. When building the prompt, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
+**Display names for bot accounts**: The REST comments API exposes each commenter's login as `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), which you should store or reference as the `author` value from Step 2. When building the prompt or status line, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
-Present a combined prompt. If a commit was made in Step 10, include the push:
+If `--manual` was passed, or if the user's request explicitly says they want to push manually or not push automatically, present a combined prompt. If a commit was made in Step 10, include the push:
 
 ```
-Push and re-request review from @user1, @user2?
+Push and re-request review from @user1, @user2? [y/N]
 ```
 
 If no commit was made in Step 10 (nothing to push), omit the push:
 
 ```
-Re-request review from @user1, @user2? (no new commits to push)
+Re-request review from @user1, @user2? (no new commits to push) [y/N]
 ```
 
-**If the user confirms:**
+Output this prompt as your final message and **stop generating**. Do not assume `y`, do not continue to the push or re-request commands, and resume only after the user replies explicitly.
+
+Otherwise (auto mode, the default), skip this prompt entirely. Show a short status line instead and proceed immediately:
+
+```
+Auto mode — pushing and re-requesting review from @user1, @user2.
+```
+
+If no commit was made in Step 10, omit the push in the status line:
+
+```
+Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
+```
+
+**If auto mode is proceeding, or the user explicitly confirms in manual mode:**
 
 1. Push the branch (skip if no commit was made in Step 10 — there is nothing new to push):
    ```bash

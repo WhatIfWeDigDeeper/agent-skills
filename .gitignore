@@ -9,3 +9,4 @@ tests/js-deps/fixtures/
 .venv/
 uv.lock
 !evals/**/uv.lock
+.vscode/settings.local.json
