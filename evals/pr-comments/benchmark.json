@@ -905,7 +905,7 @@
         {
           "text": "Bot reviewers are re-requested via a single POST to the REST /requested_reviewers endpoint (no prior DELETE), not gh pr edit",
           "passed": true,
-          "evidence": "The agent issues a single 'gh api repos/{owner}/{repo}/pulls/88/requested_reviewers --method POST --field \"reviewers[]=copilot-pull-request-reviewer\"' with no preceding DELETE call and does not use gh pr edit for the bot."
+          "evidence": "The agent issues a single 'gh api repos/{owner}/{repo}/pulls/88/requested_reviewers --method POST --field \"reviewers[]=copilot-pull-request-reviewer[bot]\"' with no preceding DELETE call and does not use gh pr edit for the bot."
         },
         {
           "text": "The automatic Step 13 status/output uses the shortened bot handle (e.g. @copilot) not the full login with [bot] suffix",
@@ -3737,6 +3737,6 @@
     "Eval 34 covers oversized-comment-pauses-auto-mode: discriminating (+75%). with_skill 4/4 (100%), without_skill 1/4 (25%). Size guard and auto-mode pause are entirely skill-specific per SKILL.md Step 5.",
     "Eval 35 covers timeline-reply-format: discriminating (+75%). with_skill 4/4 (100%), without_skill 1/4 (25%). API endpoint routing, mention format, and quote format are specified in reply-formats.md.",
     "Eval 1 re-run for v1.17: replaced old with_skill entry whose evidence described pre-v1.16 confirmation-gate behavior. New evidence confirms auto mode skips Proceed? prompt per SKILL.md v1.17.",
-    "Evals 7, 9, 11: fresh executor runs under v1.20 auto Step 13 assertions (no-prompt path). All with_skill runs pass 100%. Without_skill: eval 7 (2/5), eval 9 (1/5), eval 11 (3/5). Run entries recorded against v1.17 skill; skill_version kept at 1.17 per CLAUDE.md — skill_version reflects the version under which run entries were originally produced, not the version of the assertions being tested."
+    "Evals 7, 9, 11: existing v1.17 executor outputs re-graded under v1.20 auto Step 13 assertions (no-prompt path). All with_skill runs pass 100%. Without_skill: eval 7 (2/5), eval 9 (1/5), eval 11 (3/5). These are re-grades only; no new executor runs were added, so run entries and metadata.skill_version correctly remain at v1.17."
   ]
 }
