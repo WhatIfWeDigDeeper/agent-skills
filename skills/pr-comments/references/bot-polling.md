@@ -95,7 +95,7 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
 
 ## Stale-HEAD Bot Detection
 
-Use this query at two call sites: Step 13b (augment reviewer list) and Step 6c above (check before falling through to Step 7).
+Use this query at two call sites: Step 13 (augment reviewer list) and Step 6c above (check before falling through to Step 7).
 
 Get the PR's canonical HEAD SHA from the API (not `git rev-parse HEAD`, which may diverge) and find any previously-reviewing bots whose most recent submitted review was on an older commit. Excludes `claude[bot]` (cannot be re-requested via API) and filters to submitted reviews only (state != PENDING, submitted_at != null):
 

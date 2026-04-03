@@ -57,7 +57,7 @@ Update bot-polling.md's "Entry from Step 13" heading to "Entry from Step 13b"; a
 
 #### 2B. Extract stale-HEAD detection to bot-polling.md
 
-Create a single `## Stale-HEAD Bot Detection` section in bot-polling.md with the canonical jq pipeline. Both SKILL.md Step 13b and bot-polling.md Step 6c become one-line references.
+Create a single `## Stale-HEAD Bot Detection` section in bot-polling.md with the canonical jq pipeline. Both SKILL.md Step 13 and bot-polling.md Step 6c become one-line references.
 
 The two existing pipelines differ: SKILL.md Step 13 uses `git rev-parse HEAD` (which can diverge from the PR's head SHA) and omits the `state != "PENDING"` and `submitted_at != null` guards present in bot-polling.md. Adopt the bot-polling.md version as canonical — this is a subtle behavioral improvement at the Step 13 call site.
 
