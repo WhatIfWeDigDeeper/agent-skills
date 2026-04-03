@@ -355,7 +355,7 @@ Review body comments and timeline comments have no GraphQL thread ID — skip th
 
 ### 13. Push and Re-request Review
 
-Collect all commenters whose feedback was processed (implemented, accepted, declined, or replied to). Build this list from four sources and then deduplicate it:
+Collect all commenters whose feedback was processed (implemented, accepted, declined, or replied to). Build this list from five sources and then deduplicate it:
 - The `Co-authored-by` usernames from Step 10 (for feedback that resulted in commits).
 - The authors of any declined inline comments.
 - The authors of any inline comments you replied to (including clarifying questions), using the `author` field from Step 2.
@@ -409,8 +409,6 @@ Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
    gh pr edit {pr_number} --add-reviewer user1,user2
    ```
 
-   **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it auto-triggers a review on push and cannot be re-requested via API. Because it was not explicitly re-requested, do not include it in the polling offer; re-invoke the skill when its review arrives.
-
 **If the user declines** the push/re-request prompt, note that they can run `git push` and re-request review manually from the PR page when ready.
 
 If there are bot reviewers in the deduplicated list, proceed to Step 13b.
@@ -419,7 +417,9 @@ If there are bot reviewers in the deduplicated list, proceed to Step 13b.
 
 **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too.
 
-Use the **bot subset of the deduplicated reviewer list produced in Step 13**. Step 13 already runs the Stale-HEAD Bot Detection query from `references/bot-polling.md` before deduplication and the empty-check, so **do not run that query again here**.
+**Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it auto-triggers a review on push and cannot be re-requested via API. Because it was not explicitly re-requested, do not include it in the polling offer; re-invoke the skill when its review arrives.
+
+Use the **bot subset of the deduplicated reviewer list produced in Step 13** (excluding `claude[bot]`). Step 13 already runs the Stale-HEAD Bot Detection query from `references/bot-polling.md` before deduplication and the empty-check, so **do not run that query again here**.
 
 **Before the POST call**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
 

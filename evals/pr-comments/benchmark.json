@@ -1279,12 +1279,12 @@
         {
           "text": "The branch is pushed before the poll offer is presented to the user",
           "passed": true,
-          "evidence": "Step 13 ordering: (1) git push, (2) capture polling snapshot, (3) DELETE+POST re-request, (4) execute bot-polling.md which presents the poll offer in manual mode. Push precedes the poll offer."
+          "evidence": "Step 13 ordering: (1) git push, (2) capture polling snapshot, (3) POST re-request, (4) execute bot-polling.md which presents the poll offer in manual mode. Push precedes the poll offer."
         },
         {
           "text": "The snapshot_timestamp is recorded before the POST request to /requested_reviewers, not after — ensuring same-second reviews are captured",
           "passed": true,
-          "evidence": "bot-polling.md Entry from Step 13 setup step 1 explicitly states: 'Record a fresh snapshot_timestamp **before** the POST re-request: ... Taking the snapshot before the request ensures that even a same-second review is captured by Signal 2.' SKILL.md Step 13 also states: 'Before the POST call, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed.'"
+          "evidence": "bot-polling.md Entry from Step 13b setup step 1 explicitly states: 'Record a fresh snapshot_timestamp **before** the POST re-request: ... Taking the snapshot before the request ensures that even a same-second review is captured by Signal 2.' SKILL.md Step 13b also states: 'Before the POST call, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed.'"
         },
         {
           "text": "The auto-mode status line or manual-mode poll offer uses the shortened bot display name ('copilot', not 'copilot-pull-request-reviewer[bot]') per the Bot Display Names algorithm",
@@ -1302,7 +1302,7 @@
       "result": {
         "pass_rate": 0.625,
         "passed": 5,
-        "failed": 1,
+        "failed": 3,
         "total": 8,
         "time_seconds": null,
         "tokens": null,
@@ -1958,7 +1958,7 @@
       "result": {
         "pass_rate": 0.5,
         "passed": 3,
-        "failed": 2,
+        "failed": 3,
         "total": 6,
         "time_seconds": null,
         "tokens": null,

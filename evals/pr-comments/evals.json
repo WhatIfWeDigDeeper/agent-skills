@@ -985,7 +985,7 @@
     },
     {
       "id": 36,
-      "eval_name": "follow-up-issue-filing",
+      "name": "follow-up-issue-filing",
       "prompt": "Please address the review comments on my PR. There is one out-of-scope suggestion from @eve proposing to add OAuth2 support. Decline it. If you decline any items as out-of-scope, go ahead and file a follow-up GitHub issue for them.",
       "expected_output": "The skill classifies @eve's OAuth2 suggestion as decline (out of scope). It posts a decline reply via the appropriate endpoint with the standard attribution byline. Because the user explicitly pre-authorized follow-up issue filing, the skill runs gh issue create (not just offers) immediately — it does not defer to Step 14. The issue body references the PR number and @eve, with a title summarizing the out-of-scope suggestion.",
       "files": [],
