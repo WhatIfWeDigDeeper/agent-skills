@@ -19,7 +19,7 @@
 - [x] Run eval 13 with_skill and without_skill (spawn subagents with `mode: "auto"`; pass full assertion text strings from `evals.json` explicitly)
 - [x] Run eval 18 with_skill and without_skill (same approach)
 - [x] Grade results; confirm: each modified eval passes 100% with_skill; eval 13 has at least 2 failing assertions without_skill (up from 1); eval 18 has at least 3 failing assertions without_skill (up from 2)
-- [x] Update `evals/pr-comments/benchmark.json`: replace the existing `run_number=1` entries for evals 13 and 18 (do not add `run_number=2` supplementary entries; do not modify the existing `regression_run_evals` in metadata — these are primary run replacements); recompute `run_summary` stats; `delta.pass_rate` must use 2-decimal precision; update `metadata.skill_version` to v1.20 — these are new runs produced under v1.20, not re-grades of historical v1.17 transcripts
+- [x] Update `evals/pr-comments/benchmark.json`: replace the existing `run_number=1` entries for evals 13 and 18 (do not add `run_number=2` supplementary entries; do not modify the existing `regression_run_evals` in metadata — these are primary run replacements); recompute `run_summary` stats; `delta.pass_rate` must use 2-decimal precision; set `metadata.skill_version` to the version the new runs were executed under — these are new runs, not re-grades of historical v1.17 transcripts
 - [x] Update `evals/pr-comments/benchmark.md`: update eval 13 and 18 prose sections; update aggregate discriminator count if evals move out of "nearly non-discriminating" status
 - [x] Update `README.md` Eval Δ column if overall delta changes
 
@@ -35,7 +35,7 @@
 
 ### 2B: Extract stale-HEAD detection to bot-polling.md
 - [x] Add `## Stale-HEAD Bot Detection` section to `skills/pr-comments/references/bot-polling.md` with the canonical jq pipeline (source: the All-Skip Repoll Gate section's version — it already excludes `claude[bot]`, filters `state != PENDING` and `submitted_at != null`, and uses `gh api` for the HEAD SHA instead of `git rev-parse HEAD`); include: "Call sites: Step 13 (augment reviewer list), Step 6c (check before falling through to Step 7)."
-- [x] In `skills/pr-comments/SKILL.md` Step 13b, replace the `group_by(.user.login)` block (~12 lines) with: "Use the Stale-HEAD Bot Detection query from `references/bot-polling.md` to augment the list with bots that haven't reviewed the current HEAD." — note: adopting the bot-polling.md version at this call site is a behavioral improvement (adds PENDING filter + `gh api` HEAD SHA)
+- [x] In `skills/pr-comments/SKILL.md` Step 13, replace the `group_by(.user.login)` block (~12 lines) with: "Use the Stale-HEAD Bot Detection query from `references/bot-polling.md` to augment the list with bots that haven't reviewed the current HEAD." — note: adopting the bot-polling.md version at this call site is a behavioral improvement (adds PENDING filter + `gh api` HEAD SHA)
 - [x] In `skills/pr-comments/references/bot-polling.md` Step 6c entry, replace the stale-HEAD detection section (the paragraph beginning "If no pending bots..." through the closing prose, including the jq code block — approximately 22 lines of prose + code) with: "Use the Stale-HEAD Bot Detection query from the section above."
 - [x] `rg -n 'group_by(.user.login)' skills/pr-comments/` — confirm exactly one match (the canonical section)
 
