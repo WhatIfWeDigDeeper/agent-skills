@@ -33,7 +33,7 @@ Strip a single leading `#` from `$ARGUMENTS` before checking whether it is a num
 
 Optional `--manual` flag restores the confirmation gates: the skill pauses at Step 7 with a `Proceed? [y/N/auto]` prompt before applying any changes and pauses again at Step 13 before pushing or re-requesting review. Use this when you want to review and approve each iteration end-to-end.
 
-Optional `--max N` flag sets the maximum number of bot-review loop iterations (`N`, default: 10). `--max` is ignored when `--manual` is present — manual mode has no auto-loop to cap. Strip and process `--max N`, `--auto [N]`, and `--manual` tokens before checking remaining tokens for a PR number. `--auto` alone is accepted for backward compatibility; auto mode is already the default so it has no additional effect. `--auto N` (with a number) is treated as `--max N` for backward compatibility; emit a deprecation note in auto mode: "`--auto N` is deprecated; use `--max N`".
+Optional `--max N` flag sets the maximum number of bot-review loop iterations (`N`, default: 10). `--max` is ignored when `--manual` is present — manual mode has no auto-loop to cap. Strip and process `--max N`, `--auto [N]`, and `--manual` tokens before checking remaining tokens for a PR number. `--auto` alone is accepted for backward compatibility; auto mode is already the default so it has no additional effect. `--auto N` (with a number) is treated as `--max N` for backward compatibility and is likewise ignored when `--manual` is present; emit a deprecation note in auto mode: "`--auto N` is deprecated; use `--max N`".
 
 | Invocation | Mode | Iterations |
 |---|---|---|
@@ -409,9 +409,9 @@ Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
    gh pr edit {pr_number} --add-reviewer user1,user2
    ```
 
-**If the user declines** the push/re-request prompt, note that they can run `git push` and re-request review manually from the PR page when ready.
+   If there are bot reviewers in the deduplicated list, proceed to Step 13b.
 
-If there are bot reviewers in the deduplicated list, proceed to Step 13b.
+**If the user declines** the push/re-request prompt, all push, human re-request, and Step 13b bot re-request actions are skipped — they can run `git push` and re-request review manually from the PR page when ready. Proceed directly to Step 14.
 
 ### 13b. Bot Re-request and Polling
 
