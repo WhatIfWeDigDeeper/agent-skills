@@ -430,7 +430,7 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
 ```
 Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed.
 
-**If bot reviewers were re-requested**, **you must now execute the polling workflow in `references/bot-polling.md`** — do not skip to the report. Follow that file's instructions for manual mode vs. auto-mode, signal checking, and loop exit conditions.
+**If bot reviewers were re-requested**, **you must now continue with the shared polling loop in `references/bot-polling.md`** — do not skip to the report. Because this step already required the pre-POST snapshot and the POST re-request, **do not restart at that file's Step 13b entry/setup section, do not take another snapshot there, and do not send another POST there**. Follow only that file's instructions for manual mode vs. auto-mode, signal checking, and loop exit conditions.
 
 ### 14. Report
 
