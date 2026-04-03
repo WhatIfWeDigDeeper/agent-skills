@@ -2351,7 +2351,7 @@
         {
           "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --max N iteration cap",
           "passed": true,
-          "evidence": "Step 6c explicitly states: 'This counts as one iteration toward the --auto N cap.' This is a direct, unambiguous statement in the skill definition."
+          "evidence": "Step 6c explicitly states: 'This counts as one iteration toward the --max N iteration cap.' This is a direct, unambiguous statement in the skill definition."
         }
       ],
       "notes": []
@@ -3042,7 +3042,7 @@
         {
           "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --max N iteration cap",
           "passed": true,
-          "evidence": "Per the Step 6c workflow, the loop-back is displayed as '## Auto-loop iteration 1/10 — @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the --auto N cap."
+          "evidence": "Per the Step 6c workflow, the loop-back is displayed as '## Auto-loop iteration 1/10 — @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the --max N iteration cap."
         }
       ],
       "notes": [

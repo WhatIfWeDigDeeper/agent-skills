@@ -362,7 +362,7 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 - The authors of any review body comments you replied to or declined, using the `author` field from Step 2b.
 - The authors of any timeline comments you replied to or declined, using the `author` field from Step 2c.
 
-**Also include bots that have previously reviewed this PR but haven't yet seen the current HEAD** — see Step 13b for the detection query. Merge the result with the commenter list and deduplicate.
+**Also include bots that have previously reviewed this PR but haven't yet seen the current HEAD**. Run the canonical query once from `references/bot-polling.md` → **Stale-HEAD Bot Detection** while building this reviewer list, then merge those bot logins with the commenter list and deduplicate before the empty-check below.
 
 If the deduplicated reviewer list is empty, skip this step and proceed to the report.
 
@@ -419,7 +419,7 @@ If there are bot reviewers in the deduplicated list, proceed to Step 13b.
 
 **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too.
 
-Use the Stale-HEAD Bot Detection query from `references/bot-polling.md` to augment the list with bots that haven't reviewed the current HEAD.
+Use the **bot subset of the deduplicated reviewer list produced in Step 13**. Step 13 already runs the Stale-HEAD Bot Detection query from `references/bot-polling.md` before deduplication and the empty-check, so **do not run that query again here**.
 
 **Before the POST call**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
 
