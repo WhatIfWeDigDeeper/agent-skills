@@ -86,8 +86,8 @@ fi
 
 copilot_args=(
   -p "$prompt"
-  --allow-tool='shell(git diff)'
-  --allow-tool='shell(git status)'
+  --allow-tool='shell(git diff --cached)'
+  --allow-tool='shell(git status --short)'
   --deny-tool='write'
 )
 

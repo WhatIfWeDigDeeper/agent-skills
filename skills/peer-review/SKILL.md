@@ -10,7 +10,7 @@ license: MIT
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Peer Review
@@ -48,7 +48,7 @@ Parse `$ARGUMENTS` left-to-right:
 - Strip `--focus TOPIC` → store focus topic
 - Remaining token (if any) → treat as a file/dir path target
 
-**Conflict**: if both `--staged` (or no target) and a file path are both present after parsing, error: "specify one target at a time — use --staged or a path, not both."
+**Conflict**: if more than one target selector is present after parsing (e.g. both `--pr N` and `--branch NAME`, or `--pr N` and a path, or `--staged` and a path, or two leftover path tokens), error: "specify one target at a time — targets are mutually exclusive."
 
 ## Review Modes
 
@@ -87,7 +87,7 @@ If the branch is not found, error with: "Branch NAME not found. Available branch
 gh pr view N --json number,title,body,baseRefName,headRefName
 gh pr diff N
 ```
-If the PR is not found, error and exit.
+If the PR is not found, error and exit. Prepend the PR title and body as context to the diff before passing to the reviewer prompt — the title and body give the reviewer intent and scope that isn't visible in the diff alone.
 
 **Path** (file or directory):
 
@@ -184,7 +184,7 @@ The subagent's only job is to return findings. It must not modify any files.
 If the subagent returns `NO FINDINGS`, output:
 
 ```
-## Peer Review — [target] (claude-opus-4-6)
+## Peer Review — [target] ([model])
 
 No issues found.
 ```
