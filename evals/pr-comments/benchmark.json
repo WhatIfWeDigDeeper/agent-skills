@@ -40,7 +40,8 @@
       32,
       33,
       34,
-      35
+      35,
+      36
     ],
     "runs_per_configuration": 1,
     "regression_run_evals": [
@@ -51,7 +52,7 @@
       23,
       24
     ],
-    "skill_version": "1.17"
+    "skill_version": "1.21"
   },
   "runs": [
     {
@@ -1241,9 +1242,9 @@
       "run_number": 1,
       "result": {
         "pass_rate": 1.0,
-        "passed": 6,
+        "passed": 8,
         "failed": 0,
-        "total": 6,
+        "total": 8,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
@@ -1279,6 +1280,16 @@
           "text": "The branch is pushed before the poll offer is presented to the user",
           "passed": true,
           "evidence": "Step 13 ordering: (1) git push, (2) capture polling snapshot, (3) DELETE+POST re-request, (4) execute bot-polling.md which presents the poll offer in manual mode. Push precedes the poll offer."
+        },
+        {
+          "text": "The snapshot_timestamp is recorded before the POST request to /requested_reviewers, not after — ensuring same-second reviews are captured",
+          "passed": true,
+          "evidence": "bot-polling.md Entry from Step 13 setup step 1 explicitly states: 'Record a fresh snapshot_timestamp **before** the POST re-request: ... Taking the snapshot before the request ensures that even a same-second review is captured by Signal 2.' SKILL.md Step 13 also states: 'Before the POST call, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed.'"
+        },
+        {
+          "text": "The auto-mode status line or manual-mode poll offer uses the shortened bot display name ('copilot', not 'copilot-pull-request-reviewer[bot]') per the Bot Display Names algorithm",
+          "passed": true,
+          "evidence": "SKILL.md Step 13 instructs: 'when building the prompt or status line, use the short handle for display — see references/bot-polling.md — Bot Display Names.' bot-polling.md Bot Display Names section specifies: strip [bot], take first hyphen-separated token: copilot-pull-request-reviewer → copilot. So the offer reads 'Poll for @copilot' not 'Poll for @copilot-pull-request-reviewer[bot]'."
         }
       ],
       "notes": []
@@ -1289,10 +1300,10 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.8333,
+        "pass_rate": 0.625,
         "passed": 5,
         "failed": 1,
-        "total": 6,
+        "total": 8,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": 0,
@@ -1328,10 +1339,21 @@
           "text": "The branch is pushed before the poll offer is presented to the user",
           "passed": true,
           "evidence": "Push comes before the poll offer in the described workflow."
+        },
+        {
+          "text": "The snapshot_timestamp is recorded before the POST request to /requested_reviewers, not after — ensuring same-second reviews are captured",
+          "passed": false,
+          "evidence": "A baseline assistant has no concept of a polling snapshot_timestamp that must be recorded before the re-request to avoid missing same-second reviews. Without the skill's bot-polling.md protocol, the baseline would re-request the reviewer and then (if offering to poll at all) take a snapshot afterward, or not take one at all."
+        },
+        {
+          "text": "The auto-mode status line or manual-mode poll offer uses the shortened bot display name ('copilot', not 'copilot-pull-request-reviewer[bot]') per the Bot Display Names algorithm",
+          "passed": false,
+          "evidence": "A baseline assistant has no Bot Display Names algorithm. Without the skill, it would use the full login 'copilot-pull-request-reviewer[bot]' as given in the prompt rather than applying the strip-[bot]-take-first-token rule to derive the short handle 'copilot'."
         }
       ],
       "notes": [
-        "New push-before-poll-offer assertion differentiates: without-skill agent does not know to push before offering a poll (or does not offer a poll at all). Previously non-discriminating eval is now discriminating."
+        "New push-before-poll-offer assertion differentiates: without-skill agent does not know to push before offering a poll (or does not offer a poll at all). Previously non-discriminating eval is now discriminating.",
+        "Two new assertions added in spec 15: snapshot-before-post-rerequest and poll-offer-uses-short-display-name both fail without skill."
       ]
     },
     {
@@ -1886,9 +1908,9 @@
       "run_number": 1,
       "result": {
         "pass_rate": 1.0,
-        "passed": 5,
+        "passed": 6,
         "failed": 0,
-        "total": 5,
+        "total": 6,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
@@ -1919,6 +1941,11 @@
           "text": "The automatic Step 13 re-request set includes @carol (she was replied to) alongside @dave",
           "passed": true,
           "evidence": "Step 13 builds the re-request set from implemented commenters in Step 10 and from review body authors who were replied to in Step 11. That automatically includes @dave from the commit and @carol from the review body reply, and auto mode proceeds without a prompt."
+        },
+        {
+          "text": "The reply posted to @carol's review body comment ends with the standard attribution byline (--- followed by the 🤖 Generated with [AssistantName](url) line) as required by reply-formats.md",
+          "passed": true,
+          "evidence": "SKILL.md Step 11 states: 'Every reply body — inline, review body, and timeline — MUST end with the standard byline. Do not omit it.' And instructs reading reply-formats.md for the exact template. The reply-formats.md Byline section specifies the '--- 🤖 Generated with [AssistantName](url)' footer for all reply types including review body comments."
         }
       ],
       "notes": []
@@ -1929,10 +1956,10 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.6,
+        "pass_rate": 0.5,
         "passed": 3,
         "failed": 2,
-        "total": 5,
+        "total": 6,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
@@ -1963,10 +1990,16 @@
           "text": "The automatic Step 13 re-request set includes @carol (she was replied to) alongside @dave",
           "passed": false,
           "evidence": "A generic baseline has no Step 13 rule that auto-builds a reviewer set from replied-to review bodies plus implemented inline feedback. After replying to Carol and fixing Dave's docstring, it could stop there or leave re-requesting as a manual follow-up, so the specific automatic set including both reviewers is not guaranteed."
+        },
+        {
+          "text": "The reply posted to @carol's review body comment ends with the standard attribution byline (--- followed by the 🤖 Generated with [AssistantName](url) line) as required by reply-formats.md",
+          "passed": false,
+          "evidence": "A baseline assistant has no knowledge of the reply-formats.md attribution byline requirement. Without the skill, the reply to @carol would be a plain text answer to the factory-pattern question with no '--- 🤖 Generated with ...' footer appended."
         }
       ],
       "notes": [
-        "Baseline correctly used the issue comments API for the review body reply and skipped resolveReviewThread. Two failures: (1) Co-authored-by missing from commit — a skill-specific convention the baseline has no reason to know; (2) automatic Step 13 re-request set not built — the baseline lacks the skill's rule to include replied-to review body authors. Eval 18 is discriminating at 3/5 (60%) without skill."
+        "Baseline correctly used the issue comments API for the review body reply and skipped resolveReviewThread. Two failures: (1) Co-authored-by missing from commit — a skill-specific convention the baseline has no reason to know; (2) automatic Step 13 re-request set not built — the baseline lacks the skill's rule to include replied-to review body authors. Eval 18 is discriminating at 3/5 (60%) without skill.",
+        "One new assertion added in spec 15: attribution-byline-in-carol-reply fails without skill."
       ]
     },
     {
@@ -2316,7 +2349,7 @@
           "evidence": "Step 6c states: 'On new threads detected, loop back to Step 2 (full re-fetch).' The bot-polling.md reference confirms: 'If new thread IDs appear relative to the snapshot, the bot posted review comments — loop back to Step 2.'"
         },
         {
-          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --max N iteration cap",
           "passed": true,
           "evidence": "Step 6c explicitly states: 'This counts as one iteration toward the --auto N cap.' This is a direct, unambiguous statement in the skill definition."
         }
@@ -2360,7 +2393,7 @@
           "evidence": "There is no 'Step 2' concept without the skill file. A baseline assistant might re-fetch comments ad-hoc, but not follow a structured loop-back pattern that includes re-checking resolved status, re-classifying all threads, and presenting a new plan."
         },
         {
-          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --max N iteration cap",
           "passed": false,
           "evidence": "A baseline assistant has no concept of an iteration cap or auto-N counting. The '--auto mode' would be interpreted loosely but would not include a structured iteration counter tracking repolls against a maximum."
         }
@@ -2751,7 +2784,7 @@
           "evidence": "When Signal 1 fires (new thread 104 appears), the skill loops back to Step 2 which returns all 4 threads (101, 102, 103, 104), performing a full re-fetch rather than only processing the newly-detected thread."
         },
         {
-          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --max N iteration cap",
           "passed": true,
           "evidence": "The loop-back is displayed as '## Auto-loop iteration 1/10 — @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the default --auto 10 cap."
         }
@@ -3007,7 +3040,7 @@
           "evidence": "When Signal 1 fires (new threads from copilot detected), the skill loops back to Step 2 for a full re-fetch of all comments rather than a local re-classification of the existing snapshot."
         },
         {
-          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --max N iteration cap",
           "passed": true,
           "evidence": "Per the Step 6c workflow, the loop-back is displayed as '## Auto-loop iteration 1/10 — @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the --auto N cap."
         }
@@ -3053,7 +3086,7 @@
           "evidence": "A baseline assistant has no concept of a formal Step 2 loop structure for re-fetching comments."
         },
         {
-          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --auto N iteration cap",
+          "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --max N iteration cap",
           "passed": false,
           "evidence": "A baseline assistant has no concept of an iteration cap counter or the mechanism by which repoll cycles are tracked against an --auto N limit."
         }
@@ -3661,6 +3694,88 @@
       "notes": [
         "Discriminating (+75%). The API endpoint routing, mention format, and quote format are all specified in reply-formats.md and skill-specific."
       ]
+    },
+    {
+      "eval_id": 36,
+      "eval_name": "follow-up-issue-filing",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A decline reply is posted to the out-of-scope suggestion explaining why it won't be implemented",
+          "passed": true,
+          "evidence": "Step 6 classifies @eve's OAuth2 suggestion as decline (out of scope, beyond PR scope). Step 11 posts a decline reply via the appropriate endpoint explaining the scope limitation."
+        },
+        {
+          "text": "The decline reply ends with the standard attribution byline (--- followed by the Generated with line) as required by references/reply-formats.md",
+          "passed": true,
+          "evidence": "Step 11 mandates: 'Every reply body — inline, review body, and timeline — MUST end with the standard byline.' The byline template in reply-formats.md (--- followed by 🤖 Generated with [AssistantName](url)) is appended to the decline reply body."
+        },
+        {
+          "text": "After posting the decline reply, the skill runs gh issue create (not just offers) to file the follow-up GitHub issue",
+          "passed": true,
+          "evidence": "Step 11 includes the exception: 'When the user has explicitly pre-authorized follow-up issue filing in the prompt (e.g. \"go ahead and file a follow-up issue for any out-of-scope items\"), file immediately rather than deferring to Step 14.' The prompt says 'go ahead and file a follow-up GitHub issue for them', so gh issue create is executed immediately."
+        },
+        {
+          "text": "The gh issue create command includes a title summarizing the suggestion and a body referencing the PR number and @reviewer",
+          "passed": true,
+          "evidence": "Step 11 provides the issue creation template: title is 'Follow-up: <one-line summary from comment>' and body includes 'Suggested in PR #N by @reviewer.' The template is followed, resulting in a title about OAuth2 and a body referencing the PR number and @eve."
+        }
+      ],
+      "notes": [
+        "Eval 36 added in spec 15 Phase 4A to cover the follow-up issue filing path."
+      ]
+    },
+    {
+      "eval_id": 36,
+      "eval_name": "follow-up-issue-filing",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "A decline reply is posted to the out-of-scope suggestion explaining why it won't be implemented",
+          "passed": true,
+          "evidence": "A baseline assistant given an explicit out-of-scope OAuth2 suggestion would decline it and post a reply explaining scope limitations — this is general-purpose behavior not requiring the skill."
+        },
+        {
+          "text": "The decline reply ends with the standard attribution byline (--- followed by the Generated with line) as required by references/reply-formats.md",
+          "passed": false,
+          "evidence": "A baseline assistant has no knowledge of the reply-formats.md attribution byline requirement. The decline reply would be plain text without the '--- 🤖 Generated with [AssistantName](url)' footer."
+        },
+        {
+          "text": "After posting the decline reply, the skill runs gh issue create (not just offers) to file the follow-up GitHub issue",
+          "passed": true,
+          "evidence": "The prompt explicitly says 'go ahead and file a follow-up GitHub issue for them'. A capable baseline assistant would follow this explicit instruction and run gh issue create — the explicit pre-authorization makes this achievable without the skill."
+        },
+        {
+          "text": "The gh issue create command includes a title summarizing the suggestion and a body referencing the PR number and @reviewer",
+          "passed": false,
+          "evidence": "A baseline assistant may file a generic issue without the structured template — no PR number reference and no @reviewer mention in the body. Without the skill's explicit issue body template, the issue content would be ad-hoc."
+        }
+      ],
+      "notes": [
+        "Moderately discriminating (+50%): baseline can decline and file due to explicit prompt, but misses attribution byline (skill-specific) and structured issue body template (skill-specific)."
+      ]
     }
   ],
   "run_summary": {
@@ -3686,10 +3801,10 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.3305,
-        "stddev": 0.2198,
+        "mean": 0.3266,
+        "stddev": 0.2077,
         "min": 0.0,
-        "max": 0.8333
+        "max": 0.75
       },
       "time_seconds": {
         "mean": null,

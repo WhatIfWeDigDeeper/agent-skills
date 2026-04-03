@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "terminal-notifier -title 'Claude Code' -message 'Claude needs your permission' -sound Glass"
+            "command": "terminal-notifier -title 'agent-skills' -message 'Claude needs your permission' -sound Glass -activate com.microsoft.VSCode"
           }
         ]
       },
@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "terminal-notifier -title 'Claude Code' -message 'Claude has a question for you' -sound Glass"
+            "command": "terminal-notifier -title 'agent-skills' -message 'Claude has a question for you' -sound Glass -activate com.microsoft.VSCode"
           }
         ]
       },
@@ -68,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "terminal-notifier -title 'Claude Code' -message 'Claude is waiting for your input' -sound Glass"
+            "command": "terminal-notifier -title 'agent-skills' -message 'Claude is waiting for your input' -sound Glass -activate com.microsoft.VSCode"
           }
         ]
       }

@@ -1,21 +1,21 @@
 # Skill Benchmark: pr-comments
 
 **Model**: claude-sonnet-4-6
-**Date**: 2026-03-29
-**Evals**: 1–35 (1 primary run each per configuration; evals 12, 14, 20, 22, 23, and 24 have supplementary regression runs)
-**Skill version**: 1.17
+**Date**: 2026-03-29 (updated 2026-04-03 for spec 15)
+**Evals**: 1–36 (1 primary run each per configuration; evals 12, 14, 20, 22, 23, and 24 have supplementary regression runs)
+**Skill version**: 1.21
 
 ## Summary
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 33.1% ± 22.0% | **+67%** |
+| Pass Rate | **100%** ± 0% | 32.7% ± 20.8% | **+67%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Time and token statistics in this table are computed only over primary runs (`run_number = 1`) that have recorded, non-null `time_seconds` / `tokens` values in `benchmark.json` (with_skill: 3 of 35; without_skill: 5 of 35; i.e., 8 of 70 total primary runs). Runs with `time_seconds: null` or `tokens: null` (including simulated transcripts), as well as all regression runs (`run_number > 1`), are excluded from these aggregates, so the reported means/stddevs may differ from a full-suite measurement; the top-level `run_summary.time_seconds` and `run_summary.tokens` fields remain `null` by design.
+Time and token statistics in this table are computed only over primary runs (`run_number = 1`) that have recorded, non-null `time_seconds` / `tokens` values in `benchmark.json` (with_skill: 3 of 36; without_skill: 5 of 36; i.e., 8 of 72 total primary runs). Runs with `time_seconds: null` or `tokens: null` (including simulated transcripts), as well as all regression runs (`run_number > 1`), are excluded from these aggregates, so the reported means/stddevs may differ from a full-suite measurement; the top-level `run_summary.time_seconds` and `run_summary.tokens` fields remain `null` by design.
 
-The skill improves correctness by +67 percentage points. All 35 with-skill evals pass 100%. Run entries are recorded against v1.17. Evals 7, 9, 11, 17, and 18 were re-graded under updated v1.20 auto Step 13 expectations (the no-prompt push/re-request path) using their existing v1.17 executor transcripts and simulated evidence; no new run entries were added to `benchmark.json` for these checks. In accordance with CLAUDE.md, the `metadata.skill_version` field remains `"1.17"` because all recorded runs were originally produced under that version, and only grading/expectations were updated.
+The skill improves correctness by +67 percentage points. All 36 with-skill evals pass 100%. Spec 15 Phase 1 added assertions to evals 13 and 18, Phase 4A added eval 36 for follow-up issue filing; all recorded against v1.21. Prior run entries were produced against v1.17; evals 7, 9, 11, 17, and 18 were re-graded under updated v1.20 auto Step 13 expectations using existing transcripts.
 
 ## Per-Eval Results
 
@@ -33,12 +33,12 @@ The skill improves correctness by +67 percentage points. All 35 with-skill evals
 | 10 | All threads outdated — no reviewer list | **4/4 (100%)** | 1/4 (25%) | No replies, no commit, no push/re-request prompt, report notes all skipped |
 | 11 | Reply-only run (no code changes) | **5/5 (100%)** | 2/5 (40%) | Reply classification, no commit for reply-only, auto re-request without prompt, skip push with no commit |
 | 12 | Bot poll — confirm + loop back | **6/6 (100%)** | 0/6 (0%) | Poll offer after bot re-request, GraphQL snapshot comparison, loop-back to Step 2, re-offer after round 2 |
-| 13 | Bot poll — user declines poll | **6/6 (100%)** | 5/6 (83%) | Baseline misses one post-decline assertion in the poll-decline flow, making this eval discriminating |
+| 13 | Bot poll — user declines poll | **8/8 (100%)** | 5/8 (63%) | Snapshot ordering before POST and bot display name shortening are skill-specific |
 | 14 | Bot poll — timeout | **4/4 (100%)** | 3/4 (75%) | 60s interval, 10-min timeout, timeout message, no loop on timeout |
 | 15 | Security screening | **4/4 (100%)** | 1/4 (25%) | Prompt injection flagged as decline, injection not executed, legit comment implemented |
 | 16 | Re-invocation: skip prior reply | **5/5 (100%)** | 2/5 (40%) | Exact login match for skip, prior reply detection |
 | 17 | Review body: skip and decline | **7/7 (100%)** | 5/7 (71%) | Co-authored-by missing, declined review body author not included in re-request list |
-| 18 | Review body: reply to question | **5/5 (100%)** | 3/5 (60%) | Review-body reply path plus automatic re-request set; Co-authored-by remains skill-specific |
+| 18 | Review body: reply to question | **6/6 (100%)** | 3/6 (50%) | Review-body reply path, attribution byline, automatic re-request set; Co-authored-by remains skill-specific |
 | 19 | Diff validation: out-of-scope suggestion | **4/4 (100%)** | 1/4 (25%) | Baseline applies out-of-scope suggestions without checking the diff; diff-validation guard is skill-specific |
 | 20 | Cross-file consistency: matching rename | **4/4 (100%)** | 0/4 (0%) | Baseline addresses only the commented file; no cross-file identifier search, no consistency row, no plan table |
 | 21 | Cross-file consistency: no false positive | **3/3 (100%)** | 1/3 (33%) | Baseline incorrectly flags unrelated same-named variable in a different context; skill uses cross-file context to avoid these false positives |
@@ -56,6 +56,7 @@ The skill improves correctness by +67 percentage points. All 35 with-skill evals
 | 33 | Homoglyph injection | **3/3 (100%)** | 1/3 (33%) | Unicode lookalike detection classified as decline, reply explains |
 | 34 | Oversized comment pauses auto mode | **4/4 (100%)** | 1/4 (25%) | Size guard flags comment, auto-mode paused for confirmation |
 | 35 | Timeline reply format | **4/4 (100%)** | 1/4 (25%) | Issues API endpoint, @mention start, > quote, attribution line |
+| 36 | Follow-up issue filing | **4/4 (100%)** | 2/4 (50%) | Attribution byline and structured issue body template are skill-specific |
 
 ## What Each Eval Tests
 
@@ -122,7 +123,7 @@ Tests the full bot poll flow: poll offer is gated on bot re-request (not human-o
 ### Eval 13 — Bot poll: user declines poll
 **Prompt**: One valid comment from Copilot bot. After addressing, push and re-request. User declines the poll offer.
 
-Tests the decline path: no polling occurs, the report omits the poll line entirely, and the bot is re-requested via the REST `/requested_reviewers` endpoint (not `gh pr edit`). The without-skill baseline scored 5/6 (83%) — it found the correct REST pattern and poll-decline flow, but failed the `push-before-poll-offer` assertion (the baseline did not know to push the branch before presenting the poll offer). This eval is weakly discriminating (+17%).
+Tests the decline path: no polling occurs, the report omits the poll line entirely, and the bot is re-requested via the REST `/requested_reviewers` endpoint (not `gh pr edit`). Spec 15 Phase 1 added two assertions: `snapshot-before-post-rerequest` (the snapshot_timestamp must be recorded *before* the POST, not after — ensuring same-second reviews aren't missed) and `poll-offer-uses-short-display-name` (the poll offer uses the shortened display name `@copilot`, not the full `copilot-pull-request-reviewer[bot]`). The without-skill baseline scored 5/8 (63%) — it found the correct REST pattern and poll-decline flow (original 5 assertions) but lacks the snapshot-ordering protocol and bot display name algorithm. This eval is now moderately discriminating (+37%).
 
 ### Eval 14 — Bot poll: timeout
 **Prompt**: One valid comment from Copilot bot. After addressing, push and re-request. User confirms polling, but bot doesn't respond within 10 minutes.
@@ -147,7 +148,7 @@ Tests v1.7 review body handling plus the v1.20 Step 13 auto path: bot summary cl
 ### Eval 18 — Review body: reply to question
 **Prompt**: One review body comment asking a clarifying question, one inline thread with a valid fix.
 
-Tests the review body reply path: question classified as `reply`, posted via issue comments API (not the review comment reply endpoint), no resolveReviewThread, and the automatic Step 13 re-request set includes both the replied-to review-body author and the implemented inline reviewer. The baseline still gets the API endpoints right, but now also misses the skill's automatic combined re-request set in addition to Co-authored-by.
+Tests the review body reply path: question classified as `reply`, posted via issue comments API (not the review comment reply endpoint), no resolveReviewThread, and the automatic Step 13 re-request set includes both the replied-to review-body author and the implemented inline reviewer. Spec 15 Phase 1 added `attribution-byline-in-carol-reply`: the reply to @carol must end with the `--- 🤖 Generated with [AssistantName](url)` byline as specified in reply-formats.md. The baseline scored 3/6 (50%) — it gets the API endpoints and review-body no-resolve right, but misses Co-authored-by, the combined re-request set, and the attribution byline. This eval is now moderately discriminating (+50%).
 
 ### Eval 19 — Diff validation: out-of-scope suggestion
 **Prompt**: Two suggestion threads — @alice's suggestion targets line 42 (within the PR diff), @eve's suggestion targets line 200 (outside the PR diff, that section was not modified).
@@ -234,15 +235,20 @@ Tests the size guard in SKILL.md Step 5: oversized comments (>64 KB) are flagged
 
 Tests the timeline reply format specified in reply-formats.md: reply posted via `issues/{pr_number}/comments` (not `pulls/comments`), reply body starts with `@reviewer`, includes a `>` quote of the original comment, and includes a generated-by attribution line. The without-skill run scored 1/4 — baseline may include attribution but lacks structured API routing, @mention-start convention, and > quote format.
 
+### Eval 36 — Follow-up issue filing
+**Prompt**: PR has one out-of-scope suggestion from @eve. User explicitly pre-authorizes issue filing: "go ahead and file a follow-up GitHub issue for them."
+
+Tests the follow-up issue filing path with explicit pre-authorization: the skill declines @eve's suggestion, posts a decline reply with the attribution byline, and immediately executes `gh issue create` (not just offers — due to the explicit pre-authorization overriding the auto-mode deferral to Step 14). The issue body references the PR number and @eve per the Step 11 template. The without-skill run scored 2/4 — baseline declines and (given explicit instruction) files the issue, but misses the attribution byline and structured issue body template.
+
 ## Notes
 
 - **GraphQL thread state is the root discriminator.** Nearly every without-skill failure traces back to the baseline using only the REST comments endpoint. Without isResolved and isOutdated from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. This single step accounts for the majority of the delta.
 - **Process steps vs. output quality.** The baseline produces reasonable commit messages and file edits on its own. The skill's value is almost entirely in the process steps it mandates — the plan table presentation, Co-authored-by attribution, thread resolution via GraphQL mutation, and the interactive push + re-request prompt.
 - **Auto mode (default) shows the plan but has no confirmation gate.** Since v1.16, the default invocation skips the `Proceed? [y/N/auto]` prompt. The plan table is still shown for observability. The confirmation gate appears only when `--manual` is passed or when a special condition forces it (security flags, oversized comments, consistency items, diff-validation declines).
-- **Eval 13 without-skill scored 5/6 (83%).** The baseline found the correct REST endpoint pattern for bot re-request and the poll-decline flow, but failed the `push-before-poll-offer` assertion — it did not know to push the branch before presenting the poll offer. This eval is weakly discriminating (+17%).
+- **Eval 13 without-skill scored 5/8 (63%)** after spec 15 Phase 1 added 2 assertions (snapshot ordering, bot display name). The baseline finds the correct REST endpoint pattern and poll-decline flow but lacks the snapshot-before-POST protocol and Bot Display Names algorithm. This eval is now moderately discriminating (+37%).
 - **Eval 16 is discriminating (+60%).** without_skill scored 2/5 — the baseline handles the straightforward suggestion but lacks the exact-login comparison mechanism to reliably detect prior-reply skips. The 5th assertion (`skip-uses-exact-login-match`) is entirely skill-specific.
 - **Evals 17 and 18 narrowed the delta.** The baseline independently gets review body API routing correct (issue comments API for replies, no resolveReviewThread). The skill's value in these scenarios is Co-authored-by attribution and including declined review body authors in the re-request list.
-- **Eval 18 is nearly non-discriminating.** 4/5 without skill. Consider this a baseline-establishing eval rather than a key differentiator.
+- **Eval 18 without-skill scored 3/6 (50%)** after spec 15 Phase 1 added 1 assertion (attribution byline). The eval is now moderately discriminating (+50%): the baseline gets API routing right but misses Co-authored-by, the combined re-request set, and the reply-formats.md byline requirement.
 - **Eval 19 is strongly discriminating (+75%).** The diff-validation guard is entirely skill-specific — a general assistant has no reason to fetch the PR diff and validate suggestion targets against changed hunks.
 - **Eval 20 is strongly discriminating (+100%).** Cross-file consistency checking is entirely skill-specific (Step 6b). The baseline focuses only on files with explicit review comments — it never searches for related identifiers in other modified files.
 - **Eval 21 is weakly discriminating (+67%).** without_skill scored 1/3 — the prompt's explicit "completely different context" framing is usually sufficient for both configurations to avoid a false positive, but the skill is more consistent and avoids the remaining baseline miss.

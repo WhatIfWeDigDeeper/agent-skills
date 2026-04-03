@@ -2,7 +2,20 @@
 
 This reference defines the polling workflow for two distinct entry points and a shared polling loop.
 
-## Entry from Step 13 (post-commit re-request)
+## Shared Setup
+
+Both entry points take a fresh thread snapshot before entering the Shared polling loop. Use this GraphQL command for the snapshot (see `references/graphql-queries.md` for the full query with pagination):
+
+```bash
+gh api graphql -f query='{ repository(owner: "{owner}", name: "{repo}") { pullRequest(number: {pr_number}) { reviewThreads(first: 100) { nodes { id isResolved } } } } }' \
+  | jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | .id]'
+```
+
+The `snapshot_timestamp` value differs per entry point and is set in each entry's setup. Do **not** reuse the Step 3 results — threads may have been resolved since then.
+
+---
+
+## Entry from Step 13b (post-commit re-request)
 
 **Setup — do this before the POST re-request:**
 
@@ -12,7 +25,7 @@ This reference defines the polling workflow for two distinct entry points and a 
    ```
    Taking the snapshot before the request ensures that even a same-second review is captured by Signal 2.
 
-2. Take a **fresh** snapshot of the current unresolved thread node IDs (using the same GraphQL query from Step 3). Do **not** reuse the Step 3 results — threads may have been resolved since then.
+2. Take a **fresh** snapshot of the current unresolved thread node IDs — see **Shared Setup** above.
 
 3. POST the bot re-request for each bot reviewer:
    ```bash
@@ -39,12 +52,12 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
      --jq '[.requested_reviewers[] | select(.type == "Bot" or ((.login? // "") | endswith("[bot]"))) | .login]'
    ```
 
-   **Resolve canonical logins before polling.** The `requested_reviewers` API may return a shortened login (e.g. `"Copilot"`) that does not match the `user.login` used in the reviews and comments APIs (e.g. `"copilot-pull-request-reviewer[bot]"`). Signals 2 and 3 filter by exact login, so using the `requested_reviewers` value directly will cause them to miss the bot's review. After getting pending bot logins, cross-reference against the reviews history to resolve canonical logins:
+   **Resolve canonical logins before polling** — `requested_reviewers` may return a shortened login (e.g. `"Copilot"`) that differs from the `user.login` in reviews/comments APIs (e.g. `"copilot-pull-request-reviewer[bot]"`). Cross-reference against review history:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
      | jq -s '[.[] | .[] | select(.user.type == "Bot") | .user.login] | unique'
    ```
-   Treat the reviews result as the source of canonical bot logins. For each pending bot in `requested_reviewers`, map it to a canonical login from the reviews list (for example, by matching a shortened name like `"Copilot"` to `"copilot-pull-request-reviewer[bot]"`). Build the polling set from canonical logins only: include mapped canonical logins for all pending bot reviewers, plus any `[bot]`-suffixed logins that appear as pending reviewers but have no prior reviews. Do not keep unmatched, non-`[bot]` pending logins (such as `"Copilot"`) in the polling set. Use the canonical login for Signals 2 and 3; if a bot has no prior review and therefore no canonical login, fall back to `endswith("[bot]")` filtering.
+   Map each pending bot to its canonical login from the reviews list. Build the polling set from canonical logins only; include unmatched `[bot]`-suffixed pending logins as-is; drop unmatched non-`[bot]` logins. Fall back to `endswith("[bot]")` filtering for bots with no prior reviews.
 
 2. **Check for bot activity after `fetch_timestamp`** — a bot may have submitted a review (removing itself from `requested_reviewers`) or posted a timeline comment between the Step 2 fetch and now:
    ```bash
@@ -55,10 +68,10 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
    ```
    If either query returns results, treat it as a post-fetch bot response.
 
-3. **If a bot submitted a review or posted a timeline comment after `fetch_timestamp`** (step 2 returned results): apply the **Rapid re-poll guard**. If the guard allows it, **immediately loop back to Step 2** (full re-fetch) — this counts as one iteration toward the `--auto N` cap. **Guard:** if a Step 6c loop-back already occurred for the same bot set without producing new actionable items, fall through to the 60-second polling loop rather than looping back again. When falling through, set `snapshot_timestamp = "${fetch_timestamp}"`, take a fresh unresolved-thread snapshot, then proceed directly to the Shared polling loop (skip the step 2 re-check).
+3. **If a bot submitted a review or posted a timeline comment after `fetch_timestamp`** (step 2 returned results): apply the **Rapid re-poll guard**. If the guard allows it, **immediately loop back to Step 2** (full re-fetch) — this counts as one iteration toward the `--max N` cap. **Guard:** if a Step 6c loop-back already occurred for the same bot set without producing new actionable items, fall through to the 60-second polling loop rather than looping back again. When falling through, set `snapshot_timestamp = "${fetch_timestamp}"`, take a fresh thread snapshot (see **Shared Setup** above), then proceed directly to the Shared polling loop (skip the step 2 re-check).
 
 4. **If pending bots exist but NO post-fetch review was detected** (bots are in `requested_reviewers` but haven't submitted yet):
-   - **Auto mode (default)**: Log a status line, set `snapshot_timestamp = "${fetch_timestamp}"`, take a fresh thread snapshot, re-run the step 2 bot-activity check. If new activity is found, apply the guard / loop back to Step 2. Otherwise, proceed to the Shared polling loop.
+   - **Auto mode (default)**: Log a status line, set `snapshot_timestamp = "${fetch_timestamp}"`, take a fresh thread snapshot (see **Shared Setup** above), re-run the step 2 bot-activity check. If new activity is found, apply the guard / loop back to Step 2. Otherwise, proceed to the Shared polling loop.
      ```
      All threads skipped — pending bot reviewer(s) detected. Polling for @bot1...
      ```
@@ -67,22 +80,10 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
      All items skipped, but @bot1 hasn't finished reviewing yet. Poll for new threads? [y/N]
      ```
      Output this prompt as the final message of the turn and **stop generating**. Do not assume a default response; resume only after the user replies explicitly.
-     If confirmed, set `snapshot_timestamp = "${fetch_timestamp}"`, take a fresh thread snapshot, then proceed to the Shared polling loop. If declined, proceed to the report.
+     If confirmed, set `snapshot_timestamp = "${fetch_timestamp}"`, take a fresh thread snapshot (see **Shared Setup** above), then proceed to the Shared polling loop. If declined, proceed to the report.
 
-5. **If no pending bots and no recent bot review or timeline comment — check for stale-HEAD bot reviewers:** Some bots (e.g. `copilot-pull-request-reviewer[bot]`) may not appear in `requested_reviewers` even though they haven't reviewed the latest commit. Get the PR's canonical HEAD SHA from the API (not `git rev-parse HEAD`, which may diverge) and find any previously-reviewing bots whose most recent submitted review was on an older commit. Exclude `claude[bot]` (cannot be re-requested via API) and filter to submitted reviews only (state != PENDING, submitted_at != null):
-   ```bash
-   head_sha=$(gh api repos/{owner}/{repo}/pulls/{pr_number} --jq '.head.sha')
-   gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-     | jq -s --arg head_sha "$head_sha" '
-         [.[] | .[]]
-         | map(select((.user.login | endswith("[bot]")) and .user.login != "claude[bot]" and .state != "PENDING" and .submitted_at != null))
-         | sort_by(.user.login)
-         | group_by(.user.login)
-         | map(sort_by(.submitted_at) | last)
-         | map(select(.commit_id != $head_sha))
-         | map(.user.login)'
-   ```
-   If stale-HEAD bots are found, use the **Entry from Step 13** path: record a fresh `snapshot_timestamp`, take a fresh thread snapshot, POST the re-request for each stale bot, then proceed to the Shared polling loop. Log in auto mode:
+5. **If no pending bots and no recent bot review or timeline comment — check for stale-HEAD bot reviewers:** Use the Stale-HEAD Bot Detection query from the section below.
+   If stale-HEAD bots are found, use the **Entry from Step 13b** path: record a fresh `snapshot_timestamp`, take a fresh thread snapshot (see **Shared Setup** above), POST the re-request for each stale bot, then proceed to the Shared polling loop. Log in auto mode:
    ```
    All threads skipped — @bot1 has not reviewed HEAD. Re-requesting and polling...
    ```
@@ -91,9 +92,30 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
    All items skipped, but @bot1 hasn't reviewed the latest commit. Re-request and poll? [y/N]
    ```
    Output this prompt as the final message of the turn and **stop generating**. Do not assume a default response; resume only after the user replies explicitly.
-   If confirmed, follow the Step 13 entry path actions; if declined, proceed to the report.
+   If confirmed, follow the Step 13b entry path actions; if declined, proceed to the report.
 
 6. **If no pending bots, no recent bot review or timeline comment, and no stale-HEAD bots:** Fall through to Step 7 as normal.
+
+---
+
+## Stale-HEAD Bot Detection
+
+Use this query at two call sites: Step 13b (augment reviewer list) and Step 6c above (check before falling through to Step 7).
+
+Get the PR's canonical HEAD SHA from the API (not `git rev-parse HEAD`, which may diverge) and find any previously-reviewing bots whose most recent submitted review was on an older commit. Excludes `claude[bot]` (cannot be re-requested via API) and filters to submitted reviews only (state != PENDING, submitted_at != null):
+
+```bash
+head_sha=$(gh api repos/{owner}/{repo}/pulls/{pr_number} --jq '.head.sha')
+gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
+  | jq -s --arg head_sha "$head_sha" '
+      [.[] | .[]]
+      | map(select((.user.login | endswith("[bot]")) and .user.login != "claude[bot]" and .state != "PENDING" and .submitted_at != null))
+      | sort_by(.user.login)
+      | group_by(.user.login)
+      | map(sort_by(.submitted_at) | last)
+      | map(select(.commit_id != $head_sha))
+      | map(.user.login)'
+```
 
 ---
 
@@ -111,9 +133,9 @@ List all bot handles (re-requested or pending) in the status line.
 
 ### Manual mode (requires `--manual`)
 
-**Note**: This polling offer applies to Step 13 entries only. For Step 6c entries, the specific all-skip prompts shown in the "Entry from Step 6c" section above apply instead; those prompts are shown before entering the Shared polling loop.
+**Note**: This polling offer applies to Step 13b entries only. For Step 6c entries, the specific all-skip prompts shown in the "Entry from Step 6c" section above apply instead; those prompts are shown before entering the Shared polling loop.
 
-Offer to poll after the re-request completes (Step 13):
+Offer to poll after the re-request completes (Step 13b):
 
 ```
 Poll for @bot1, @bot2 to finish reviewing? I'll check for new threads and process them when ready (~2–5 min each).
@@ -121,7 +143,7 @@ Poll for @bot1, @bot2 to finish reviewing? I'll check for new threads and proces
 
 Output this prompt as the final message of the turn and **stop generating**. Do not assume a default response; resume only after the user replies explicitly.
 
-Only offer when at least one bot reviewer was re-requested (Step 13). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal. If the user accepts polling, use the `snapshot_timestamp` and unresolved-thread snapshot already taken during the Step 13 setup (both recorded **before** the POST re-request); do not re-create them here. Then immediately enter the **Shared polling loop** described in the Signals section below.
+Only offer when at least one bot reviewer was re-requested (Step 13b). Do not offer for human-only re-requests — human review timing is unpredictable. If multiple bots were re-requested, list all of them in the prompt. After each subsequent round that re-requests a bot reviewer, re-offer polling. If the user declines polling, proceed to the report as normal. If the user accepts polling, use the `snapshot_timestamp` and unresolved-thread snapshot already taken during the Step 13b setup (both recorded **before** the POST re-request); do not re-create them here. Then immediately enter the **Shared polling loop** described in the Signals section below.
 
 ### Signals
 
@@ -182,7 +204,7 @@ Loop back to Step 2 within the same skill invocation — do not require the user
 
   **Auto-loop exit conditions** (checked before starting each new iteration). **These are the ONLY valid reasons to exit the auto-loop. Do not exit for subjective reasons** such as "diminishing returns", "feedback is minor", or "PR has been substantially refined" — those are not exit conditions. If none of the conditions below are met, continue polling.
   1. No new unresolved bot threads after poll AND all polled bots have submitted a review (per Signal 2 tracking) → exit loop. Do not use `requested_reviewers` as a completion signal here — instead, track which bots have a `submitted_at >= snapshot_timestamp` review via Signal 2; once every polled bot has responded, consider the poll complete.
-  2. Iteration count has reached the maximum (N from `--auto N`, default 10) → exit with note
+  2. Iteration count has reached the maximum (N from `--max N`, default 10) → exit with note
   3. Poll timeout → exit with timeout message
   4. Security screening flags a comment in this iteration → pause auto-mode, drop to manual confirmation for this iteration; after the user confirms, ask: "Resume auto mode for remaining iterations? [y/N]". The agent MUST output this prompt as its final message for the iteration and MUST stop generating further output until the user responds. The agent MUST NOT answer this prompt on the user's behalf; it may resume auto mode only after receiving an explicit user response.
 
