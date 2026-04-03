@@ -60,5 +60,5 @@ Without_skill also classified the missing --verbose task as Minor severity; with
 
 ## Notes
 
-- **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). The "spawns subagent" assertion fails in both configurations for this reason. In production use, the skill correctly delegates to a fresh subagent — this is its primary value over inline review.
+- **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For eval 1, the "spawns subagent" assertion fails in both configurations for this reason. For eval 2, with_skill passes this assertion because the executor explicitly framed the review as a fresh-context pass; without_skill does not. In production use, the skill correctly delegates to a fresh subagent — this is its primary value over inline review.
 - **Eval 3 redesign candidate**: a future eval that tests argument conflict handling (`--staged` + path → error) would better discriminate, as this is skill-specific behavior unlikely to be reproduced by the baseline.
