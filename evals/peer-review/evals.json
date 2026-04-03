@@ -1,0 +1,91 @@
+{
+  "skill_name": "peer-review",
+  "evals": [
+    {
+      "id": 1,
+      "name": "consistency-mode-stale-step-ref",
+      "prompt": "/peer-review evals/peer-review/fixtures/consistency/",
+      "expected_output": "The skill reads both files in the fixtures/consistency/ directory, enters consistency mode (because it is not a spec pair), spawns a fresh-context reviewer subagent, and returns findings that include the stale step reference: SKILL.md says 'See Step 3 of reference.md' but the field mapping table is at Step 4 in reference.md (Step 3 is missing entirely). Findings are grouped by severity. The skill presents an apply prompt and stops generating.",
+      "context": "The fixtures/consistency/ directory contains SKILL.md and reference.md. SKILL.md references 'Step 3 of reference.md' for the field mapping table, but reference.md has no Step 3 — the field mapping table is at Step 4. This is a planted consistency issue.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "enters-consistency-mode",
+          "text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md"
+        },
+        {
+          "id": "spawns-reviewer-subagent",
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response"
+        },
+        {
+          "id": "finds-stale-step-reference",
+          "text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)"
+        },
+        {
+          "id": "findings-grouped-by-severity",
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)"
+        },
+        {
+          "id": "apply-prompt-shown",
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "spec-mode-plan-tasks-mismatch",
+      "prompt": "/peer-review evals/peer-review/fixtures/spec/",
+      "expected_output": "The skill reads plan.md and tasks.md in the fixtures/spec/ directory, enters spec mode (because both plan.md and tasks.md are present), spawns a fresh-context reviewer subagent, and returns findings that include the missing --verbose task: plan.md documents a --verbose flag with defined behavior, but tasks.md has no task to implement it. Argument parsing task also only lists --target and --dry-run, omitting --verbose. Findings are grouped by severity.",
+      "context": "The fixtures/spec/ directory contains a plan.md and tasks.md pair. plan.md defines three flags: --dry-run, --verbose, and --target ENV. tasks.md only implements --target and --dry-run — it has no task for --verbose, and the argument parsing task does not list --verbose.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "enters-spec-mode",
+          "text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md"
+        },
+        {
+          "id": "spawns-reviewer-subagent",
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response"
+        },
+        {
+          "id": "finds-missing-verbose-task",
+          "text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md"
+        },
+        {
+          "id": "findings-grouped-by-severity",
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)"
+        },
+        {
+          "id": "apply-prompt-shown",
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "staged-no-changes-exit",
+      "prompt": "/peer-review --staged",
+      "expected_output": "The skill runs git diff --staged, finds no staged changes, warns the user that there are no staged changes (and how to stage files), and exits without spawning a reviewer or showing findings.",
+      "context": "No files are staged in the working repo at eval time.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "runs-git-diff-staged",
+          "text": "The agent runs 'git diff --staged' (or equivalent) to check for staged changes"
+        },
+        {
+          "id": "warns-no-staged-changes",
+          "text": "The agent warns the user that there are no staged changes rather than attempting a review on empty output"
+        },
+        {
+          "id": "exits-without-spawning-reviewer",
+          "text": "The agent exits early — no reviewer subagent is spawned and no findings are shown"
+        },
+        {
+          "id": "provides-recovery-hint",
+          "text": "The agent tells the user how to stage files (e.g. 'use git add') before retrying"
+        }
+      ]
+    }
+  ]
+}

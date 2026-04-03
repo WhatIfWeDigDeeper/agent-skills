@@ -32,8 +32,8 @@ All three share the same core need: a **fresh-context reviewer** that hasn't acc
 | `path/to/file-or-dir` | Specific files or directory (consistency review) |
 
 **Options:**
-- `--model MODEL` — override reviewer model (default: `opus`; phase II: `copilot`, `codex`, `gemini`)
-- `--focus TOPIC` — narrow the review scope (e.g. `--focus security`, `--focus consistency`, `--focus evals`)
+- `--model MODEL` — override reviewer model (default: `claude-opus-4-6`; phase II: `--model copilot`, `--model codex`, `--model gemini` routes to the respective CLI with optional sub-model, e.g. `--model copilot:gpt-4o-mini`)
+- `--focus TOPIC` — narrow the review scope (e.g. `--focus security`, `--focus consistency`, `--focus evals`); narrows emphasis but does **not** suppress `critical` findings outside the focus area
 
 ### Review modes (auto-detected from target)
 
@@ -43,18 +43,19 @@ The skill selects a prompt template based on what it's reviewing:
 
 **Consistency mode** (file/dir path): look for drift between related files — stale step references, mismatched terminology, missing parallel updates, underspecified tasks. Especially useful after editing spec pairs or SKILL.md + reference files together.
 
-**Spec mode** (path contains `specs/`): additionally check for gaps between `plan.md` and `tasks.md`, underspecified task items, incorrect shell commands, internal math errors, and missing tasks that the plan implies.
+**Spec mode** (path resolves to a directory containing both `plan.md` and `tasks.md`): additionally check for gaps between `plan.md` and `tasks.md`, underspecified task items, incorrect shell commands, internal math errors, and missing tasks that the plan implies.
 
 ### Workflow
 
 1. **Parse target** — determine target type and collect content:
    - Staged/branch/PR: run the appropriate `git diff` or `gh pr diff` command
-   - File/dir path: read all files at the path; if it contains a `plan.md` + `tasks.md` pair, treat as spec mode
+   - File/dir path: read all files at the path; if the directory contains both `plan.md` and `tasks.md`, treat as spec mode; otherwise consistency mode
+   - Conflict: if both `--staged` and a file path are provided, error with "specify one target at a time"
 2. **Select prompt template** — choose diff/consistency/spec based on target type; apply `--focus` filter if provided
 3. **Spawn fresh-context reviewer subagent** — pass collected content + prompt; use `mode: "auto"` to suppress approval prompts
 4. **Receive findings** — structured as: severity (critical/major/minor), location (file + phrase anchor), description, suggested fix
-5. **Present findings** — display to user grouped by severity; ask: `Apply all, select, or skip?`
-6. **Apply approved findings** — make the edits; report what was changed
+5. **Present findings** — display to user grouped by severity; if findings list is empty, output "No issues found." and stop. Otherwise output the findings and ask: `Apply all, select by number, or skip? [all/1,3,5/skip]` — output this as your final message and **stop generating**; do not assume a default or proceed to the next step without a user reply
+6. **Apply approved findings** — make the edits using the `Edit` tool; report each change made
 
 ### Reviewer prompt structure
 
@@ -100,12 +101,22 @@ Apply all, select by number, or skip? [all/1,3,5/skip]
 
 ## Phase II: Multi-LLM support
 
-When `--model copilot`, `--model codex`, or `--model gemini` is specified:
-- Detect whether the CLI tool is available (`which gh copilot`, `which codex`, etc.)
-- Pipe the review prompt to the appropriate CLI
-- Parse output into the standard findings format
+When `--model copilot[:<submodel>]`, `--model codex`, or `--model gemini` is specified:
+- Detect whether the CLI tool is available (`which copilot`, `which codex`, etc.); error with installation hint if not found
+- Pipe the review prompt to the appropriate CLI; pass the sub-model flag when provided (e.g. `copilot -m gpt-4o-mini`)
+- Parse output into the standard findings format (critical/major/minor)
+
+`copilot-staged-review.sh` in this spec directory is a prototype for the Copilot CLI path. It is staged-only and outputs `high|medium|low` severity — Phase II will generalize it to all target types and align severity to `critical/major/minor`. It is not used by Phase I.
 
 This is deferred to phase II because the CLI interfaces differ significantly and require individual integration work. The v1 Opus-via-subagent approach covers the primary use case.
+
+---
+
+## Relationship to `code-review`
+
+`code-review` spawns multiple subagents with distinct reviewer personas (security, correctness, style, etc.), making it thorough but relatively expensive — best suited for full PR reviews before merge.
+
+`peer-review` uses a single fresh-context reviewer and is optimized for lighter, faster checks: mid-draft spec validation, quick consistency sweeps, and staged-change review before opening a PR. Its key differentiator is multi-LLM routing (Phase II) — the reviewer can be Copilot, Codex, or Gemini rather than a Claude subagent, which is useful when the author wants a non-Claude perspective or needs a specific model.
 
 ---
 

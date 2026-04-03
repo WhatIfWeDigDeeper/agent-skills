@@ -8,6 +8,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 |-------------|-------------|----------|--------|
 | [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps", "/js-deps typescript", "/js-deps help" | [+38%](evals/js-deps/benchmark.md) |
 | [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn", "/learn help" | [+13%](evals/learn/benchmark.md) |
+| [peer-review](skills/peer-review/SKILL.md) | Fresh-context review of specs, staged changes, branches, PRs, or file sets — returns severity-grouped findings you can apply or skip | "review my changes", "peer review", "check for consistency", "review this spec", "/peer-review", "/peer-review --staged", "/peer-review --pr 42", "/peer-review specs/16" | [+13%](evals/peer-review/benchmark.md) |
 | [pr-comments](skills/pr-comments/SKILL.md) | Address review comments on your own PR: implement valid suggestions, reply to invalid ones, resolve threads, credit commenters in commits, push and re-request review, and poll for bot reviewers across multiple rounds hands-free (auto mode by default; use `--manual` to confirm each iteration) | "address PR comments", "implement PR feedback", "respond to review comments", "/pr-comments", "/pr-comments 42", "/pr-comments --max 5", "/pr-comments --manual" | [+67%](evals/pr-comments/benchmark.md) |
 | [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "/ship-it" "/ship-it fix login timeout", "/ship-it help" | [+38%](evals/ship-it/benchmark.md) |
 | [uv-deps](skills/uv-deps/SKILL.md) | Security audits and dependency updates for Python projects using uv | "audit Python packages", "update pyproject.toml", "fix Python CVEs", "/uv-deps", "/uv-deps fastapi", "/uv-deps help" | [+83%](evals/uv-deps/benchmark.md) |
@@ -58,6 +59,13 @@ cp -r skills/* ~/.claude/skills/
 ```
 
 ## Skill Notes
+
+### `peer-review`
+
+- Use `/peer-review --staged` (or just `/peer-review`) to review staged changes before committing, `/peer-review --pr N` for an existing PR, `/peer-review --branch NAME` for a branch diff, or pass a path to check consistency across related files.
+- Use `--focus TOPIC` to emphasize a specific area (e.g. `--focus security`, `--focus consistency`) — critical findings outside the focus are still reported.
+- **vs `code-review`**: `code-review` spawns multiple reviewer personas and is best for thorough pre-merge PR reviews. `peer-review` is a single fresh-context reviewer optimized for lighter checks: mid-draft spec validation, quick consistency sweeps, and staged-change review. Phase II will add support for routing to external LLMs (`--model copilot:gpt-4o-mini`, `--model codex`, `--model gemini`).
+- **Eval cost**: +44.2 seconds, +25,494 tokens over baseline ([details](evals/peer-review/benchmark.md))
 
 ### `learn`
 
