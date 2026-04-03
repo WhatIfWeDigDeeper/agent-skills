@@ -3088,7 +3088,7 @@
         {
           "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --max N iteration cap",
           "passed": false,
-          "evidence": "A baseline assistant has no concept of an iteration cap counter or the mechanism by which repoll cycles are tracked against an --auto N limit."
+          "evidence": "A baseline assistant has no concept of an iteration cap counter or the mechanism by which repoll cycles are tracked against a --max N iteration cap."
         }
       ],
       "notes": [
