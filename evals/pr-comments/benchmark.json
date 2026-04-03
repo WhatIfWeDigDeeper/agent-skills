@@ -3826,7 +3826,7 @@
     }
   },
   "notes": [
-    "Eval 13 covers the push-before-poll flow: the branch must be pushed before the poll offer is presented. with_skill 6/6 (100%), without_skill 5/6 (83%) \u2014 slightly discriminating after adding the push-before-poll-offer and bot re-request assertions. The baseline now completes the implementation workflow with correct push-before-poll-offer ordering; the remaining failure is on the bot re-request endpoint.",
+    "Eval 13 covers the push-before-poll flow: the branch must be pushed before the poll offer is presented. with_skill 8/8 (100%), without_skill 5/8 (63%) \u2014 slightly discriminating after adding the push-before-poll-offer, REST re-request endpoint, snapshot ordering, and bot display name assertions. The baseline now completes the implementation workflow with correct push-before-poll-offer ordering, but still fails the REST re-request endpoint, snapshot ordering, and bot display name assertions.",
     "Eval 16 covers exact-login skip matching: the skip decision must compare reply authors by exact login string, not by role or description. with_skill 5/5 (100%), without_skill 2/5 (40%) \u2014 discriminating after adding the skip-uses-exact-login-match assertion. The baseline may skip by recognizing the author as 'the PR author' from context rather than by comparing login strings exactly.",
     "Time and token run_summary stats are set to null \u2014 simulated transcript runs used 0.0 as a placeholder for unmeasured time, which skewed aggregates. Individual runs with real executor measurements retain their recorded time_seconds; simulated runs are set to null.",
     "Eval 2 without_skill affected by TLS certificate errors in sandbox; assertions graded on stated intent vs observed behavior.",

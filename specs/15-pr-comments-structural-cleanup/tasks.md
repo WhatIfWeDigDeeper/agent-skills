@@ -120,7 +120,7 @@
 
 ### 4A: Add follow-up issue filing eval
 - [x] In `evals/pr-comments/evals.json`, add eval 36:
-  - id: 36, eval_name: `follow-up-issue-filing`
+  - id: 36, name: `follow-up-issue-filing`
   - prompt: PR with one out-of-scope suggestion; include in the prompt: "If you decline any items as out-of-scope, go ahead and file a follow-up GitHub issue for them" — pre-authorizing the issue so the eval is single-turn
   - assertions (minimum 4):
     - `decline-reply-posted`: "A decline reply is posted to the out-of-scope suggestion explaining why it won't be implemented"

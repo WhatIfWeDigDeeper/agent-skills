@@ -168,7 +168,7 @@ v1.20 → v1.21 on the first Phase 2 commit. Pre-bump check: `git fetch origin &
 After Phase 1:
 1. Eval 13 has at least 2 failing assertions without_skill (up from 1); eval 18 has at least 3 (up from 2)
 2. Pass rate with_skill remains 100% for both
-3. `benchmark.json` `metadata.skill_version` updated to v1.20 — the replaced run_number=1 entries are new executions produced under v1.20; the prior rationale for keeping v1.17 applied only to re-graded (not re-run) entries
+3. `benchmark.json` `metadata.skill_version` set to the version the runs were executed under — the replaced run_number=1 entries are new executions produced under that version; the prior rationale for keeping v1.17 applied only to re-graded (not re-run) entries
 4. `README.md` Eval delta column updated if overall delta changes
 
 After Phase 2:
