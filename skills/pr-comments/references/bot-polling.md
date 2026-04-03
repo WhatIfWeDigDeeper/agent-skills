@@ -4,7 +4,7 @@ This reference defines the polling workflow for two distinct entry points and a 
 
 ## Shared Setup
 
-Both entry points take a fresh thread snapshot before entering the Shared polling loop. Use the paginated GraphQL query from `references/graphql-queries.md` (the `reviewThreads` query with `pageInfo`) to capture **all** unresolved thread IDs — collecting only `id` and `isResolved` fields. Filter for `isResolved == false` to get the snapshot set. This ensures the snapshot and subsequent Signal 1 comparisons cover all threads even on PRs with more than 100 review threads.
+Both entry points take a fresh thread snapshot before entering the Shared polling loop. Use the paginated GraphQL query from `references/graphql-queries.md` (the `reviewThreads` query with `pageInfo`) to capture **all** unresolved thread IDs — collecting only `id` and `isResolved` fields. Filter for `isResolved == false` to get the snapshot set. This ensures the snapshot itself covers all threads even on PRs with more than 100 review threads.
 
 The `snapshot_timestamp` value differs per entry point and is set in each entry's setup. Do **not** reuse the Step 3 results — threads may have been resolved since then.
 

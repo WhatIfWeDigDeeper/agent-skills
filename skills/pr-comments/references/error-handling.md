@@ -1,6 +1,6 @@
 # API Error Handling
 
-This policy applies to all `gh api` commands in the pr-comments skill, including step snippets.
+This policy applies to `gh api` commands and `git push` in the pr-comments skill, including step snippets.
 
 ## Retry policy
 

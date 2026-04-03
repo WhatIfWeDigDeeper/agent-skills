@@ -2786,7 +2786,7 @@
         {
           "text": "The repoll triggered by the all-skip gate counts as one iteration toward the --max N iteration cap",
           "passed": true,
-          "evidence": "The loop-back is displayed as '## Auto-loop iteration 1/10 — @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the default --auto 10 cap."
+          "evidence": "The loop-back is displayed as '## Auto-loop iteration 1/10 — @copilot responded with 1 new threads', explicitly counting this repoll cycle as iteration 1 toward the configured --max iteration cap."
         }
       ],
       "notes": [
