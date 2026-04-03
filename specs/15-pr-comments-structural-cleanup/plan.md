@@ -74,7 +74,7 @@ The two existing pipelines differ: SKILL.md Step 13 uses `git rev-parse HEAD` (w
 - Update bot-polling.md: replace `--auto N` → `--max N` in the iteration-cap references (rapid repoll guard + auto-loop exit condition 2)
 - Update eval 23 assertion `counts-toward-iteration-cap` text: `--auto N` → `--max N`; update matching benchmark.json `text` fields only (not `evidence` fields — those record observed transcript behavior and must not be retroactively changed)
 - Update eval 29 prompt: `--auto 2` → `--max 2`
-- Remove CLAUDE.md warning about `/pr-comments --auto {pr_number}` after merge
+- Remove CLAUDE.md warning about `/pr-comments --auto {pr_number}`
 - Update README.md: replace `/pr-comments --auto 5` in the trigger phrases column and the `--auto N` description in the Notes section with the new `--max N` syntax
 
 **Impact**: SKILL.md ~-1 to -3 lines (removing the ambiguity sentence saves 1 line; other changes are roughly neutral)
