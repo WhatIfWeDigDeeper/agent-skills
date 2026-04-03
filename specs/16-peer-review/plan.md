@@ -4,7 +4,7 @@
 
 There is no structured way to get a fresh-perspective review of in-progress work in this repo. Reviewers (human or bot) see the diff in a PR, but by then the author has deep context that makes it hard to spot consistency gaps, underspecification, or drift between related files. The need surfaces in three distinct situations:
 
-1. **Spec review** — after drafting or editing a `specs/N/plan.md` + `tasks.md` pair, check for internal consistency, gaps, and underspecification before implementation starts.
+1. **Spec review** — after drafting or editing a `specs/<NN>-<topic>/plan.md` + `tasks.md` pair, check for internal consistency, gaps, and underspecification before implementation starts.
 
 2. **Change consistency review** — after editing a set of related files (e.g. `SKILL.md` + reference files + `evals.json`), check that terminology, step numbers, and behavioral descriptions are still in sync across all of them.
 

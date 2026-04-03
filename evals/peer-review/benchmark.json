@@ -9,7 +9,7 @@
     "evals_run": [1, 2, 3],
     "runs_per_configuration": 1,
     "notes": [
-      "Assertion 'spawns subagent' fails in both configurations for evals 1 and 2 because the Agent tool is not available inside eval executor subagents. This is an eval harness constraint, not a skill defect — the SKILL.md correctly instructs the agent to spawn a subagent.",
+      "Assertion 'spawns subagent' fails in both configurations for eval 1 because the Agent tool is not available inside eval executor subagents. This is an eval harness constraint, not a skill defect — the SKILL.md correctly instructs the agent to spawn a subagent.",
       "Eval 3 (staged-no-changes-exit) is non-discriminating: both configurations score 100%. The empty-staged-changes warning is obvious enough that the baseline handles it correctly without the skill."
     ]
   },

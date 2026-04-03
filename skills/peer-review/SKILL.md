@@ -10,7 +10,7 @@ license: MIT
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.1"
+  version: "1.0"
 ---
 
 # Peer Review
