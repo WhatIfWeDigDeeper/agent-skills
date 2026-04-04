@@ -35,7 +35,7 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 ## Evals And Benchmarks
 
 - Every skill with evals should keep `evals/<skill-name>/benchmark.json` in sync with the latest results.
-- After updating a benchmark, also update the `Eval Δ` column in `README.md`.
+- After updating a benchmark, also update the `Eval Δ` column in `README.md` and the `±` stat values in the `benchmark.md` Summary table — the table mirrors `run_summary` and is not auto-generated.
 - `grading.json` files must include a `summary` block with `passed`, `failed`, `total`, and `pass_rate`.
 - Use `null`, not `0` or `0.0`, for unknown token/time measurements in benchmark data.
 - Keep `run_summary.delta.pass_rate` at 2-decimal precision.

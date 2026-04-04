@@ -117,3 +117,32 @@ def detect_mode(has_plan_md: bool, has_tasks_md: bool) -> str:
     if has_plan_md and has_tasks_md:
         return "spec"
     return "consistency"
+
+
+def route_model(model: str) -> dict:
+    """Determine reviewer route from --model value per SKILL.md Step 4.
+
+    Returns:
+        {
+            "route": "claude" | "copilot" | "codex" | "gemini",
+            "binary": str | None,  # CLI binary name (None for claude path)
+            "submodel": str | None,  # Sub-model if specified after ':'
+        }
+    """
+    if not model or model.startswith("claude-"):
+        return {"route": "claude", "binary": None, "submodel": None}
+
+    if ":" in model:
+        prefix, submodel = model.split(":", 1)
+    else:
+        prefix, submodel = model, None
+
+    prefix_lower = prefix.lower()
+    if prefix_lower == "copilot":
+        return {"route": "copilot", "binary": "copilot", "submodel": submodel}
+    elif prefix_lower == "codex":
+        return {"route": "codex", "binary": "codex", "submodel": submodel}
+    elif prefix_lower == "gemini":
+        return {"route": "gemini", "binary": "gemini", "submodel": submodel}
+
+    return {"route": "claude", "binary": None, "submodel": None}

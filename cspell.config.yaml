@@ -77,5 +77,6 @@ words:
   - wordlist
   - worktree
   - worktrees
+  - metacharacter
 ignoreWords: []
 import: []
