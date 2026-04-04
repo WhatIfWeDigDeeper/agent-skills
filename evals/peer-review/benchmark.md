@@ -1,19 +1,19 @@
-# peer-review Eval Benchmark
+# peer-review Benchmark Results
+
+**Model**: claude-sonnet-4-6
+**Date**: 2026-04-03
+**Evals**: 3 (1 run each, with_skill vs. without_skill)
 
 ## Summary
 
-| Configuration | Mean pass rate | Stddev | Min | Max |
-|---------------|---------------|--------|-----|-----|
-| with_skill    | 0.93          | 0.09   | 0.80 | 1.00 |
-| without_skill | 0.80          | 0.16   | 0.60 | 1.00 |
-| **delta**     | **+0.13**     |        |     |     |
+| Metric | with_skill | without_skill | Delta |
+|--------|-----------|---------------|-------|
+| Pass rate | 0.93 ± 0.09 | 0.80 ± 0.16 | **+0.13** |
+| Min / Max | 0.80 / 1.00 | 0.60 / 1.00 | |
+| Avg time (s) | ~44.2 ± 16.1 | ~16.9 ± 4.2 | +27.3 |
+| Avg tokens | ~25,494 ± 2,700 | ~19,558 ± 584 | +5,936 |
 
-3 evals × 2 configurations = 6 runs. Token statistics are computed over all 6 primary (run_number=1) runs across 3 of 3 evals.
-
-| Metric | with_skill | without_skill |
-|--------|-----------|---------------|
-| Avg tokens | ~25,494 | ~19,558 |
-| Avg time (s) | ~44.2 | ~16.9 |
+3 evals × 2 configurations = 6 runs. Statistics are per-configuration, computed over 3 primary (run_number=1) runs each.
 
 **Discriminating evals**: Eval 2 is the primary discriminating eval (+0.40 delta). Eval 3 is non-discriminating (both 100%): baseline handles empty-staged-changes correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint — the Agent tool is unavailable in the eval executor context, masking the subagent-spawning differentiator; this is not non-discriminating in the CLAUDE.md sense (not 100%/100%) (see notes).
 
