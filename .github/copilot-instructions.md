@@ -22,7 +22,7 @@ Evals belong under `evals/` at the repo root, not inside skill directories.
 git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  version:'
 ```
 
-- Only bump once per PR. Follow-up reviewer-fix commits should not add another bump.
+- Only bump once per PR. Follow-up reviewer-fix commits should not add another bump. This limit applies to the PR as a whole — a PR touching SKILL.md plus multiple reference files still gets exactly one version increment total. Do not add a new bump for each changed reference file.
 
 ## Specs
 
@@ -43,6 +43,7 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - When adding a new skill to `README.md`, add an `Eval cost` note sourced from the skill's benchmark doc.
 - If reviewer feedback suggests benchmark values, recompute from the actual `runs` array instead of copying the suggestion.
 - When updating `pass_rate`, `passed`, `failed`, or `total` in a run entry, also scan both the run-level `notes` array and the top-level `notes` array for matching prose counts (e.g. "3/5 (60%)") and update them — numeric fields and prose strings drift independently.
+- Place the top-level `notes` array at the root of `benchmark.json`, not inside `metadata` — between the closing `}` of `metadata` and the opening `[` of `runs`.
 - When renaming action labels or vocabulary in `SKILL.md`, also search `CLAUDE.md` for hardcoded step references that use the old name — step renames must propagate there just as they do to `evals.json` and `benchmark.json`.
 
 ## Tests And Validation
@@ -80,6 +81,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - `gh api --paginate --jq` applies `--jq` per page. To deduplicate across all pages, collect pages first with `jq -s`.
 - When passing shell variables into `jq`, use `jq --arg name "$value"` instead of shell string interpolation inside the filter.
 - `rg` alternation uses bare `|`, not `\|`.
+- In an unquoted heredoc (`<<EOF`), `\"` is a literal backslash-quote — the receiver sees `\"` not `"`. Use `<<'EOF'` to suppress shell processing, or write plain `"` directly.
 - GitHub review thread `isOutdated` means the diff location moved, not that the concern is resolved.
 
 ## Skill Design Guidance
