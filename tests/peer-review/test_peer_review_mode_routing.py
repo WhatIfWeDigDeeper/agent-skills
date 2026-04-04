@@ -7,19 +7,19 @@ class TestModeDetection:
     """Test auto-detection of review mode from target and directory contents."""
 
     def test_spec_mode_when_both_files_present(self):
-        assert detect_mode("specs/16-peer-review", has_plan_md=True, has_tasks_md=True) == "spec"
+        assert detect_mode(has_plan_md=True, has_tasks_md=True) == "spec"
 
     def test_consistency_mode_when_only_plan_md(self):
-        assert detect_mode("specs/16-peer-review", has_plan_md=True, has_tasks_md=False) == "consistency"
+        assert detect_mode(has_plan_md=True, has_tasks_md=False) == "consistency"
 
     def test_consistency_mode_when_only_tasks_md(self):
-        assert detect_mode("specs/16-peer-review", has_plan_md=False, has_tasks_md=True) == "consistency"
+        assert detect_mode(has_plan_md=False, has_tasks_md=True) == "consistency"
 
     def test_consistency_mode_when_neither_file(self):
-        assert detect_mode("skills/peer-review", has_plan_md=False, has_tasks_md=False) == "consistency"
+        assert detect_mode(has_plan_md=False, has_tasks_md=False) == "consistency"
 
     def test_consistency_mode_for_single_file_path(self):
-        assert detect_mode("skills/peer-review/SKILL.md", has_plan_md=False, has_tasks_md=False) == "consistency"
+        assert detect_mode(has_plan_md=False, has_tasks_md=False) == "consistency"
 
 
 class TestDiffModeTargets:

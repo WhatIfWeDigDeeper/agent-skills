@@ -109,8 +109,8 @@ def parse_arguments(args: str | None) -> dict:
     return result
 
 
-def detect_mode(path: str, has_plan_md: bool, has_tasks_md: bool) -> str:
-    """Detect review mode from path and directory contents per SKILL.md.
+def detect_mode(has_plan_md: bool, has_tasks_md: bool) -> str:
+    """Detect review mode from directory contents per SKILL.md.
 
     Returns: "spec" | "consistency"
     """
