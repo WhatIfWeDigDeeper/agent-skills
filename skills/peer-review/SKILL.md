@@ -2,7 +2,7 @@
 name: peer-review
 description: >-
   Get a fresh-context review of specs, staged changes, branches, PRs, or file sets.
-  Routes to a Claude subagent (default) or an external LLM CLI (Phase II: Copilot, Codex, Gemini).
+  Delegates to a fresh-context reviewer by default (Phase II: routes to external LLM CLIs — Copilot, Codex, Gemini).
   Use when: user says "review my changes", "peer review", "check for consistency",
   "review this spec", "review staged", "review PR N", "check this for issues",
   "fresh review", or wants a lightweight review before opening a PR.
@@ -91,7 +91,7 @@ If the PR is not found, error and exit. Prepend the PR title and body as context
 
 **Path** (file or directory):
 
-Read all files at the path using the `Read` tool. If the resolved path is a directory containing both `plan.md` and `tasks.md`, set mode to **spec**. Otherwise set mode to **consistency**.
+Read all files at the path (in Claude Code: use the `Read` tool). If the resolved path is a directory containing both `plan.md` and `tasks.md`, set mode to **spec**. Otherwise set mode to **consistency**.
 
 ### 3. Select Prompt Template
 
@@ -175,13 +175,13 @@ Focus especially on [TOPIC]. Still report any critical findings outside this foc
 
 ### 4. Spawn Reviewer Subagent
 
-Spawn a subagent with `mode: "auto"`. Pass the completed prompt (template + collected content). The subagent has no prior session context — this is intentional.
+Delegate to a fresh-context reviewer — pass the completed prompt (template + collected content). The reviewer has no prior session context — this is intentional. In Claude Code, spawn a subagent with `mode: "auto"` to suppress approval prompts.
 
-The subagent's only job is to return findings. It must not modify any files.
+The reviewer's only job is to return findings. It must not modify any files.
 
 ### 5. Present Findings
 
-If the subagent returns `NO FINDINGS`, output:
+If the reviewer returns `NO FINDINGS`, output:
 
 ```
 ## Peer Review — [target] ([model])
@@ -217,7 +217,7 @@ Output this as your **final message and stop generating**. Do not supply an answ
 
 On user reply:
 
-- `all` — apply every finding using the `Edit` tool; report each change as you make it
+- `all` — apply every finding by editing the files directly (in Claude Code: use the `Edit` tool); report each change as you make it
 - `1,3,5` (comma-separated numbers) — apply only the listed findings
 - `skip` — output "Skipped N findings. No changes made." and stop
 
@@ -225,7 +225,7 @@ When applying a finding, use the phrase anchor from the finding's Location field
 
 ## Notes
 
-- **Fresh-context guarantee**: the reviewer subagent has no history from the current session. It sees only the content you pass it. This is the primary value of the skill — the reviewer cannot rationalize away issues the author has normalized.
+- **Fresh-context guarantee**: the reviewer has no history from the current session. It sees only the content you pass it. This is the primary value of the skill — the reviewer cannot rationalize away issues the author has normalized.
 - **`--focus` does not suppress critical findings**: narrowing focus changes emphasis, not the severity threshold. A `critical` finding outside the focus topic will still be reported.
 - **vs `code-review`**: the built-in `code-review` skill spawns multiple subagents with distinct reviewer personas (security, correctness, style, etc.) — thorough but relatively expensive, best for full PR reviews before merge. `peer-review` uses a single reviewer and is optimized for lighter checks: mid-draft spec validation, quick consistency sweeps, and staged-change review before opening a PR.
-- **Phase II — multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` will route the review prompt to the respective CLI tool rather than a Claude subagent. This allows using a non-Claude model as the reviewer (e.g. `--model copilot:gpt-4o-mini`). `specs/16-peer-review/copilot-staged-review.sh` is a prototype for the Copilot path (staged-only; deferred to Phase II).
+- **Phase II — multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` will route the review prompt to the respective CLI tool rather than the default internal reviewer. This allows using a non-Claude model as the reviewer (e.g. `--model copilot:gpt-4o-mini`). `specs/16-peer-review/copilot-staged-review.sh` is a prototype for the Copilot path (staged-only; deferred to Phase II).
