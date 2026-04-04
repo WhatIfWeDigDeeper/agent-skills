@@ -13,7 +13,7 @@
 | Time (s) | ~43.0 ± 34.8 | ~45.6 ± 61.5 | -2.7 |
 | Tokens | ~26,892 ± 7,377 | ~25,644 ± 13,928 | +1,249 |
 
-14 evals × 2 configurations = 28 runs. Token statistics are computed over 8 of 14 primary (run_number=1) runs per configuration (16 of 28 total) — evals 5–10 use simulated transcripts and have no recorded time or token measurements; evals 1–4 and 11–14 have real measurements.
+14 evals × 2 configurations = 28 runs. Token statistics are computed over 8 of 14 primary (run_number=1) runs per configuration (16 of 28 total) — evals 5–10 use simulated transcripts and have no recorded time or token measurements; evals 1–4 and 11–14 have real measurements. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
 **Discriminating evals**: Evals 2, 4, 5, 7, 8, 9, 10, 13 discriminate. Eval 2 is the primary discriminating eval (+0.40 delta). Eval 5 (copilot severity normalization) has the highest delta (+1.0). Eval 13 (focus-option) discriminates at +0.67. Evals 3, 6, 11, 12, 14 are non-discriminating: baseline handles conflict detection, no-findings output, empty-staged warning, PR metadata inclusion (with fixture), and skip handling correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
 
