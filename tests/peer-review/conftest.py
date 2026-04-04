@@ -129,7 +129,11 @@ def route_model(model: str | None) -> dict:
             "submodel": str | None,  # Sub-model if specified after ':'
         }
     """
-    if not model or model.startswith("claude-"):
+    if not model:
+        return {"route": "claude", "binary": None, "submodel": None}
+
+    model_lower = model.lower()
+    if model_lower.startswith("claude-"):
         return {"route": "claude", "binary": None, "submodel": None}
 
     if ":" in model:
