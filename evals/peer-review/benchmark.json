@@ -176,7 +176,7 @@
         {"text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch", "passed": true, "evidence": "Agent explicitly set target type to branch and mode to Diff after parsing --branch flag."},
         {"text": "The agent runs a git diff command to collect the branch diff against the default branch", "passed": true, "evidence": "Ran git diff main...specs/16-peer-review, producing ~93KB of diff across 13 files."},
         {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Sub-subagents unavailable in eval executor context — review performed inline as a fresh-context pass. Known harness constraint."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs exactly NO FINDINGS", "passed": true, "evidence": "Findings presented under Major and Minor severity headings (5 findings total)."},
+        {"text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs 'No issues found.' with no apply prompt if there are no findings", "passed": true, "evidence": "Findings presented under Major and Minor severity headings (5 findings total)."},
         {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown at end of response, generation stops."}
       ],
       "notes": ["Secondary discriminating eval (+0.20 delta). Diff mode declaration differentiates; subagent assertion fails in both due to harness constraint. Reviewer caught real findings including CI action version issues and potential stddev error in benchmark.json."]
@@ -200,7 +200,7 @@
         {"text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch", "passed": false, "evidence": "No explicit mode declaration — agent ran a git diff and reviewed it without identifying it as 'diff mode' distinct from other modes."},
         {"text": "The agent runs a git diff command to collect the branch diff against the default branch", "passed": true, "evidence": "Ran git diff main...specs/16-peer-review --stat then full diff, detected default branch from repo."},
         {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Reviewed inline with 45 tool calls — no subagent spawned."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs exactly NO FINDINGS", "passed": true, "evidence": "Findings presented under Critical (empty), Major, and Minor severity headings."},
+        {"text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs 'No issues found.' with no apply prompt if there are no findings", "passed": true, "evidence": "Findings presented under Critical (empty), Major, and Minor severity headings."},
         {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown as final line of response."}
       ],
       "notes": ["Failing: no mode declaration, review inline with 45 tool calls (3x the with_skill cost). without_skill spent 191.9s vs 105.5s for with_skill on this eval."]

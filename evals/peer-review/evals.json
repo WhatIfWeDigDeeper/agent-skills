@@ -87,7 +87,7 @@
       "id": 4,
       "name": "diff-mode-branch-review",
       "prompt": "/peer-review --branch specs/16-peer-review",
-      "expected_output": "The skill detects the --branch target, detects the default branch, collects the diff between specs/16-peer-review and the default branch via git diff, enters diff mode (not spec or consistency mode), spawns a fresh-context reviewer subagent, presents findings grouped by severity (or NO FINDINGS if none), and shows the apply prompt.",
+      "expected_output": "The skill detects the --branch target, detects the default branch, collects the diff between specs/16-peer-review and the default branch via git diff, enters diff mode (not spec or consistency mode), spawns a fresh-context reviewer subagent, presents findings grouped by severity (or outputs 'No issues found.' with no apply prompt if none), and shows the apply prompt.",
       "context": "Branch specs/16-peer-review exists and contains commits that differ from main. This is the implementation branch for the peer-review skill itself.",
       "files": [],
       "assertions": [
@@ -105,7 +105,7 @@
         },
         {
           "id": "findings-grouped-by-severity",
-          "text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs exactly NO FINDINGS"
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs 'No issues found.' with no apply prompt if there are no findings"
         },
         {
           "id": "apply-prompt-shown",

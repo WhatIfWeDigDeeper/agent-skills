@@ -81,7 +81,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - `gh api --paginate --jq` applies `--jq` per page. To deduplicate across all pages, collect pages first with `jq -s`.
 - When passing shell variables into `jq`, use `jq --arg name "$value"` instead of shell string interpolation inside the filter.
 - `rg` alternation uses bare `|`, not `\|`.
-- In an unquoted heredoc (`<<EOF`), `\"` is a literal backslash-quote — the receiver sees `\"` not `"`. Use `<<'EOF'` to suppress shell processing, or write plain `"` directly.
+- In an unquoted heredoc (`<<EOF`), `\"` is a literal backslash-quote — the receiver sees `\"`, not `"`. If you need a double quote in the heredoc body, write plain `"` directly, or use `<<'EOF'` to suppress shell processing.
 - GitHub review thread `isOutdated` means the diff location moved, not that the concern is resolved.
 
 ## Skill Design Guidance
