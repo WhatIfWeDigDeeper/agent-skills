@@ -1,0 +1,28 @@
+name: Test Peer Review Skill
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/peer-review/**'
+      - 'tests/peer-review/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/peer-review/**'
+      - 'tests/peer-review/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Run tests
+        run: uv run --with pytest pytest tests/peer-review/ -v
