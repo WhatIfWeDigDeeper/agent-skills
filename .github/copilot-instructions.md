@@ -22,7 +22,7 @@ Evals belong under `evals/` at the repo root, not inside skill directories.
 git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  version:'
 ```
 
-- Only bump once per PR. Follow-up reviewer-fix commits should not add another bump.
+- Only bump once per PR. Follow-up reviewer-fix commits should not add another bump. This limit applies to the PR as a whole — a PR touching SKILL.md plus multiple reference files still gets exactly one version increment total. Do not add a new bump for each changed reference file.
 
 ## Specs
 
@@ -42,6 +42,9 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - When adding new evals, run them in the same task and update benchmark artifacts immediately.
 - When adding a new skill to `README.md`, add an `Eval cost` note sourced from the skill's benchmark doc.
 - If reviewer feedback suggests benchmark values, recompute from the actual `runs` array instead of copying the suggestion.
+- When updating `pass_rate`, `passed`, `failed`, or `total` in a run entry, also scan both the run-level `notes` array and the top-level `notes` array for matching prose counts (e.g. "3/5 (60%)") and update them — numeric fields and prose strings drift independently.
+- Place the top-level `notes` array at the root of `benchmark.json`, not inside `metadata` — between the closing `}` of `metadata` and the opening `[` of `runs`.
+- When renaming action labels or vocabulary in `SKILL.md`, also search `CLAUDE.md` for hardcoded step references that use the old name — step renames must propagate there just as they do to `evals.json` and `benchmark.json`.
 
 ## Tests And Validation
 
@@ -78,6 +81,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - `gh api --paginate --jq` applies `--jq` per page. To deduplicate across all pages, collect pages first with `jq -s`.
 - When passing shell variables into `jq`, use `jq --arg name "$value"` instead of shell string interpolation inside the filter.
 - `rg` alternation uses bare `|`, not `\|`.
+- In an unquoted heredoc (`<<EOF`), `\"` is a literal backslash-quote — the receiver sees `\"`, not `"`. If you need a double quote in the heredoc body, write plain `"` directly, or use `<<'EOF'` to suppress shell processing.
 - GitHub review thread `isOutdated` means the diff location moved, not that the concern is resolved.
 
 ## Skill Design Guidance
@@ -87,6 +91,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - Validate changes after editing, and keep README / CLAUDE documentation in sync when the change is substantial.
 - When a workflow pauses for user confirmation, make the stop explicit: tell the agent to output the prompt as its final message and stop generating until the user replies. If the workflow also has auto/manual modes, specify every confirmation gate each mode affects. If auto mode is meant to be hands-free, say explicitly whether later gates (for example push/re-request prompts) are skipped or still require confirmation.
 - When listing exit conditions for a workflow loop, state that they are the only valid exit conditions and explicitly forbid subjective early exits.
+- When a SKILL.md step does setup work (snapshot, POST, etc.) before delegating to a reference file that has its own entry/setup section covering the same actions, the delegation sentence must name the target section and list what not to re-run — otherwise agents re-enter the setup section and duplicate actions already done in SKILL.md.
 
 ## Persistence
 

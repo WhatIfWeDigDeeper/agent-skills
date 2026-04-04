@@ -64,7 +64,7 @@ M out-of-scope declined comments — file follow-up issues? [all/select/none]
 
 Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the follow-up issues offer if there were no out-of-scope declines.
 
-**Closing line** (append to both standard and auto-loop reports):
+**Closing line** — MANDATORY. Every report, without exception, must end with the PR status line and URL. Do not omit the URL because the user "already knows it" or because the session is ending. The URL must be the last thing you output.
 
 Before writing the closing line, check CI status:
 ```bash
@@ -78,6 +78,8 @@ gh pr checks {pr_number}
 PR #N is ready for your final review.
 <PR URL>
 ```
+
+The `<PR URL>` line is not optional. Output it last, on its own line, every time.
 
 ## Exit reason values
 

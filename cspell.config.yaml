@@ -58,7 +58,11 @@ words:
   - runbooks
   - sandboxed
   - splitlines
+  - submodel
   - substeps
+  - underspecification
+  - underspecified
+  - dogfood
   - startswith
   - stddev
   - subshell
