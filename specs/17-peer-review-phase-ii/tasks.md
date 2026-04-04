@@ -25,7 +25,7 @@ Before writing any skill code, verify the actual invocation interface for each e
 
 **Gate**: do not start Phases 2–4 until research files exist for all three CLIs, or until the researched CLI is confirmed installable. If a CLI is not available in the current environment, document "not available — skipping" in the research file and skip that CLI's integration phase. If none of the three CLIs are available, do not open the implementation PR — stub the research files and coordinate with the user to run research in an environment where at least one CLI is installed.
 
-**Result**: copilot available; codex and gemini not installed → Phases 3 and 4 skipped; binary-absent error handling implemented for all three.
+**Result**: copilot available and environment-verified; codex and gemini not installed, so their integration paths were documented but not environment-verified; binary-absent error handling implemented for all three.
 
 ## Phase 2: copilot integration
 
