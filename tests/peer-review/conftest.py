@@ -3,12 +3,12 @@
 HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 
 
-def is_help_request(args: str) -> bool:
+def is_help_request(args: str | None) -> bool:
     """Check if arguments are a help request per SKILL.md."""
     return args.strip().lower() in HELP_TRIGGERS if args and args.strip() else False
 
 
-def parse_arguments(args: str) -> dict:
+def parse_arguments(args: str | None) -> dict:
     """Parse peer-review arguments per SKILL.md.
 
     Returns:

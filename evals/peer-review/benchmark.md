@@ -2,11 +2,11 @@
 
 **Model**: claude-sonnet-4-6
 **Date**: 2026-04-03
-**Evals**: 3 (1 run each, with_skill vs. without_skill)
+**Evals**: 3 (1 run each, with-skill vs. without-skill)
 
 ## Summary
 
-| Metric | with_skill | without_skill | Delta |
+| Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
 | Pass rate | 0.93 ± 0.09 | 0.80 ± 0.16 | **+0.13** |
 | Min / Max | 0.80 / 1.00 | 0.60 / 1.00 | |
@@ -25,12 +25,12 @@
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
-| with_skill    | 0.80      | 4/5    | 1      |
-| without_skill | 0.80      | 4/5    | 1      |
+| with-skill    | 0.80      | 4/5    | 1      |
+| without-skill | 0.80      | 4/5    | 1      |
 
 **Zero-delta (0.80/0.80) due to eval harness constraint**. Both configurations correctly identify consistency mode and find the stale step reference. The sole failing assertion in both — "spawns a subagent" — fails because the Agent tool is not available inside eval executor subagents. This is a harness constraint, not a baseline capability; in production the skill delegates to a fresh subagent while the baseline reviews inline. This eval is zero-delta, but not non-discriminating in the CLAUDE.md sense (not 100%/100%).
 
-**Differentiator not captured**: In production, with_skill delegates to a fresh-context reviewer (no session history); without_skill reviews inline with accumulated context. This distinction matters for longer sessions but cannot be measured with the current assertion set.
+**Differentiator not captured**: In production, with-skill delegates to a fresh-context reviewer (no session history); without-skill reviews inline with accumulated context. This distinction matters for longer sessions but cannot be measured with the current assertion set.
 
 ### Eval 2 — `spec-mode-plan-tasks-mismatch`
 
@@ -38,14 +38,14 @@
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
-| with_skill    | 1.00      | 5/5    | 0      |
-| without_skill | 0.60      | 3/5    | 2      |
+| with-skill    | 1.00      | 5/5    | 0      |
+| without-skill | 0.60      | 3/5    | 2      |
 
-**Discriminating** (+0.40 delta). Failing assertions for without_skill:
-- **Spec mode not entered explicitly**: without_skill reviewed the files without declaring spec mode as a distinct workflow state.
+**Discriminating** (+0.40 delta). Failing assertions for without-skill:
+- **Spec mode not entered explicitly**: without-skill reviewed the files without declaring spec mode as a distinct workflow state.
 - **Subagent not spawned**: inline review, no fresh-context delegation.
 
-Without_skill also classified the missing --verbose task as Minor severity; with_skill correctly flagged it as Major (a documented feature with no implementation path is a meaningful gap, not a nit).
+Without_skill also classified the missing --verbose task as Minor severity; with-skill correctly flagged it as Major (a documented feature with no implementation path is a meaningful gap, not a nit).
 
 ### Eval 3 — `staged-no-changes-exit`
 
@@ -53,12 +53,12 @@ Without_skill also classified the missing --verbose task as Minor severity; with
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
-| with_skill    | 1.00      | 4/4    | 0      |
-| without_skill | 1.00      | 4/4    | 0      |
+| with-skill    | 1.00      | 4/4    | 0      |
+| without-skill | 1.00      | 4/4    | 0      |
 
 **Non-discriminating**. The empty-staged-changes behavior (warn + suggest git add) is explicit enough that any capable LLM handles it correctly without the skill. Establishes baseline behavior only.
 
 ## Notes
 
-- **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For eval 1, the "spawns subagent" assertion fails in both configurations for this reason. For eval 2, with_skill passes this assertion because the executor explicitly framed the review as a fresh-context pass; without_skill does not. In production use, the skill correctly delegates to a fresh subagent — this is its primary value over inline review.
+- **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For eval 1, the "spawns subagent" assertion fails in both configurations for this reason. For eval 2, with-skill passes this assertion because the executor explicitly framed the review as a fresh-context pass; without-skill does not. In production use, the skill correctly delegates to a fresh subagent — this is its primary value over inline review.
 - **Eval 3 redesign candidate**: a future eval that tests argument conflict handling (`--staged` + path → error) would better discriminate, as this is skill-specific behavior unlikely to be reproduced by the baseline.
