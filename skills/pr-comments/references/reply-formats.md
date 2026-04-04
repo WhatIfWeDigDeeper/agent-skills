@@ -18,7 +18,7 @@ For example, Claude Code uses `[Claude Code](https://claude.com/claude-code)`.
 Use the review comment replies endpoint:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/comments/{comment_id}/replies \
+gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
   --method POST \
   --field body="[Your reply]
 
