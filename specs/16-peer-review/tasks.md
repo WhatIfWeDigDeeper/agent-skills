@@ -63,7 +63,7 @@
 
 - [x] `/peer-review` on staged changes → verified via eval 3 (no staged changes path works; staged diff path pending until PR branch has staged changes)
 - [x] `/peer-review specs/16-peer-review` → spec-mode findings returned (2 major, 5 minor — dogfood works)
-- [ ] `/peer-review --pr N` → PR diff findings (pending — no PR created yet)
+- [x] `/peer-review --pr N` → PR diff findings (verified via PR #85)
 - [x] `/peer-review --focus consistency skills/pr-comments/` → 5 real consistency findings returned across skill files
-- [x] `uv run --with pytest pytest tests/` — 561 passed
+- [x] `uv run --with pytest pytest tests/` — passes (606 passed with tests/peer-review/ added)
 - [x] `npx cspell skills/peer-review/SKILL.md` — clean
