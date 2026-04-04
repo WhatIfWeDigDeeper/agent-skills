@@ -242,7 +242,7 @@ If the binary is not found, output the error message and stop. Do not proceed to
 **4b. Write prompt to temp file:**
 
 ```bash
-PROMPT_FILE=$(mktemp "${TMPDIR:-/tmp}/peer-review-prompt.XXXXXX")
+PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 ```
 

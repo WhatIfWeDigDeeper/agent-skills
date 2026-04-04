@@ -1,4 +1,4 @@
-# Spec 17: peer-review — Phase II Multi-LLM routing (v1.0 → v1.1)
+# Spec 17: peer-review — Phase II Multi-LLM routing (v1.0 → v1.2)
 
 ## Problem
 
@@ -34,10 +34,10 @@ When `--model` is `copilot[:<submodel>]`, `codex`, or `gemini[:<submodel>]`, Ste
 
 4b. Build the shell invocation
     - Write the review prompt (template from Step 3 + collected content) to a temp file:
-        PROMPT_FILE=$(mktemp "${TMPDIR:-/tmp}/peer-review-prompt.XXXXXX")
+        PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")
         printf '%s' "$PROMPT" > "$PROMPT_FILE"
       This avoids shell metacharacter injection from diff/PR/commit content passed as a CLI argument.
-      Use $TMPDIR (not /tmp directly) per sandbox rules.
+      Use $TMPDIR or ${TMPDIR:-/private/tmp} (not /tmp directly) per sandbox rules.
     - Add sub-model flag if provided
     - For copilot: pass prompt via -p "$(cat $PROMPT_FILE)" or --prompt-file if supported; restrict tool access (--deny-tool='write')
     - For codex: pass --no-auto-edit or equivalent read-only flag (TBD from research); pass prompt via stdin or file

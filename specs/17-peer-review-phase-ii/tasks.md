@@ -31,7 +31,7 @@ Before writing any skill code, verify the actual invocation interface for each e
 
 - [x] Update SKILL.md Step 4: add conditional branch — if `model` starts with `claude-` (including the default), use existing subagent logic; otherwise enter the external CLI path (4a–4e from plan.md)
 - [x] Implement 4a: check `which copilot`; if absent, error: "copilot CLI not found. Install with: `npm install -g @github/copilot-cli` or via the GitHub Copilot VS Code extension" and exit
-- [x] Implement 4b: write the prompt to a temp file (`PROMPT_FILE=$(mktemp "${TMPDIR:-/tmp}/peer-review-prompt.XXXXXX")`) to avoid shell metacharacter injection from diff/commit content; build invocation — `copilot -p "$(cat "$PROMPT_FILE")" [--deny-tool='write'] [-m SUBMODEL]`; add `-m SUBMODEL` only when a sub-model was specified (e.g. `--model copilot:gpt-4o-mini`)
+- [x] Implement 4b: write the prompt to a temp file (`PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")`) to avoid shell metacharacter injection from diff/commit content; build invocation — `copilot -p "$(cat "$PROMPT_FILE")" [--deny-tool='write'] [-m SUBMODEL]`; add `-m SUBMODEL` only when a sub-model was specified (e.g. `--model copilot:gpt-4o-mini`)
 - [x] Implement 4c: execute and capture output into `REVIEW_OUTPUT`
 - [x] Implement 4d: parse copilot JSON — extract `findings[]`; map `details` → problem, `suggested_fix` → fix; apply severity normalization table from plan.md; if `findings` is empty treat as `NO FINDINGS`; if JSON is malformed fall through to raw-output fallback (show raw output with "Could not parse structured findings; showing raw output.")
 - [x] Implement 4e: feed normalized findings into Step 5 (present findings) — no Step 5 changes required

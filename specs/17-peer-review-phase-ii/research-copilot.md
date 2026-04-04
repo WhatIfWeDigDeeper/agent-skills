@@ -9,7 +9,7 @@
 | Flag | Description |
 |------|-------------|
 | `-p, --prompt <text>` | Execute a prompt in non-interactive mode |
-| `--model <model>` | Set the AI model to use |
+| `-m, --model <model>` | Set the AI model to use |
 | `--allow-all-tools` | Allow all tools to run automatically without confirmation; **required for non-interactive (`-p`) mode** |
 | `--deny-tool[=tools...]` | Tools the CLI does not have permission to use; overrides `--allow-all-tools` |
 | `--allow-tool[=tools...]` | Tools the CLI has permission to use without prompting |
