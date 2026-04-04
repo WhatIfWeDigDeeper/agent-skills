@@ -1,5 +1,7 @@
 """Tests for --model routing decisions in peer-review skill."""
 
+import pytest
+
 from conftest import route_model
 
 
@@ -77,3 +79,15 @@ class TestGeminiRouting:
         assert result["route"] == "gemini"
         assert result["binary"] == "gemini"
         assert result["submodel"] == "gemini-2.0-flash"
+
+
+class TestUnsupportedModel:
+    """Unsupported --model values raise ValueError rather than silently falling back to claude."""
+
+    def test_unknown_prefix_raises(self):
+        with pytest.raises(ValueError, match="Unsupported --model value"):
+            route_model("llama")
+
+    def test_unknown_prefix_with_submodel_raises(self):
+        with pytest.raises(ValueError, match="Unsupported --model value"):
+            route_model("gpt-4o:latest")

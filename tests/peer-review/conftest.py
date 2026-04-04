@@ -145,4 +145,7 @@ def route_model(model: str | None) -> dict:
     elif prefix_lower == "gemini":
         return {"route": "gemini", "binary": "gemini", "submodel": submodel}
 
-    return {"route": "claude", "binary": None, "submodel": None}
+    raise ValueError(
+        f"Unsupported --model value: '{model}'. Supported external CLIs: copilot, codex, gemini. "
+        "For Claude models, use a claude-* prefix (e.g. --model claude-opus-4-6)."
+    )

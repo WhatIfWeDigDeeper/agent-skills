@@ -133,7 +133,7 @@ The output of both paths feeds into Step 5 unchanged.
 
 ## Evals strategy
 
-External CLIs may not be installed in eval environments. Use **fixture-based evals**: the eval prompt tells the agent to simulate CLI output using a pre-defined fixture response (embedded in the eval's `expected_output` or `prompt`), then verify the skill correctly parses and presents it.
+External CLIs may not be installed in eval environments. Use **fixture-based evals**: the eval prompt tells the agent to simulate CLI output using a pre-defined fixture response (embedded in the eval's `prompt` field), then verify the skill correctly parses and presents it.
 
 Three new evals:
 
