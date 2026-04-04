@@ -243,41 +243,42 @@ If the binary is not found, output the error message and stop. Do not proceed to
 
 ```bash
 PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")
+trap 'rm -f "$PROMPT_FILE"' EXIT INT TERM
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 ```
 
-Writing to a temp file preserves the exact multi-line prompt content and keeps prompt construction separate from the CLI invocation. In the commands below, correct quoting of `"$(cat "$PROMPT_FILE")"` is what prevents shell metacharacters in diff/PR content from being interpreted by the shell.
+Writing to a temp file preserves the exact multi-line prompt content and keeps prompt construction separate from the CLI invocation. In the commands below, correct quoting of `"$(cat "$PROMPT_FILE")"` is what prevents shell metacharacters in diff/PR content from being interpreted by the shell. The `trap` ensures the temp file is removed even if the CLI command fails or the process is interrupted.
 
 **4c. Execute and capture output:**
 
 For copilot:
 ```bash
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")" -m "$SUBMODEL")
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")" -m "$SUBMODEL" 2>&1)
 else
-  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")")
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")" 2>&1)
 fi
 ```
 
 For codex (`--no-auto-edit` suppresses file writes; unverified — adjust if your version uses a different flag):
 ```bash
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit --model "$SUBMODEL")
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit --model "$SUBMODEL" 2>&1)
 else
-  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit)
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit 2>&1)
 fi
 ```
 
 For gemini (no confirmed read-only flag; pipe prompt via stdin):
 ```bash
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini --model "$SUBMODEL")
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini --model "$SUBMODEL" 2>&1)
 else
-  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini)
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini 2>&1)
 fi
 ```
 
-Clean up after capture: `rm -f "$PROMPT_FILE"`
+The `trap` set in Step 4b will remove `$PROMPT_FILE` on completion or interruption.
 
 **4d. Parse output → normalized findings:**
 
