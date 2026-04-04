@@ -25,8 +25,8 @@
 
 ### Target handlers (one task per type)
 - [x] **Staged**: `git diff --staged` — if empty, warn "no staged changes" and exit
-- [x] **Branch**: `git diff main...NAME` — if branch not found, error with available branches
-- [x] **PR**: `gh pr view N --json title,body,files` + `gh pr diff N` — if PR not found, error; title+body prepended as context, diff is the review content
+- [x] **Branch**: `git diff DEFAULT_BRANCH...NAME` (with `DEFAULT_BRANCH` detected from the repo) — if branch not found, error with available branches
+- [x] **PR**: `gh pr view N --json number,title,body,baseRefName,headRefName` + `gh pr diff N` — if PR not found, error; title+body prepended as context, diff is the review content
 - [x] **Path**: read all files at path with `Read` tool; detect spec mode if the resolved directory contains both `plan.md` and `tasks.md`; detect consistency mode otherwise
 - [x] **Conflict**: if both `--staged` and a path are provided, error: "specify one target at a time"
 - [x] **No target**: same as `--staged` (fall through to staged handler)

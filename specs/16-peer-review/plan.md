@@ -28,7 +28,7 @@ All three share the same core need: a **fresh-context reviewer** that hasn't acc
 | *(no target)* | Staged changes (`git diff --staged`) |
 | `--staged` | Same as no target — explicit form |
 | `--pr N` | PR #N diff + description |
-| `--branch NAME` | Branch vs `main` (`git diff main...NAME`) |
+| `--branch NAME` | Branch vs the default branch (`git diff origin/HEAD...NAME`) |
 | `path/to/file-or-dir` | Specific files or directory (consistency review) |
 
 **Options:**

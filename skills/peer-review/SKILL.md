@@ -31,7 +31,7 @@ Targets (pick one):
   (none)            Staged changes (git diff --staged)
   --staged          Same as no target — explicit form
   --pr N            PR #N diff + description
-  --branch NAME     Branch diff vs main
+  --branch NAME     Branch diff vs default branch
   path/to/file-or-dir  Specific files or directory
 
 Options:
@@ -82,6 +82,9 @@ If output is empty, warn: "No staged changes found. Stage files with `git add` f
 Detect the default branch first (do not assume `main`):
 ```bash
 DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+if [ -z "$DEFAULT_BRANCH" ]; then
+  DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | sed 's/.*: //')
+fi
 git diff ${DEFAULT_BRANCH}...NAME
 ```
 If the branch is not found, error with: "Branch NAME not found. Available branches:" followed by `git branch -a`.
