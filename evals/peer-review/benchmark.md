@@ -45,7 +45,7 @@
 - **Spec mode not entered explicitly**: without-skill reviewed the files without declaring spec mode as a distinct workflow state.
 - **Subagent not spawned**: inline review, no fresh-context delegation.
 
-Without_skill also classified the missing --verbose task as Minor severity; with-skill correctly flagged it as Major (a documented feature with no implementation path is a meaningful gap, not a nit).
+without-skill also classified the missing --verbose task as Minor severity; with-skill correctly flagged it as Major (a documented feature with no implementation path is a meaningful gap, not a nit).
 
 ### Eval 3 — `staged-no-changes-exit`
 
