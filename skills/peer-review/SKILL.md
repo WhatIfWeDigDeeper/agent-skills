@@ -91,7 +91,7 @@ If the branch is not found, error with: "Branch NAME not found. Available branch
 
 **PR** (`--pr N`):
 ```bash
-gh pr view N --json number,title,body,baseRefName,headRefName
+gh pr view N --json number,title,body,baseRefName,headRefName,url
 gh pr diff N
 ```
 If the PR is not found, error and exit. Prepend the PR title and body as context to the diff before passing to the reviewer prompt — the title and body give the reviewer intent and scope that isn't visible in the diff alone.
