@@ -8,10 +8,10 @@
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | 0.93 ± 0.09 | 0.80 ± 0.16 | **+0.13** |
+| Pass rate | 0.93 ± 0.12 | 0.80 ± 0.20 | **+0.13** |
 | Min / Max | 0.80 / 1.00 | 0.60 / 1.00 | |
-| Avg time (s) | ~44.2 ± 16.1 | ~16.9 ± 4.2 | +27.3 |
-| Avg tokens | ~25,494 ± 2,700 | ~19,558 ± 584 | +5,936 |
+| Avg time (s) | ~44.2 ± 19.7 | ~16.9 ± 5.2 | +27.3 |
+| Avg tokens | ~25,494 ± 3,307 | ~19,558 ± 715 | +5,936 |
 
 3 evals × 2 configurations = 6 runs. Statistics are per-configuration, computed over 3 primary (run_number=1) runs each.
 
