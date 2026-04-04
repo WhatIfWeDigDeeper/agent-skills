@@ -60,7 +60,9 @@ words:
   - splitlines
   - submodel
   - substeps
+  - underspecification
   - underspecified
+  - dogfood
   - startswith
   - stddev
   - subshell

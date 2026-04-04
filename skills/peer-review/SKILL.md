@@ -7,6 +7,7 @@ description: >-
   "review this spec", "review staged", "review PR N", "check this for issues",
   "fresh review", or wants a lightweight review before opening a PR.
 license: MIT
+compatibility: Requires git and GitHub CLI (gh) for PR and branch targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
