@@ -11,7 +11,7 @@
 | Pass rate | 97% ± 7% | 70% ± 30% | **+27%** |
 | Min / Max | 80% / 100% | 0% / 100% | |
 | Time (s) | ~43.0 ± 34.8 | ~45.6 ± 61.5 | -2.6 |
-| Tokens | ~26,892 ± 7,377 | ~25,644 ± 13,939 | +1,248 |
+| Tokens | ~26,892 ± 7,377 | ~25,644 ± 13,928 | +1,248 |
 
 14 evals × 2 configurations = 28 runs. Token statistics are computed over 8 of 14 primary (run_number=1) runs per configuration (16 of 28 total) — evals 5–10 use simulated transcripts and have no recorded time or token measurements; evals 1–4 and 11–14 have real measurements.
 

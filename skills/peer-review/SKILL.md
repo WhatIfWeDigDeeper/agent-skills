@@ -44,7 +44,7 @@ Options:
                     External CLIs: copilot[:submodel], codex[:submodel], gemini[:submodel]
                       copilot — npm install -g @github/copilot-cli (or VS Code extension)
                       codex   — npm install -g @openai/codex
-                      gemini  — npm install -g @google/gemini-cli
+                      gemini  — npm install -g @google/gemini-cli (package name unverified — check official Google documentation)
   --focus TOPIC     Narrow emphasis (e.g. security, consistency, evals)
                     Does NOT suppress critical findings outside the focus area
 ```
@@ -229,13 +229,13 @@ If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "U
 **4a. Check binary availability:**
 
 ```bash
-which <binary> || { echo "<binary> CLI not found. Install with: <install hint>"; exit 1; }
+command -v <binary> >/dev/null 2>&1 || { echo "<binary> CLI not found. Install with: <install hint>"; exit 1; }
 ```
 
 Install hints:
 - `copilot`: `npm install -g @github/copilot-cli` or via the GitHub Copilot VS Code extension
 - `codex`: `npm install -g @openai/codex`
-- `gemini`: `npm install -g @google/gemini-cli`
+- `gemini`: `npm install -g @google/gemini-cli` (package name unverified — check official Google documentation)
 
 If the binary is not found, output the error message and stop. Do not proceed to Step 5.
 
@@ -252,20 +252,29 @@ Writing to a temp file avoids shell metacharacter injection from diff/PR content
 
 For copilot:
 ```bash
-if [ -n "$SUBMODEL" ]; then SUBMODEL_FLAG="-m $SUBMODEL"; else SUBMODEL_FLAG=""; fi
-REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")" $SUBMODEL_FLAG)
+if [ -n "$SUBMODEL" ]; then
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")" -m "$SUBMODEL")
+else
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")")
+fi
 ```
 
 For codex (`--no-auto-edit` suppresses file writes; unverified — adjust if your version uses a different flag):
 ```bash
-if [ -n "$SUBMODEL" ]; then SUBMODEL_FLAG="--model $SUBMODEL"; else SUBMODEL_FLAG=""; fi
-REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit $SUBMODEL_FLAG)
+if [ -n "$SUBMODEL" ]; then
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit --model "$SUBMODEL")
+else
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit)
+fi
 ```
 
 For gemini (no confirmed read-only flag; pipe prompt via stdin):
 ```bash
-if [ -n "$SUBMODEL" ]; then SUBMODEL_FLAG="--model $SUBMODEL"; else SUBMODEL_FLAG=""; fi
-REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini $SUBMODEL_FLAG)
+if [ -n "$SUBMODEL" ]; then
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini --model "$SUBMODEL")
+else
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini)
+fi
 ```
 
 Clean up after capture: `rm -f "$PROMPT_FILE"`

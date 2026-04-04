@@ -655,7 +655,7 @@
     "without_skill": {
       "pass_rate": {"mean": 0.70, "stddev": 0.30, "min": 0.00, "max": 1.00},
       "time_seconds": {"mean": 45.6, "stddev": 61.5, "min": 4.8, "max": 191.9},
-      "tokens": {"mean": 25644, "stddev": 13939, "min": 17663, "max": 59648}
+      "tokens": {"mean": 25644, "stddev": 13928, "min": 17663, "max": 59648}
     },
     "delta": {
       "pass_rate": "+0.27",
