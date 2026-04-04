@@ -119,7 +119,7 @@ def detect_mode(has_plan_md: bool, has_tasks_md: bool) -> str:
     return "consistency"
 
 
-def route_model(model: str) -> dict:
+def route_model(model: str | None) -> dict:
     """Determine reviewer route from --model value per SKILL.md Step 4.
 
     Returns:

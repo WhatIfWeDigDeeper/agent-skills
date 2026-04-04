@@ -2,7 +2,7 @@
 
 **Status**: Available — proceeding with integration.
 
-**Binary path**: `/Users/greg/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/copilot`
+**Binary path**: On this machine, `which copilot` resolved to the installed copilot binary.
 
 ## Flags
 

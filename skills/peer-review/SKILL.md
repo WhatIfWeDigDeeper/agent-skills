@@ -224,6 +224,8 @@ Determine the CLI binary and optional sub-model from the `--model` value. If `--
 | `codex` | `codex` | `--model SUBMODEL` |
 | `gemini` | `gemini` | `--model SUBMODEL` |
 
+If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported external CLIs: copilot, codex, gemini. For Claude models, use a `claude-*` prefix (e.g. `--model claude-opus-4-6`)."
+
 **4a. Check binary availability:**
 
 ```bash
@@ -250,19 +252,19 @@ Writing to a temp file avoids shell metacharacter injection from diff/PR content
 
 For copilot:
 ```bash
-SUBMODEL_FLAG=$( [ -n "$SUBMODEL" ] && echo "-m $SUBMODEL" )
+if [ -n "$SUBMODEL" ]; then SUBMODEL_FLAG="-m $SUBMODEL"; else SUBMODEL_FLAG=""; fi
 REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")" $SUBMODEL_FLAG)
 ```
 
 For codex (`--no-auto-edit` suppresses file writes; unverified — adjust if your version uses a different flag):
 ```bash
-SUBMODEL_FLAG=$( [ -n "$SUBMODEL" ] && echo "--model $SUBMODEL" )
+if [ -n "$SUBMODEL" ]; then SUBMODEL_FLAG="--model $SUBMODEL"; else SUBMODEL_FLAG=""; fi
 REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit $SUBMODEL_FLAG)
 ```
 
 For gemini (no confirmed read-only flag; pipe prompt via stdin):
 ```bash
-SUBMODEL_FLAG=$( [ -n "$SUBMODEL" ] && echo "--model $SUBMODEL" )
+if [ -n "$SUBMODEL" ]; then SUBMODEL_FLAG="--model $SUBMODEL"; else SUBMODEL_FLAG=""; fi
 REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini $SUBMODEL_FLAG)
 ```
 

@@ -2,12 +2,11 @@
   "metadata": {
     "skill_name": "peer-review",
     "skill_path": "skills/peer-review",
-    "skill_version": "1.1",
+    "skill_version": "1.2",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
     "timestamp": "2026-04-04T10:30:00Z",
     "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
-    "skill_version": "1.2",
     "runs_per_configuration": 1
   },
   "notes": [
