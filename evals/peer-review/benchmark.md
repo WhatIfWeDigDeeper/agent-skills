@@ -15,7 +15,7 @@
 | Avg tokens | ~25,494 | ~19,558 |
 | Avg time (s) | ~44.2 | ~16.9 |
 
-**Discriminating evals**: Eval 2 is the primary discriminating eval (+0.40 delta). Evals 1 and 3 are non-discriminating on currently measurable assertions (see notes).
+**Discriminating evals**: Eval 2 is the primary discriminating eval (+0.40 delta). Eval 3 is non-discriminating (both 100%): baseline handles empty-staged-changes correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint — the Agent tool is unavailable in the eval executor context, masking the subagent-spawning differentiator; this is not non-discriminating in the CLAUDE.md sense (not 100%/100%) (see notes).
 
 ## Eval Results
 
@@ -28,7 +28,7 @@
 | with_skill    | 0.80      | 4/5    | 1      |
 | without_skill | 0.80      | 4/5    | 1      |
 
-**Non-discriminating**. Both configurations correctly identify consistency mode and find the stale step reference. The sole failing assertion in both — "spawns a subagent" — fails due to an eval harness constraint: the Agent tool is not available inside eval executor subagents. The SKILL.md correctly instructs the main agent to spawn a subagent; this behavior would discriminate in production but cannot be verified in the current eval setup.
+**Zero-delta (0.80/0.80) due to eval harness constraint**. Both configurations correctly identify consistency mode and find the stale step reference. The sole failing assertion in both — "spawns a subagent" — fails because the Agent tool is not available inside eval executor subagents. This is a harness constraint, not a baseline capability; in production the skill delegates to a fresh subagent while the baseline reviews inline. This eval is zero-delta, but not non-discriminating in the CLAUDE.md sense (not 100%/100%).
 
 **Differentiator not captured**: In production, with_skill delegates to a fresh-context reviewer (no session history); without_skill reviews inline with accumulated context. This distinction matters for longer sessions but cannot be measured with the current assertion set.
 
