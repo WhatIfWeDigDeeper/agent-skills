@@ -1,7 +1,5 @@
 """Tests for argument parsing in peer-review skill."""
 
-import pytest
-
 from conftest import parse_arguments
 
 

@@ -1,7 +1,5 @@
 """Tests for review mode routing in peer-review skill."""
 
-import pytest
-
 from conftest import detect_mode, parse_arguments
 
 

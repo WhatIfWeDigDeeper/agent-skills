@@ -17,7 +17,7 @@ def parse_arguments(args: str | None) -> dict:
             "pr_number": str | None,
             "branch_name": str | None,
             "path": str | None,
-            "model": str | None,
+            "model": str,  # Defaults to "claude-opus-4-6" on successful parses.
             "focus": str | None,
             "error": str | None,
         }

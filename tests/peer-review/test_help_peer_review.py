@@ -1,7 +1,5 @@
 """Tests for help trigger detection in peer-review skill."""
 
-import pytest
-
 from conftest import is_help_request
 
 
