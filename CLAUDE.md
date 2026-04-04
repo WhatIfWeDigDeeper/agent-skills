@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Keep `.github/copilot-instructions.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `.github/copilot-instructions.md`. The two files serve different assistants (Claude Code vs. Copilot) but should encode the same project conventions.
+**Keep `.github/copilot-instructions.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `.github/copilot-instructions.md`, and ensure `.github/copilot-instructions.md` includes the reciprocal reminder to mirror rule changes made there back into `CLAUDE.md`. The two files serve different assistants (Claude Code vs. Copilot) but should encode the same project conventions.
 
 ## Project Overview
 

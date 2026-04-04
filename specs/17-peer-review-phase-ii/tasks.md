@@ -40,23 +40,23 @@ Before writing any skill code, verify the actual invocation interface for each e
 
 *Complete research-codex.md before starting this phase.*
 
-**Skipped** — codex not available in this environment. Binary-absent error path (4a) implemented in SKILL.md. See `research-codex.md`.
+**Documented but not environment-verified** — codex was not available in this environment for end-to-end execution, but `skills/peer-review/SKILL.md` now documents the full 4a–4d codex path based on `research-codex.md`.
 
 - [x] Implement 4a for codex: check `which codex`; if absent, error with install hint from research
-- [ ] Implement 4b: write prompt to temp file (`mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX"`); build invocation using flags confirmed in research; pass prompt via file or stdin (not direct argument interpolation); add read-only flag; add sub-model flag if provided
-- [ ] Implement 4c–4d: execute, capture, parse output using the format confirmed in research; apply severity normalization; handle empty/malformed output
-- [ ] If codex output is not JSON (plain text / markdown): parse severity from lines matching patterns like `[HIGH]`, `**Critical**`, `severity: high`, etc.; fall back to presenting the full output as a single `major` finding if no structured severity is found
+- [x] Implement 4b: write prompt to temp file (`mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX"`); build invocation using flags confirmed in research; pass prompt via file or stdin (not direct argument interpolation); add read-only flag; add sub-model flag if provided — documented in SKILL.md, not environment-verified here
+- [x] Implement 4c–4d: execute, capture, parse output using the format confirmed in research; apply severity normalization; handle empty/malformed output — documented in SKILL.md, not environment-verified here
+- [x] If codex output is not JSON (plain text / markdown): parse severity from lines matching patterns like `[HIGH]`, `**Critical**`, `severity: high`, etc.; fall back to presenting the full output as a single `major` finding if no structured severity is found — documented in SKILL.md, not environment-verified here
 
 ## Phase 4: gemini integration
 
 *Complete research-gemini.md before starting this phase.*
 
-**Skipped** — gemini not available in this environment. Binary-absent error path (4a) implemented in SKILL.md. See `research-gemini.md`.
+**Documented but not environment-verified** — gemini was not available in this environment for end-to-end execution, but `skills/peer-review/SKILL.md` now documents the full 4a–4d gemini path based on `research-gemini.md`.
 
 - [x] Implement 4a for gemini: check `which gemini`; if absent, error with install hint from research
-- [ ] Implement 4b: write prompt to temp file (`mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX"`); build invocation using flags confirmed in research; pass prompt via file or stdin; add read-only flag; add sub-model flag if provided
-- [ ] Implement 4c–4d: execute, capture, parse output; apply severity normalization; handle empty/malformed output
-- [ ] If gemini output is not JSON: parse severity using the same heuristic as codex (patterns like `[HIGH]`, `**Critical**`, `severity: high`)
+- [x] Implement 4b: write prompt to temp file (`mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX"`); build invocation using flags confirmed in research; pass prompt via file or stdin; add read-only flag; add sub-model flag if provided — documented in SKILL.md, not environment-verified here
+- [x] Implement 4c–4d: execute, capture, parse output; apply severity normalization; handle empty/malformed output — documented in SKILL.md, not environment-verified here
+- [x] If gemini output is not JSON: parse severity using the same heuristic as codex (patterns like `[HIGH]`, `**Critical**`, `severity: high`) — documented in SKILL.md, not environment-verified here
 
 ## Phase 5: SKILL.md update
 
