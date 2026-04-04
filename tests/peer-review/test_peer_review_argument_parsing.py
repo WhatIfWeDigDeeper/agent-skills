@@ -147,10 +147,10 @@ class TestConflictDetection:
 class TestOptions:
     """Options --model and --focus are parsed correctly."""
 
-    def test_default_model_not_set(self):
-        """Model defaults to None in parsed result; SKILL.md sets claude-opus-4-6 at runtime."""
+    def test_default_model_is_reviewer_default(self):
+        """Model defaults to claude-opus-4-6 per SKILL.md Step 1 when --model is omitted."""
         result = parse_arguments("")
-        assert result["model"] is None
+        assert result["model"] == "claude-opus-4-6"
 
     def test_model_override(self):
         result = parse_arguments("--model claude-opus-4-6")

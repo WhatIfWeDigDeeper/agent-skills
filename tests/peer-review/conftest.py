@@ -34,6 +34,7 @@ def parse_arguments(args: str) -> dict:
 
     if not args or not args.strip():
         result["target_type"] = "staged"
+        result["model"] = "claude-opus-4-6"
         return result
 
     tokens = args.strip().split()
@@ -101,6 +102,9 @@ def parse_arguments(args: str) -> dict:
 
     if result["target_type"] is None:
         result["target_type"] = "staged"
+
+    if result["model"] is None:
+        result["model"] = "claude-opus-4-6"
 
     return result
 
