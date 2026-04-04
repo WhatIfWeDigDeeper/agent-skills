@@ -92,7 +92,7 @@ copilot_args=(
 )
 
 if [[ -n "$model" ]]; then
-  copilot_args+=(--model "$model")
+  copilot_args+=(-m "$model")
 fi
 
 review_json="$(
