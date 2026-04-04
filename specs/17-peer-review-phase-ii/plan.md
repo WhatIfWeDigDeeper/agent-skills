@@ -39,13 +39,13 @@ When `--model` is `copilot[:<submodel>]`, `codex`, or `gemini[:<submodel>]`, Ste
       This avoids shell metacharacter injection from diff/PR/commit content passed as a CLI argument.
       Use $TMPDIR or ${TMPDIR:-/private/tmp} (not /tmp directly) per sandbox rules.
     - Add sub-model flag if provided
-    - For copilot: pass prompt via -p "$(cat $PROMPT_FILE)" or --prompt-file if supported; restrict tool access (--deny-tool='write')
+    - For copilot: pass prompt via -p "$(cat $PROMPT_FILE)" or --prompt-file if supported; non-interactive -p mode requires --allow-all-tools, then restrict tool access (--deny-tool='write')
     - For codex: pass --no-auto-edit or equivalent read-only flag (TBD from research); pass prompt via stdin or file
     - For gemini: pass read-only constraints (TBD from research); pass prompt via stdin or file
 
 4c. Execute and capture output
     REVIEW_OUTPUT=$(<binary> <prompt-flag> "$(cat "$PROMPT_FILE")" [<submodel-flag>] [<read-only-flag>])
-    # Example for copilot: REVIEW_OUTPUT=$(copilot -p "$(cat "$PROMPT_FILE")" [-m SUBMODEL] [--deny-tool='write'])
+    # Example for copilot: REVIEW_OUTPUT=$(copilot --allow-all-tools -p "$(cat "$PROMPT_FILE")" [-m SUBMODEL] [--deny-tool='write'])
     # Exact flags differ per CLI — see per-CLI integration notes below
 
 4d. Parse output → severity buckets
