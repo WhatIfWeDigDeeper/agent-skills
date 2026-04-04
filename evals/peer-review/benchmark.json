@@ -5,15 +5,16 @@
     "skill_version": "1.0",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-04-03T22:30:00Z",
-    "evals_run": [1, 2, 3],
+    "timestamp": "2026-04-04T10:30:00Z",
+    "evals_run": [1, 2, 3, 4],
     "runs_per_configuration": 1
   },
   "notes": [
-    "Assertion 'spawns subagent' fails in both configurations for eval 1 because the Agent tool is not available inside eval executor subagents. This is an eval harness constraint, not a skill defect — the SKILL.md correctly instructs the agent to spawn a subagent.",
-    "Eval 3 (staged-no-changes-exit) is non-discriminating: both configurations score 100%. The empty-staged-changes warning is obvious enough that the baseline handles it correctly without the skill.",
+    "Assertion 'spawns subagent' fails in both configurations for evals 1 and 4 because the Agent tool is not available inside eval executor subagents. This is an eval harness constraint, not a skill defect.",
     "Eval 2 is the primary discriminating eval (+0.40 delta): spec mode detection and structured reviewer delegation differentiate with_skill from without_skill.",
-    "Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint — Agent tool unavailable in eval executor context masks the subagent-spawning differentiator. This is not non-discriminating in the CLAUDE.md sense (not 100%/100%)."
+    "Eval 4 (diff mode) is the secondary discriminating eval (+0.20 delta): explicit diff mode declaration differentiates, subagent assertion fails in both due to harness constraint.",
+    "Eval 3 (argument-conflict-error) is non-discriminating: both configurations correctly detect the mutually exclusive target conflict and output the error without running a review.",
+    "Eval 1 is zero-delta (0.80/0.80) due to harness constraint masking the subagent-spawning differentiator."
   ],
   "runs": [
     {
@@ -26,19 +27,19 @@
         "passed": 4,
         "failed": 1,
         "total": 5,
-        "time_seconds": 57.7,
-        "tokens": 28902,
-        "tool_calls": 7,
+        "time_seconds": 75.2,
+        "tokens": 25681,
+        "tool_calls": 6,
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md", "passed": true, "evidence": "Fixture directory has SKILL.md and reference.md — no plan.md or tasks.md. Skill correctly selected consistency mode and used the consistency prompt template."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Agent tool not available in eval executor context — review performed inline. Known harness constraint, not a skill defect."},
-        {"text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)", "passed": true, "evidence": "Finding #1 (Major) explicitly states SKILL.md references 'Step 3 of reference.md' but reference.md has no Step 3 — field mapping is at Step 4."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings presented under '### Major' and '### Minor' headings."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Response ends with 'Apply all, select by number, or skip? [all/1,3,5/skip]' and stops generating."}
+        {"text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md", "passed": true, "evidence": "Agent parsed path target, confirmed no plan.md/tasks.md in fixture directory, explicitly set mode to consistency."},
+        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Sub-subagents unavailable in eval executor context — review performed inline as a fresh-context pass. Known harness constraint, not a skill defect."},
+        {"text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)", "passed": true, "evidence": "Finding #1 (Major): SKILL.md references 'Step 3 of reference.md' for field mapping table, but reference.md has no Step 3 — the field mapping is at Step 4."},
+        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings presented under Major and Minor headings."},
+        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Response ends with apply prompt and stops generating."}
       ],
-      "notes": ["Stale step reference correctly identified as Major severity."]
+      "notes": ["Zero-delta (harness constraint). In production, with_skill delegates to fresh subagent; without_skill reviews inline."]
     },
     {
       "eval_id": 1,
@@ -50,19 +51,19 @@
         "passed": 4,
         "failed": 1,
         "total": 5,
-        "time_seconds": 21.3,
-        "tokens": 19946,
-        "tool_calls": 2,
+        "time_seconds": 34.9,
+        "tokens": 20318,
+        "tool_calls": 4,
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md", "passed": true, "evidence": "Agent labeled output 'Mode: Consistency review' — correctly identified the review type without prompting."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Reviewed inline without spawning a separate subagent."},
-        {"text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)", "passed": true, "evidence": "Finding #1 (Major) correctly identifies the stale Step 3 reference."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings grouped under Critical, Major, Minor headings."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown with numbered options. Note: without_skill agent also answered the prompt inline, which is the behavior the skill's stop-generating instruction prevents."}
+        {"text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md", "passed": true, "evidence": "Agent labeled the review as a consistency review in the transcript header and performed consistency-style checks."},
+        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Reviewed inline — no subagent spawned."},
+        {"text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)", "passed": true, "evidence": "Finding #1 (Major): correctly identified stale step reference — SKILL.md cites Step 3 but field mapping is at Step 4."},
+        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings grouped under Major and Minor headings."},
+        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown at end of response."}
       ],
-      "notes": ["Non-discriminating on 4/5 assertions. Only discriminating assertion is subagent spawning, which fails in both configs due to eval harness constraint."]
+      "notes": ["Non-discriminating on 4/5 assertions. Only discriminating assertion (subagent spawning) fails in both configs due to harness constraint."]
     },
     {
       "eval_id": 2,
@@ -74,19 +75,19 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 53.4,
-        "tokens": 25281,
-        "tool_calls": 5,
+        "time_seconds": 65.7,
+        "tokens": 25817,
+        "tool_calls": 6,
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md", "passed": true, "evidence": "Step 2 resolved directory containing plan.md and tasks.md and explicitly set mode to spec per the skill rule."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": true, "evidence": "Step 4 explicitly invoked as a fresh-context reviewer pass, framed as a distinct entity with no prior session context."},
-        {"text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md", "passed": true, "evidence": "Finding #1 (Major): plan.md defines --verbose but tasks.md omits it entirely; argument parsing task lists only --target and --dry-run."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings presented under ### Major and ### Minor severity headings."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Output ends with 'Apply all, select by number, or skip? [all/1,3,5/skip]' and stops generating."}
+        {"text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md", "passed": true, "evidence": "Mode explicitly set to Spec after detecting plan.md + tasks.md in fixture directory."},
+        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": true, "evidence": "Step 4 executed as an explicit fresh-context reviewer pass, framed as a distinct entity with no prior session context."},
+        {"text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md", "passed": true, "evidence": "Major findings #1 and #2: --verbose missing from argument parsing task and has no implementation task anywhere in tasks.md."},
+        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings presented under Major and Minor headings."},
+        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown at end of response, generation stops."}
       ],
-      "notes": ["Additional finding: Report step omits 'Skipped M files' output line from plan.md output format — bonus catch beyond the planted issue."]
+      "notes": ["Primary discriminating eval (+0.40 delta). Spec mode detection and structured reviewer delegation are the key differentiators."]
     },
     {
       "eval_id": 2,
@@ -98,82 +99,128 @@
         "passed": 3,
         "failed": 2,
         "total": 5,
-        "time_seconds": 18.3,
-        "tokens": 19994,
-        "tool_calls": 3,
+        "time_seconds": 52.1,
+        "tokens": 20647,
+        "tool_calls": 4,
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md", "passed": false, "evidence": "No explicit acknowledgment of spec mode as a distinct workflow — agent reviewed the files without declaring a mode."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Review conducted inline in the same response."},
-        {"text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md", "passed": true, "evidence": "Correctly identified '--verbose option missing from tasks.md' as a finding."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings presented under a Minor heading (only minor severity used — no critical or major headings)."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Ends with 'Apply all, select by number, or skip?' — but --verbose finding was classified as Minor rather than Major."}
+        {"text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md", "passed": false, "evidence": "No explicit spec mode declaration — agent reviewed the files without identifying a distinct mode workflow."},
+        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Reviewed inline in the same response, no subagent spawned."},
+        {"text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md", "passed": true, "evidence": "Found --verbose missing from all tasks (classified as Critical C1 and C2)."},
+        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings grouped under Critical, Major, Minor headings."},
+        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown at end of response."}
       ],
-      "notes": ["Missing --verbose task classified as Minor by without_skill vs Major by with_skill. Spec mode not explicitly entered."]
+      "notes": ["Failing: spec mode not declared, review inline. without_skill classified --verbose as Critical vs Major by with_skill."]
     },
     {
       "eval_id": 3,
-      "eval_name": "staged-no-changes-exit",
+      "eval_name": "argument-conflict-error",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
         "pass_rate": 1.0,
-        "passed": 4,
+        "passed": 3,
         "failed": 0,
-        "total": 4,
-        "time_seconds": 21.6,
-        "tokens": 22298,
-        "tool_calls": 2,
+        "total": 3,
+        "time_seconds": 27.3,
+        "tokens": 22326,
+        "tool_calls": 3,
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent runs 'git diff --staged' (or equivalent) to check for staged changes", "passed": true, "evidence": "Step 2 of skill workflow specifies git diff --staged for staged target; command executed and returned empty output."},
-        {"text": "The agent warns the user that there are no staged changes rather than attempting a review on empty output", "passed": true, "evidence": "Skill Step 2 warning issued: 'No staged changes found. Stage files with git add first.'"},
-        {"text": "The agent exits early — no reviewer subagent is spawned and no findings are shown", "passed": true, "evidence": "Steps 3-5 never reached; skill exits immediately after the warning per Step 2 early-exit path."},
-        {"text": "The agent tells the user how to stage files (e.g. 'use git add') before retrying", "passed": true, "evidence": "Warning message includes 'Stage files with git add first.'"}
+        {"text": "The agent detects that both --staged and a file path target are provided simultaneously", "passed": true, "evidence": "Argument parsing at Step 1 identified --staged as staged target and remaining path token as path target — two targets detected."},
+        {"text": "The agent outputs an error indicating targets are mutually exclusive (e.g. 'specify one target at a time')", "passed": true, "evidence": "Output: 'Error: specify one target at a time — targets are mutually exclusive.'"},
+        {"text": "The agent exits without spawning a reviewer subagent or presenting findings", "passed": true, "evidence": "Skill exited at Step 1 — Steps 2-6 never reached."}
       ],
-      "notes": ["Non-discriminating eval — baseline handles this correctly without the skill."]
+      "notes": ["Non-discriminating (3/3 in both configs). Conflict detection is straightforward enough for a capable baseline to handle correctly."]
     },
     {
       "eval_id": 3,
-      "eval_name": "staged-no-changes-exit",
+      "eval_name": "argument-conflict-error",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
         "pass_rate": 1.0,
-        "passed": 4,
+        "passed": 3,
         "failed": 0,
-        "total": 4,
-        "time_seconds": 11.2,
-        "tokens": 18733,
-        "tool_calls": 1,
+        "total": 3,
+        "time_seconds": 42.8,
+        "tokens": 22390,
+        "tool_calls": 4,
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent runs 'git diff --staged' (or equivalent) to check for staged changes", "passed": true, "evidence": "Ran git diff --staged via Bash tool, received empty output."},
-        {"text": "The agent warns the user that there are no staged changes rather than attempting a review on empty output", "passed": true, "evidence": "Responded with 'there's nothing currently staged for review' and explained the empty output."},
-        {"text": "The agent exits early — no reviewer subagent is spawned and no findings are shown", "passed": true, "evidence": "No review performed, no subagents spawned, no findings shown."},
-        {"text": "The agent tells the user how to stage files (e.g. 'use git add') before retrying", "passed": true, "evidence": "Provided git add examples with explanations for each variant."}
+        {"text": "The agent detects that both --staged and a file path target are provided simultaneously", "passed": true, "evidence": "Agent identified two mutually exclusive target selectors: --staged and the file path skills/peer-review/SKILL.md."},
+        {"text": "The agent outputs an error indicating targets are mutually exclusive (e.g. 'specify one target at a time')", "passed": true, "evidence": "Output: 'specify one target at a time — targets are mutually exclusive.' with corrected alternatives."},
+        {"text": "The agent exits without spawning a reviewer subagent or presenting findings", "passed": true, "evidence": "Error output only — no review performed, no subagent spawned, no findings shown."}
       ],
-      "notes": ["Non-discriminating eval — baseline handles this correctly without the skill. Eval establishes baseline behavior only."]
+      "notes": ["Non-discriminating — capable baseline correctly handles conflict detection without skill guidance. Eval establishes baseline behavior only."]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "diff-mode-branch-review",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 105.5,
+        "tokens": 44948,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch", "passed": true, "evidence": "Agent explicitly set target type to branch and mode to Diff after parsing --branch flag."},
+        {"text": "The agent runs a git diff command to collect the branch diff against the default branch", "passed": true, "evidence": "Ran git diff main...specs/16-peer-review, producing ~93KB of diff across 13 files."},
+        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Sub-subagents unavailable in eval executor context — review performed inline as a fresh-context pass. Known harness constraint."},
+        {"text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs exactly NO FINDINGS", "passed": true, "evidence": "Findings presented under Major and Minor severity headings (5 findings total)."},
+        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown at end of response, generation stops."}
+      ],
+      "notes": ["Secondary discriminating eval (+0.20 delta). Diff mode declaration differentiates; subagent assertion fails in both due to harness constraint. Reviewer caught real findings including CI action version issues and potential stddev error in benchmark.json."]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "diff-mode-branch-review",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": 191.9,
+        "tokens": 59648,
+        "tool_calls": 45,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch", "passed": false, "evidence": "No explicit mode declaration — agent ran a git diff and reviewed it without identifying it as 'diff mode' distinct from other modes."},
+        {"text": "The agent runs a git diff command to collect the branch diff against the default branch", "passed": true, "evidence": "Ran git diff main...specs/16-peer-review --stat then full diff, detected default branch from repo."},
+        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Reviewed inline with 45 tool calls — no subagent spawned."},
+        {"text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs exactly NO FINDINGS", "passed": true, "evidence": "Findings presented under Critical (empty), Major, and Minor severity headings."},
+        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown as final line of response."}
+      ],
+      "notes": ["Failing: no mode declaration, review inline with 45 tool calls (3x the with_skill cost). without_skill spent 191.9s vs 105.5s for with_skill on this eval."]
     }
   ],
   "run_summary": {
     "with_skill": {
-      "pass_rate": {"mean": 0.93, "stddev": 0.12, "min": 0.80, "max": 1.00},
-      "time_seconds": {"mean": 44.2, "stddev": 19.7, "min": 21.6, "max": 57.7},
-      "tokens": {"mean": 25494, "stddev": 3307, "min": 22298, "max": 28902}
+      "pass_rate": {"mean": 0.90, "stddev": 0.10, "min": 0.80, "max": 1.00},
+      "time_seconds": {"mean": 68.4, "stddev": 27.9, "min": 27.3, "max": 105.5},
+      "tokens": {"mean": 29693, "stddev": 8918, "min": 22326, "max": 44948}
     },
     "without_skill": {
-      "pass_rate": {"mean": 0.80, "stddev": 0.20, "min": 0.60, "max": 1.00},
-      "time_seconds": {"mean": 16.9, "stddev": 5.2, "min": 11.2, "max": 21.3},
-      "tokens": {"mean": 19558, "stddev": 715, "min": 18733, "max": 19994}
+      "pass_rate": {"mean": 0.75, "stddev": 0.17, "min": 0.60, "max": 1.00},
+      "time_seconds": {"mean": 80.4, "stddev": 64.6, "min": 34.9, "max": 191.9},
+      "tokens": {"mean": 30751, "stddev": 16702, "min": 20318, "max": 59648}
     },
     "delta": {
-      "pass_rate": "+0.13",
-      "time_seconds": "+27.3",
-      "tokens": "+5936"
+      "pass_rate": "+0.15",
+      "time_seconds": "-12.0",
+      "tokens": "-1058"
     }
   }
 }

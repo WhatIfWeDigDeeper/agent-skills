@@ -113,6 +113,7 @@ missing tests, style violations, unintended behavioral changes.
 
 Return a structured list of findings grouped by severity (critical/major/minor).
 For each finding include:
+- Title: one-line summary of the issue
 - Severity: critical | major | minor
 - File: relative path (use "diff" if not file-specific)
 - Location: phrase anchor — quote a short phrase near the issue (do not use line numbers)
@@ -135,6 +136,7 @@ descriptions that contradict each other, and underspecified items.
 
 Return a structured list of findings grouped by severity (critical/major/minor).
 For each finding include:
+- Title: one-line summary of the issue
 - Severity: critical | major | minor
 - File: relative path of the file with the issue
 - Location: phrase anchor — quote a short phrase near the issue (do not use line numbers)
@@ -163,6 +165,7 @@ Check for:
 
 Return a structured list of findings grouped by severity (critical/major/minor).
 For each finding include:
+- Title: one-line summary of the issue
 - Severity: critical | major | minor
 - File: plan.md or tasks.md
 - Location: phrase anchor — quote a short phrase near the issue (do not use line numbers)
@@ -230,7 +233,7 @@ On user reply:
 
 When applying a finding, use the phrase anchor from the finding's Location field to locate the text in the file — do not use line numbers.
 
-After all edits are complete (or on `skip`), if the target was `--pr N`, output the PR URL as the final line so the user can quickly review the changes.
+After all edits are complete, output: "Applied N finding(s)." on its own line. If the target was `--pr N`, also output the PR URL as the final line. On `skip`, the summary line is already output — no PR URL needed.
 
 ## Notes
 

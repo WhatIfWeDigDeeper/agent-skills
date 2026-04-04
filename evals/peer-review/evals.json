@@ -63,27 +63,53 @@
     },
     {
       "id": 3,
-      "name": "staged-no-changes-exit",
-      "prompt": "/peer-review --staged",
-      "expected_output": "The skill runs git diff --staged, finds no staged changes, warns the user that there are no staged changes (and how to stage files), and exits without spawning a reviewer or showing findings.",
-      "context": "No files are staged in the working repo at eval time.",
+      "name": "argument-conflict-error",
+      "prompt": "/peer-review --staged skills/peer-review/SKILL.md",
+      "expected_output": "The skill detects that both --staged and a file path have been provided as targets. It outputs an error message indicating the targets are mutually exclusive ('specify one target at a time') and exits without spawning a reviewer or presenting findings.",
+      "context": "Both --staged and a file path (skills/peer-review/SKILL.md) are provided. These are mutually exclusive targets per the argument parsing rules.",
       "files": [],
       "assertions": [
         {
-          "id": "runs-git-diff-staged",
-          "text": "The agent runs 'git diff --staged' (or equivalent) to check for staged changes"
+          "id": "detects-conflict",
+          "text": "The agent detects that both --staged and a file path target are provided simultaneously"
         },
         {
-          "id": "warns-no-staged-changes",
-          "text": "The agent warns the user that there are no staged changes rather than attempting a review on empty output"
+          "id": "outputs-error-message",
+          "text": "The agent outputs an error indicating targets are mutually exclusive (e.g. 'specify one target at a time')"
         },
         {
-          "id": "exits-without-spawning-reviewer",
-          "text": "The agent exits early — no reviewer subagent is spawned and no findings are shown"
+          "id": "exits-without-reviewer",
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "diff-mode-branch-review",
+      "prompt": "/peer-review --branch specs/16-peer-review",
+      "expected_output": "The skill detects the --branch target, detects the default branch, collects the diff between specs/16-peer-review and the default branch via git diff, enters diff mode (not spec or consistency mode), spawns a fresh-context reviewer subagent, presents findings grouped by severity (or NO FINDINGS if none), and shows the apply prompt.",
+      "context": "Branch specs/16-peer-review exists and contains commits that differ from main. This is the implementation branch for the peer-review skill itself.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "enters-diff-mode",
+          "text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch"
         },
         {
-          "id": "provides-recovery-hint",
-          "text": "The agent tells the user how to stage files (e.g. 'use git add') before retrying"
+          "id": "collects-branch-diff",
+          "text": "The agent runs a git diff command to collect the branch diff against the default branch"
+        },
+        {
+          "id": "spawns-reviewer-subagent",
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response"
+        },
+        {
+          "id": "findings-grouped-by-severity",
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs exactly NO FINDINGS"
+        },
+        {
+          "id": "apply-prompt-shown",
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings"
         }
       ]
     }
