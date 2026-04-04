@@ -59,22 +59,22 @@ Do not add commentary before or after the JSON.
 
 Schema:
 {
-  \"summary\": \"string\",
-  \"overall_risk\": \"low|medium|high\",
-  \"findings\": [
+  "summary": "string",
+  "overall_risk": "low|medium|high",
+  "findings": [
     {
-      \"severity\": \"high|medium|low\",
-      \"file\": \"string\",
-      \"title\": \"string\",
-      \"details\": \"string\",
-      \"suggested_fix\": \"string\"
+      "severity": "high|medium|low",
+      "file": "string",
+      "title": "string",
+      "details": "string",
+      "suggested_fix": "string"
     }
   ]
 }
 
 Rules:
 - Report only concrete findings.
-- If there are no findings, return \"findings\": [].
+- If there are no findings, return "findings": [].
 - Keep file paths relative to the repo root.
 EOF
 )"
