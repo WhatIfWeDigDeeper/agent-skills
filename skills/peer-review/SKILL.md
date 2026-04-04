@@ -44,7 +44,7 @@ Options:
                     External CLIs: copilot[:submodel], codex[:submodel], gemini[:submodel]
                       copilot — npm install -g @github/copilot-cli (or VS Code extension)
                       codex   — npm install -g @openai/codex
-                      gemini  — npm install -g @google/gemini-cli (package name unverified — check official Google documentation)
+                      gemini  — npm install -g @google/gemini-cli
   --focus TOPIC     Narrow emphasis (e.g. security, consistency, evals)
                     Does NOT suppress critical findings outside the focus area
 ```
@@ -220,9 +220,9 @@ Determine the CLI binary and optional sub-model from the `--model` value. If `--
 
 | `--model` prefix | Binary | Sub-model flag |
 |-----------------|--------|---------------|
-| `copilot` | `copilot` | `-m SUBMODEL` |
+| `copilot` | `copilot` | `--model SUBMODEL` |
 | `codex` | `codex` | `--model SUBMODEL` |
-| `gemini` | `gemini` | `--model SUBMODEL` |
+| `gemini` | `gemini` | `-m SUBMODEL` |
 
 If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported external CLIs: copilot, codex, gemini. For Claude models, use a `claude-*` prefix (e.g. `--model claude-opus-4-6`)."
 
@@ -235,7 +235,7 @@ command -v <binary> >/dev/null 2>&1 || { echo "<binary> CLI not found. Install w
 Install hints:
 - `copilot`: `npm install -g @github/copilot-cli` or via the GitHub Copilot VS Code extension
 - `codex`: `npm install -g @openai/codex`
-- `gemini`: `npm install -g @google/gemini-cli` (package name unverified — check official Google documentation)
+- `gemini`: `npm install -g @google/gemini-cli`
 
 If the binary is not found, output the error message and stop. Do not proceed to Step 5.
 
@@ -254,9 +254,9 @@ Writing to a temp file preserves the exact multi-line prompt content and keeps p
 For copilot:
 ```bash
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")" -m "$SUBMODEL" 2>&1)
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool='write' -p "$(cat "$PROMPT_FILE")" --model "$SUBMODEL" 2>&1)
 else
-  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool=write -p "$(cat "$PROMPT_FILE")" 2>&1)
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool='write' -p "$(cat "$PROMPT_FILE")" 2>&1)
 fi
 ```
 
@@ -269,12 +269,12 @@ else
 fi
 ```
 
-For gemini (no confirmed read-only flag; pipe prompt via stdin):
+For gemini (`--approval-mode plan` enables read-only mode):
 ```bash
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini --model "$SUBMODEL" 2>&1)
+  REVIEW_OUTPUT=$(gemini --approval-mode plan -m "$SUBMODEL" -p "$(cat "$PROMPT_FILE")" 2>&1)
 else
-  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | gemini 2>&1)
+  REVIEW_OUTPUT=$(gemini --approval-mode plan -p "$(cat "$PROMPT_FILE")" 2>&1)
 fi
 ```
 
@@ -342,7 +342,7 @@ On user reply:
 
 When applying a finding, use the phrase anchor from the finding's Location field to locate the text in the file — do not use line numbers. If the phrase anchor cannot be found in the file, skip that finding and note it: "Skipped finding N — location anchor not found in [file]."
 
-**PR target**: applying findings edits local files only. Do not stage, commit, or push. After applying, the changes are uncommitted local edits the author can review before deciding to push.
+**PR target**: applying findings edits local files only. Do not stage, commit, or push. After applying, the changes are uncommitted local edits the author can review before deciding to push. Before applying, check that the current branch matches the PR's `headRefName` — if not, warn: "You are on branch X, not the PR branch Y — applying will edit files on X."
 
 **Diff mode**: after applying all findings, suggest running tests or linting if the changes touched code: "Consider running tests to verify the applied changes."
 
@@ -352,5 +352,4 @@ After all edits are complete, output: "Applied N finding(s)." on its own line. I
 
 - **Fresh-context guarantee**: the reviewer has no history from the current session. It sees only the content you pass it. This is the primary value of the skill — the reviewer cannot rationalize away issues the author has normalized.
 - **`--focus` does not suppress critical findings**: narrowing focus changes emphasis, not the severity threshold. A `critical` finding outside the focus topic will still be reported.
-- **vs `code-review`**: the built-in `code-review` skill spawns multiple subagents with distinct reviewer personas (security, correctness, style, etc.) — thorough but relatively expensive, best for full PR reviews before merge. `peer-review` uses a single reviewer and is optimized for lighter checks: mid-draft spec validation, quick consistency sweeps, and staged-change review before opening a PR.
-- **Multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` route the review prompt to the respective external CLI rather than spawning a Claude subagent. This allows getting a non-Claude perspective (e.g. `--model copilot:gpt-4o-mini`). The binary must be installed and on `PATH`; if absent the skill errors with an install hint. Each CLI's output is normalized to the same severity-grouped findings format before Step 5. The prototype at `specs/16-peer-review/copilot-staged-review.sh` is superseded by this implementation.
+- **Multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` route the review prompt to the respective external CLI rather than spawning a Claude subagent. This allows getting a non-Claude perspective (e.g. `--model copilot:gpt-4o-mini`). The binary must be installed and on `PATH`; if absent the skill errors with an install hint. Each CLI's output is normalized to the same severity-grouped findings format before Step 5.

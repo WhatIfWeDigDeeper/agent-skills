@@ -353,7 +353,7 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output states that the codex CLI was not found (error message about missing binary)", "passed": true, "evidence": "Step 4a: 'which codex' returns empty → skill outputs 'codex CLI not found. Install with: npm install -g @openai/codex'."},
+        {"text": "The output states that the codex CLI was not found (error message about missing binary)", "passed": true, "evidence": "Step 4a: 'command -v codex' returns empty → skill outputs 'codex CLI not found. Install with: npm install -g @openai/codex'."},
         {"text": "The error message includes the install hint 'npm install -g @openai/codex'", "passed": true, "evidence": "Install hint from SKILL.md Step 4a table included in error output."},
         {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "Step 4a: 'If the binary is not found, output the error message and stop.' Skill stopped after error."}
       ],
@@ -397,7 +397,7 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output states that the gemini CLI was not found (error message about missing binary)", "passed": true, "evidence": "Step 4a: 'which gemini' returns empty → skill outputs 'gemini CLI not found. Install with: npm install -g @google/gemini-cli'."},
+        {"text": "The output states that the gemini CLI was not found (error message about missing binary)", "passed": true, "evidence": "Step 4a: 'command -v gemini' returns empty → skill outputs 'gemini CLI not found. Install with: npm install -g @google/gemini-cli'."},
         {"text": "The error message includes the install hint 'npm install -g @google/gemini-cli'", "passed": true, "evidence": "Install hint from SKILL.md Step 4a table included in error output."},
         {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "Step 4a: 'If the binary is not found, output the error message and stop.' Skill stopped after error."}
       ],

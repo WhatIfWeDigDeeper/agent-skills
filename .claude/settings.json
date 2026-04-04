@@ -84,8 +84,14 @@
       "allowLocalBinding": true,
       "allowedHosts": [
         "api.github.com",
+        "api.githubcopilot.com",
+        "api.individual.githubcopilot.com",
+        "cloudcode-pa.googleapis.com",
+        "geminicli.com",
         "github.com",
-        "registry.npmjs.org"
+        "oauth2.googleapis.com",
+        "registry.npmjs.org",
+        "telemetry.individual.githubcopilot.com"
       ]
     },
     "excludedCommands": [

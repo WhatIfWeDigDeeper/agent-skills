@@ -30,8 +30,8 @@ Before writing any skill code, verify the actual invocation interface for each e
 ## Phase 2: copilot integration
 
 - [x] Update SKILL.md Step 4: add conditional branch — if `model` starts with `claude-` (including the default), use existing subagent logic; otherwise enter the external CLI path (4a–4e from plan.md)
-- [x] Implement 4a: check `which copilot`; if absent, error: "copilot CLI not found. Install with: `npm install -g @github/copilot-cli` or via the GitHub Copilot VS Code extension" and exit
-- [x] Implement 4b: write the prompt to a temp file (`PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")`) to avoid shell metacharacter injection from diff/commit content; build invocation — `copilot -p "$(cat "$PROMPT_FILE")" [--deny-tool='write'] [-m SUBMODEL]`; add `-m SUBMODEL` only when a sub-model was specified (e.g. `--model copilot:gpt-4o-mini`)
+- [x] Implement 4a: check `command -v copilot`; if absent, error: "copilot CLI not found. Install with: `npm install -g @github/copilot-cli` or via the GitHub Copilot VS Code extension" and exit
+- [x] Implement 4b: write the prompt to a temp file (`PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")`) to avoid shell metacharacter injection from diff/commit content; build invocation — `copilot --allow-all-tools -p "$(cat "$PROMPT_FILE")" [--deny-tool='write'] [-m SUBMODEL]`; add `-m SUBMODEL` only when a sub-model was specified (e.g. `--model copilot:gpt-4o-mini`)
 - [x] Implement 4c: execute and capture output into `REVIEW_OUTPUT`
 - [x] Implement 4d: parse copilot JSON — extract `findings[]`; map `details` → problem, `suggested_fix` → fix; apply severity normalization table from plan.md; if `findings` is empty treat as `NO FINDINGS`; if JSON is malformed fall through to raw-output fallback (show raw output with "Could not parse structured findings; showing raw output.")
 - [x] Implement 4e: feed normalized findings into Step 5 (present findings) — no Step 5 changes required
@@ -42,7 +42,7 @@ Before writing any skill code, verify the actual invocation interface for each e
 
 **Documented but not environment-verified** — codex was not available in this environment for end-to-end execution, but `skills/peer-review/SKILL.md` now documents the full 4a–4d codex path based on `research-codex.md`.
 
-- [x] Implement 4a for codex: check `which codex`; if absent, error with install hint from research
+- [x] Implement 4a for codex: check `command -v codex`; if absent, error with install hint from research
 - [x] Implement 4b: write prompt to temp file (`mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX"`); build invocation using flags confirmed in research; pass prompt via file or stdin (not direct argument interpolation); add read-only flag; add sub-model flag if provided — documented in SKILL.md, not environment-verified here
 - [x] Implement 4c–4d: execute, capture, parse output using the format confirmed in research; apply severity normalization; handle empty/malformed output — documented in SKILL.md, not environment-verified here
 - [x] If codex output is not JSON (plain text / markdown): parse severity from lines matching patterns like `[HIGH]`, `**Critical**`, `severity: high`, etc.; fall back to presenting the full output as a single `major` finding if no structured severity is found — documented in SKILL.md, not environment-verified here
@@ -53,7 +53,7 @@ Before writing any skill code, verify the actual invocation interface for each e
 
 **Documented but not environment-verified** — gemini was not available in this environment for end-to-end execution, but `skills/peer-review/SKILL.md` now documents the full 4a–4d gemini path based on `research-gemini.md`.
 
-- [x] Implement 4a for gemini: check `which gemini`; if absent, error with install hint from research
+- [x] Implement 4a for gemini: check `command -v gemini`; if absent, error with install hint from research
 - [x] Implement 4b: write prompt to temp file (`mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX"`); build invocation using flags confirmed in research; pass prompt via file or stdin; add read-only flag; add sub-model flag if provided — documented in SKILL.md, not environment-verified here
 - [x] Implement 4c–4d: execute, capture, parse output; apply severity normalization; handle empty/malformed output — documented in SKILL.md, not environment-verified here
 - [x] If gemini output is not JSON: parse severity using the same heuristic as codex (patterns like `[HIGH]`, `**Critical**`, `severity: high`) — documented in SKILL.md, not environment-verified here

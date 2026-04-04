@@ -174,7 +174,7 @@
     {
       "id": 8,
       "name": "codex-not-found",
-      "prompt": "/peer-review --staged --model codex. The codex binary is not installed on this system \u2014 running 'which codex' returns empty. Do not attempt to install it; just handle the missing binary case per the skill.",
+      "prompt": "/peer-review --staged --model codex. The codex binary is not installed on this system \u2014 running 'command -v codex' returns empty. Do not attempt to install it; just handle the missing binary case per the skill.",
       "expected_output": "The skill checks for the codex binary, finds it absent, and outputs an error message stating codex is not found along with the install hint 'npm install -g @openai/codex'. The skill exits without attempting a review or showing findings.",
       "context": "codex is not installed. The skill must check binary availability (Step 4a), detect the absence, and output a helpful error with the correct install hint \u2014 then stop. It must not attempt to run a review.",
       "files": [],
@@ -196,7 +196,7 @@
     {
       "id": 9,
       "name": "gemini-not-found",
-      "prompt": "/peer-review --staged --model gemini. The gemini binary is not installed on this system \u2014 running 'which gemini' returns empty. Do not attempt to install it; just handle the missing binary case per the skill.",
+      "prompt": "/peer-review --staged --model gemini. The gemini binary is not installed on this system \u2014 running 'command -v gemini' returns empty. Do not attempt to install it; just handle the missing binary case per the skill.",
       "expected_output": "The skill checks for the gemini binary, finds it absent, and outputs an error message stating gemini is not found along with the install hint 'npm install -g @google/gemini-cli'. The skill exits without attempting a review or showing findings.",
       "context": "gemini is not installed. The skill must check binary availability (Step 4a), detect the absence, and output a helpful error with the correct install hint \u2014 then stop. It must not attempt to run a review.",
       "files": [],

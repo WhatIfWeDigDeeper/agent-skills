@@ -30,7 +30,7 @@ When `--model` is `copilot[:<submodel>]`, `codex`, or `gemini[:<submodel>]`, Ste
 
 ```
 4a. Check binary availability
-    which <binary> || error "MODEL CLI not found. Install with: <install hint>"
+    command -v <binary> >/dev/null 2>&1 || error "MODEL CLI not found. Install with: <install hint>"
 
 4b. Build the shell invocation
     - Write the review prompt (template from Step 3 + collected content) to a temp file:
@@ -38,6 +38,9 @@ When `--model` is `copilot[:<submodel>]`, `codex`, or `gemini[:<submodel>]`, Ste
         printf '%s' "$PROMPT" > "$PROMPT_FILE"
       This avoids shell metacharacter injection from diff/PR/commit content passed as a CLI argument.
       Use $TMPDIR or ${TMPDIR:-/private/tmp} (not /tmp directly) per sandbox rules.
+      Note: passing `"$(cat "$PROMPT_FILE")"` as a CLI argument may fail with "Argument list too long" on
+      large diffs (system ARG_MAX limits). If a CLI supports a native --prompt-file flag or stdin, prefer
+      that for large inputs.
     - Add sub-model flag if provided
     - For copilot: pass prompt via -p "$(cat $PROMPT_FILE)" or --prompt-file if supported; non-interactive -p mode requires --allow-all-tools, then restrict tool access (--deny-tool='write')
     - For codex: pass --no-auto-edit or equivalent read-only flag (TBD from research); pass prompt via stdin or file
@@ -52,6 +55,8 @@ When `--model` is `copilot[:<submodel>]`, `codex`, or `gemini[:<submodel>]`, Ste
     - Each CLI emits different formats (see per-CLI sections below)
     - Normalize to the standard findings structure (critical/major/minor + title/file/location/problem/fix)
     - If parsing fails: show raw output + "Could not parse structured findings; showing raw output."
+    - For the raw-output fallback, use these defaults for mandatory fields: title: "Review output",
+      file: "output", location: "(raw output)", severity: major
 
 4e. Continue to Step 5 (present findings) with normalized findings
 ```
@@ -135,10 +140,13 @@ The output of both paths feeds into Step 5 unchanged.
 
 External CLIs may not be installed in eval environments. Use **fixture-based evals**: the eval prompt tells the agent to simulate CLI output using a pre-defined fixture response (embedded in the eval's `prompt` field), then verify the skill correctly parses and presents it.
 
-Three new evals:
+Six new evals:
 
 - `copilot-json-parse`: agent receives a fixture copilot JSON response (embedded in the eval prompt) and must parse it into the standard findings format with correct severity normalization (`high` → `critical`, `medium` → `major`, `low` → `minor`)
+- `copilot-empty-findings`: agent receives a fixture copilot JSON response with `"findings": []`; assertion: output is "No issues found." and no apply prompt is shown
+- `copilot-malformed-json`: agent receives a fixture copilot response that is not valid JSON; assertion: raw-output fallback message "Could not parse structured findings; showing raw output." is shown
 - `codex-not-found`: agent runs `--model codex` when `codex` binary is absent; must error with install hint, not crash
+- `gemini-not-found`: agent runs `--model gemini` when `gemini` binary is absent; must error with install hint, not crash
 - `gemini-no-findings`: agent receives a fixture gemini response indicating no findings; assertions: (1) the `## Peer Review —` header line is present; (2) "No issues found." follows on the next line; (3) no apply prompt is shown
 
 Existing evals 1–3 remain unchanged (they use the default Claude path).

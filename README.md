@@ -66,7 +66,7 @@ cp -r skills/* ~/.claude/skills/
 - Use `--focus TOPIC` to emphasize a specific area (e.g. `--focus security`, `--focus consistency`) — critical findings outside the focus are still reported.
 - **vs `code-review`**: `code-review` spawns multiple reviewer personas and is best for thorough pre-merge PR reviews. `peer-review` is a single fresh-context reviewer optimized for lighter checks: mid-draft spec validation, quick consistency sweeps, and staged-change review.
 - **Multi-LLM routing**: pass `--model copilot[:submodel]`, `--model codex`, or `--model gemini` to route the review to an external CLI instead of the default Claude reviewer. The binary must be installed (`npm install -g @github/copilot-cli` / `@openai/codex` / `@google/gemini-cli`). Each CLI's output is normalized to the same severity-grouped findings format.
-- **Eval cost**: with-skill runs ~2.6 seconds faster and ~1,248 tokens heavier than baseline on average; time/token stats are from 8 measured evals (1–4 and 11–14) — 6 evals use simulated transcripts and have no time/token measurements ([details](evals/peer-review/benchmark.md))
+- **Eval cost**: with-skill runs ~2.7 seconds faster and ~1,249 tokens heavier than baseline on average; time/token stats are from 8 measured evals (1–4 and 11–14) — 6 evals use simulated transcripts and have no time/token measurements ([details](evals/peer-review/benchmark.md))
 
 ### `learn`
 
