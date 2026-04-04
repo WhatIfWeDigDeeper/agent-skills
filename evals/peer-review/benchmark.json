@@ -2,7 +2,7 @@
   "metadata": {
     "skill_name": "peer-review",
     "skill_path": "skills/peer-review",
-    "skill_version": "1.2",
+    "skill_version": "1.1",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
     "timestamp": "2026-04-04T10:30:00Z",
@@ -15,9 +15,9 @@
     "Eval 4 (diff mode) is the secondary discriminating eval (+0.20 delta): explicit diff mode declaration differentiates, subagent assertion fails in both due to harness constraint.",
     "Eval 3 (argument-conflict-error) is non-discriminating: both configurations correctly detect the mutually exclusive target conflict and output the error without running a review.",
     "Eval 1 is zero-delta (0.80/0.80) due to harness constraint masking the subagent-spawning differentiator.",
-    "Evals 5-10 test Phase II multi-LLM routing (v1.1). Eval 6 (copilot-empty-findings) is non-discriminating: empty findings → 'No issues found.' is natural default behavior. Evals 5, 7, 8, 9, 10 all discriminate.",
+    "Evals 5-10 test Phase II multi-LLM routing. Eval 6 (copilot-empty-findings) is non-discriminating: empty findings → 'No issues found.' is natural default behavior. Evals 5, 7, 8, 9, 10 all discriminate.",
     "Evals 5-10 use simulated transcripts (fixture responses embedded in prompts); time_seconds and tokens are null for these runs.",
-    "Evals 11-14 added in v1.2 review pass. Eval 13 (focus-option) discriminates (+0.67 delta): the skill-defined focus line format and apply prompt both fail without_skill. Evals 11, 12, 14 are non-discriminating: empty-staged warning, PR metadata inclusion (when fixture data is explicit in the prompt), and skip handling are natural baseline behaviors.",
+    "Evals 11-14 added in v1.1 review pass. Eval 13 (focus-option) discriminates (+0.67 delta): the skill-defined focus line format and apply prompt both fail without_skill. Evals 11, 12, 14 are non-discriminating: empty-staged warning, PR metadata inclusion (when fixture data is explicit in the prompt), and skip handling are natural baseline behaviors.",
     "Evals 11-14 have real time and token measurements (subagent executor ran the full workflow, not pure transcript simulation)."
   ],
   "runs": [

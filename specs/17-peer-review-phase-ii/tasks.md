@@ -63,7 +63,7 @@ Before writing any skill code, verify the actual invocation interface for each e
 - [x] Verify the Step 4 branch structure reads cleanly — the Claude path and external CLI path should be clearly delineated; the reader should not need to scroll back and forth
 - [x] Update the `--model` description in the Arguments section: remove "Phase II:" qualifier and document the external CLIs as a supported feature with their install requirements
 - [x] Update the Notes section: replace the "Phase II — multi-LLM routing" note with a description of the implemented capability; mention `specs/16-peer-review/copilot-staged-review.sh` is superseded
-- [x] Bump `metadata.version` from `"1.0"` to `"1.2"` — do this once, in the first commit that modifies SKILL.md; do not bump again for follow-up commits on the same PR
+- [x] Bump `metadata.version` from `"1.0"` to `"1.1"` — do this once, in the first commit that modifies SKILL.md; do not bump again for follow-up commits on the same PR
 - [x] Run `npx cspell skills/peer-review/SKILL.md`; add any new unknown words to `cspell.config.yaml`
 
 ## Phase 6: Evals

@@ -1,4 +1,4 @@
-# Spec 17: peer-review — Phase II Multi-LLM routing (v1.0 → v1.2)
+# Spec 17: peer-review — Phase II Multi-LLM routing (v1.0 → v1.1)
 
 ## Problem
 

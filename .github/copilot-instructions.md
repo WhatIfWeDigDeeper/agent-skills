@@ -70,7 +70,7 @@ uv run --with pytest pytest tests/
 
 ## Command And Tooling Gotchas
 
-- Do not hardcode `/tmp/`; use `mktemp`, `$TMPDIR`, or `${TMPDIR:-/private/tmp}`.
+- Do not hardcode `/tmp/`; use `mktemp`, `$TMPDIR`, or `${TMPDIR:-/private/tmp}`. `${TMPDIR:-/tmp}` is also a violation — the fallback must be `/private/tmp`, not `/tmp`.
 - If `git commit` fails because of GPG/keyring access, use `--no-gpg-sign` only as a fallback after the failure.
 - In sandboxed environments, HTTPS `git push` may hang on credentials. A working pattern is:
 

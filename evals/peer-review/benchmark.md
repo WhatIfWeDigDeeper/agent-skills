@@ -15,7 +15,7 @@
 
 14 evals × 2 configurations = 28 runs. Token statistics are computed over 8 of 14 primary (run_number=1) runs per configuration (16 of 28 total) — evals 5–10 use simulated transcripts and have no recorded time or token measurements; evals 1–4 and 11–14 have real measurements.
 
-**Discriminating evals**: Evals 2, 4, 5, 7, 8, 9, 10, 13 discriminate. Eval 2 is the primary discriminating eval (+0.40 delta). Eval 5 (copilot severity normalization) has the highest delta (+1.0). Eval 13 (focus-option, v1.2) discriminates at +0.67. Evals 3, 6, 11, 12, 14 are non-discriminating: baseline handles conflict detection, no-findings output, empty-staged warning, PR metadata inclusion (with fixture), and skip handling correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
+**Discriminating evals**: Evals 2, 4, 5, 7, 8, 9, 10, 13 discriminate. Eval 2 is the primary discriminating eval (+0.40 delta). Eval 5 (copilot severity normalization) has the highest delta (+1.0). Eval 13 (focus-option) discriminates at +0.67. Evals 3, 6, 11, 12, 14 are non-discriminating: baseline handles conflict detection, no-findings output, empty-staged warning, PR metadata inclusion (with fixture), and skip handling correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
 
 ## Eval Results
 
@@ -190,4 +190,4 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 - **Evals 11–14 have real measurements**: executor subagents ran the full skill workflow; time and token data recorded.
 - **Eval 6 non-discriminating**: both configurations naturally output "No issues found." for an empty findings array. This establishes baseline behavior for the empty-findings case.
 - **Eval 3 redesign note**: Previously tested "no staged changes → warn and exit" (non-discriminating). Redesigned to test argument conflict (`--staged` + path → error). Also non-discriminating — conflict detection is simple enough that a capable baseline handles it correctly.
-- **Delta change from v1.1 to v1.2**: adding 4 mostly non-discriminating evals (11, 12, 14) plus one discriminating eval (13) reduces the headline delta from +31% to +27%. The absolute discrimination is unchanged — eval 13 adds a new +0.67 discriminating signal; the denominator grew by 4.
+- **Delta from adding evals 11–14**: adding 4 mostly non-discriminating evals (11, 12, 14) plus one discriminating eval (13) reduces the headline delta from +31% to +27%. The absolute discrimination is unchanged — eval 13 adds a new +0.67 discriminating signal; the denominator grew by 4.

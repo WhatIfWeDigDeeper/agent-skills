@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Keep `.github/copilot-instructions.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `.github/copilot-instructions.md`. The two files serve different assistants (Claude Code vs. Copilot) but should encode the same project conventions.
+
 ## Project Overview
 
 This is a collection of reusable skill definitions for Claude Code and other coding assistants. Skills are automated workflows defined in SKILL.md files that agents can invoke to perform specific tasks.
@@ -83,7 +85,7 @@ When substantially modifying an existing skill, also update its entry in `README
 
 - **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` **only as a fallback after a signing failure** — do not use it preemptively. `dangerouslyDisableSandbox: true` (for keyring/network access) and GPG signing are separate concerns; disabling the sandbox does not guarantee GPG will succeed.
 - **Heredocs**: `$(cat <<'EOF'...)` may fail with "can't create temp file". Use multiple `-m` flags for commit messages or write content to a temp file first — use `mktemp` (which respects `$TMPDIR`) or a path under `${TMPDIR:-/private/tmp}` rather than a hardcoded, user-specific directory. **Unquoted heredoc quoting**: in `<<EOF` (unquoted delimiter), `\"` is a literal backslash-quote — the receiver sees `\"`, not `"`. If you need a double quote in the heredoc body, write plain `"` directly, or use `<<'EOF'` to suppress all shell processing.
-- **Do not hardcode `/tmp/`** — it is not writable in sandbox mode. Always use `mktemp`, `$TMPDIR`, or a generic `/private/tmp` path (not a user-specific subdirectory) when creating temp files in any shell command.
+- **Do not hardcode `/tmp/`** — it is not writable in sandbox mode. Always use `mktemp`, `$TMPDIR`, or a generic `/private/tmp` path (not a user-specific subdirectory) when creating temp files in any shell command. `${TMPDIR:-/tmp}` is also a violation — the fallback in `${TMPDIR:-VALUE}` must be `/private/tmp`, not `/tmp`.
 - **HTTPS `git push` credential hang**: In sandbox mode, `git push` over HTTPS may hang indefinitely waiting for keychain access. Workaround: `TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=https://github.com/" push`
 - **Worktree directory outlives git registration**: `git worktree remove` unregisters the worktree but does not delete the directory. Run `rm -rf .claude/worktrees/<id>` manually afterward.
 - **`git checkout` runs in the bash tool's cwd**: when the shell context is inside a worktree, `git checkout` affects that worktree — not the main repo. Use `git -C /path/to/main/repo checkout <branch>` when switching branches in the main repo from a worktree shell context.

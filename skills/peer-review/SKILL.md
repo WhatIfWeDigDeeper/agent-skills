@@ -15,7 +15,7 @@ compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.2"
+  version: "1.1"
 ---
 
 # Peer Review
