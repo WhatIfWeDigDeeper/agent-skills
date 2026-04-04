@@ -246,7 +246,7 @@ PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 ```
 
-Writing to a temp file avoids shell metacharacter injection from diff/PR content passed as a direct CLI argument.
+Writing to a temp file preserves the exact multi-line prompt content and keeps prompt construction separate from the CLI invocation. In the commands below, correct quoting of `"$(cat "$PROMPT_FILE")"` is what prevents shell metacharacters in diff/PR content from being interpreted by the shell.
 
 **4c. Execute and capture output:**
 
