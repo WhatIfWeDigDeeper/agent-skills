@@ -64,7 +64,7 @@ without-skill classified the missing --verbose task as Critical; with-skill corr
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
-| with-skill    | 0.80      | 4/5    | 0      |
+| with-skill    | 0.80      | 4/5    | 1      |
 | without-skill | 0.60      | 3/5    | 2      |
 
 **Discriminating** (+0.20 delta). Failing assertions for without-skill:

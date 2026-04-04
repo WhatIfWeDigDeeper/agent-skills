@@ -208,14 +208,14 @@
   ],
   "run_summary": {
     "with_skill": {
-      "pass_rate": {"mean": 0.90, "stddev": 0.10, "min": 0.80, "max": 1.00},
-      "time_seconds": {"mean": 68.4, "stddev": 27.9, "min": 27.3, "max": 105.5},
-      "tokens": {"mean": 29693, "stddev": 8918, "min": 22326, "max": 44948}
+      "pass_rate": {"mean": 0.90, "stddev": 0.12, "min": 0.80, "max": 1.00},
+      "time_seconds": {"mean": 68.4, "stddev": 32.24, "min": 27.3, "max": 105.5},
+      "tokens": {"mean": 29693, "stddev": 10297, "min": 22326, "max": 44948}
     },
     "without_skill": {
-      "pass_rate": {"mean": 0.75, "stddev": 0.17, "min": 0.60, "max": 1.00},
-      "time_seconds": {"mean": 80.4, "stddev": 64.6, "min": 34.9, "max": 191.9},
-      "tokens": {"mean": 30751, "stddev": 16702, "min": 20318, "max": 59648}
+      "pass_rate": {"mean": 0.75, "stddev": 0.19, "min": 0.60, "max": 1.00},
+      "time_seconds": {"mean": 80.4, "stddev": 74.65, "min": 34.9, "max": 191.9},
+      "tokens": {"mean": 30751, "stddev": 19286, "min": 20318, "max": 59648}
     },
     "delta": {
       "pass_rate": "+0.15",
