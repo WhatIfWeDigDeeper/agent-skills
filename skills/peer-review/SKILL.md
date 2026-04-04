@@ -224,6 +224,8 @@ On user reply:
 
 When applying a finding, use the phrase anchor from the finding's Location field to locate the text in the file — do not use line numbers.
 
+After all edits are complete (or on `skip`), if the target was `--pr N`, output the PR URL as the final line so the user can quickly review the changes.
+
 ## Notes
 
 - **Fresh-context guarantee**: the reviewer has no history from the current session. It sees only the content you pass it. This is the primary value of the skill — the reviewer cannot rationalize away issues the author has normalized.
