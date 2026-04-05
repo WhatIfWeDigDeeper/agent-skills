@@ -411,7 +411,7 @@ Re-scan modified files for new issues? [y/n]
 
 Output this as your **final message and stop generating**. Do not supply an answer, do not assume a default, do not continue to the next step. Resume only after the user replies.
 
-On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode), and spawn a fresh Claude subagent (always Claude regardless of the original `--model`). Feed findings into Step 5. If no new issues are found, output "No new issues found in re-scan." and stop. **Do not offer another re-scan** — after applying during a re-scan cycle, output "Applied N finding(s)." and stop. If the target was `--pr N`, output the PR URL as the final line in all cases (after re-scan completes, after "No new issues found", or after "Applied N finding(s)" in a re-scan cycle).
+On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode), and spawn a fresh Claude subagent (always Claude regardless of the original `--model`). Feed findings into Step 5 using the Claude path (no triage section, standard apply prompt `[all/1,3,5/skip]`). If no new issues are found, output "No new issues found in re-scan." and stop. **Do not offer another re-scan** — after applying during a re-scan cycle, output "Applied N finding(s)." and stop. If the target was `--pr N`, output the PR URL as the final line in all cases (after re-scan completes, after "No new issues found", or after "Applied N finding(s)" in a re-scan cycle).
 
 On `n`: if the target was `--pr N`, output the PR URL as the final line. Then stop.
 

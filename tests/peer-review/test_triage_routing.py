@@ -177,7 +177,7 @@ class TestRescanOfferConditions:
             return False
         if is_rescan_cycle:
             return False
-        return files_modified >= 1
+        return files_modified >= 1  # also covers the case where apply ran but no file was actually modified
 
     def test_rescan_offered_after_apply_with_modifications(self):
         assert self.should_offer_rescan(files_modified=1, user_replied_skip=False, is_rescan_cycle=False) is True
@@ -188,6 +188,10 @@ class TestRescanOfferConditions:
     def test_rescan_not_offered_after_skip(self):
         assert self.should_offer_rescan(files_modified=0, user_replied_skip=True, is_rescan_cycle=False) is False
 
+    def test_rescan_not_offered_after_skip_even_with_modifications(self):
+        # user_replied_skip=True is the deciding factor, not files_modified=0
+        assert self.should_offer_rescan(files_modified=3, user_replied_skip=True, is_rescan_cycle=False) is False
+
     def test_rescan_not_offered_when_no_files_modified(self):
         assert self.should_offer_rescan(files_modified=0, user_replied_skip=False, is_rescan_cycle=False) is False
 
@@ -196,7 +200,9 @@ class TestRescanOfferConditions:
 
 
 class TestSPrefixSelection:
-    """S-prefix numbers refer to skipped findings; plain numbers refer to recommended."""
+    """S-prefix numbers are 1-indexed ordinal positions into the skipped list (S1 = first skipped
+    finding in display order, not finding number 1); plain numbers are 1-indexed ordinal positions
+    into the recommended list."""
 
     def resolve_selection(self, user_reply: str, recommended_ordered: list[int], skipped_ordered: list[int]) -> dict:
         """Map a user reply string to which findings to apply.
