@@ -328,7 +328,7 @@ FINDING N: skip — [one-line reason]
 [COLLECTED CONTENT — file contents for spec/consistency mode, diff text for diff mode]
 ```
 
-Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed (missing `FINDING N:` lines, wrong format, or empty response), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.
+Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed or is otherwise invalid (including missing `FINDING N:` lines, wrong format, empty response, duplicate `FINDING N:` lines, conflicting `recommend` and `skip` decisions for the same `N`, IDs outside the valid `1..N` finding range, or any other violation of the "exactly one line per finding" rule), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.
 
 **4f.** Continue to Step 5 with the classified findings (`recommended` and `skipped` buckets). When coming from the Claude path (Step 4 first branch), there is no triage — pass all findings directly to Step 5 as `recommended`.
 
@@ -390,7 +390,7 @@ Output this as your **final message and stop generating**. Do not supply an answ
 On user reply:
 
 - `all` — apply every **recommended** finding by editing the files directly (in Claude Code: use the `Edit` tool); report each change as you make it. On the Claude path (no triage), `all` applies every finding.
-- `1,3,5` (comma-separated numbers) — apply only the listed findings. Numbers refer to recommended findings; `S`-prefixed numbers (e.g. `S1`, `S2`) refer to skipped findings by their triage order. Both can be mixed (e.g. `1,S1`).
+- `1,3,5` (comma-separated numbers) — apply only the listed findings. Numbers refer to the sequential display positions of recommended findings as numbered in Step 5 (not original finding IDs — when triage skips some findings, the remaining recommended findings are renumbered `1, 2, 3...`); `S`-prefixed numbers (e.g. `S1`, `S2`) refer to skipped findings by their triage order. Both can be mixed (e.g. `1,S1`).
 - `skip` — output "Skipped N findings. No changes made." and stop. No re-scan is offered.
 
 When applying a finding, use the phrase anchor from the finding's Location field to locate the text in the file — do not use line numbers. If the phrase anchor cannot be found in the file, skip that finding and note it: "Skipped finding N — location anchor not found in [file]."
@@ -399,22 +399,23 @@ When applying a finding, use the phrase anchor from the finding's Location field
 
 **Diff mode**: after applying all findings, suggest running tests or linting if the changes touched code: "Consider running tests to verify the applied changes."
 
-After all edits are complete, output: "Applied N finding(s)." on its own line. If the target was `--pr N`, also output the PR URL immediately after. When no re-scan offer follows, the PR URL is the final line.
+After all edits are complete, output: "Applied N finding(s)." on its own line.
 
 **Post-apply re-scan** (offered only when at least one file was actually modified, and only once — not during a re-scan cycle):
 
 ```
 Applied N finding(s).
-https://github.com/owner/repo/pull/N  ← only when --pr N was the target
 
 Re-scan modified files for new issues? [y/n]
 ```
 
-Output this as your **final message and stop generating**. Resume only after the user replies.
+Output this as your **final message and stop generating**. Do not supply an answer, do not assume a default, do not continue to the next step. Resume only after the user replies.
 
-On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode), and spawn a fresh Claude subagent (always Claude regardless of the original `--model`). Feed findings into Step 5. If no new issues are found, output "No new issues found in re-scan." and stop. **Do not offer another re-scan** — after applying during a re-scan cycle, output "Applied N finding(s)." and stop.
+On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode), and spawn a fresh Claude subagent (always Claude regardless of the original `--model`). Feed findings into Step 5. If no new issues are found, output "No new issues found in re-scan." and stop. **Do not offer another re-scan** — after applying during a re-scan cycle, output "Applied N finding(s)." and stop. If the target was `--pr N`, output the PR URL as the final line in all cases (after re-scan completes, after "No new issues found", or after "Applied N finding(s)" in a re-scan cycle).
 
-On `n`: stop.
+On `n`: if the target was `--pr N`, output the PR URL as the final line. Then stop.
+
+If no re-scan is offered (no files were modified, or this is a re-scan cycle), output the PR URL as the final line when the target was `--pr N`.
 
 ## Notes
 
