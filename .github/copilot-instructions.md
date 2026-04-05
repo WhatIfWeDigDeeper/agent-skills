@@ -89,6 +89,8 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - `rg` alternation uses bare `|`, not `\|`.
 - In an unquoted heredoc (`<<EOF`), `\"` is a literal backslash-quote — the receiver sees `\"`, not `"`. If you need a double quote in the heredoc body, write plain `"` directly, or use `<<'EOF'` to suppress shell processing.
 - GitHub review thread `isOutdated` means the diff location moved, not that the concern is resolved.
+- **`replace_all` removing trailing text can merge the next line**: when the removed substring is the last non-whitespace content on a line, the Edit tool may collapse the following line onto the same line. Verify surrounding context after any `replace_all` that targets text at the end of a line.
+- **External CLI tools (gemini, copilot) need sandbox lifted for network calls**: `gemini` requires `dangerouslyDisableSandbox: true` to make API calls. `copilot` produces output in sandbox but logs EPERM errors for session-state files — use `dangerouslyDisableSandbox: true` for clean runs with both.
 
 ## Skill Design Guidance
 
