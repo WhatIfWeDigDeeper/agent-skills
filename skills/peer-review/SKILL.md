@@ -15,7 +15,7 @@ compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Peer Review
@@ -296,11 +296,45 @@ If parsing fails for any CLI: output raw text with the prefix "Could not parse s
 | `medium` / `warning` / `major` | `major` |
 | `low` / `info` / `note` / `minor` | `minor` |
 
-**4e.** Continue to Step 5 with the normalized findings.
+**4e. Triage findings (external CLI path only):**
+
+Spawn a fresh Claude subagent (with `mode: "auto"` in Claude Code) with the following triage prompt:
+
+```
+You are reviewing a list of findings produced by an external code reviewer.
+Your job is to classify each finding as recommend or skip.
+
+Review mode: [spec / consistency / diff]
+Content type: [file contents / diff text]
+
+Recommend a finding if:
+- The issue is real and not already addressed in the reviewed content
+- The finding adds information the author doesn't already have
+- The fix is actionable
+
+Skip a finding if:
+- The issue is already documented or handled in the reviewed content
+- The finding contradicts verified facts in the content
+- The finding is speculative or opinion without clear evidence
+- The fix is already present
+
+For each finding, output exactly one line:
+FINDING N: recommend
+or
+FINDING N: skip — [one-line reason]
+
+[NORMALIZED FINDINGS — title, severity, file, location, problem, fix for each]
+
+[COLLECTED CONTENT — file contents for spec/consistency mode, diff text for diff mode]
+```
+
+Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed (missing `FINDING N:` lines, wrong format, or empty response), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.
+
+**4f.** Continue to Step 5 with the classified findings (`recommended` and `skipped` buckets). When coming from the Claude path (Step 4 first branch), there is no triage — pass all findings directly to Step 5 as `recommended`.
 
 ### 5. Present Findings
 
-If the reviewer returns `NO FINDINGS`, output:
+If there are no findings (reviewer returned `NO FINDINGS` on the Claude path, or the external CLI returned nothing before triage), output:
 
 ```
 ## Peer Review — [target] ([model])
@@ -310,7 +344,20 @@ No issues found.
 
 Then stop. Do not show an apply prompt.
 
-Otherwise, parse the findings into severity buckets and display:
+**External CLI path only — if triage skipped all findings**, output:
+
+```
+## Peer Review — [target] ([model])
+
+No issues recommended.
+
+Triage filtered all [N] findings:
+- [title] — [reason]
+```
+
+Then stop. Do not show an apply prompt.
+
+**Otherwise**, display the recommended findings numbered sequentially (`1, 2, 3...`) grouped by severity. If there are triage-skipped findings, list them below the separator with `S`-prefix numbering (`S1, S2...`):
 
 ```
 ## Peer Review — [target] ([model])
@@ -321,14 +368,20 @@ Otherwise, parse the findings into severity buckets and display:
    Fix: [specific change]
 
 ### Major
-...
+2. ...
 
 ### Minor
-...
+3. ...
 
 ---
-Apply all, select by number, or skip? [all/1,3,5/skip]
+Triage filtered [M] of [N] findings:
+S1. **[Skipped title]** — [reason]
+S2. **[Skipped title]** — [reason]
+
+Apply all recommended, include skipped by S-number, or skip? [all/1,2/1,S1/skip]
 ```
+
+On the Claude path (no triage), there is no "Triage filtered" section and the apply prompt is the standard form: `Apply all, select by number, or skip? [all/1,3,5/skip]`
 
 Output this as your **final message and stop generating**. Do not supply an answer, do not assume a default, do not proceed to the next step. Resume only after the user replies.
 
@@ -336,9 +389,9 @@ Output this as your **final message and stop generating**. Do not supply an answ
 
 On user reply:
 
-- `all` — apply every finding by editing the files directly (in Claude Code: use the `Edit` tool); report each change as you make it
-- `1,3,5` (comma-separated numbers) — apply only the listed findings
-- `skip` — output "Skipped N findings. No changes made." and stop
+- `all` — apply every **recommended** finding by editing the files directly (in Claude Code: use the `Edit` tool); report each change as you make it. On the Claude path (no triage), `all` applies every finding.
+- `1,3,5` (comma-separated numbers) — apply only the listed findings. Numbers refer to recommended findings; `S`-prefixed numbers (e.g. `S1`, `S2`) refer to skipped findings by their triage order. Both can be mixed (e.g. `1,S1`).
+- `skip` — output "Skipped N findings. No changes made." and stop. No re-scan is offered.
 
 When applying a finding, use the phrase anchor from the finding's Location field to locate the text in the file — do not use line numbers. If the phrase anchor cannot be found in the file, skip that finding and note it: "Skipped finding N — location anchor not found in [file]."
 
@@ -346,10 +399,26 @@ When applying a finding, use the phrase anchor from the finding's Location field
 
 **Diff mode**: after applying all findings, suggest running tests or linting if the changes touched code: "Consider running tests to verify the applied changes."
 
-After all edits are complete, output: "Applied N finding(s)." on its own line. If the target was `--pr N`, also output the PR URL as the final line. On `skip`, the summary line is already output — no PR URL needed.
+After all edits are complete, output: "Applied N finding(s)." on its own line. If the target was `--pr N`, also output the PR URL as the final line.
+
+**Post-apply re-scan** (offered only when at least one file was actually modified, and only once — not during a re-scan cycle):
+
+```
+Applied N finding(s).
+
+Re-scan modified files for new issues? [y/n]
+```
+
+Output this as your **final message and stop generating**. Resume only after the user replies.
+
+On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode), and spawn a fresh Claude subagent (always Claude regardless of the original `--model`). Feed findings into Step 5. If no new issues are found, output "No new issues found in re-scan." and stop. **Do not offer another re-scan** — after applying during a re-scan cycle, output "Applied N finding(s)." and stop.
+
+On `n`: stop.
 
 ## Notes
 
 - **Fresh-context guarantee**: the reviewer has no history from the current session. It sees only the content you pass it. This is the primary value of the skill — the reviewer cannot rationalize away issues the author has normalized.
 - **`--focus` does not suppress critical findings**: narrowing focus changes emphasis, not the severity threshold. A `critical` finding outside the focus topic will still be reported.
 - **Multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` route the review prompt to the respective external CLI rather than spawning a Claude subagent. This allows getting a non-Claude perspective (e.g. `--model copilot:gpt-4o-mini`). The binary must be installed and on `PATH`; if absent the skill errors with an install hint. Each CLI's output is normalized to the same severity-grouped findings format before Step 5.
+- **Triage layer** (external CLI path only): after normalizing findings from an external CLI, a fresh Claude subagent classifies each finding as `recommend` or `skip`. Recommended findings are numbered `1, 2, 3...` in the apply prompt; skipped findings are listed below the separator with `S`-prefix numbering. Users can include a skipped finding by referencing its S-number (e.g. `1,S1`). If triage output cannot be parsed, all findings are treated as recommended. The triage layer does not activate on the Claude path.
+- **Post-apply re-scan**: after applying at least one finding, the skill offers to re-scan the modified files for new issues. The re-scan always uses consistency mode and always spawns a Claude subagent (regardless of the original `--model`). The re-scan is offered at most once — a second apply during a re-scan cycle does not trigger another offer.
