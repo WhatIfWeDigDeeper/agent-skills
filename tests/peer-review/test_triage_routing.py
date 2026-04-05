@@ -45,8 +45,6 @@ def parse_triage_output(triage_output: str, finding_count: int) -> dict:
                 reason = ""
                 if "\u2014" in verdict:
                     reason = verdict.split("\u2014", 1)[1].strip()
-                elif "—" in verdict:
-                    reason = verdict.split("—", 1)[1].strip()
                 elif "-" in verdict:
                     reason = verdict.split("-", 1)[1].strip()
                 skipped[n] = reason
@@ -55,7 +53,9 @@ def parse_triage_output(triage_output: str, finding_count: int) -> dict:
 
     classified = set(recommended) | set(skipped.keys())
     all_classified = finding_count == 0 or classified == set(range(1, finding_count + 1))
-    parse_failed = not found_any or not all_classified
+    overlap = set(recommended) & set(skipped.keys())
+    has_duplicates = len(recommended) != len(set(recommended))
+    parse_failed = not found_any or not all_classified or bool(overlap) or has_duplicates
     if parse_failed:
         # Fallback: treat all as recommended
         recommended = list(range(1, finding_count + 1))
@@ -149,6 +149,14 @@ class TestTriageOutputParsing:
         assert result["recommended"] == [1, 2]
         assert result["skipped"] == {}
 
+    def test_contradictory_classification_triggers_fallback(self):
+        # Same finding appears as both recommend and skip → overlap detected → parse_failed
+        output = "FINDING 1: recommend\nFINDING 1: skip — changed my mind"
+        result = parse_triage_output(output, 1)
+        assert result["parse_failed"] is True
+        assert result["recommended"] == [1]
+        assert result["skipped"] == {}
+
 
 class TestRescanOfferConditions:
     """Re-scan offer fires after apply, not after skip."""
@@ -180,12 +188,16 @@ class TestRescanOfferConditions:
 class TestSPrefixSelection:
     """S-prefix numbers refer to skipped findings; plain numbers refer to recommended."""
 
-    def resolve_selection(self, user_reply: str, recommended: list[int], skipped_ordered: list[int]) -> dict:
+    def resolve_selection(self, user_reply: str, recommended_ordered: list[int], skipped_ordered: list[int]) -> dict:
         """Map a user reply string to which findings to apply.
 
-        S1, S2, ... refer to the triage/display order of skipped findings (1-indexed into
-        skipped_ordered), not to the original finding numbers. Plain numbers refer to
-        recommended finding numbers directly.
+        Both plain numbers and S-prefix numbers are 1-indexed display positions:
+        - Plain "1" → recommended_ordered[0] (first recommended finding in display order)
+        - "S1" → skipped_ordered[0] (first skipped finding in triage/display order)
+
+        SKILL.md Step 5 numbers recommended findings sequentially (1, 2, 3...) regardless
+        of their original finding number, so the user's plain number is a display position,
+        not an original finding ID.
 
         Returns:
             {
@@ -199,7 +211,7 @@ class TestSPrefixSelection:
             return {"recommended_to_apply": [], "skipped_to_apply": [], "skip_all": True}
 
         if user_reply == "all":
-            return {"recommended_to_apply": list(recommended), "skipped_to_apply": [], "skip_all": False}
+            return {"recommended_to_apply": list(recommended_ordered), "skipped_to_apply": [], "skip_all": False}
 
         rec_apply = []
         skip_apply = []
@@ -210,37 +222,44 @@ class TestSPrefixSelection:
                 if 0 <= idx < len(skipped_ordered):
                     skip_apply.append(skipped_ordered[idx])
             elif token.isdigit():
-                n = int(token)
-                if n in recommended:
-                    rec_apply.append(n)
+                idx = int(token) - 1  # convert 1-indexed display position to 0-indexed
+                if 0 <= idx < len(recommended_ordered):
+                    rec_apply.append(recommended_ordered[idx])
 
         return {"recommended_to_apply": rec_apply, "skipped_to_apply": skip_apply, "skip_all": False}
 
     def test_all_applies_only_recommended(self):
-        result = self.resolve_selection("all", recommended=[1, 2], skipped_ordered=[3])
+        result = self.resolve_selection("all", recommended_ordered=[1, 2], skipped_ordered=[3])
         assert result["recommended_to_apply"] == [1, 2]
         assert result["skipped_to_apply"] == []
         assert result["skip_all"] is False
 
+    def test_plain_number_maps_by_display_position(self):
+        # Findings 1,3 are skipped; findings 2,4 are recommended → displayed as "1." and "2."
+        # User "2" means second recommended finding = original finding 4
+        result = self.resolve_selection("2", recommended_ordered=[2, 4], skipped_ordered=[1, 3])
+        assert result["recommended_to_apply"] == [4]
+        assert result["skipped_to_apply"] == []
+
     def test_s_prefix_applies_skipped_by_display_order(self):
         # S1 means first skipped finding in triage order (finding 3), not finding number 1
-        result = self.resolve_selection("S1", recommended=[1, 2], skipped_ordered=[3])
+        result = self.resolve_selection("S1", recommended_ordered=[1, 2], skipped_ordered=[3])
         assert result["skipped_to_apply"] == [3]
         assert result["recommended_to_apply"] == []
 
     def test_s_prefix_second_skipped_finding(self):
         # S2 means second skipped finding in triage order
-        result = self.resolve_selection("S2", recommended=[1], skipped_ordered=[2, 4])
+        result = self.resolve_selection("S2", recommended_ordered=[1], skipped_ordered=[2, 4])
         assert result["skipped_to_apply"] == [4]
 
     def test_mixed_recommended_and_skipped(self):
-        # Plain 1 = recommended finding 1; S1 = first skipped finding (finding 3)
-        result = self.resolve_selection("1,S1", recommended=[1, 2], skipped_ordered=[3])
+        # Plain 1 = first recommended finding (finding 1); S1 = first skipped finding (finding 3)
+        result = self.resolve_selection("1,S1", recommended_ordered=[1, 2], skipped_ordered=[3])
         assert 1 in result["recommended_to_apply"]
         assert 3 in result["skipped_to_apply"]
 
     def test_skip_applies_nothing(self):
-        result = self.resolve_selection("skip", recommended=[1, 2], skipped_ordered=[3])
+        result = self.resolve_selection("skip", recommended_ordered=[1, 2], skipped_ordered=[3])
         assert result["skip_all"] is True
         assert result["recommended_to_apply"] == []
         assert result["skipped_to_apply"] == []
