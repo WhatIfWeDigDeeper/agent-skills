@@ -1,5 +1,7 @@
 # Copilot Instructions
 
+**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `CLAUDE.md`. The two files serve different assistants (Copilot vs. Claude Code) but should encode the same project conventions.
+
 ## Project Overview
 
 This repository contains reusable agent skills for Claude Code and other coding assistants. Skills are defined in `skills/<skill-name>/SKILL.md`. Development artifacts live separately:
@@ -35,16 +37,19 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 ## Evals And Benchmarks
 
 - Every skill with evals should keep `evals/<skill-name>/benchmark.json` in sync with the latest results.
-- After updating a benchmark, also update the `Eval Δ` column in `README.md`.
+- After updating a benchmark, also update the `Eval Δ` column in `README.md` and the `±` stat values in the `benchmark.md` Summary table — the table mirrors `run_summary` and is not auto-generated.
 - `grading.json` files must include a `summary` block with `passed`, `failed`, `total`, and `pass_rate`.
 - Use `null`, not `0` or `0.0`, for unknown token/time measurements in benchmark data.
 - Keep `run_summary.delta.pass_rate` at 2-decimal precision.
+- `run_summary.delta` values must be computed from exact (unrounded) run-data means, not from the rounded `mean` fields. When stored means are rounded, add a sentence to `benchmark.md`: "Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means."
 - When adding new evals, run them in the same task and update benchmark artifacts immediately.
 - When adding a new skill to `README.md`, add an `Eval cost` note sourced from the skill's benchmark doc.
 - If reviewer feedback suggests benchmark values, recompute from the actual `runs` array instead of copying the suggestion.
 - When updating `pass_rate`, `passed`, `failed`, or `total` in a run entry, also scan both the run-level `notes` array and the top-level `notes` array for matching prose counts (e.g. "3/5 (60%)") and update them — numeric fields and prose strings drift independently.
 - Place the top-level `notes` array at the root of `benchmark.json`, not inside `metadata` — between the closing `}` of `metadata` and the opening `[` of `runs`.
 - When renaming action labels or vocabulary in `SKILL.md`, also search `CLAUDE.md` for hardcoded step references that use the old name — step renames must propagate there just as they do to `evals.json` and `benchmark.json`.
+- Eval assertions must test user-facing output, not internal signals: if a skill uses an internal return value from a subagent (e.g. `NO FINDINGS`) and translates it to user-visible text (e.g. `'No issues found.'`), the assertion must test the user-visible string — not the internal signal. An assertion testing the internal signal will never catch regressions in the translation/presentation layer.
+- Fixture-based eval prompts must embed the fixture in the `prompt` field, not `expected_output`: `expected_output` is prose describing the expected grading outcome for the eval runner — it is not readable by the executor. Putting fixture CLI/tool responses in `expected_output` would confuse the executor about what to output, or cause the grader to treat fixture data as the expected result.
 
 ## Tests And Validation
 
@@ -58,6 +63,7 @@ uv run --with pytest pytest tests/
 - This repo uses cspell. After editing markdown or instruction files, run `npx cspell <file>` on each modified file.
 - If cspell flags a legitimate repo term, add it to `cspell.config.yaml` immediately.
 - If a word is no longer used, remove it from `cspell.config.yaml` after confirming with `rg -w <word>`.
+- Adding a singular form to `cspell.config.yaml` does not automatically cover its plural — add both forms explicitly (e.g., `metacharacter` and `metacharacters`) if both appear in the codebase.
 
 ## Git And PR Workflow
 
@@ -70,7 +76,7 @@ uv run --with pytest pytest tests/
 
 ## Command And Tooling Gotchas
 
-- Do not hardcode `/tmp/`; use `mktemp`, `$TMPDIR`, or `${TMPDIR:-/private/tmp}`.
+- Do not hardcode `/tmp/`; use `mktemp`, `$TMPDIR`, or `${TMPDIR:-/private/tmp}`. `${TMPDIR:-/tmp}` is also a violation — the fallback must be `/private/tmp`, not `/tmp`.
 - If `git commit` fails because of GPG/keyring access, use `--no-gpg-sign` only as a fallback after the failure.
 - In sandboxed environments, HTTPS `git push` may hang on credentials. A working pattern is:
 
@@ -92,6 +98,8 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - When a workflow pauses for user confirmation, make the stop explicit: tell the agent to output the prompt as its final message and stop generating until the user replies. If the workflow also has auto/manual modes, specify every confirmation gate each mode affects. If auto mode is meant to be hands-free, say explicitly whether later gates (for example push/re-request prompts) are skipped or still require confirmation.
 - When listing exit conditions for a workflow loop, state that they are the only valid exit conditions and explicitly forbid subjective early exits.
 - When a SKILL.md step does setup work (snapshot, POST, etc.) before delegating to a reference file that has its own entry/setup section covering the same actions, the delegation sentence must name the target section and list what not to re-run — otherwise agents re-enter the setup section and duplicate actions already done in SKILL.md.
+- When a SKILL.md step creates a temp file with `mktemp`, document `trap 'rm -f "$FILE"' EXIT INT TERM` immediately after the `mktemp` call — a manual `rm -f` at the end of the block is skipped on error or interruption.
+- Bash snippets that assign CLI output to a variable should include `2>&1` so error messages flow into the captured variable and reach fallback/error handling paths (e.g., `REVIEW_OUTPUT=$(cli ... 2>&1)`).
 
 ## Persistence
 

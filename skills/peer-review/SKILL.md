@@ -2,16 +2,20 @@
 name: peer-review
 description: >-
   Get a fresh-context review of specs, staged changes, branches, PRs, or file sets.
-  Delegates to a fresh-context reviewer by default (Phase II: routes to external LLM CLIs — Copilot, Codex, Gemini).
+  Delegates to a fresh-context reviewer by default; routes to external LLM CLIs
+  (Copilot, Codex, Gemini) when --model specifies one.
   Use when: user says "review my changes", "peer review", "check for consistency",
   "review this spec", "review staged", "review PR N", "check this for issues",
-  "fresh review", or wants a lightweight review before opening a PR.
+  "fresh review", "another set of eyes", "sanity check", "quick review before I push",
+  "look this over", "anything wrong with this", or wants a lightweight review before
+  opening a PR. Also use for "review these files", "check this diff", or when the user
+  pastes a diff or spec and asks if anything looks off.
 license: MIT
 compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Peer Review
@@ -36,7 +40,11 @@ Targets (pick one):
 
 Options:
   --model MODEL     Reviewer model (default: claude-opus-4-6)
-                    Phase II: --model copilot[:submodel], --model codex, --model gemini
+                    Claude models: any claude-* value uses the internal Claude reviewer
+                    External CLIs: copilot[:submodel], codex[:submodel], gemini[:submodel]
+                      copilot — npm install -g @github/copilot-cli (or VS Code extension)
+                      codex   — npm install -g @openai/codex
+                      gemini  — npm install -g @google/gemini-cli
   --focus TOPIC     Narrow emphasis (e.g. security, consistency, evals)
                     Does NOT suppress critical findings outside the focus area
 ```
@@ -109,6 +117,11 @@ Choose the template for the detected mode and apply the `--focus` filter if prov
 You are doing a diff review. Your job is to find real problems — bugs, security issues,
 missing tests, style violations, unintended behavioral changes.
 
+Severity guide:
+- critical: would cause incorrect behavior, data loss, or a security vulnerability in production
+- major: likely to confuse users, break edge cases, or make future changes harder without being immediately fatal
+- minor: style, naming, or polish issues that don't affect correctness
+
 [DIFF CONTENT]
 
 Return a structured list of findings grouped by severity (critical/major/minor).
@@ -131,6 +144,11 @@ Do NOT implement any changes. Return findings only.
 You are doing a consistency review across a set of related files.
 Look for: stale step references, mismatched terminology, missing parallel updates,
 descriptions that contradict each other, and underspecified items.
+
+Severity guide:
+- critical: contradiction that would cause the reader to implement the wrong behavior
+- major: stale reference or mismatch that would confuse a reader or require rework to fix
+- minor: cosmetic inconsistency or minor terminology drift that doesn't affect meaning
 
 [FILE CONTENTS]
 
@@ -161,6 +179,11 @@ Check for:
 5. Tasks implied by the plan but missing from tasks.md
 6. Contradictions within or between the two files
 
+Severity guide:
+- critical: contradiction or missing task that would cause the wrong thing to be built
+- major: underspecified item or shell error that would require re-work to implement correctly
+- minor: wording ambiguity, count discrepancy, or cosmetic inconsistency that doesn't block implementation
+
 [FILE CONTENTS]
 
 Return a structured list of findings grouped by severity (critical/major/minor).
@@ -183,11 +206,97 @@ Do NOT implement any changes. Return findings only.
 Focus especially on [TOPIC]. Still report any critical findings outside this focus area.
 ```
 
-### 4. Spawn Reviewer Subagent
+### 4. Spawn Reviewer
 
-Delegate to a fresh-context reviewer — pass the completed prompt (template + collected content). The reviewer has no prior session context — this is intentional. In Claude Code, spawn a subagent with `mode: "auto"` to suppress approval prompts.
+**If `model` starts with `claude-` (including the default `claude-opus-4-6`):**
+
+Delegate to a fresh-context Claude reviewer — pass the completed prompt (template + collected content). The reviewer has no prior session context — this is intentional. In Claude Code, spawn a subagent with `mode: "auto"` to suppress approval prompts.
 
 The reviewer's only job is to return findings. It must not modify any files.
+
+**Otherwise (external CLI path — copilot, codex, gemini):**
+
+Determine the CLI binary and optional sub-model from the `--model` value. If `--model` contains `:` (e.g. `copilot:gpt-4o-mini`), split on `:` — the left part is the binary name, the right part is the sub-model.
+
+| `--model` prefix | Binary | Sub-model flag |
+|-----------------|--------|---------------|
+| `copilot` | `copilot` | `--model SUBMODEL` |
+| `codex` | `codex` | `--model SUBMODEL` |
+| `gemini` | `gemini` | `-m SUBMODEL` |
+
+If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported external CLIs: copilot, codex, gemini. For Claude models, use a `claude-*` prefix (e.g. `--model claude-opus-4-6`)."
+
+**4a. Check binary availability:**
+
+```bash
+command -v <binary> >/dev/null 2>&1 || { echo "<binary> CLI not found. Install with: <install hint>"; exit 1; }
+```
+
+Install hints:
+- `copilot`: `npm install -g @github/copilot-cli` or via the GitHub Copilot VS Code extension
+- `codex`: `npm install -g @openai/codex`
+- `gemini`: `npm install -g @google/gemini-cli`
+
+If the binary is not found, output the error message and stop. Do not proceed to Step 5.
+
+**4b. Write prompt to temp file:**
+
+```bash
+PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")
+trap 'rm -f "$PROMPT_FILE"' EXIT INT TERM
+printf '%s' "$PROMPT" > "$PROMPT_FILE"
+```
+
+Writing to a temp file preserves the exact multi-line prompt content and keeps prompt construction separate from the CLI invocation. In the commands below, correct quoting of `"$(cat "$PROMPT_FILE")"` is what prevents shell metacharacters in diff/PR content from being interpreted by the shell. The `trap` ensures the temp file is removed even if the CLI command fails or the process is interrupted.
+
+**4c. Execute and capture output:**
+
+For copilot:
+```bash
+if [ -n "$SUBMODEL" ]; then
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool='write' -p "$(cat "$PROMPT_FILE")" --model "$SUBMODEL" 2>&1)
+else
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool='write' -p "$(cat "$PROMPT_FILE")" 2>&1)
+fi
+```
+
+For codex (`--no-auto-edit` suppresses file writes; unverified — adjust if your version uses a different flag):
+```bash
+if [ -n "$SUBMODEL" ]; then
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit --model "$SUBMODEL" 2>&1)
+else
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit 2>&1)
+fi
+```
+
+For gemini (`--approval-mode plan` enables read-only mode):
+```bash
+if [ -n "$SUBMODEL" ]; then
+  REVIEW_OUTPUT=$(gemini --approval-mode plan -m "$SUBMODEL" -p "$(cat "$PROMPT_FILE")" 2>&1)
+else
+  REVIEW_OUTPUT=$(gemini --approval-mode plan -p "$(cat "$PROMPT_FILE")" 2>&1)
+fi
+```
+
+The `trap` set in Step 4b will remove `$PROMPT_FILE` on completion or interruption.
+
+**4d. Parse output → normalized findings:**
+
+For copilot: output is JSON with schema `{ summary, overall_risk, findings: [{ severity, file, title, details, suggested_fix }] }`. Extract `findings[]`; map `details` → problem, `suggested_fix` → fix. Apply severity normalization below. If `findings` is empty, treat as `NO FINDINGS`. If JSON is malformed, fall through to raw-output fallback.
+
+For codex and gemini: output is markdown or plain text. First check if output is exactly `NO FINDINGS` — if so, treat as no issues. Otherwise parse severity from lines matching patterns like `[HIGH]`, `**Critical**`, `severity: high` (case-insensitive). Extract title, file, problem, and fix from surrounding lines. If no structured severity pattern is found, present the full output as a single `major` finding.
+
+If parsing fails for any CLI: output raw text with the prefix "Could not parse structured findings; showing raw output."
+
+**Severity normalization** (apply case-insensitively for all CLIs):
+
+| Input severity | Normalized |
+|---------------|-----------|
+| `high` / `error` / `critical` | `critical` |
+| `medium` / `warning` / `major` | `major` |
+| `low` / `info` / `note` / `minor` | `minor` |
+
+**4e.** Continue to Step 5 with the normalized findings.
 
 ### 5. Present Findings
 
@@ -231,7 +340,11 @@ On user reply:
 - `1,3,5` (comma-separated numbers) — apply only the listed findings
 - `skip` — output "Skipped N findings. No changes made." and stop
 
-When applying a finding, use the phrase anchor from the finding's Location field to locate the text in the file — do not use line numbers.
+When applying a finding, use the phrase anchor from the finding's Location field to locate the text in the file — do not use line numbers. If the phrase anchor cannot be found in the file, skip that finding and note it: "Skipped finding N — location anchor not found in [file]."
+
+**PR target**: applying findings edits local files only. Do not stage, commit, or push. After applying, the changes are uncommitted local edits the author can review before deciding to push. Before applying, check that the current branch matches the PR's `headRefName` — if not, warn: "You are on branch X, not the PR branch Y — applying will edit files on X."
+
+**Diff mode**: after applying all findings, suggest running tests or linting if the changes touched code: "Consider running tests to verify the applied changes."
 
 After all edits are complete, output: "Applied N finding(s)." on its own line. If the target was `--pr N`, also output the PR URL as the final line. On `skip`, the summary line is already output — no PR URL needed.
 
@@ -239,5 +352,4 @@ After all edits are complete, output: "Applied N finding(s)." on its own line. I
 
 - **Fresh-context guarantee**: the reviewer has no history from the current session. It sees only the content you pass it. This is the primary value of the skill — the reviewer cannot rationalize away issues the author has normalized.
 - **`--focus` does not suppress critical findings**: narrowing focus changes emphasis, not the severity threshold. A `critical` finding outside the focus topic will still be reported.
-- **vs `code-review`**: the built-in `code-review` skill spawns multiple subagents with distinct reviewer personas (security, correctness, style, etc.) — thorough but relatively expensive, best for full PR reviews before merge. `peer-review` uses a single reviewer and is optimized for lighter checks: mid-draft spec validation, quick consistency sweeps, and staged-change review before opening a PR.
-- **Phase II — multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` will route the review prompt to the respective CLI tool rather than the default internal reviewer. This allows using a non-Claude model as the reviewer (e.g. `--model copilot:gpt-4o-mini`). `specs/16-peer-review/copilot-staged-review.sh` is a prototype for the Copilot path (staged-only; deferred to Phase II).
+- **Multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` route the review prompt to the respective external CLI rather than spawning a Claude subagent. This allows getting a non-Claude perspective (e.g. `--model copilot:gpt-4o-mini`). The binary must be installed and on `PATH`; if absent the skill errors with an install hint. Each CLI's output is normalized to the same severity-grouped findings format before Step 5.

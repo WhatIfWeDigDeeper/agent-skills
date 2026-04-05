@@ -2,11 +2,11 @@
   "metadata": {
     "skill_name": "peer-review",
     "skill_path": "skills/peer-review",
-    "skill_version": "1.0",
+    "skill_version": "1.1",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
     "timestamp": "2026-04-04T10:30:00Z",
-    "evals_run": [1, 2, 3, 4],
+    "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
     "runs_per_configuration": 1
   },
   "notes": [
@@ -14,7 +14,11 @@
     "Eval 2 is the primary discriminating eval (+0.40 delta): spec mode detection and structured reviewer delegation differentiate with_skill from without_skill.",
     "Eval 4 (diff mode) is the secondary discriminating eval (+0.20 delta): explicit diff mode declaration differentiates, subagent assertion fails in both due to harness constraint.",
     "Eval 3 (argument-conflict-error) is non-discriminating: both configurations correctly detect the mutually exclusive target conflict and output the error without running a review.",
-    "Eval 1 is zero-delta (0.80/0.80) due to harness constraint masking the subagent-spawning differentiator."
+    "Eval 1 is zero-delta (0.80/0.80) due to harness constraint masking the subagent-spawning differentiator.",
+    "Evals 5-10 test Phase II multi-LLM routing. Eval 6 (copilot-empty-findings) is non-discriminating: empty findings → 'No issues found.' is natural default behavior. Evals 5, 7, 8, 9, 10 all discriminate.",
+    "Evals 5-10 use simulated transcripts (fixture responses embedded in prompts); time_seconds and tokens are null for these runs.",
+    "Evals 11-14 added in v1.1 review pass. Eval 13 (focus-option) discriminates (+0.67 delta): the skill-defined focus line format and apply prompt both fail without_skill. Evals 11, 12, 14 are non-discriminating: empty-staged warning, PR metadata inclusion (when fixture data is explicit in the prompt), and skip handling are natural baseline behaviors.",
+    "Evals 11-14 have real time and token measurements (subagent executor ran the full workflow, not pure transcript simulation)."
   ],
   "runs": [
     {
@@ -204,23 +208,459 @@
         {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown as final line of response."}
       ],
       "notes": ["Failing: no mode declaration, review inline with 45 tool calls (3x the with_skill cost). without_skill spent 191.9s vs 105.5s for with_skill on this eval."]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "copilot-json-parse",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The finding with severity 'high' from the copilot JSON is presented to the user as 'critical' (not 'high')", "passed": true, "evidence": "Severity normalization per SKILL.md Step 4d maps 'high' → 'critical'. Finding 1 presented under ### Critical heading."},
+        {"text": "The finding with severity 'low' from the copilot JSON is presented to the user as 'minor' (not 'low')", "passed": true, "evidence": "Severity normalization per SKILL.md Step 4d maps 'low' → 'minor'. Finding 2 presented under ### Minor heading."},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings", "passed": true, "evidence": "Step 5 template outputs apply prompt after findings display."}
+      ],
+      "notes": ["Discriminating (+1.0 delta). Both severity mappings applied correctly. Apply prompt displayed."]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "copilot-json-parse",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The finding with severity 'high' from the copilot JSON is presented to the user as 'critical' (not 'high')", "passed": false, "evidence": "No severity remapping logic without skill — 'high' presented as-is."},
+        {"text": "The finding with severity 'low' from the copilot JSON is presented to the user as 'minor' (not 'low')", "passed": false, "evidence": "No severity remapping logic without skill — 'low' presented as-is."},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings", "passed": false, "evidence": "No apply prompt logic without skill — default behavior summarizes findings and stops."}
+      ],
+      "notes": ["All 3 assertions fail without skill — severity remapping and apply prompt are skill-defined behaviors."]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "copilot-empty-findings",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output includes 'No issues found.' (the no-findings output)", "passed": true, "evidence": "Step 4d: findings[] is empty → NO FINDINGS. Step 5 outputs 'No issues found.' with header."},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown", "passed": true, "evidence": "Step 5: 'Then stop. Do not show an apply prompt.' Skill stopped after 'No issues found.'"}
+      ],
+      "notes": ["Non-discriminating (1.0/1.0). Empty findings → 'No issues found.' is natural default behavior; no apply prompt is absent in both configs."]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "copilot-empty-findings",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output includes 'No issues found.' (the no-findings output)", "passed": true, "evidence": "Natural default behavior when findings array is empty produces a 'no issues found' statement."},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown", "passed": true, "evidence": "No apply prompt logic without skill — never shown."}
+      ],
+      "notes": ["Non-discriminating — 'No issues found.' is natural default output; apply prompt absent in both configs because it is skill-defined."]
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "copilot-malformed-json",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output includes 'Could not parse structured findings; showing raw output.' (the malformed JSON fallback message)", "passed": true, "evidence": "Step 4d: fixture text is not valid JSON → raw-output fallback triggers with the defined prefix message."},
+        {"text": "The raw error text from the copilot output is shown to the user", "passed": true, "evidence": "Raw text 'Error: API rate limit exceeded. Try again in 60 seconds.' displayed after fallback prefix."}
+      ],
+      "notes": ["Discriminating (+0.5 delta). Malformed JSON path triggered correctly; specific fallback message is skill-defined."]
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "copilot-malformed-json",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output includes 'Could not parse structured findings; showing raw output.' (the malformed JSON fallback message)", "passed": false, "evidence": "No defined fallback message without skill — exact string 'Could not parse structured findings; showing raw output.' not produced."},
+        {"text": "The raw error text from the copilot output is shown to the user", "passed": true, "evidence": "Default behavior includes the raw error text when reporting that copilot output could not be processed."}
+      ],
+      "notes": ["Partially discriminating — specific fallback phrase is skill-defined (fails without skill); showing raw output is natural default (passes without skill)."]
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "codex-not-found",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output states that the codex CLI was not found (error message about missing binary)", "passed": true, "evidence": "Step 4a: 'command -v codex' returns empty → skill outputs 'codex CLI not found. Install with: npm install -g @openai/codex'."},
+        {"text": "The error message includes the install hint 'npm install -g @openai/codex'", "passed": true, "evidence": "Install hint from SKILL.md Step 4a table included in error output."},
+        {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "Step 4a: 'If the binary is not found, output the error message and stop.' Skill stopped after error."}
+      ],
+      "notes": ["Discriminating (+0.33 delta). Binary-not-found path and specific install hint are both skill-defined."]
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "codex-not-found",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output states that the codex CLI was not found (error message about missing binary)", "passed": true, "evidence": "Natural default behavior reports the missing binary."},
+        {"text": "The error message includes the install hint 'npm install -g @openai/codex'", "passed": false, "evidence": "No knowledge of specific install command without skill — hint not produced."},
+        {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "No findings to show; apply prompt is skill-defined and absent without skill."}
+      ],
+      "notes": ["Specific install hint is skill-defined and fails without skill; detecting missing binary and stopping cleanly are natural behaviors."]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "gemini-not-found",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output states that the gemini CLI was not found (error message about missing binary)", "passed": true, "evidence": "Step 4a: 'command -v gemini' returns empty → skill outputs 'gemini CLI not found. Install with: npm install -g @google/gemini-cli'."},
+        {"text": "The error message includes the install hint 'npm install -g @google/gemini-cli'", "passed": true, "evidence": "Install hint from SKILL.md Step 4a table included in error output."},
+        {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "Step 4a: 'If the binary is not found, output the error message and stop.' Skill stopped after error."}
+      ],
+      "notes": ["Discriminating (+0.33 delta). Mirrors eval 8 for gemini binary."]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "gemini-not-found",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output states that the gemini CLI was not found (error message about missing binary)", "passed": true, "evidence": "Natural default behavior reports the missing binary."},
+        {"text": "The error message includes the install hint 'npm install -g @google/gemini-cli'", "passed": false, "evidence": "No knowledge of specific install command without skill — hint not produced."},
+        {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "No findings to show; apply prompt is skill-defined and absent without skill."}
+      ],
+      "notes": ["Specific install hint is skill-defined and fails without skill; mirrors eval 8 pattern."]
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "gemini-no-findings",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output includes the '## Peer Review —' header line", "passed": true, "evidence": "Step 5 no-findings template outputs '## Peer Review — staged (gemini)' as header."},
+        {"text": "The output includes 'No issues found.' after the header", "passed": true, "evidence": "Step 4d: output is exactly 'NO FINDINGS' → treated as no issues. Step 5 outputs 'No issues found.' after header."},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown", "passed": true, "evidence": "Step 5: 'Then stop. Do not show an apply prompt.'"}
+      ],
+      "notes": ["Discriminating (+0.33 delta). '## Peer Review —' header format is skill-defined."]
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "gemini-no-findings",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output includes the '## Peer Review —' header line", "passed": false, "evidence": "No instruction to produce '## Peer Review —' header without skill — not produced in default behavior."},
+        {"text": "The output includes 'No issues found.' after the header", "passed": true, "evidence": "Default behavior naturally says 'No issues found.' when reviewer returns 'NO FINDINGS'."},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown", "passed": true, "evidence": "Apply prompt is skill-defined and absent without skill."}
+      ],
+      "notes": ["Skill-defined header fails without skill; 'No issues found.' and absence of apply prompt pass as natural behaviors."]
+    },
+    {
+      "eval_id": 11,
+      "eval_name": "staged-empty-warning",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 14.2,
+        "tokens": 23953,
+        "tool_calls": 1,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent detects that there are no staged changes (git diff --staged returned empty output)", "passed": true, "evidence": "Agent parsed --staged target, detected empty diff output, entered the empty-staged branch per Step 2."},
+        {"text": "The agent outputs a warning that no staged changes were found (e.g. 'No staged changes found')", "passed": true, "evidence": "Output: 'No staged changes found. Stage files with `git add` first.'"},
+        {"text": "The agent exits without spawning a reviewer subagent or presenting findings", "passed": true, "evidence": "Skill exited at Step 2 — Steps 3-6 never reached."}
+      ],
+      "notes": ["Non-discriminating (1.0/1.0). Warning for empty staged diff is simple enough for a capable baseline to produce correctly."]
+    },
+    {
+      "eval_id": 11,
+      "eval_name": "staged-empty-warning",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 7.6,
+        "tokens": 23936,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent detects that there are no staged changes (git diff --staged returned empty output)", "passed": true, "evidence": "Agent recognized the empty staged diff from the fixture context."},
+        {"text": "The agent outputs a warning that no staged changes were found (e.g. 'No staged changes found')", "passed": true, "evidence": "Output: 'No staged changes found. Stage files with `git add` first.'"},
+        {"text": "The agent exits without spawning a reviewer subagent or presenting findings", "passed": true, "evidence": "No reviewer spawned, no findings shown — only the warning message output."}
+      ],
+      "notes": ["Non-discriminating — baseline naturally outputs the same warning. Establishes baseline behavior only."]
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "pr-target-context",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 26.2,
+        "tokens": 24108,
+        "tool_calls": 1,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent collects or uses the PR title and body (not just the diff) as context for the reviewer", "passed": true, "evidence": "Agent explicitly prepended PR title 'Add retry logic to API client' and body to the reviewer prompt per SKILL.md Step 2 instructions."},
+        {"text": "The output header includes the PR number (e.g. 'PR #42')", "passed": true, "evidence": "Header: '## Peer Review — PR #42 (claude-opus-4-6)'"},
+        {"text": "The output includes 'No issues found.' (the no-findings output)", "passed": true, "evidence": "Reviewer returned NO FINDINGS → Step 5 no-findings path: 'No issues found.'"},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings", "passed": true, "evidence": "Step 5: 'Then stop. Do not show an apply prompt.' No apply prompt in output."}
+      ],
+      "notes": ["Non-discriminating (1.0/1.0). Both configurations naturally included fixture PR metadata and produced the same output. The skill-defined header format was also reproduced by without_skill in this eval."]
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "pr-target-context",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 16.7,
+        "tokens": 22868,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The agent collects or uses the PR title and body (not just the diff) as context for the reviewer", "passed": true, "evidence": "Agent used fixture PR title and body from the eval prompt when constructing the review context."},
+        {"text": "The output header includes the PR number (e.g. 'PR #42')", "passed": true, "evidence": "Output header: '## Peer Review — PR #42 (claude-opus-4-6)' — baseline adopted skill-like header format."},
+        {"text": "The output includes 'No issues found.' (the no-findings output)", "passed": true, "evidence": "No findings → 'No issues found.' in output."},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings", "passed": true, "evidence": "No apply prompt shown — no findings to act on."}
+      ],
+      "notes": ["Non-discriminating — baseline naturally included fixture PR metadata; even reproduced the skill-defined header format. Likely due to fixture data being explicit in the eval prompt."]
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "focus-option",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 21.5,
+        "tokens": 24186,
+        "tool_calls": 1,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The review prompt includes a focus line mentioning 'security' (e.g. 'Focus especially on security')", "passed": true, "evidence": "Focus line appended: 'Focus especially on security. Still report any critical findings outside this focus area.'"},
+        {"text": "Both findings are shown in the output — focus does not suppress findings outside the focus topic", "passed": true, "evidence": "Both Critical (SQL injection) and Minor (JSDoc) findings displayed; --focus does not filter out-of-scope findings."},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings", "passed": true, "evidence": "Apply prompt shown as final line of response."}
+      ],
+      "notes": ["Discriminating (+0.67 delta). Skill-defined focus line format and apply prompt both differentiate from without_skill."]
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "focus-option",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 14.2,
+        "tokens": 17678,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The review prompt includes a focus line mentioning 'security' (e.g. 'Focus especially on security')", "passed": false, "evidence": "Without skill, agent showed '**Focus:** security' as a presentation header but did not append the skill-defined focus line to a reviewer prompt. No reviewer prompt was built."},
+        {"text": "Both findings are shown in the output — focus does not suppress findings outside the focus topic", "passed": true, "evidence": "Both Critical and Minor findings shown in output."},
+        {"text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings", "passed": false, "evidence": "No apply prompt shown — agent ended with a summary table and recommendation instead."}
+      ],
+      "notes": ["Failing: focus line not appended to reviewer prompt (no reviewer prompt built), apply prompt absent. These are both skill-defined behaviors."]
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "apply-skip",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 8.1,
+        "tokens": 24118,
+        "tool_calls": 1,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output includes 'Skipped 2 findings. No changes made.' (or equivalent skip summary)", "passed": true, "evidence": "Output: 'Skipped 2 findings. No changes made.' — exact skill-defined skip summary phrase."},
+        {"text": "No files are edited or modified by the agent", "passed": true, "evidence": "Skill exited at 'skip' branch of Step 6 — no Edit tool calls made."}
+      ],
+      "notes": ["Non-discriminating (1.0/1.0). Both configurations correctly handle the skip reply without making file changes. The exact skip phrasing is skill-defined but both outputs constitute equivalent skip summaries."]
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "apply-skip",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 4.8,
+        "tokens": 17663,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "The output includes 'Skipped 2 findings. No changes made.' (or equivalent skip summary)", "passed": true, "evidence": "Output: 'No changes applied. The findings have been noted but no edits were made to src/utils.js.' — equivalent skip summary with a breakdown of skipped findings."},
+        {"text": "No files are edited or modified by the agent", "passed": true, "evidence": "No file edits made — agent acknowledged the skip and stopped."}
+      ],
+      "notes": ["Non-discriminating — baseline handles skip response naturally without skill guidance. The exact 'Skipped N findings.' phrasing was not used but an equivalent skip summary was produced."]
     }
   ],
   "run_summary": {
     "with_skill": {
-      "pass_rate": {"mean": 0.90, "stddev": 0.12, "min": 0.80, "max": 1.00},
-      "time_seconds": {"mean": 68.4, "stddev": 32.24, "min": 27.3, "max": 105.5},
-      "tokens": {"mean": 29693, "stddev": 10297, "min": 22326, "max": 44948}
+      "pass_rate": {"mean": 0.97, "stddev": 0.07, "min": 0.80, "max": 1.00},
+      "time_seconds": {"mean": 43.0, "stddev": 34.8, "min": 8.1, "max": 105.5},
+      "tokens": {"mean": 26892, "stddev": 7377, "min": 22326, "max": 44948}
     },
     "without_skill": {
-      "pass_rate": {"mean": 0.75, "stddev": 0.19, "min": 0.60, "max": 1.00},
-      "time_seconds": {"mean": 80.4, "stddev": 74.65, "min": 34.9, "max": 191.9},
-      "tokens": {"mean": 30751, "stddev": 19286, "min": 20318, "max": 59648}
+      "pass_rate": {"mean": 0.70, "stddev": 0.30, "min": 0.00, "max": 1.00},
+      "time_seconds": {"mean": 45.6, "stddev": 61.5, "min": 4.8, "max": 191.9},
+      "tokens": {"mean": 25644, "stddev": 13928, "min": 17663, "max": 59648}
     },
     "delta": {
-      "pass_rate": "+0.15",
-      "time_seconds": "-12.0",
-      "tokens": "-1058"
+      "pass_rate": "+0.27",
+      "time_seconds": "-2.7",
+      "tokens": "+1249"
     }
   }
 }

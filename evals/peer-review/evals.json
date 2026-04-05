@@ -6,7 +6,7 @@
       "name": "consistency-mode-stale-step-ref",
       "prompt": "/peer-review evals/peer-review/fixtures/consistency/",
       "expected_output": "The skill reads both files in the fixtures/consistency/ directory, enters consistency mode (because it is not a spec pair), spawns a fresh-context reviewer subagent, and returns findings that include the stale step reference: SKILL.md says 'See Step 3 of reference.md' but the field mapping table is at Step 4 in reference.md (Step 3 is missing entirely). Findings are grouped by severity. The skill presents an apply prompt and stops generating.",
-      "context": "The fixtures/consistency/ directory contains SKILL.md and reference.md. SKILL.md references 'Step 3 of reference.md' for the field mapping table, but reference.md has no Step 3 — the field mapping table is at Step 4. This is a planted consistency issue.",
+      "context": "The fixtures/consistency/ directory contains SKILL.md and reference.md. SKILL.md references 'Step 3 of reference.md' for the field mapping table, but reference.md has no Step 3 \u2014 the field mapping table is at Step 4. This is a planted consistency issue.",
       "files": [],
       "assertions": [
         {
@@ -36,7 +36,7 @@
       "name": "spec-mode-plan-tasks-mismatch",
       "prompt": "/peer-review evals/peer-review/fixtures/spec/",
       "expected_output": "The skill reads plan.md and tasks.md in the fixtures/spec/ directory, enters spec mode (because both plan.md and tasks.md are present), spawns a fresh-context reviewer subagent, and returns findings that include the missing --verbose task: plan.md documents a --verbose flag with defined behavior, but tasks.md has no task to implement it. Argument parsing task also only lists --target and --dry-run, omitting --verbose. Findings are grouped by severity.",
-      "context": "The fixtures/spec/ directory contains a plan.md and tasks.md pair. plan.md defines three flags: --dry-run, --verbose, and --target ENV. tasks.md only implements --target and --dry-run — it has no task for --verbose, and the argument parsing task does not list --verbose.",
+      "context": "The fixtures/spec/ directory contains a plan.md and tasks.md pair. plan.md defines three flags: --dry-run, --verbose, and --target ENV. tasks.md only implements --target and --dry-run \u2014 it has no task for --verbose, and the argument parsing task does not list --verbose.",
       "files": [],
       "assertions": [
         {
@@ -110,6 +110,218 @@
         {
           "id": "apply-prompt-shown",
           "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "copilot-json-parse",
+      "prompt": "/peer-review --staged --model copilot. The diff content is minimal (one line changed in src/index.js). When you attempt to call the copilot CLI, treat it as having returned the following JSON output \u2014 do not actually run copilot, just process this fixture response: {\"summary\": \"Two issues found.\", \"overall_risk\": \"medium\", \"findings\": [{\"severity\": \"high\", \"file\": \"src/index.js\", \"title\": \"Unchecked null dereference\", \"details\": \"The value returned from getUser() may be null but is dereferenced without a null check.\", \"suggested_fix\": \"Add a null check before dereferencing: if (user) { ... }\"}, {\"severity\": \"low\", \"file\": \"src/index.js\", \"title\": \"Unused import\", \"details\": \"The lodash import is not used anywhere in the file.\", \"suggested_fix\": \"Remove the import statement.\"}]}",
+      "expected_output": "The skill processes the copilot JSON fixture, normalizes severity values (high \u2192 critical, low \u2192 minor), and presents findings grouped by severity. The first finding appears under Critical with the title 'Unchecked null dereference'. The second finding appears under Minor with the title 'Unused import'. The apply prompt is shown at the end.",
+      "context": "The copilot CLI returns JSON with severity values 'high' and 'low'. Per the severity normalization table, 'high' must be displayed as 'critical' and 'low' must be displayed as 'minor'. This tests that the skill correctly applies the normalization table and does not pass through the raw CLI severity labels.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "high-normalized-to-critical",
+          "text": "The finding with severity 'high' from the copilot JSON is presented to the user as 'critical' (not 'high')"
+        },
+        {
+          "id": "low-normalized-to-minor",
+          "text": "The finding with severity 'low' from the copilot JSON is presented to the user as 'minor' (not 'low')"
+        },
+        {
+          "id": "apply-prompt-shown",
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "copilot-empty-findings",
+      "prompt": "/peer-review --staged --model copilot. The diff content is minimal. When you attempt to call the copilot CLI, treat it as having returned the following JSON \u2014 do not actually run copilot: {\"summary\": \"No issues found.\", \"overall_risk\": \"none\", \"findings\": []}",
+      "expected_output": "The skill processes the copilot JSON fixture with an empty findings array, outputs 'No issues found.' (with the standard ## Peer Review header), and does not show an apply prompt.",
+      "context": "The copilot JSON response has an empty 'findings' array. Per the skill's parsing logic, an empty findings array must be treated as NO FINDINGS \u2014 which triggers the no-issues output path (header + 'No issues found.') without an apply prompt.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-issues-output",
+          "text": "The output includes 'No issues found.' (the no-findings output)"
+        },
+        {
+          "id": "no-apply-prompt",
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "copilot-malformed-json",
+      "prompt": "/peer-review --staged --model copilot. The diff content is minimal. When you attempt to call the copilot CLI, treat it as having returned the following text (which is not valid JSON) \u2014 do not actually run copilot: Error: API rate limit exceeded. Try again in 60 seconds.",
+      "expected_output": "The skill attempts to parse the copilot output as JSON, fails (because the output is not valid JSON), and falls back to raw output. The output includes 'Could not parse structured findings; showing raw output.' followed by the raw error text.",
+      "context": "The copilot CLI returns a plain text error instead of JSON. The skill's malformed JSON fallback path must be triggered, which displays the raw output with the fallback prefix message.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "raw-output-fallback-message",
+          "text": "The output includes 'Could not parse structured findings; showing raw output.' (the malformed JSON fallback message)"
+        },
+        {
+          "id": "raw-text-shown",
+          "text": "The raw error text from the copilot output is shown to the user"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "codex-not-found",
+      "prompt": "/peer-review --staged --model codex. The codex binary is not installed on this system \u2014 running 'command -v codex' returns empty. Do not attempt to install it; just handle the missing binary case per the skill.",
+      "expected_output": "The skill checks for the codex binary, finds it absent, and outputs an error message stating codex is not found along with the install hint 'npm install -g @openai/codex'. The skill exits without attempting a review or showing findings.",
+      "context": "codex is not installed. The skill must check binary availability (Step 4a), detect the absence, and output a helpful error with the correct install hint \u2014 then stop. It must not attempt to run a review.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "codex-not-found-error",
+          "text": "The output states that the codex CLI was not found (error message about missing binary)"
+        },
+        {
+          "id": "codex-install-hint",
+          "text": "The error message includes the install hint 'npm install -g @openai/codex'"
+        },
+        {
+          "id": "exits-without-review",
+          "text": "The skill exits without presenting findings or an apply prompt"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "gemini-not-found",
+      "prompt": "/peer-review --staged --model gemini. The gemini binary is not installed on this system \u2014 running 'command -v gemini' returns empty. Do not attempt to install it; just handle the missing binary case per the skill.",
+      "expected_output": "The skill checks for the gemini binary, finds it absent, and outputs an error message stating gemini is not found along with the install hint 'npm install -g @google/gemini-cli'. The skill exits without attempting a review or showing findings.",
+      "context": "gemini is not installed. The skill must check binary availability (Step 4a), detect the absence, and output a helpful error with the correct install hint \u2014 then stop. It must not attempt to run a review.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "gemini-not-found-error",
+          "text": "The output states that the gemini CLI was not found (error message about missing binary)"
+        },
+        {
+          "id": "gemini-install-hint",
+          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'"
+        },
+        {
+          "id": "exits-without-review",
+          "text": "The skill exits without presenting findings or an apply prompt"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "gemini-no-findings",
+      "prompt": "/peer-review --staged --model gemini. The diff content is minimal. When you attempt to call the gemini CLI, treat it as having returned the following text \u2014 do not actually run gemini: NO FINDINGS",
+      "expected_output": "The skill processes the gemini text output 'NO FINDINGS', recognizes it as the no-findings sentinel, and outputs the standard no-findings format: the ## Peer Review header followed by 'No issues found.' No apply prompt is shown.",
+      "context": "The gemini CLI returns the literal text 'NO FINDINGS' (which the review prompt instructs any reviewer to return when there are no issues). The skill must recognize this sentinel in the plain-text output path and trigger the same no-issues presentation as the copilot empty-findings path.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "header-present",
+          "text": "The output includes the '## Peer Review \u2014' header line"
+        },
+        {
+          "id": "no-issues-shown",
+          "text": "The output includes 'No issues found.' after the header"
+        },
+        {
+          "id": "no-apply-prompt",
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "staged-empty-warning",
+      "prompt": "/peer-review --staged. There are no staged changes \u2014 git diff --staged returns empty output.",
+      "expected_output": "The skill runs git diff --staged, finds no output, and warns the user: 'No staged changes found. Stage files with `git add` first.' It exits without spawning a reviewer or showing findings.",
+      "context": "The user invokes the staged target but has nothing staged. The skill must detect this and warn rather than passing an empty diff to the reviewer.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "detects-empty-staged",
+          "text": "The agent detects that there are no staged changes (git diff --staged returned empty output)"
+        },
+        {
+          "id": "outputs-no-staged-warning",
+          "text": "The agent outputs a warning that no staged changes were found (e.g. 'No staged changes found')"
+        },
+        {
+          "id": "exits-without-reviewer",
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "pr-target-context",
+      "prompt": "/peer-review --pr 42. Treat this as if PR #42 exists with title 'Add retry logic to API client', body 'This PR adds exponential backoff to all outbound API calls. Closes #38.', and a minimal one-file diff adding a retry loop in src/api.js. Do not actually call gh \u2014 just process the fixture PR data and diff. The reviewer (simulated) returns: NO FINDINGS.",
+      "expected_output": "The skill fetches (or simulates) the PR metadata and diff, prepends the PR title and body as context to the reviewer prompt, spawns a reviewer, receives NO FINDINGS, and outputs the standard no-findings format: '## Peer Review \u2014 PR #42 (claude-opus-4-6)' followed by 'No issues found.' No apply prompt is shown.",
+      "context": "Tests that the --pr N target: (1) collects both PR metadata and the diff, (2) prepends the title+body as context to the reviewer prompt, and (3) correctly handles the NO FINDINGS case without showing an apply prompt.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "collects-pr-metadata",
+          "text": "The agent collects or uses the PR title and body (not just the diff) as context for the reviewer"
+        },
+        {
+          "id": "header-includes-pr-number",
+          "text": "The output header includes the PR number (e.g. 'PR #42')"
+        },
+        {
+          "id": "no-issues-output",
+          "text": "The output includes 'No issues found.' (the no-findings output)"
+        },
+        {
+          "id": "no-apply-prompt",
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "focus-option",
+      "prompt": "/peer-review --staged --focus security. There is one staged change: a new function in src/auth.js that reads a token from process.env.TOKEN and passes it unsanitized to a SQL query string. The reviewer (simulated) returns two findings: one security finding about SQL injection, and one minor style finding about a missing JSDoc comment.",
+      "expected_output": "The skill builds the review prompt with a focus line appended: 'Focus especially on security. Still report any critical findings outside this focus area.' The reviewer returns both findings. Both are presented (the focus does not suppress findings outside the focus area). The apply prompt is shown.",
+      "context": "Tests that --focus TOPIC appends the focus line to the review prompt and that the focus does NOT suppress findings outside the named topic \u2014 both the in-focus security finding and the out-of-focus style finding should appear in the output.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "focus-line-appended",
+          "text": "The review prompt includes a focus line mentioning 'security' (e.g. 'Focus especially on security')"
+        },
+        {
+          "id": "all-findings-shown",
+          "text": "Both findings are shown in the output \u2014 focus does not suppress findings outside the focus topic"
+        },
+        {
+          "id": "apply-prompt-shown",
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "apply-skip",
+      "prompt": "Simulate the apply step: the skill has already presented two findings to the user \u2014 finding 1 (Major) in src/utils.js about a missing null check, and finding 2 (Minor) in src/utils.js about an unused variable. The user replies: skip",
+      "expected_output": "When the user replies 'skip', the skill outputs 'Skipped 2 findings. No changes made.' and stops. No edits are made to any files.",
+      "context": "Tests the 'skip' branch of Step 6. The skill must output the skip summary and stop without making any changes.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "skip-summary-output",
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (or equivalent skip summary)"
+        },
+        {
+          "id": "no-files-edited",
+          "text": "No files are edited or modified by the agent"
         }
       ]
     }

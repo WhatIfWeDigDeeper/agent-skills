@@ -1,0 +1,93 @@
+"""Tests for --model routing decisions in peer-review skill."""
+
+import pytest
+
+from conftest import route_model
+
+
+class TestClaudeRouting:
+    """Any claude-* model value routes to the Claude subagent path."""
+
+    def test_default_model_routes_to_claude(self):
+        result = route_model("claude-opus-4-6")
+        assert result["route"] == "claude"
+        assert result["binary"] is None
+        assert result["submodel"] is None
+
+    def test_any_claude_prefix_routes_to_claude(self):
+        result = route_model("claude-haiku-4-5-20251001")
+        assert result["route"] == "claude"
+        assert result["binary"] is None
+
+    def test_empty_model_routes_to_claude(self):
+        result = route_model("")
+        assert result["route"] == "claude"
+
+    def test_none_routes_to_claude(self):
+        result = route_model(None)
+        assert result["route"] == "claude"
+
+
+class TestCopilotRouting:
+    """--model copilot routes to the copilot binary."""
+
+    def test_copilot_routes_to_copilot(self):
+        result = route_model("copilot")
+        assert result["route"] == "copilot"
+        assert result["binary"] == "copilot"
+        assert result["submodel"] is None
+
+    def test_copilot_with_submodel(self):
+        result = route_model("copilot:gpt-4o-mini")
+        assert result["route"] == "copilot"
+        assert result["binary"] == "copilot"
+        assert result["submodel"] == "gpt-4o-mini"
+
+    def test_copilot_with_different_submodel(self):
+        result = route_model("copilot:gpt-4o")
+        assert result["route"] == "copilot"
+        assert result["submodel"] == "gpt-4o"
+
+
+class TestCodexRouting:
+    """--model codex routes to the codex binary."""
+
+    def test_codex_routes_to_codex(self):
+        result = route_model("codex")
+        assert result["route"] == "codex"
+        assert result["binary"] == "codex"
+        assert result["submodel"] is None
+
+    def test_codex_with_submodel(self):
+        result = route_model("codex:gpt-4o")
+        assert result["route"] == "codex"
+        assert result["binary"] == "codex"
+        assert result["submodel"] == "gpt-4o"
+
+
+class TestGeminiRouting:
+    """--model gemini routes to the gemini binary."""
+
+    def test_gemini_routes_to_gemini(self):
+        result = route_model("gemini")
+        assert result["route"] == "gemini"
+        assert result["binary"] == "gemini"
+        assert result["submodel"] is None
+
+    def test_gemini_with_submodel(self):
+        result = route_model("gemini:gemini-2.0-flash")
+        assert result["route"] == "gemini"
+        assert result["binary"] == "gemini"
+        assert result["submodel"] == "gemini-2.0-flash"
+
+
+class TestUnsupportedModel:
+    """Unsupported --model values raise ValueError rather than silently falling back to claude."""
+
+    def test_unknown_prefix_raises(self):
+        with pytest.raises(ValueError, match="Unsupported --model value"):
+            route_model("llama")
+
+    def test_unknown_prefix_with_submodel_raises(self):
+        with pytest.raises(ValueError, match="Unsupported --model value"):
+            route_model("gpt-4o:latest")
