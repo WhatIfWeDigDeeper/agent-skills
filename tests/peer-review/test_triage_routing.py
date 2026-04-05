@@ -26,6 +26,8 @@ def parse_triage_output(triage_output: str, finding_count: int) -> dict:
     recommended = []
     skipped = {}
     found_any = False
+    seen_ids: set[int] = set()
+    has_duplicate = False
 
     for line in triage_output.strip().splitlines():
         line = line.strip()
@@ -36,6 +38,9 @@ def parse_triage_output(triage_output: str, finding_count: int) -> dict:
             colon_idx = rest.index(":")
             n = int(rest[:colon_idx].strip())
             verdict = rest[colon_idx + 1:].strip()
+            if n in seen_ids:
+                has_duplicate = True
+            seen_ids.add(n)
             found_any = True
             if verdict.lower().startswith("recommend"):
                 recommended.append(n)
@@ -52,8 +57,7 @@ def parse_triage_output(triage_output: str, finding_count: int) -> dict:
     classified = set(recommended) | set(skipped.keys())
     all_classified = finding_count == 0 or classified == set(range(1, finding_count + 1))
     overlap = set(recommended) & set(skipped.keys())
-    has_duplicates = len(recommended) != len(set(recommended))
-    parse_failed = not found_any or not all_classified or bool(overlap) or has_duplicates
+    parse_failed = not found_any or not all_classified or bool(overlap) or has_duplicate
     if parse_failed:
         # Fallback: treat all as recommended
         recommended = list(range(1, finding_count + 1))
@@ -150,6 +154,14 @@ class TestTriageOutputParsing:
     def test_contradictory_classification_triggers_fallback(self):
         # Same finding appears as both recommend and skip → overlap detected → parse_failed
         output = "FINDING 1: recommend\nFINDING 1: skip — changed my mind"
+        result = parse_triage_output(output, 1)
+        assert result["parse_failed"] is True
+        assert result["recommended"] == [1]
+        assert result["skipped"] == {}
+
+    def test_duplicate_skip_triggers_fallback(self):
+        # FINDING 1: skip appears twice (dict silently overwrites) → has_duplicate → parse_failed
+        output = "FINDING 1: skip — reason A\nFINDING 1: skip — reason B"
         result = parse_triage_output(output, 1)
         assert result["parse_failed"] is True
         assert result["recommended"] == [1]
