@@ -1,7 +1,5 @@
 """Tests for triage layer routing and re-scan behavior in peer-review skill."""
 
-import pytest
-
 from conftest import route_model
 
 

@@ -43,6 +43,6 @@
 
 - [x] Update `README.md` Skill Notes for `peer-review`: add description of triage layer and post-apply re-scan to the multi-LLM routing note
 - [x] Update Eval cost bullet with updated token/time stats from the new `benchmark.md` Summary table
-- [x] Add tests to `tests/peer-review/` covering triage routing: external CLI path triggers triage subagent; Claude path does not trigger triage; re-scan offer fires after apply; re-scan offer suppressed after skip; add a `classify_for_triage()` function (or equivalent) to `conftest.py` that maps `FINDING N: recommend/skip` lines to a dict — test cases can validate the parser in isolation
+- [x] Add tests to `tests/peer-review/` covering triage routing: external CLI path triggers triage subagent; Claude path does not trigger triage; re-scan offer fires after apply; re-scan offer suppressed after skip; keep the `FINDING N: recommend/skip` parser helper alongside the triage routing tests (or in another equivalent shared test location) so test cases can validate the parser in isolation
 - [x] Update PR description with new eval delta: run `git fetch origin && git log origin/main..HEAD --oneline`, compare against PR body, update with `gh pr edit` if new evals or behavior changes aren't reflected
 - [x] Run `uv run --with pytest pytest tests/` — confirm all tests pass
