@@ -399,12 +399,13 @@ When applying a finding, use the phrase anchor from the finding's Location field
 
 **Diff mode**: after applying all findings, suggest running tests or linting if the changes touched code: "Consider running tests to verify the applied changes."
 
-After all edits are complete, output: "Applied N finding(s)." on its own line. If the target was `--pr N`, also output the PR URL as the final line.
+After all edits are complete, output: "Applied N finding(s)." on its own line. If the target was `--pr N`, also output the PR URL immediately after. When no re-scan offer follows, the PR URL is the final line.
 
 **Post-apply re-scan** (offered only when at least one file was actually modified, and only once — not during a re-scan cycle):
 
 ```
 Applied N finding(s).
+https://github.com/owner/repo/pull/N  ← only when --pr N was the target
 
 Re-scan modified files for new issues? [y/n]
 ```
