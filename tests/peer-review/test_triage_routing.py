@@ -177,7 +177,7 @@ class TestRescanOfferConditions:
             return False
         if is_rescan_cycle:
             return False
-        return files_modified >= 1  # also covers the case where apply ran but no file was actually modified
+        return files_modified >= 1  # offer re-scan only when at least one file was modified
 
     def test_rescan_offered_after_apply_with_modifications(self):
         assert self.should_offer_rescan(files_modified=1, user_replied_skip=False, is_rescan_cycle=False) is True
