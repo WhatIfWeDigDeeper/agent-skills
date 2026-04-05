@@ -55,7 +55,7 @@ def parse_triage_output(triage_output: str, finding_count: int) -> dict:
             continue
 
     classified = set(recommended) | set(skipped.keys())
-    all_classified = finding_count == 0 or classified == set(range(1, finding_count + 1))
+    all_classified = classified == set(range(1, finding_count + 1))
     overlap = set(recommended) & set(skipped.keys())
     parse_failed = not found_any or not all_classified or bool(overlap) or has_duplicate
     if parse_failed:
