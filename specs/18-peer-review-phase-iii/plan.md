@@ -8,7 +8,7 @@ Phase II (v1.1) routes the review prompt to external CLIs (copilot, gemini, code
 
 2. **Apply has no verification pass.** After applying findings, there is no way to confirm the changes didn't introduce new inconsistencies. A spec edit that fixes one stale reference may create another.
 
-Current state: `skills/peer-review/SKILL.md` v1.1, 356 lines.
+Current state: `skills/peer-review/SKILL.md` v1.1, 355 lines.
 
 ---
 
@@ -66,7 +66,17 @@ FINDING N: skip — [one-line reason]
 
 **Step 5 changes:**
 
-If all findings were skipped (or there were no findings), output:
+If there were no findings at all (the external CLI returned nothing), output:
+
+```
+## Peer Review — [target] ([model])
+
+No issues found.
+```
+
+Then stop. Do not show an apply prompt.
+
+If there were findings but triage skipped all of them, output:
 
 ```
 ## Peer Review — [target] ([model])
@@ -188,6 +198,6 @@ Six new evals:
 - `triage-not-on-claude-path` — regression guard: ensures the triage layer does not accidentally activate on the Claude path; run with default `--model`; fixture: Claude subagent returns two findings; assertion: (1) findings are presented directly without a "Triage filtered" section; (2) apply prompt is the standard form ("Apply all, select by number, or skip?"), not the "Apply all recommended" form
 - `triage-user-includes-skipped` — fixture: 1 recommended finding (number 1) and 1 skipped finding (number S1); user replies `S1` to include only the skipped finding; assertion: the skipped finding is applied and the recommended finding is not applied
 - `rescan-offered-after-apply` — fixture: findings applied to a file; assertion: the re-scan offer ("Re-scan modified files for new issues?") is shown after "Applied N finding(s)."
-- `rescan-not-offered-after-skip` — user replies `skip` to the apply prompt; assertion: no re-scan offer is shown; "Skipped N findings" is the final output
+- `rescan-not-offered-after-skip` — user replies `skip` to the apply prompt; assertion: no re-scan offer is shown; "Skipped N findings. No changes made." is the final output
 
 Existing evals 1–9 remain unchanged (they exercise the Claude path and are unaffected by the external-CLI-only triage layer).

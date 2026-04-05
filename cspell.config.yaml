@@ -19,6 +19,7 @@ words:
   - dedup
   - cursorrules
   - EBADPLATFORM
+  - EPERM
   - endswith
   - elif
   - ensurepip

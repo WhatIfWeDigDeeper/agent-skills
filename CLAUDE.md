@@ -90,7 +90,7 @@ When substantially modifying an existing skill, also update its entry in `README
 - **Worktree directory outlives git registration**: `git worktree remove` unregisters the worktree but does not delete the directory. Run `rm -rf .claude/worktrees/<id>` manually afterward.
 - **`git checkout` runs in the bash tool's cwd**: when the shell context is inside a worktree, `git checkout` affects that worktree — not the main repo. Use `git -C /path/to/main/repo checkout <branch>` when switching branches in the main repo from a worktree shell context.
 - **`replace_all` removing trailing text can merge the next line**: when the removed substring is the last non-whitespace content on a line, the Edit tool may collapse the following line onto the same line. Verify surrounding context after any `replace_all` that targets text at the end of a line.
-- **External CLI tools (gemini, copilot) need sandbox lifted for network calls**: `gemini` requires `dangerouslyDisableSandbox: true` to make API calls. `copilot` produces output in sandbox but logs EPERM errors for session-state files — use `dangerouslyDisableSandbox: true` for clean runs with both.
+- **External CLI tools (gemini, copilot) may need sandbox restrictions lifted**: allow the capabilities they need, especially outbound network access for API calls and writable filesystem access for session-state files. In Claude Code, one way to do this is `dangerouslyDisableSandbox: true`. `gemini` may fail API calls without lifted network restrictions, and `copilot` may otherwise produce output but log `EPERM` errors for session-state files.
 
 ## Spell Checking
 
