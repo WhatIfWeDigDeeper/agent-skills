@@ -3,6 +3,7 @@ ignorePaths: []
 dictionaryDefinitions: []
 dictionaries: []
 words:
+  - rescan
   - actioned
   - blockquotes
   - preconfigure
@@ -18,6 +19,7 @@ words:
   - dedup
   - cursorrules
   - EBADPLATFORM
+  - EPERM
   - endswith
   - elif
   - ensurepip
