@@ -20,7 +20,8 @@ After Step 4d parses and normalizes the external CLI's findings, a new Step 4e s
 
 The triage subagent receives:
 - The normalized findings list (title, severity, file, location, problem, fix)
-- The content of the reviewed files (already collected in Step 2)
+- The content collected in Step 2 — for path targets (spec/consistency) this is the file contents; for diff targets (staged/branch/PR) this is the diff text; the subagent cannot access files not already collected
+- The review mode (`spec` / `consistency` / `diff`) so it knows how to interpret the content
 - A triage prompt (see below)
 
 The triage subagent returns a classification for each finding:
@@ -36,6 +37,9 @@ Findings are split into two buckets: **recommended** (present in Step 5 apply li
 ```
 You are reviewing a list of findings produced by an external code reviewer.
 Your job is to classify each finding as recommend or skip.
+
+Review mode: [spec / consistency / diff]
+Content type: [file contents / diff text]
 
 Recommend a finding if:
 - The issue is real and not already addressed in the reviewed content
@@ -55,8 +59,10 @@ FINDING N: skip — [one-line reason]
 
 [NORMALIZED FINDINGS]
 
-[REVIEWED FILE CONTENTS]
+[COLLECTED CONTENT — file contents for spec/consistency mode, diff text for diff mode]
 ```
+
+**Triage failure fallback:** If the triage subagent output cannot be parsed (missing `FINDING N:` lines, wrong format, empty response), treat all findings as `recommend` and prepend a note to the Step 5 output: "Triage unavailable — showing all findings."
 
 **Step 5 changes:**
 
@@ -73,7 +79,7 @@ Triage filtered all [N] findings:
 
 Then stop. Do not show an apply prompt.
 
-Otherwise, display recommended findings with their original numbering, then the skipped section:
+Otherwise, display recommended findings numbered sequentially, then skipped findings with an `S`-prefix:
 
 ```
 ## Peer Review — [target] ([model])
@@ -88,15 +94,15 @@ Otherwise, display recommended findings with their original numbering, then the 
 
 ---
 Triage filtered [M] of [N] findings:
-3. **[Skipped title]** — [reason]
-4. **[Skipped title]** — [reason]
+S1. **[Skipped title]** — [reason]
+S2. **[Skipped title]** — [reason]
 
-Apply all recommended, select by number (include skipped by their number), or skip? [all/1,2/1,3/skip]
+Apply all recommended, include skipped by S-number, or skip? [all/1,2/1,S1/skip]
 ```
 
-Numbers are globally assigned across both recommended and skipped findings so the user can include a skipped finding by its number.
+Recommended findings are numbered `1, 2, 3...` in presentation order. Skipped findings are numbered `S1, S2...`. This avoids display gaps and makes it visually clear which findings are triage overrides.
 
-**`all` applies only recommended findings.** To include a skipped finding, the user must explicitly reference its number.
+**`all` applies only recommended findings.** To include a skipped finding, the user references its S-number (e.g., `1,S1` or `S2`).
 
 **Scope**: triage applies only to the external CLI path. When `--model` starts with `claude-`, Step 4 is unchanged — Claude's own output goes directly to Step 5 without a triage pass.
 
@@ -114,11 +120,13 @@ Re-scan modified files for new issues? [y/n]
 
 Output this as your **final message and stop generating**. Resume only after the user replies.
 
-On `y`: collect the modified files' current content, build the same mode prompt (diff/spec/consistency based on the original target), and spawn a fresh Claude subagent (always Claude, regardless of the original `--model` — re-scan is a sanity check, not a fresh perspective). Present findings via Step 5. If no new issues are found, output "No new issues found in re-scan." and stop.
+On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode — after applying edits you're checking the changed files for drift, not regenerating a branch diff or re-reading a spec pair), and spawn a fresh Claude subagent (always Claude, regardless of the original `--model`). Present findings via Step 5. If no new issues are found, output "No new issues found in re-scan." and stop.
 
 On `n`: stop.
 
 **Trigger condition**: re-scan is offered only when at least one file was actually modified. If the user replied `skip` to the apply prompt, no re-scan is offered.
+
+**Depth limit**: re-scan is offered at most once. When Step 6 executes during a re-scan cycle, it does not offer another re-scan — output "Applied N finding(s)." and stop.
 
 ---
 
@@ -155,8 +163,10 @@ Add triage display logic:
 
 ### Step 6
 
+Update selection parsing: `all` applies only recommended findings. An explicit number (e.g., `1,S1`) applies that finding regardless of triage classification — `S`-prefixed numbers refer to skipped findings by their triage order. `skip` stops with no changes.
+
 After applying ≥1 finding: output re-scan offer; stop generating; resume on reply.
-On `y`: run re-scan (Claude path, same mode); feed into Step 5.
+On `y`: run re-scan (Claude path, consistency mode, at most once); feed into Step 5.
 On `n`: stop.
 
 ### Notes section
@@ -175,8 +185,8 @@ Six new evals:
 
 - `triage-skips-false-positive` — fixture: 2 normalized findings, one of which contradicts content embedded in the prompt (e.g., "install hint is legacy" but the content already shows the correct hint); assertion: (1) the contradicted finding appears in the "Triage filtered" section, not in the apply list; (2) the valid finding is presented in the apply list
 - `triage-all-skipped` — fixture: all findings are low-confidence opinions; assertion: (1) "No issues recommended." is shown; (2) no apply prompt is shown; (3) the triage filtered summary lists all skipped findings with reasons
-- `triage-not-on-claude-path` — run with default `--model` (claude path); fixture: Claude subagent returns two findings; assertion: (1) findings are presented directly without a "Triage filtered" section; (2) the apply prompt is the standard form (not the "Apply all recommended" form)
-- `triage-user-includes-skipped` — fixture: 1 recommended, 1 skipped; user replies with the skipped finding's number; assertion: the skipped finding is applied
+- `triage-not-on-claude-path` — regression guard: ensures the triage layer does not accidentally activate on the Claude path; run with default `--model`; fixture: Claude subagent returns two findings; assertion: (1) findings are presented directly without a "Triage filtered" section; (2) apply prompt is the standard form ("Apply all, select by number, or skip?"), not the "Apply all recommended" form
+- `triage-user-includes-skipped` — fixture: 1 recommended finding (number 1) and 1 skipped finding (number S1); user replies `S1` to include only the skipped finding; assertion: the skipped finding is applied and the recommended finding is not applied
 - `rescan-offered-after-apply` — fixture: findings applied to a file; assertion: the re-scan offer ("Re-scan modified files for new issues?") is shown after "Applied N finding(s)."
 - `rescan-not-offered-after-skip` — user replies `skip` to the apply prompt; assertion: no re-scan offer is shown; "Skipped N findings" is the final output
 
