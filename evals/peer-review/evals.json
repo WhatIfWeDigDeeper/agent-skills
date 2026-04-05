@@ -324,6 +324,134 @@
           "text": "No files are edited or modified by the agent"
         }
       ]
+    },
+    {
+      "id": 15,
+      "name": "triage-skips-false-positive",
+      "prompt": "/peer-review --model copilot. Simulate: the external CLI returned 2 normalized findings. The collected content for triage contains this note: 'Install with: npm install -g @github/copilot-cli'. FINDING 1: Title: Missing null check, Severity: major, File: src/auth.js, Location: 'return user.id', Problem: user.id is accessed without checking if user is null, Fix: Add null check before accessing user.id. FINDING 2: Title: Install hint is legacy, Severity: minor, File: README.md, Location: 'npm install -g @github/copilot-cli', Problem: The install command is outdated — use 'gh extension install' instead, Fix: Replace with 'gh extension install github/gh-copilot'. The triage subagent (simulated) responds: FINDING 1: recommend\\nFINDING 2: skip — the reviewed content already uses 'npm install -g @github/copilot-cli' as the correct install hint; flagging it as legacy contradicts verified content.",
+      "expected_output": "Finding 2 is classified as skipped by triage and appears in the 'Triage filtered' section (not in the numbered apply list). Finding 1 is classified as recommended and appears in the numbered apply list as finding 1. The apply prompt uses the triage form: 'Apply all recommended, include skipped by S-number, or skip? [all/1/1,S1/skip]'.",
+      "context": "Tests the triage layer filtering a false positive. The external CLI found a finding that contradicts content already in the reviewed files. The triage subagent correctly identifies this and skips it. The recommended finding should appear in the apply list; the skipped finding should appear only in the triage-filtered section.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "false-positive-in-triage-section",
+          "text": "Finding 2 ('Install hint is legacy') appears in the 'Triage filtered' section (not in the main numbered findings list)"
+        },
+        {
+          "id": "valid-finding-in-apply-list",
+          "text": "Finding 1 ('Missing null check') appears in the numbered apply list as a recommended finding"
+        },
+        {
+          "id": "triage-apply-prompt-shown",
+          "text": "The apply prompt uses the triage form mentioning S-number (e.g. 'Apply all recommended, include skipped by S-number, or skip?')"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "triage-all-skipped",
+      "prompt": "/peer-review --model gemini. Simulate: the external CLI returned 2 normalized findings. FINDING 1: Title: Consider using const instead of let, Severity: minor, File: src/index.js, Location: 'let result =', Problem: Variable is never reassigned — prefer const for clarity, Fix: Change 'let' to 'const'. FINDING 2: Title: Arrow function could use implicit return, Severity: minor, File: src/index.js, Location: 'return value;', Problem: Single-expression function body could use implicit arrow return for brevity, Fix: Remove braces and return keyword. The triage subagent (simulated) responds: FINDING 1: skip — stylistic preference, not an error; the code is correct as written\\nFINDING 2: skip — speculative opinion about arrow function style; no correctness issue.",
+      "expected_output": "The output shows 'No issues recommended.' followed by a triage summary listing both skipped findings with their reasons. No apply prompt is shown. The skill stops after showing the triage summary.",
+      "context": "Tests the all-skipped path: when triage classifies all findings as skipped, the skill outputs 'No issues recommended.' and a triage summary, then stops without showing an apply prompt.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-issues-recommended-shown",
+          "text": "The output includes 'No issues recommended.' (the all-skipped message)"
+        },
+        {
+          "id": "no-apply-prompt-shown",
+          "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)"
+        },
+        {
+          "id": "triage-summary-lists-skipped",
+          "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "triage-not-on-claude-path",
+      "prompt": "/peer-review --staged. Simulate: staged diff contains a change to src/utils.js adding a new helper function. The Claude reviewer subagent (simulated) returns two findings: Finding 1 (Major): 'Missing return type annotation' in src/utils.js; Finding 2 (Minor): 'Inconsistent spacing' in src/utils.js.",
+      "expected_output": "Both findings are presented directly without any 'Triage filtered' section. The apply prompt is the standard Claude-path form: 'Apply all, select by number, or skip? [all/1,3,5/skip]' — not the triage form mentioning S-numbers. No triage subagent is spawned.",
+      "context": "Regression guard ensuring the triage layer does not activate on the Claude path (default --model or any claude-* value). The Claude reviewer's output should go directly to Step 5 without a triage pass.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-triage-filtered-section",
+          "text": "The output does NOT contain a 'Triage filtered' section — triage does not run on the Claude path"
+        },
+        {
+          "id": "standard-apply-prompt-shown",
+          "text": "The apply prompt is the standard form ('Apply all, select by number, or skip?') — not the triage form mentioning S-numbers"
+        },
+        {
+          "id": "both-findings-shown",
+          "text": "Both findings (Missing return type annotation and Inconsistent spacing) appear in the output"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "triage-user-includes-skipped",
+      "prompt": "Simulate the triage apply step: the skill has already presented findings to the user. Recommended finding 1 (Major): 'Missing null check' in src/auth.js. Triage filtered 1 finding: S1. 'Install hint is legacy' — contradicts verified content. Apply prompt shown: 'Apply all recommended, include skipped by S-number, or skip? [all/1/S1/skip]'. The user replies: S1",
+      "expected_output": "The skipped finding S1 ('Install hint is legacy') is applied — the skill edits the relevant file. The recommended finding 1 ('Missing null check') is NOT applied (only S1 was selected). The output confirms applying S1.",
+      "context": "Tests S-prefix selection: user can override triage and include a skipped finding by its S-number. Only the named finding is applied, not all recommended findings.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "skipped-finding-applied",
+          "text": "The skipped finding S1 ('Install hint is legacy') is applied — the skill reports applying it"
+        },
+        {
+          "id": "recommended-finding-not-applied",
+          "text": "The recommended finding 1 ('Missing null check') is NOT applied (only S1 was selected by the user)"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "name": "rescan-offered-after-apply",
+      "prompt": "Simulate the apply step: the skill has already presented one finding to the user — finding 1 (Major): 'Stale step reference' in docs/SKILL.md at location 'See Step 3 for details' — Step 3 was renamed to Step 4. Apply prompt was shown. The user replies: all. The skill applies finding 1 by editing docs/SKILL.md.",
+      "expected_output": "After applying finding 1, the skill outputs 'Applied 1 finding(s).' followed by the re-scan offer: 'Re-scan modified files for new issues? [y/n]'. The skill stops generating and waits for the user's reply.",
+      "context": "Tests that the post-apply re-scan offer is shown after at least one file is modified. The re-scan offer must appear after the 'Applied N finding(s).' line.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "applied-summary-shown",
+          "text": "The output includes 'Applied 1 finding(s).' (or equivalent applied summary)"
+        },
+        {
+          "id": "rescan-offer-shown",
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') is shown after the applied summary"
+        },
+        {
+          "id": "skill-stops-generating",
+          "text": "The skill stops generating after the re-scan offer — it does not proceed to re-scan without the user's reply"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name": "rescan-not-offered-after-skip",
+      "prompt": "Simulate the apply step: the skill has already presented two findings to the user — finding 1 (Major): 'Missing null check' in src/auth.js, finding 2 (Minor): 'Unused import' in src/auth.js. Apply prompt was shown. The user replies: skip",
+      "expected_output": "The skill outputs 'Skipped 2 findings. No changes made.' and stops. No re-scan offer is shown. No files are edited.",
+      "context": "Tests that the re-scan offer is suppressed when the user replies 'skip'. The re-scan is only offered after at least one file is actually modified.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "skip-summary-output",
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (the skip summary)"
+        },
+        {
+          "id": "no-rescan-offer-shown",
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') does NOT appear in the output"
+        },
+        {
+          "id": "no-files-edited",
+          "text": "No files are edited or modified by the agent"
+        }
+      ]
     }
   ]
 }

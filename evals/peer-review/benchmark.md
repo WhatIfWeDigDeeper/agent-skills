@@ -1,21 +1,21 @@
 # peer-review Benchmark Results
 
 **Model**: claude-sonnet-4-6
-**Date**: 2026-04-04
-**Evals**: 14 (1 run each, with-skill vs. without-skill)
+**Date**: 2026-04-05
+**Evals**: 20 (1 run each, with-skill vs. without-skill)
 
 ## Summary
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | 97% ± 7% | 70% ± 30% | **+27%** |
+| Pass rate | 98% ± 6% | 68% ± 34% | **+31%** |
 | Min / Max | 80% / 100% | 0% / 100% | |
 | Time (s) | ~43.0 ± 34.8 | ~45.6 ± 61.5 | -2.7 |
 | Tokens | ~26,892 ± 7,377 | ~25,644 ± 13,928 | +1,249 |
 
-14 evals × 2 configurations = 28 runs. Token statistics are computed over 8 of 14 primary (run_number=1) runs per configuration (16 of 28 total) — evals 5–10 use simulated transcripts and have no recorded time or token measurements; evals 1–4 and 11–14 have real measurements. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
+20 evals × 2 configurations = 40 runs. Token statistics are computed over 8 of 20 primary (run_number=1) runs per configuration (16 of 40 total) — evals 5–10 and 15–20 use simulated transcripts and have no recorded time or token measurements; evals 1–4 and 11–14 have real measurements. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
-**Discriminating evals**: Evals 2, 4, 5, 7, 8, 9, 10, 13 discriminate. Eval 2 is the primary discriminating eval (+0.40 delta). Eval 5 (copilot severity normalization) has the highest delta (+1.0). Eval 13 (focus-option) discriminates at +0.67. Evals 3, 6, 11, 12, 14 are non-discriminating: baseline handles conflict detection, no-findings output, empty-staged warning, PR metadata inclusion (with fixture), and skip handling correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
+**Discriminating evals**: Evals 2, 4, 5, 7, 8, 9, 10, 13, 15, 16, 19 discriminate. Eval 2 is the primary discriminating eval (+0.40 delta). Eval 5 (copilot severity normalization) has the highest delta (+1.0). Eval 13 (focus-option) discriminates at +0.67. Evals 15 (triage-skips-false-positive, +1.0 delta) and 16 (triage-all-skipped, +0.67 delta) and 19 (rescan-offered-after-apply, +0.67 delta) are the new discriminating evals from Phase III. Evals 3, 6, 11, 12, 14, 17, 18, 20 are non-discriminating: baseline handles conflict detection, no-findings output, empty-staged warning, PR metadata inclusion (with fixture), skip handling, triage-not-on-claude-path (regression guard), triage-user-includes-skipped (intuitive S-prefix), and rescan-not-offered-after-skip correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
 
 ## Eval Results
 
@@ -183,11 +183,78 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 **Non-discriminating**. Both configurations output a skip summary without making file edits. The skill-defined exact phrasing ("Skipped 2 findings. No changes made.") was not reproduced by without-skill ("No changes applied..."), but the assertion accepts equivalent summaries, so both pass. Establishes baseline behavior for the skip path.
 
+### Eval 15 — `triage-skips-false-positive`
+
+**Scenario**: `/peer-review --model copilot` with 2 normalized findings. Triage subagent classifies Finding 1 as recommend and Finding 2 ("Install hint is legacy") as skip — the reviewed content already uses the flagged install command as the correct hint, so the finding contradicts verified content.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 0.00      | 0/3    | 3      |
+
+**Discriminating** (+1.0 delta). All 3 assertions fail without-skill: no "Triage filtered" section, no formal recommended/skipped separation, and no S-prefix apply prompt. With-skill correctly applies triage classification, presents Finding 2 in the filtered section (S1), and uses the triage form of the apply prompt.
+
+### Eval 16 — `triage-all-skipped`
+
+**Scenario**: `/peer-review --model gemini` with 2 findings. Both are low-confidence style opinions; triage subagent classifies both as skip.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 0.33      | 1/3    | 2      |
+
+**Discriminating** (+0.67 delta). without-skill still offered an apply prompt ("Would you like me to apply either of these anyway?") and did not output "No issues recommended." — the all-skipped path and its specific phrasing are skill-defined. The triage summary content appeared in prose (satisfying assertion 3 loosely), but the required phrase and suppressed apply prompt both fail.
+
+### Eval 17 — `triage-not-on-claude-path`
+
+**Scenario**: `/peer-review --staged` (default Claude model) with 2 findings from the Claude reviewer subagent.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 1.00      | 3/3    | 0      |
+
+**Non-discriminating**. This is a regression guard: without-skill naturally produces no "Triage filtered" section (it has no concept of triage), uses a standard apply prompt without S-numbers, and lists both findings. Establishes that the Claude path never activates triage.
+
+### Eval 18 — `triage-user-includes-skipped`
+
+**Scenario**: Triage apply step — 1 recommended finding (1) and 1 skipped finding (S1). User replies `S1`.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 2/2    | 0      |
+| without-skill | 1.00      | 2/2    | 0      |
+
+**Non-discriminating**. The `S1` selection is literal enough that a general assistant interprets it correctly without skill guidance. Both configurations apply only S1 and leave finding 1 unapplied. Verifies S-prefix selection logic is working as designed.
+
+### Eval 19 — `rescan-offered-after-apply`
+
+**Scenario**: User replies `all` to the apply prompt. One finding applied, modifying docs/SKILL.md. Post-apply re-scan offer expected.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 0.33      | 1/3    | 2      |
+
+**Discriminating** (+0.67 delta). without-skill applied the finding and output an applied summary but did not offer a re-scan — it ended with "Let me know if you'd like me to review any other files." The re-scan offer and stop-generating behavior are both skill-defined behaviors absent in the baseline.
+
+### Eval 20 — `rescan-not-offered-after-skip`
+
+**Scenario**: User replies `skip` to the apply prompt.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 1.00      | 3/3    | 0      |
+
+**Non-discriminating**. Both configurations output the skip summary and produce no re-scan offer — baseline naturally skips applying and makes no edits when told to skip. Verifies re-scan suppression on the skip path.
+
 ## Notes
 
 - **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For evals 1 and 4, the "spawns subagent" assertion fails in both configurations for this reason. In production use, the skill correctly delegates to a fresh subagent.
-- **Evals 5–10 use simulated transcripts**: fixture CLI responses are embedded in the eval prompt rather than calling real external CLIs (which may not be installed). Time and token measurements are null for these runs.
+- **Evals 5–10 and 15–20 use simulated transcripts**: fixture CLI responses and triage outputs are embedded in the eval prompt rather than calling real external CLIs or spawning real triage subagents. Time and token measurements are null for these runs.
 - **Evals 11–14 have real measurements**: executor subagents ran the full skill workflow; time and token data recorded.
 - **Eval 6 non-discriminating**: both configurations naturally output "No issues found." for an empty findings array. This establishes baseline behavior for the empty-findings case.
 - **Eval 3 redesign note**: Previously tested "no staged changes → warn and exit" (non-discriminating). Redesigned to test argument conflict (`--staged` + path → error). Also non-discriminating — conflict detection is simple enough that a capable baseline handles it correctly.
-- **Delta from adding evals 11–14**: adding 4 mostly non-discriminating evals (11, 12, 14) plus one discriminating eval (13) reduces the headline delta from +31% to +27%. The absolute discrimination is unchanged — eval 13 adds a new +0.67 discriminating signal; the denominator grew by 4.
+- **Delta from adding evals 11–14**: adding 4 mostly non-discriminating evals (11, 12, 14) plus one discriminating eval (13) reduced the headline delta from +31% to +27%.
+- **Delta from adding evals 15–20**: adding 3 discriminating evals (15, 16, 19) and 3 non-discriminating evals (17, 18, 20) restores and exceeds the headline delta: +27% → +31%. Evals 17, 18, 20 are non-discriminating by design — they serve as regression guards or verify intuitive behaviors that pass without skill knowledge.

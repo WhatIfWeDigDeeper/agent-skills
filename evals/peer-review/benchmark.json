@@ -2,11 +2,32 @@
   "metadata": {
     "skill_name": "peer-review",
     "skill_path": "skills/peer-review",
-    "skill_version": "1.1",
+    "skill_version": "1.2",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-04-04T10:30:00Z",
-    "evals_run": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+    "timestamp": "2026-04-05T10:30:00Z",
+    "evals_run": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
     "runs_per_configuration": 1
   },
   "notes": [
@@ -15,10 +36,12 @@
     "Eval 4 (diff mode) is the secondary discriminating eval (+0.20 delta): explicit diff mode declaration differentiates, subagent assertion fails in both due to harness constraint.",
     "Eval 3 (argument-conflict-error) is non-discriminating: both configurations correctly detect the mutually exclusive target conflict and output the error without running a review.",
     "Eval 1 is zero-delta (0.80/0.80) due to harness constraint masking the subagent-spawning differentiator.",
-    "Evals 5-10 test Phase II multi-LLM routing. Eval 6 (copilot-empty-findings) is non-discriminating: empty findings → 'No issues found.' is natural default behavior. Evals 5, 7, 8, 9, 10 all discriminate.",
+    "Evals 5-10 test Phase II multi-LLM routing. Eval 6 (copilot-empty-findings) is non-discriminating: empty findings \u2192 'No issues found.' is natural default behavior. Evals 5, 7, 8, 9, 10 all discriminate.",
     "Evals 5-10 use simulated transcripts (fixture responses embedded in prompts); time_seconds and tokens are null for these runs.",
     "Evals 11-14 added in v1.1 review pass. Eval 13 (focus-option) discriminates (+0.67 delta): the skill-defined focus line format and apply prompt both fail without_skill. Evals 11, 12, 14 are non-discriminating: empty-staged warning, PR metadata inclusion (when fixture data is explicit in the prompt), and skip handling are natural baseline behaviors.",
-    "Evals 11-14 have real time and token measurements (subagent executor ran the full workflow, not pure transcript simulation)."
+    "Evals 11-14 have real time and token measurements (subagent executor ran the full workflow, not pure transcript simulation).",
+    "Evals 15-20 added in v1.2 for triage layer and post-apply re-scan. All use simulated fixtures; time_seconds and tokens are null.",
+    "Evals 15 (triage-skips-false-positive) and 16 (triage-all-skipped) and 19 (rescan-offered-after-apply) are discriminating. Evals 17, 18, 20 are non-discriminating: triage-not-on-claude-path and rescan-not-offered-after-skip are natural baseline behaviors; triage-user-includes-skipped passes because 'S1' literal selection is intuitive."
   ],
   "runs": [
     {
@@ -37,13 +60,35 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md", "passed": true, "evidence": "Agent parsed path target, confirmed no plan.md/tasks.md in fixture directory, explicitly set mode to consistency."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Sub-subagents unavailable in eval executor context — review performed inline as a fresh-context pass. Known harness constraint, not a skill defect."},
-        {"text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)", "passed": true, "evidence": "Finding #1 (Major): SKILL.md references 'Step 3 of reference.md' for field mapping table, but reference.md has no Step 3 — the field mapping is at Step 4."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings presented under Major and Minor headings."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Response ends with apply prompt and stops generating."}
+        {
+          "text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md",
+          "passed": true,
+          "evidence": "Agent parsed path target, confirmed no plan.md/tasks.md in fixture directory, explicitly set mode to consistency."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "Sub-subagents unavailable in eval executor context \u2014 review performed inline as a fresh-context pass. Known harness constraint, not a skill defect."
+        },
+        {
+          "text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)",
+          "passed": true,
+          "evidence": "Finding #1 (Major): SKILL.md references 'Step 3 of reference.md' for field mapping table, but reference.md has no Step 3 \u2014 the field mapping is at Step 4."
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
+          "passed": true,
+          "evidence": "Findings presented under Major and Minor headings."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Response ends with apply prompt and stops generating."
+        }
       ],
-      "notes": ["Zero-delta (harness constraint). In production, with_skill delegates to fresh subagent; without_skill reviews inline."]
+      "notes": [
+        "Zero-delta (harness constraint). In production, with_skill delegates to fresh subagent; without_skill reviews inline."
+      ]
     },
     {
       "eval_id": 1,
@@ -61,13 +106,35 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md", "passed": true, "evidence": "Agent labeled the review as a consistency review in the transcript header and performed consistency-style checks."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Reviewed inline — no subagent spawned."},
-        {"text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)", "passed": true, "evidence": "Finding #1 (Major): correctly identified stale step reference — SKILL.md cites Step 3 but field mapping is at Step 4."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings grouped under Major and Minor headings."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown at end of response."}
+        {
+          "text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md",
+          "passed": true,
+          "evidence": "Agent labeled the review as a consistency review in the transcript header and performed consistency-style checks."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "Reviewed inline \u2014 no subagent spawned."
+        },
+        {
+          "text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)",
+          "passed": true,
+          "evidence": "Finding #1 (Major): correctly identified stale step reference \u2014 SKILL.md cites Step 3 but field mapping is at Step 4."
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
+          "passed": true,
+          "evidence": "Findings grouped under Major and Minor headings."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Apply prompt shown at end of response."
+        }
       ],
-      "notes": ["Non-discriminating on 4/5 assertions. Only discriminating assertion (subagent spawning) fails in both configs due to harness constraint."]
+      "notes": [
+        "Non-discriminating on 4/5 assertions. Only discriminating assertion (subagent spawning) fails in both configs due to harness constraint."
+      ]
     },
     {
       "eval_id": 2,
@@ -85,13 +152,35 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md", "passed": true, "evidence": "Mode explicitly set to Spec after detecting plan.md + tasks.md in fixture directory."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": true, "evidence": "Step 4 executed as an explicit fresh-context reviewer pass, framed as a distinct entity with no prior session context."},
-        {"text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md", "passed": true, "evidence": "Major findings #1 and #2: --verbose missing from argument parsing task and has no implementation task anywhere in tasks.md."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings presented under Major and Minor headings."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown at end of response, generation stops."}
+        {
+          "text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md",
+          "passed": true,
+          "evidence": "Mode explicitly set to Spec after detecting plan.md + tasks.md in fixture directory."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": true,
+          "evidence": "Step 4 executed as an explicit fresh-context reviewer pass, framed as a distinct entity with no prior session context."
+        },
+        {
+          "text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md",
+          "passed": true,
+          "evidence": "Major findings #1 and #2: --verbose missing from argument parsing task and has no implementation task anywhere in tasks.md."
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
+          "passed": true,
+          "evidence": "Findings presented under Major and Minor headings."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Apply prompt shown at end of response, generation stops."
+        }
       ],
-      "notes": ["Primary discriminating eval (+0.40 delta). Spec mode detection and structured reviewer delegation are the key differentiators."]
+      "notes": [
+        "Primary discriminating eval (+0.40 delta). Spec mode detection and structured reviewer delegation are the key differentiators."
+      ]
     },
     {
       "eval_id": 2,
@@ -109,13 +198,35 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md", "passed": false, "evidence": "No explicit spec mode declaration — agent reviewed the files without identifying a distinct mode workflow."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Reviewed inline in the same response, no subagent spawned."},
-        {"text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md", "passed": true, "evidence": "Found --verbose missing from all tasks (classified as Critical C1 and C2)."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor)", "passed": true, "evidence": "Findings grouped under Critical, Major, Minor headings."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown at end of response."}
+        {
+          "text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md",
+          "passed": false,
+          "evidence": "No explicit spec mode declaration \u2014 agent reviewed the files without identifying a distinct mode workflow."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "Reviewed inline in the same response, no subagent spawned."
+        },
+        {
+          "text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md",
+          "passed": true,
+          "evidence": "Found --verbose missing from all tasks (classified as Critical C1 and C2)."
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
+          "passed": true,
+          "evidence": "Findings grouped under Critical, Major, Minor headings."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Apply prompt shown at end of response."
+        }
       ],
-      "notes": ["Failing: spec mode not declared, review inline. without_skill classified --verbose as Critical vs Major by with_skill."]
+      "notes": [
+        "Failing: spec mode not declared, review inline. without_skill classified --verbose as Critical vs Major by with_skill."
+      ]
     },
     {
       "eval_id": 3,
@@ -133,11 +244,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent detects that both --staged and a file path target are provided simultaneously", "passed": true, "evidence": "Argument parsing at Step 1 identified --staged as staged target and remaining path token as path target — two targets detected."},
-        {"text": "The agent outputs an error indicating targets are mutually exclusive (e.g. 'specify one target at a time')", "passed": true, "evidence": "Output: 'Error: specify one target at a time — targets are mutually exclusive.'"},
-        {"text": "The agent exits without spawning a reviewer subagent or presenting findings", "passed": true, "evidence": "Skill exited at Step 1 — Steps 2-6 never reached."}
+        {
+          "text": "The agent detects that both --staged and a file path target are provided simultaneously",
+          "passed": true,
+          "evidence": "Argument parsing at Step 1 identified --staged as staged target and remaining path token as path target \u2014 two targets detected."
+        },
+        {
+          "text": "The agent outputs an error indicating targets are mutually exclusive (e.g. 'specify one target at a time')",
+          "passed": true,
+          "evidence": "Output: 'Error: specify one target at a time \u2014 targets are mutually exclusive.'"
+        },
+        {
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Skill exited at Step 1 \u2014 Steps 2-6 never reached."
+        }
       ],
-      "notes": ["Non-discriminating (3/3 in both configs). Conflict detection is straightforward enough for a capable baseline to handle correctly."]
+      "notes": [
+        "Non-discriminating (3/3 in both configs). Conflict detection is straightforward enough for a capable baseline to handle correctly."
+      ]
     },
     {
       "eval_id": 3,
@@ -155,11 +280,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent detects that both --staged and a file path target are provided simultaneously", "passed": true, "evidence": "Agent identified two mutually exclusive target selectors: --staged and the file path skills/peer-review/SKILL.md."},
-        {"text": "The agent outputs an error indicating targets are mutually exclusive (e.g. 'specify one target at a time')", "passed": true, "evidence": "Output: 'specify one target at a time — targets are mutually exclusive.' with corrected alternatives."},
-        {"text": "The agent exits without spawning a reviewer subagent or presenting findings", "passed": true, "evidence": "Error output only — no review performed, no subagent spawned, no findings shown."}
+        {
+          "text": "The agent detects that both --staged and a file path target are provided simultaneously",
+          "passed": true,
+          "evidence": "Agent identified two mutually exclusive target selectors: --staged and the file path skills/peer-review/SKILL.md."
+        },
+        {
+          "text": "The agent outputs an error indicating targets are mutually exclusive (e.g. 'specify one target at a time')",
+          "passed": true,
+          "evidence": "Output: 'specify one target at a time \u2014 targets are mutually exclusive.' with corrected alternatives."
+        },
+        {
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Error output only \u2014 no review performed, no subagent spawned, no findings shown."
+        }
       ],
-      "notes": ["Non-discriminating — capable baseline correctly handles conflict detection without skill guidance. Eval establishes baseline behavior only."]
+      "notes": [
+        "Non-discriminating \u2014 capable baseline correctly handles conflict detection without skill guidance. Eval establishes baseline behavior only."
+      ]
     },
     {
       "eval_id": 4,
@@ -177,13 +316,35 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch", "passed": true, "evidence": "Agent explicitly set target type to branch and mode to Diff after parsing --branch flag."},
-        {"text": "The agent runs a git diff command to collect the branch diff against the default branch", "passed": true, "evidence": "Ran git diff main...specs/16-peer-review, producing ~93KB of diff across 13 files."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Sub-subagents unavailable in eval executor context — review performed inline as a fresh-context pass. Known harness constraint."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs 'No issues found.' with no apply prompt if there are no findings", "passed": true, "evidence": "Findings presented under Major and Minor severity headings (5 findings total)."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown at end of response, generation stops."}
+        {
+          "text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch",
+          "passed": true,
+          "evidence": "Agent explicitly set target type to branch and mode to Diff after parsing --branch flag."
+        },
+        {
+          "text": "The agent runs a git diff command to collect the branch diff against the default branch",
+          "passed": true,
+          "evidence": "Ran git diff main...specs/16-peer-review, producing ~93KB of diff across 13 files."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "Sub-subagents unavailable in eval executor context \u2014 review performed inline as a fresh-context pass. Known harness constraint."
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs 'No issues found.' with no apply prompt if there are no findings",
+          "passed": true,
+          "evidence": "Findings presented under Major and Minor severity headings (5 findings total)."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Apply prompt shown at end of response, generation stops."
+        }
       ],
-      "notes": ["Secondary discriminating eval (+0.20 delta). Diff mode declaration differentiates; subagent assertion fails in both due to harness constraint. Reviewer caught real findings including CI action version issues and potential stddev error in benchmark.json."]
+      "notes": [
+        "Secondary discriminating eval (+0.20 delta). Diff mode declaration differentiates; subagent assertion fails in both due to harness constraint. Reviewer caught real findings including CI action version issues and potential stddev error in benchmark.json."
+      ]
     },
     {
       "eval_id": 4,
@@ -201,13 +362,35 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch", "passed": false, "evidence": "No explicit mode declaration — agent ran a git diff and reviewed it without identifying it as 'diff mode' distinct from other modes."},
-        {"text": "The agent runs a git diff command to collect the branch diff against the default branch", "passed": true, "evidence": "Ran git diff main...specs/16-peer-review --stat then full diff, detected default branch from repo."},
-        {"text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response", "passed": false, "evidence": "Reviewed inline with 45 tool calls — no subagent spawned."},
-        {"text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs 'No issues found.' with no apply prompt if there are no findings", "passed": true, "evidence": "Findings presented under Critical (empty), Major, and Minor severity headings."},
-        {"text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings", "passed": true, "evidence": "Apply prompt shown as final line of response."}
+        {
+          "text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch",
+          "passed": false,
+          "evidence": "No explicit mode declaration \u2014 agent ran a git diff and reviewed it without identifying it as 'diff mode' distinct from other modes."
+        },
+        {
+          "text": "The agent runs a git diff command to collect the branch diff against the default branch",
+          "passed": true,
+          "evidence": "Ran git diff main...specs/16-peer-review --stat then full diff, detected default branch from repo."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "Reviewed inline with 45 tool calls \u2014 no subagent spawned."
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs 'No issues found.' with no apply prompt if there are no findings",
+          "passed": true,
+          "evidence": "Findings presented under Critical (empty), Major, and Minor severity headings."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Apply prompt shown as final line of response."
+        }
       ],
-      "notes": ["Failing: no mode declaration, review inline with 45 tool calls (3x the with_skill cost). without_skill spent 191.9s vs 105.5s for with_skill on this eval."]
+      "notes": [
+        "Failing: no mode declaration, review inline with 45 tool calls (3x the with_skill cost). without_skill spent 191.9s vs 105.5s for with_skill on this eval."
+      ]
     },
     {
       "eval_id": 5,
@@ -225,11 +408,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The finding with severity 'high' from the copilot JSON is presented to the user as 'critical' (not 'high')", "passed": true, "evidence": "Severity normalization per SKILL.md Step 4d maps 'high' → 'critical'. Finding 1 presented under ### Critical heading."},
-        {"text": "The finding with severity 'low' from the copilot JSON is presented to the user as 'minor' (not 'low')", "passed": true, "evidence": "Severity normalization per SKILL.md Step 4d maps 'low' → 'minor'. Finding 2 presented under ### Minor heading."},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings", "passed": true, "evidence": "Step 5 template outputs apply prompt after findings display."}
+        {
+          "text": "The finding with severity 'high' from the copilot JSON is presented to the user as 'critical' (not 'high')",
+          "passed": true,
+          "evidence": "Severity normalization per SKILL.md Step 4d maps 'high' \u2192 'critical'. Finding 1 presented under ### Critical heading."
+        },
+        {
+          "text": "The finding with severity 'low' from the copilot JSON is presented to the user as 'minor' (not 'low')",
+          "passed": true,
+          "evidence": "Severity normalization per SKILL.md Step 4d maps 'low' \u2192 'minor'. Finding 2 presented under ### Minor heading."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": true,
+          "evidence": "Step 5 template outputs apply prompt after findings display."
+        }
       ],
-      "notes": ["Discriminating (+1.0 delta). Both severity mappings applied correctly. Apply prompt displayed."]
+      "notes": [
+        "Discriminating (+1.0 delta). Both severity mappings applied correctly. Apply prompt displayed."
+      ]
     },
     {
       "eval_id": 5,
@@ -247,11 +444,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The finding with severity 'high' from the copilot JSON is presented to the user as 'critical' (not 'high')", "passed": false, "evidence": "No severity remapping logic without skill — 'high' presented as-is."},
-        {"text": "The finding with severity 'low' from the copilot JSON is presented to the user as 'minor' (not 'low')", "passed": false, "evidence": "No severity remapping logic without skill — 'low' presented as-is."},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings", "passed": false, "evidence": "No apply prompt logic without skill — default behavior summarizes findings and stops."}
+        {
+          "text": "The finding with severity 'high' from the copilot JSON is presented to the user as 'critical' (not 'high')",
+          "passed": false,
+          "evidence": "No severity remapping logic without skill \u2014 'high' presented as-is."
+        },
+        {
+          "text": "The finding with severity 'low' from the copilot JSON is presented to the user as 'minor' (not 'low')",
+          "passed": false,
+          "evidence": "No severity remapping logic without skill \u2014 'low' presented as-is."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": false,
+          "evidence": "No apply prompt logic without skill \u2014 default behavior summarizes findings and stops."
+        }
       ],
-      "notes": ["All 3 assertions fail without skill — severity remapping and apply prompt are skill-defined behaviors."]
+      "notes": [
+        "All 3 assertions fail without skill \u2014 severity remapping and apply prompt are skill-defined behaviors."
+      ]
     },
     {
       "eval_id": 6,
@@ -269,10 +480,20 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output includes 'No issues found.' (the no-findings output)", "passed": true, "evidence": "Step 4d: findings[] is empty → NO FINDINGS. Step 5 outputs 'No issues found.' with header."},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown", "passed": true, "evidence": "Step 5: 'Then stop. Do not show an apply prompt.' Skill stopped after 'No issues found.'"}
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": true,
+          "evidence": "Step 4d: findings[] is empty \u2192 NO FINDINGS. Step 5 outputs 'No issues found.' with header."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
+          "passed": true,
+          "evidence": "Step 5: 'Then stop. Do not show an apply prompt.' Skill stopped after 'No issues found.'"
+        }
       ],
-      "notes": ["Non-discriminating (1.0/1.0). Empty findings → 'No issues found.' is natural default behavior; no apply prompt is absent in both configs."]
+      "notes": [
+        "Non-discriminating (1.0/1.0). Empty findings \u2192 'No issues found.' is natural default behavior; no apply prompt is absent in both configs."
+      ]
     },
     {
       "eval_id": 6,
@@ -290,10 +511,20 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output includes 'No issues found.' (the no-findings output)", "passed": true, "evidence": "Natural default behavior when findings array is empty produces a 'no issues found' statement."},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown", "passed": true, "evidence": "No apply prompt logic without skill — never shown."}
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": true,
+          "evidence": "Natural default behavior when findings array is empty produces a 'no issues found' statement."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
+          "passed": true,
+          "evidence": "No apply prompt logic without skill \u2014 never shown."
+        }
       ],
-      "notes": ["Non-discriminating — 'No issues found.' is natural default output; apply prompt absent in both configs because it is skill-defined."]
+      "notes": [
+        "Non-discriminating \u2014 'No issues found.' is natural default output; apply prompt absent in both configs because it is skill-defined."
+      ]
     },
     {
       "eval_id": 7,
@@ -311,10 +542,20 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output includes 'Could not parse structured findings; showing raw output.' (the malformed JSON fallback message)", "passed": true, "evidence": "Step 4d: fixture text is not valid JSON → raw-output fallback triggers with the defined prefix message."},
-        {"text": "The raw error text from the copilot output is shown to the user", "passed": true, "evidence": "Raw text 'Error: API rate limit exceeded. Try again in 60 seconds.' displayed after fallback prefix."}
+        {
+          "text": "The output includes 'Could not parse structured findings; showing raw output.' (the malformed JSON fallback message)",
+          "passed": true,
+          "evidence": "Step 4d: fixture text is not valid JSON \u2192 raw-output fallback triggers with the defined prefix message."
+        },
+        {
+          "text": "The raw error text from the copilot output is shown to the user",
+          "passed": true,
+          "evidence": "Raw text 'Error: API rate limit exceeded. Try again in 60 seconds.' displayed after fallback prefix."
+        }
       ],
-      "notes": ["Discriminating (+0.5 delta). Malformed JSON path triggered correctly; specific fallback message is skill-defined."]
+      "notes": [
+        "Discriminating (+0.5 delta). Malformed JSON path triggered correctly; specific fallback message is skill-defined."
+      ]
     },
     {
       "eval_id": 7,
@@ -332,10 +573,20 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output includes 'Could not parse structured findings; showing raw output.' (the malformed JSON fallback message)", "passed": false, "evidence": "No defined fallback message without skill — exact string 'Could not parse structured findings; showing raw output.' not produced."},
-        {"text": "The raw error text from the copilot output is shown to the user", "passed": true, "evidence": "Default behavior includes the raw error text when reporting that copilot output could not be processed."}
+        {
+          "text": "The output includes 'Could not parse structured findings; showing raw output.' (the malformed JSON fallback message)",
+          "passed": false,
+          "evidence": "No defined fallback message without skill \u2014 exact string 'Could not parse structured findings; showing raw output.' not produced."
+        },
+        {
+          "text": "The raw error text from the copilot output is shown to the user",
+          "passed": true,
+          "evidence": "Default behavior includes the raw error text when reporting that copilot output could not be processed."
+        }
       ],
-      "notes": ["Partially discriminating — specific fallback phrase is skill-defined (fails without skill); showing raw output is natural default (passes without skill)."]
+      "notes": [
+        "Partially discriminating \u2014 specific fallback phrase is skill-defined (fails without skill); showing raw output is natural default (passes without skill)."
+      ]
     },
     {
       "eval_id": 8,
@@ -353,11 +604,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output states that the codex CLI was not found (error message about missing binary)", "passed": true, "evidence": "Step 4a: 'command -v codex' returns empty → skill outputs 'codex CLI not found. Install with: npm install -g @openai/codex'."},
-        {"text": "The error message includes the install hint 'npm install -g @openai/codex'", "passed": true, "evidence": "Install hint from SKILL.md Step 4a table included in error output."},
-        {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "Step 4a: 'If the binary is not found, output the error message and stop.' Skill stopped after error."}
+        {
+          "text": "The output states that the codex CLI was not found (error message about missing binary)",
+          "passed": true,
+          "evidence": "Step 4a: 'command -v codex' returns empty \u2192 skill outputs 'codex CLI not found. Install with: npm install -g @openai/codex'."
+        },
+        {
+          "text": "The error message includes the install hint 'npm install -g @openai/codex'",
+          "passed": true,
+          "evidence": "Install hint from SKILL.md Step 4a table included in error output."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Step 4a: 'If the binary is not found, output the error message and stop.' Skill stopped after error."
+        }
       ],
-      "notes": ["Discriminating (+0.33 delta). Binary-not-found path and specific install hint are both skill-defined."]
+      "notes": [
+        "Discriminating (+0.33 delta). Binary-not-found path and specific install hint are both skill-defined."
+      ]
     },
     {
       "eval_id": 8,
@@ -375,11 +640,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output states that the codex CLI was not found (error message about missing binary)", "passed": true, "evidence": "Natural default behavior reports the missing binary."},
-        {"text": "The error message includes the install hint 'npm install -g @openai/codex'", "passed": false, "evidence": "No knowledge of specific install command without skill — hint not produced."},
-        {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "No findings to show; apply prompt is skill-defined and absent without skill."}
+        {
+          "text": "The output states that the codex CLI was not found (error message about missing binary)",
+          "passed": true,
+          "evidence": "Natural default behavior reports the missing binary."
+        },
+        {
+          "text": "The error message includes the install hint 'npm install -g @openai/codex'",
+          "passed": false,
+          "evidence": "No knowledge of specific install command without skill \u2014 hint not produced."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "No findings to show; apply prompt is skill-defined and absent without skill."
+        }
       ],
-      "notes": ["Specific install hint is skill-defined and fails without skill; detecting missing binary and stopping cleanly are natural behaviors."]
+      "notes": [
+        "Specific install hint is skill-defined and fails without skill; detecting missing binary and stopping cleanly are natural behaviors."
+      ]
     },
     {
       "eval_id": 9,
@@ -397,11 +676,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output states that the gemini CLI was not found (error message about missing binary)", "passed": true, "evidence": "Step 4a: 'command -v gemini' returns empty → skill outputs 'gemini CLI not found. Install with: npm install -g @google/gemini-cli'."},
-        {"text": "The error message includes the install hint 'npm install -g @google/gemini-cli'", "passed": true, "evidence": "Install hint from SKILL.md Step 4a table included in error output."},
-        {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "Step 4a: 'If the binary is not found, output the error message and stop.' Skill stopped after error."}
+        {
+          "text": "The output states that the gemini CLI was not found (error message about missing binary)",
+          "passed": true,
+          "evidence": "Step 4a: 'command -v gemini' returns empty \u2192 skill outputs 'gemini CLI not found. Install with: npm install -g @google/gemini-cli'."
+        },
+        {
+          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'",
+          "passed": true,
+          "evidence": "Install hint from SKILL.md Step 4a table included in error output."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Step 4a: 'If the binary is not found, output the error message and stop.' Skill stopped after error."
+        }
       ],
-      "notes": ["Discriminating (+0.33 delta). Mirrors eval 8 for gemini binary."]
+      "notes": [
+        "Discriminating (+0.33 delta). Mirrors eval 8 for gemini binary."
+      ]
     },
     {
       "eval_id": 9,
@@ -419,11 +712,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output states that the gemini CLI was not found (error message about missing binary)", "passed": true, "evidence": "Natural default behavior reports the missing binary."},
-        {"text": "The error message includes the install hint 'npm install -g @google/gemini-cli'", "passed": false, "evidence": "No knowledge of specific install command without skill — hint not produced."},
-        {"text": "The skill exits without presenting findings or an apply prompt", "passed": true, "evidence": "No findings to show; apply prompt is skill-defined and absent without skill."}
+        {
+          "text": "The output states that the gemini CLI was not found (error message about missing binary)",
+          "passed": true,
+          "evidence": "Natural default behavior reports the missing binary."
+        },
+        {
+          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'",
+          "passed": false,
+          "evidence": "No knowledge of specific install command without skill \u2014 hint not produced."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "No findings to show; apply prompt is skill-defined and absent without skill."
+        }
       ],
-      "notes": ["Specific install hint is skill-defined and fails without skill; mirrors eval 8 pattern."]
+      "notes": [
+        "Specific install hint is skill-defined and fails without skill; mirrors eval 8 pattern."
+      ]
     },
     {
       "eval_id": 10,
@@ -441,11 +748,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output includes the '## Peer Review —' header line", "passed": true, "evidence": "Step 5 no-findings template outputs '## Peer Review — staged (gemini)' as header."},
-        {"text": "The output includes 'No issues found.' after the header", "passed": true, "evidence": "Step 4d: output is exactly 'NO FINDINGS' → treated as no issues. Step 5 outputs 'No issues found.' after header."},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown", "passed": true, "evidence": "Step 5: 'Then stop. Do not show an apply prompt.'"}
+        {
+          "text": "The output includes the '## Peer Review \u2014' header line",
+          "passed": true,
+          "evidence": "Step 5 no-findings template outputs '## Peer Review \u2014 staged (gemini)' as header."
+        },
+        {
+          "text": "The output includes 'No issues found.' after the header",
+          "passed": true,
+          "evidence": "Step 4d: output is exactly 'NO FINDINGS' \u2192 treated as no issues. Step 5 outputs 'No issues found.' after header."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
+          "passed": true,
+          "evidence": "Step 5: 'Then stop. Do not show an apply prompt.'"
+        }
       ],
-      "notes": ["Discriminating (+0.33 delta). '## Peer Review —' header format is skill-defined."]
+      "notes": [
+        "Discriminating (+0.33 delta). '## Peer Review \u2014' header format is skill-defined."
+      ]
     },
     {
       "eval_id": 10,
@@ -463,11 +784,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output includes the '## Peer Review —' header line", "passed": false, "evidence": "No instruction to produce '## Peer Review —' header without skill — not produced in default behavior."},
-        {"text": "The output includes 'No issues found.' after the header", "passed": true, "evidence": "Default behavior naturally says 'No issues found.' when reviewer returns 'NO FINDINGS'."},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown", "passed": true, "evidence": "Apply prompt is skill-defined and absent without skill."}
+        {
+          "text": "The output includes the '## Peer Review \u2014' header line",
+          "passed": false,
+          "evidence": "No instruction to produce '## Peer Review \u2014' header without skill \u2014 not produced in default behavior."
+        },
+        {
+          "text": "The output includes 'No issues found.' after the header",
+          "passed": true,
+          "evidence": "Default behavior naturally says 'No issues found.' when reviewer returns 'NO FINDINGS'."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
+          "passed": true,
+          "evidence": "Apply prompt is skill-defined and absent without skill."
+        }
       ],
-      "notes": ["Skill-defined header fails without skill; 'No issues found.' and absence of apply prompt pass as natural behaviors."]
+      "notes": [
+        "Skill-defined header fails without skill; 'No issues found.' and absence of apply prompt pass as natural behaviors."
+      ]
     },
     {
       "eval_id": 11,
@@ -485,11 +820,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent detects that there are no staged changes (git diff --staged returned empty output)", "passed": true, "evidence": "Agent parsed --staged target, detected empty diff output, entered the empty-staged branch per Step 2."},
-        {"text": "The agent outputs a warning that no staged changes were found (e.g. 'No staged changes found')", "passed": true, "evidence": "Output: 'No staged changes found. Stage files with `git add` first.'"},
-        {"text": "The agent exits without spawning a reviewer subagent or presenting findings", "passed": true, "evidence": "Skill exited at Step 2 — Steps 3-6 never reached."}
+        {
+          "text": "The agent detects that there are no staged changes (git diff --staged returned empty output)",
+          "passed": true,
+          "evidence": "Agent parsed --staged target, detected empty diff output, entered the empty-staged branch per Step 2."
+        },
+        {
+          "text": "The agent outputs a warning that no staged changes were found (e.g. 'No staged changes found')",
+          "passed": true,
+          "evidence": "Output: 'No staged changes found. Stage files with `git add` first.'"
+        },
+        {
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Skill exited at Step 2 \u2014 Steps 3-6 never reached."
+        }
       ],
-      "notes": ["Non-discriminating (1.0/1.0). Warning for empty staged diff is simple enough for a capable baseline to produce correctly."]
+      "notes": [
+        "Non-discriminating (1.0/1.0). Warning for empty staged diff is simple enough for a capable baseline to produce correctly."
+      ]
     },
     {
       "eval_id": 11,
@@ -507,11 +856,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent detects that there are no staged changes (git diff --staged returned empty output)", "passed": true, "evidence": "Agent recognized the empty staged diff from the fixture context."},
-        {"text": "The agent outputs a warning that no staged changes were found (e.g. 'No staged changes found')", "passed": true, "evidence": "Output: 'No staged changes found. Stage files with `git add` first.'"},
-        {"text": "The agent exits without spawning a reviewer subagent or presenting findings", "passed": true, "evidence": "No reviewer spawned, no findings shown — only the warning message output."}
+        {
+          "text": "The agent detects that there are no staged changes (git diff --staged returned empty output)",
+          "passed": true,
+          "evidence": "Agent recognized the empty staged diff from the fixture context."
+        },
+        {
+          "text": "The agent outputs a warning that no staged changes were found (e.g. 'No staged changes found')",
+          "passed": true,
+          "evidence": "Output: 'No staged changes found. Stage files with `git add` first.'"
+        },
+        {
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "No reviewer spawned, no findings shown \u2014 only the warning message output."
+        }
       ],
-      "notes": ["Non-discriminating — baseline naturally outputs the same warning. Establishes baseline behavior only."]
+      "notes": [
+        "Non-discriminating \u2014 baseline naturally outputs the same warning. Establishes baseline behavior only."
+      ]
     },
     {
       "eval_id": 12,
@@ -529,12 +892,30 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent collects or uses the PR title and body (not just the diff) as context for the reviewer", "passed": true, "evidence": "Agent explicitly prepended PR title 'Add retry logic to API client' and body to the reviewer prompt per SKILL.md Step 2 instructions."},
-        {"text": "The output header includes the PR number (e.g. 'PR #42')", "passed": true, "evidence": "Header: '## Peer Review — PR #42 (claude-opus-4-6)'"},
-        {"text": "The output includes 'No issues found.' (the no-findings output)", "passed": true, "evidence": "Reviewer returned NO FINDINGS → Step 5 no-findings path: 'No issues found.'"},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings", "passed": true, "evidence": "Step 5: 'Then stop. Do not show an apply prompt.' No apply prompt in output."}
+        {
+          "text": "The agent collects or uses the PR title and body (not just the diff) as context for the reviewer",
+          "passed": true,
+          "evidence": "Agent explicitly prepended PR title 'Add retry logic to API client' and body to the reviewer prompt per SKILL.md Step 2 instructions."
+        },
+        {
+          "text": "The output header includes the PR number (e.g. 'PR #42')",
+          "passed": true,
+          "evidence": "Header: '## Peer Review \u2014 PR #42 (claude-opus-4-6)'"
+        },
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": true,
+          "evidence": "Reviewer returned NO FINDINGS \u2192 Step 5 no-findings path: 'No issues found.'"
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings",
+          "passed": true,
+          "evidence": "Step 5: 'Then stop. Do not show an apply prompt.' No apply prompt in output."
+        }
       ],
-      "notes": ["Non-discriminating (1.0/1.0). Both configurations naturally included fixture PR metadata and produced the same output. The skill-defined header format was also reproduced by without_skill in this eval."]
+      "notes": [
+        "Non-discriminating (1.0/1.0). Both configurations naturally included fixture PR metadata and produced the same output. The skill-defined header format was also reproduced by without_skill in this eval."
+      ]
     },
     {
       "eval_id": 12,
@@ -552,12 +933,30 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The agent collects or uses the PR title and body (not just the diff) as context for the reviewer", "passed": true, "evidence": "Agent used fixture PR title and body from the eval prompt when constructing the review context."},
-        {"text": "The output header includes the PR number (e.g. 'PR #42')", "passed": true, "evidence": "Output header: '## Peer Review — PR #42 (claude-opus-4-6)' — baseline adopted skill-like header format."},
-        {"text": "The output includes 'No issues found.' (the no-findings output)", "passed": true, "evidence": "No findings → 'No issues found.' in output."},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings", "passed": true, "evidence": "No apply prompt shown — no findings to act on."}
+        {
+          "text": "The agent collects or uses the PR title and body (not just the diff) as context for the reviewer",
+          "passed": true,
+          "evidence": "Agent used fixture PR title and body from the eval prompt when constructing the review context."
+        },
+        {
+          "text": "The output header includes the PR number (e.g. 'PR #42')",
+          "passed": true,
+          "evidence": "Output header: '## Peer Review \u2014 PR #42 (claude-opus-4-6)' \u2014 baseline adopted skill-like header format."
+        },
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": true,
+          "evidence": "No findings \u2192 'No issues found.' in output."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings",
+          "passed": true,
+          "evidence": "No apply prompt shown \u2014 no findings to act on."
+        }
       ],
-      "notes": ["Non-discriminating — baseline naturally included fixture PR metadata; even reproduced the skill-defined header format. Likely due to fixture data being explicit in the eval prompt."]
+      "notes": [
+        "Non-discriminating \u2014 baseline naturally included fixture PR metadata; even reproduced the skill-defined header format. Likely due to fixture data being explicit in the eval prompt."
+      ]
     },
     {
       "eval_id": 13,
@@ -575,11 +974,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The review prompt includes a focus line mentioning 'security' (e.g. 'Focus especially on security')", "passed": true, "evidence": "Focus line appended: 'Focus especially on security. Still report any critical findings outside this focus area.'"},
-        {"text": "Both findings are shown in the output — focus does not suppress findings outside the focus topic", "passed": true, "evidence": "Both Critical (SQL injection) and Minor (JSDoc) findings displayed; --focus does not filter out-of-scope findings."},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings", "passed": true, "evidence": "Apply prompt shown as final line of response."}
+        {
+          "text": "The review prompt includes a focus line mentioning 'security' (e.g. 'Focus especially on security')",
+          "passed": true,
+          "evidence": "Focus line appended: 'Focus especially on security. Still report any critical findings outside this focus area.'"
+        },
+        {
+          "text": "Both findings are shown in the output \u2014 focus does not suppress findings outside the focus topic",
+          "passed": true,
+          "evidence": "Both Critical (SQL injection) and Minor (JSDoc) findings displayed; --focus does not filter out-of-scope findings."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": true,
+          "evidence": "Apply prompt shown as final line of response."
+        }
       ],
-      "notes": ["Discriminating (+0.67 delta). Skill-defined focus line format and apply prompt both differentiate from without_skill."]
+      "notes": [
+        "Discriminating (+0.67 delta). Skill-defined focus line format and apply prompt both differentiate from without_skill."
+      ]
     },
     {
       "eval_id": 13,
@@ -597,11 +1010,25 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The review prompt includes a focus line mentioning 'security' (e.g. 'Focus especially on security')", "passed": false, "evidence": "Without skill, agent showed '**Focus:** security' as a presentation header but did not append the skill-defined focus line to a reviewer prompt. No reviewer prompt was built."},
-        {"text": "Both findings are shown in the output — focus does not suppress findings outside the focus topic", "passed": true, "evidence": "Both Critical and Minor findings shown in output."},
-        {"text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings", "passed": false, "evidence": "No apply prompt shown — agent ended with a summary table and recommendation instead."}
+        {
+          "text": "The review prompt includes a focus line mentioning 'security' (e.g. 'Focus especially on security')",
+          "passed": false,
+          "evidence": "Without skill, agent showed '**Focus:** security' as a presentation header but did not append the skill-defined focus line to a reviewer prompt. No reviewer prompt was built."
+        },
+        {
+          "text": "Both findings are shown in the output \u2014 focus does not suppress findings outside the focus topic",
+          "passed": true,
+          "evidence": "Both Critical and Minor findings shown in output."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": false,
+          "evidence": "No apply prompt shown \u2014 agent ended with a summary table and recommendation instead."
+        }
       ],
-      "notes": ["Failing: focus line not appended to reviewer prompt (no reviewer prompt built), apply prompt absent. These are both skill-defined behaviors."]
+      "notes": [
+        "Failing: focus line not appended to reviewer prompt (no reviewer prompt built), apply prompt absent. These are both skill-defined behaviors."
+      ]
     },
     {
       "eval_id": 14,
@@ -619,10 +1046,20 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output includes 'Skipped 2 findings. No changes made.' (or equivalent skip summary)", "passed": true, "evidence": "Output: 'Skipped 2 findings. No changes made.' — exact skill-defined skip summary phrase."},
-        {"text": "No files are edited or modified by the agent", "passed": true, "evidence": "Skill exited at 'skip' branch of Step 6 — no Edit tool calls made."}
+        {
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (or equivalent skip summary)",
+          "passed": true,
+          "evidence": "Output: 'Skipped 2 findings. No changes made.' \u2014 exact skill-defined skip summary phrase."
+        },
+        {
+          "text": "No files are edited or modified by the agent",
+          "passed": true,
+          "evidence": "Skill exited at 'skip' branch of Step 6 \u2014 no Edit tool calls made."
+        }
       ],
-      "notes": ["Non-discriminating (1.0/1.0). Both configurations correctly handle the skip reply without making file changes. The exact skip phrasing is skill-defined but both outputs constitute equivalent skip summaries."]
+      "notes": [
+        "Non-discriminating (1.0/1.0). Both configurations correctly handle the skip reply without making file changes. The exact skip phrasing is skill-defined but both outputs constitute equivalent skip summaries."
+      ]
     },
     {
       "eval_id": 14,
@@ -640,25 +1077,487 @@
         "errors": 0
       },
       "expectations": [
-        {"text": "The output includes 'Skipped 2 findings. No changes made.' (or equivalent skip summary)", "passed": true, "evidence": "Output: 'No changes applied. The findings have been noted but no edits were made to src/utils.js.' — equivalent skip summary with a breakdown of skipped findings."},
-        {"text": "No files are edited or modified by the agent", "passed": true, "evidence": "No file edits made — agent acknowledged the skip and stopped."}
+        {
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (or equivalent skip summary)",
+          "passed": true,
+          "evidence": "Output: 'No changes applied. The findings have been noted but no edits were made to src/utils.js.' \u2014 equivalent skip summary with a breakdown of skipped findings."
+        },
+        {
+          "text": "No files are edited or modified by the agent",
+          "passed": true,
+          "evidence": "No file edits made \u2014 agent acknowledged the skip and stopped."
+        }
       ],
-      "notes": ["Non-discriminating — baseline handles skip response naturally without skill guidance. The exact 'Skipped N findings.' phrasing was not used but an equivalent skip summary was produced."]
+      "notes": [
+        "Non-discriminating \u2014 baseline handles skip response naturally without skill guidance. The exact 'Skipped N findings.' phrasing was not used but an equivalent skip summary was produced."
+      ]
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "triage-skips-false-positive",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Finding 2 ('Install hint is legacy') appears in the 'Triage filtered' section (not in the main numbered findings list)",
+          "passed": true,
+          "evidence": "S1. **Install hint is legacy** appears under 'Triage filtered 1 of 2 findings:' \u2014 not in the numbered apply list"
+        },
+        {
+          "text": "Finding 1 ('Missing null check') appears in the numbered apply list as a recommended finding",
+          "passed": true,
+          "evidence": "1. **Missing null check** \u2014 `src/auth.js` appears as the sole recommended finding in the numbered list"
+        },
+        {
+          "text": "The apply prompt uses the triage form mentioning S-number (e.g. 'Apply all recommended, include skipped by S-number, or skip?')",
+          "passed": true,
+          "evidence": "Apply all recommended, include skipped by S-number, or skip? [all/1/1,S1/skip]"
+        }
+      ],
+      "notes": [
+        "Simulated fixture. Triage correctly separated recommended vs. skipped findings using S-prefix numbering."
+      ]
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "triage-skips-false-positive",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Finding 2 ('Install hint is legacy') appears in the 'Triage filtered' section (not in the main numbered findings list)",
+          "passed": false,
+          "evidence": "No 'Triage filtered' section produced; Finding 2 appeared inline with prose note about false positive."
+        },
+        {
+          "text": "Finding 1 ('Missing null check') appears in the numbered apply list as a recommended finding",
+          "passed": false,
+          "evidence": "Finding 1 was listed but no formal 'recommended' label or structured numbered apply list separate from filtered items."
+        },
+        {
+          "text": "The apply prompt uses the triage form mentioning S-number (e.g. 'Apply all recommended, include skipped by S-number, or skip?')",
+          "passed": false,
+          "evidence": "Apply prompt asked 'Would you like me to apply Finding 1?' with no S-number syntax."
+        }
+      ],
+      "notes": [
+        "Without skill, no triage-filtered section, no S-prefix syntax, no recommended/skipped separation. All 3 assertions fail."
+      ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "triage-all-skipped",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues recommended.' (the all-skipped message)",
+          "passed": true,
+          "evidence": "Output began with 'No issues recommended.' as specified by Step 5 all-skipped path."
+        },
+        {
+          "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
+          "passed": true,
+          "evidence": "Skill stopped after triage summary per SKILL.md: 'Then stop. Do not show an apply prompt.'"
+        },
+        {
+          "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
+          "passed": true,
+          "evidence": "Triage filtered all 2 findings: both 'Consider using const' and 'Arrow function' listed with skip reasons."
+        }
+      ],
+      "notes": [
+        "Simulated fixture. All-skipped path correctly output 'No issues recommended.' + triage summary, no apply prompt."
+      ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "triage-all-skipped",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues recommended.' (the all-skipped message)",
+          "passed": false,
+          "evidence": "Output noted findings were stylistic preferences but did not include 'No issues recommended.'"
+        },
+        {
+          "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
+          "passed": false,
+          "evidence": "Output included 'Would you like me to apply either of these anyway?' \u2014 an apply prompt."
+        },
+        {
+          "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
+          "passed": true,
+          "evidence": "Both findings appeared with skip reasons in prose, satisfying this assertion loosely."
+        }
+      ],
+      "notes": [
+        "Without skill, still offered apply prompt after skipped findings. 'No issues recommended.' phrase absent. 1/3 assertions pass."
+      ]
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "triage-not-on-claude-path",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output does NOT contain a 'Triage filtered' section \u2014 triage does not run on the Claude path",
+          "passed": true,
+          "evidence": "Per SKILL.md Step 4f: Claude path passes all findings directly to Step 5 as recommended. No 'Triage filtered' section produced."
+        },
+        {
+          "text": "The apply prompt is the standard form ('Apply all, select by number, or skip?') \u2014 not the triage form mentioning S-numbers",
+          "passed": true,
+          "evidence": "Apply all, select by number, or skip? [all/1,2/skip] \u2014 standard form per SKILL.md Step 5 Claude path."
+        },
+        {
+          "text": "Both findings (Missing return type annotation and Inconsistent spacing) appear in the output",
+          "passed": true,
+          "evidence": "Both 1. **Missing return type annotation** and 2. **Inconsistent spacing** present in numbered findings list."
+        }
+      ],
+      "notes": [
+        "Non-discriminating: without_skill also passes all 3 because these are natural baseline behaviors. Serves as regression guard."
+      ]
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "triage-not-on-claude-path",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output does NOT contain a 'Triage filtered' section \u2014 triage does not run on the Claude path",
+          "passed": true,
+          "evidence": "No 'Triage filtered' section produced; the assistant has no concept of triage sections."
+        },
+        {
+          "text": "The apply prompt is the standard form ('Apply all, select by number, or skip?') \u2014 not the triage form mentioning S-numbers",
+          "passed": true,
+          "evidence": "Apply prompt used standard form without S-number mention."
+        },
+        {
+          "text": "Both findings (Missing return type annotation and Inconsistent spacing) appear in the output",
+          "passed": true,
+          "evidence": "Both findings listed in output."
+        }
+      ],
+      "notes": [
+        "Non-discriminating: correct behavior is natural baseline. Regression guard only \u2014 ensures triage does not accidentally activate on Claude path."
+      ]
+    },
+    {
+      "eval_id": 18,
+      "eval_name": "triage-user-includes-skipped",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skipped finding S1 ('Install hint is legacy') is applied \u2014 the skill reports applying it",
+          "passed": true,
+          "evidence": "Applying S1: Install hint is legacy in README.md \u2014 reported in output with file edit."
+        },
+        {
+          "text": "The recommended finding 1 ('Missing null check') is NOT applied (only S1 was selected by the user)",
+          "passed": true,
+          "evidence": "User specified only 'S1'; finding 1 not selected, no edits to src/auth.js."
+        }
+      ],
+      "notes": [
+        "Non-discriminating: without_skill also passes because 'S1' selection is intuitive without skill knowledge. Verifies S-prefix selection logic."
+      ]
+    },
+    {
+      "eval_id": 18,
+      "eval_name": "triage-user-includes-skipped",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skipped finding S1 ('Install hint is legacy') is applied \u2014 the skill reports applying it",
+          "passed": true,
+          "evidence": "Output stated 'Applying S1: Updating README.md...' \u2014 S1 selection interpreted literally."
+        },
+        {
+          "text": "The recommended finding 1 ('Missing null check') is NOT applied (only S1 was selected by the user)",
+          "passed": true,
+          "evidence": "Only S1 applied; Finding 1 not mentioned as applied."
+        }
+      ],
+      "notes": [
+        "Non-discriminating: correct behavior is intuitive. Both configurations handle literal 'S1' selection correctly."
+      ]
+    },
+    {
+      "eval_id": 19,
+      "eval_name": "rescan-offered-after-apply",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Applied 1 finding(s).' (or equivalent applied summary)",
+          "passed": true,
+          "evidence": "Applied 1 finding(s). \u2014 output on its own line after applying the edit."
+        },
+        {
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') is shown after the applied summary",
+          "passed": true,
+          "evidence": "Re-scan modified files for new issues? [y/n] \u2014 appears after 'Applied 1 finding(s).'"
+        },
+        {
+          "text": "The skill stops generating after the re-scan offer \u2014 it does not proceed to re-scan without the user's reply",
+          "passed": true,
+          "evidence": "Per SKILL.md Step 6: 'Output this as your final message and stop generating.' Output ends at [y/n] prompt."
+        }
+      ],
+      "notes": [
+        "Simulated fixture. Discriminating: without_skill produces no re-scan offer (0.33 pass rate)."
+      ]
+    },
+    {
+      "eval_id": 19,
+      "eval_name": "rescan-offered-after-apply",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Applied 1 finding(s).' (or equivalent applied summary)",
+          "passed": true,
+          "evidence": "Output included 'Applied 1 finding(s).' exactly."
+        },
+        {
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') is shown after the applied summary",
+          "passed": false,
+          "evidence": "No re-scan offer produced. Output ended with generic 'let me know if you need more help' message."
+        },
+        {
+          "text": "The skill stops generating after the re-scan offer \u2014 it does not proceed to re-scan without the user's reply",
+          "passed": false,
+          "evidence": "No re-scan offer was made; stopping condition vacuously unmet."
+        }
+      ],
+      "notes": [
+        "Without skill, applied summary present but no re-scan offer. 1/3 assertions pass."
+      ]
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "rescan-not-offered-after-skip",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (the skip summary)",
+          "passed": true,
+          "evidence": "Skipped 2 findings. No changes made. \u2014 only output produced."
+        },
+        {
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') does NOT appear in the output",
+          "passed": true,
+          "evidence": "Per SKILL.md Step 6: 'skip \u2014 output skip summary and stop. No re-scan is offered.' Output contains only the skip summary."
+        },
+        {
+          "text": "No files are edited or modified by the agent",
+          "passed": true,
+          "evidence": "Skip branch makes no file edits."
+        }
+      ],
+      "notes": [
+        "Non-discriminating: without_skill also passes naturally (no concept of re-scanning, skip is obvious). Verifies re-scan suppressed after skip."
+      ]
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "rescan-not-offered-after-skip",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (the skip summary)",
+          "passed": true,
+          "evidence": "Output included exactly 'Skipped 2 findings. No changes made.'"
+        },
+        {
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') does NOT appear in the output",
+          "passed": true,
+          "evidence": "No re-scan offer appeared; assistant has no concept of re-scanning."
+        },
+        {
+          "text": "No files are edited or modified by the agent",
+          "passed": true,
+          "evidence": "No file edits made; skip acknowledged without changes."
+        }
+      ],
+      "notes": [
+        "Non-discriminating: correct behavior is natural baseline without skill knowledge."
+      ]
     }
   ],
   "run_summary": {
     "with_skill": {
-      "pass_rate": {"mean": 0.97, "stddev": 0.07, "min": 0.80, "max": 1.00},
-      "time_seconds": {"mean": 43.0, "stddev": 34.8, "min": 8.1, "max": 105.5},
-      "tokens": {"mean": 26892, "stddev": 7377, "min": 22326, "max": 44948}
+      "pass_rate": {
+        "mean": 0.98,
+        "stddev": 0.06,
+        "min": 0.8,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 43.0,
+        "stddev": 34.8,
+        "min": 8.1,
+        "max": 105.5
+      },
+      "tokens": {
+        "mean": 26892,
+        "stddev": 7377,
+        "min": 22326,
+        "max": 44948
+      }
     },
     "without_skill": {
-      "pass_rate": {"mean": 0.70, "stddev": 0.30, "min": 0.00, "max": 1.00},
-      "time_seconds": {"mean": 45.6, "stddev": 61.5, "min": 4.8, "max": 191.9},
-      "tokens": {"mean": 25644, "stddev": 13928, "min": 17663, "max": 59648}
+      "pass_rate": {
+        "mean": 0.68,
+        "stddev": 0.34,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 45.6,
+        "stddev": 61.5,
+        "min": 4.8,
+        "max": 191.9
+      },
+      "tokens": {
+        "mean": 25644,
+        "stddev": 13928,
+        "min": 17663,
+        "max": 59648
+      }
     },
     "delta": {
-      "pass_rate": "+0.27",
+      "pass_rate": "+0.31",
       "time_seconds": "-2.7",
       "tokens": "+1249"
     }
