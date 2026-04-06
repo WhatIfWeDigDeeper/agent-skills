@@ -77,6 +77,7 @@ uv run --with pytest pytest tests/
 ## Command And Tooling Gotchas
 
 - Do not hardcode `/tmp/`; use `mktemp`, `$TMPDIR`, or `${TMPDIR:-/private/tmp}`. `${TMPDIR:-/tmp}` is also a violation — the fallback must be `/private/tmp`, not `/tmp`.
+- **`trap` cleanup fires at the end of each Bash tool call**: when a temp file must persist across multiple tool calls, write it to a named path (e.g. `"${TMPDIR:-/private/tmp}/name.txt"`) without a `trap` — `trap 'rm -f "$FILE"' EXIT` fires when the subshell exits at the end of each call, deleting the file before the next call runs. Clean up explicitly in a later call instead.
 - If `git commit` fails because of GPG/keyring access, use `--no-gpg-sign` only as a fallback after the failure.
 - In sandboxed environments, HTTPS `git push` may hang on credentials. A working pattern is:
 
