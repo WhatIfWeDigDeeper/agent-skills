@@ -153,7 +153,7 @@
       },
       "expectations": null,
       "notes": [
-        "Primary discriminating eval (+0.40 delta). Spec mode detection and structured reviewer delegation are the key differentiators.",
+        "Historical (v1.2): spec mode detection and structured reviewer delegation were the key differentiators. Eval 2 re-named and re-scoped in v1.3 \u2014 re-run needed for current discriminating behavior.",
         "Eval renamed from spec-mode-plan-tasks-mismatch to consistency-mode-plan-tasks-mismatch in v1.3 \u2014 spec mode removed. Expectations nulled: old assertion (enters-spec-mode) is semantically inverted under new criterion (enters-consistency-mode). Re-run needed to capture valid pass/fail data."
       ]
     },
@@ -174,7 +174,7 @@
       },
       "expectations": null,
       "notes": [
-        "Failing: spec mode not declared, review inline. without_skill classified --verbose as Critical vs Major by with_skill.",
+        "Historical (v1.2 failure): spec mode not declared, review inline. without_skill classified --verbose as Critical vs Major by with_skill. See re-run note below.",
         "Eval renamed from spec-mode-plan-tasks-mismatch to consistency-mode-plan-tasks-mismatch in v1.3 \u2014 spec mode removed. Expectations nulled: old assertion (enters-spec-mode) is semantically inverted under new criterion (enters-consistency-mode). Re-run needed to capture valid pass/fail data."
       ]
     },
