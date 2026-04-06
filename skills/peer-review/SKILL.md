@@ -95,7 +95,7 @@ git diff --quiet; UNSTAGED_PRESENT=$?
 
 - **Neither present** → warn: "No staged or unstaged changes to review." and exit.
 - **Staged only** → collect staged content and proceed: `git diff --staged`
-- **Unstaged only** → collect unstaged content and proceed: `git diff` — note in the output header: "No staged changes — reviewing unstaged changes."
+- **Unstaged only** → collect unstaged content and proceed: `git diff`. In the final output, add a dedicated note line immediately below the `## Peer Review — [target]` heading: `Note: No staged changes — reviewing unstaged changes.` Include this note line in both findings and no-findings outputs for this path; do not fold it into `[target]`.
 - **Both present** → output: "You have both staged and unstaged changes. Review which? [staged/unstaged/all]" as your **final message and stop generating**. On reply, collect:
   - `staged` → `git diff --staged`
   - `unstaged` → `git diff`
