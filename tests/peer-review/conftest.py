@@ -19,9 +19,19 @@ def parse_arguments(args: str | None) -> dict:
             "path": str | None,
             "model": str,  # Defaults to "claude-opus-4-6" on successful parses.
             "focus": str | None,
-            "explicit_staged": bool,  # True when --staged flag was explicitly given.
+            "explicit_staged": bool,
             "error": str | None,
         }
+
+    Interpretation invariant:
+        - target_type == "staged" and explicit_staged == True means the caller
+          explicitly passed --staged.
+        - target_type == "staged" and explicit_staged == False means no
+          explicit target was supplied, so the default staged/auto-detect
+          behavior applies.
+        - In particular, no args returns target_type == "staged" with
+          explicit_staged == False; callers must not treat that as an
+          explicit staged-only request.
     """
     result = {
         "target_type": None,

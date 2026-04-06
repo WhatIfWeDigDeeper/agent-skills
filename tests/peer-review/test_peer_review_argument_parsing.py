@@ -4,7 +4,7 @@ from conftest import parse_arguments
 
 
 class TestNoArguments:
-    """No arguments defaults to staged mode."""
+    """No arguments triggers auto-detect (explicit_staged=False); target_type defaults to staged."""
 
     def test_empty_string(self):
         result = parse_arguments("")
@@ -23,7 +23,7 @@ class TestNoArguments:
 
 
 class TestStagedTarget:
-    """--staged sets target to staged."""
+    """--staged sets target to staged (staged-only, explicit_staged=True; skips auto-detection)."""
 
     def test_staged_flag(self):
         result = parse_arguments("--staged")

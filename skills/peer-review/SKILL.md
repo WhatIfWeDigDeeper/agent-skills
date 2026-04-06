@@ -50,7 +50,7 @@ Options:
 ```
 
 Parse `$ARGUMENTS` left-to-right:
-- Strip `--staged` → set target type to staged
+- Strip `--staged` → set target type to staged (explicit-staged flag = true; staged-only, no auto-detection)
 - Strip `--pr N` → set target type to PR, store N
 - Strip `--branch NAME` → set target type to branch, store NAME
 - Strip `--model MODEL` → store model override
@@ -86,15 +86,16 @@ If output is empty, warn: "No staged changes found. Stage files with `git add` f
 
 **Default** (no target — auto-detect):
 
-Check both areas:
+Check for presence first (fast, no content captured):
 ```bash
-STAGED=$(git diff --staged)
-UNSTAGED=$(git diff)
+git diff --staged --quiet; STAGED_PRESENT=$?
+git diff --quiet; UNSTAGED_PRESENT=$?
 ```
+(`0` = nothing present, `1` = changes present)
 
 - **Neither present** → warn: "No staged or unstaged changes found. Working tree is clean." and exit.
-- **Staged only** → proceed with staged content (same as `--staged`).
-- **Unstaged only** → proceed with unstaged content; note in the output header: "No staged changes — reviewing unstaged changes."
+- **Staged only** → collect staged content and proceed: `git diff --staged`
+- **Unstaged only** → collect unstaged content and proceed: `git diff` — note in the output header: "No staged changes — reviewing unstaged changes."
 - **Both present** → output: "You have both staged and unstaged changes. Review which? [staged/unstaged/all]" as your **final message and stop generating**. On reply, collect:
   - `staged` → `git diff --staged`
   - `unstaged` → `git diff`
