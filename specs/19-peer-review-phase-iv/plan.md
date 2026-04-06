@@ -14,25 +14,26 @@ The peer-review skill (v1.3, 396 lines) has a +30% eval delta and solid coverage
 
 **File**: `skills/peer-review/SKILL.md`
 
-No new arguments. Instead, in **Step 2 (Collect Content)**, when the target is staged/default, check for both:
+No new arguments. Instead, in **Step 2 (Collect Content)**, when the target is staged/default, detect presence first (fast, no content captured):
 
 ```bash
-STAGED=$(git diff --staged)
-UNSTAGED=$(git diff)
+git diff --staged --quiet; STAGED_PRESENT=$?
+git diff --quiet; UNSTAGED_PRESENT=$?
 ```
+(`0` = nothing present, `1` = changes present)
 
 **Logic:**
-- Staged only (unstaged empty) → proceed as today (review staged)
-- Unstaged only (staged empty) → review unstaged automatically, note "No staged changes found — reviewing unstaged changes instead."
+- Staged only → collect staged content: `git diff --staged`
+- Unstaged only → collect unstaged content: `git diff` — note "No staged changes — reviewing unstaged changes."
 - Both present → prompt: "You have both staged and unstaged changes. Review which? [staged/unstaged/all]" and stop generating. On reply, collect the appropriate content:
   - `staged` → `git diff --staged`
   - `unstaged` → `git diff`
   - `all` → `git diff HEAD`
-- Neither present → existing warning "No staged changes found. Stage files with `git add` first." and exit
+- Neither present → warn "No staged or unstaged changes found. Working tree is clean." and exit
 
-This only applies to the default/`--staged` target. `--branch`, `--pr`, and path targets are unaffected.
+This auto-detect flow only applies when no explicit target is provided. `--branch`, `--pr`, and path targets are unaffected.
 
-The `--staged` explicit flag bypasses detection and always reviews staged only (useful for scripting or when the user knows what they want).
+The explicit `--staged` flag bypasses detection and always reviews staged only (useful for scripting or when the user knows what they want).
 
 ### 2. Improve reviewer prompt quality (~15 lines)
 
