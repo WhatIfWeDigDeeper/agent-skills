@@ -35,7 +35,7 @@
   },
   "notes": [
     "Assertion 'spawns subagent' fails in both configurations for evals 1 and 4 because the Agent tool is not available inside eval executor subagents. This is an eval harness constraint, not a skill defect.",
-    "Eval 2 is the primary discriminating eval (+0.40 delta): spec mode detection and structured reviewer delegation differentiate with_skill from without_skill.",
+    "Eval 2 (consistency-mode-plan-tasks-mismatch) re-run in v1.4 with updated assertions (+0.40 delta): enters-consistency-mode, finds-missing-verbose-task, and apply-prompt-shown differentiate with_skill from without_skill. (Earlier version of this note referenced spec mode detection, which was removed in v1.3.)",
     "Eval 4 (diff mode) is the secondary discriminating eval (+0.20 delta): explicit diff mode declaration differentiates, subagent assertion fails in both due to harness constraint.",
     "Eval 3 (argument-conflict-error) is non-discriminating: both configurations correctly detect the mutually exclusive target conflict and output the error without running a review.",
     "Eval 1 is zero-delta (0.80/0.80) due to harness constraint masking the subagent-spawning differentiator.",

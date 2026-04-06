@@ -17,19 +17,22 @@ The peer-review skill (v1.3, 396 lines) has a +30% eval delta and solid coverage
 No new arguments. Instead, in **Step 2 (Collect Content)**, when the target is staged/default, detect presence first (fast, no content captured):
 
 ```bash
-git diff --staged --quiet; STAGED_PRESENT=$?
-git diff --quiet; UNSTAGED_PRESENT=$?
+STAGED_PRESENT=0
+git diff --staged --quiet || STAGED_PRESENT=$?
+UNSTAGED_PRESENT=0
+git diff --quiet || UNSTAGED_PRESENT=$?
 ```
-(`0` = nothing present, `1` = changes present)
+(`0` = nothing present, `1` = changes present, any other non-zero code = detection error such as not being in a git repo)
 
 **Logic:**
+- If either command exits with any code other than `0` or `1`, warn that staged/unstaged change detection failed and exit without attempting review selection.
 - Staged only → collect staged content: `git diff --staged`
 - Unstaged only → collect unstaged content: `git diff` — note "No staged changes — reviewing unstaged changes."
 - Both present → prompt: "You have both staged and unstaged changes. Review which? [staged/unstaged/all]" and stop generating. On reply, collect the appropriate content:
   - `staged` → `git diff --staged`
   - `unstaged` → `git diff`
   - `all` → `git diff HEAD`
-- Neither present → warn "No staged or unstaged changes found. Working tree is clean." and exit
+- Neither present → warn "No staged or unstaged changes to review." and exit
 
 This auto-detect flow only applies when no explicit target is provided. `--branch`, `--pr`, and path targets are unaffected.
 

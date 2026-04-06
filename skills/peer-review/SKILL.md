@@ -88,8 +88,10 @@ If output is empty, warn: "No staged changes found. Stage files with `git add` f
 
 Check for presence first (fast, no content captured):
 ```bash
-git diff --staged --quiet; STAGED_PRESENT=$?
-git diff --quiet; UNSTAGED_PRESENT=$?
+STAGED_PRESENT=0
+git diff --staged --quiet || STAGED_PRESENT=$?
+UNSTAGED_PRESENT=0
+git diff --quiet || UNSTAGED_PRESENT=$?
 ```
 (`0` = nothing present, `1` = changes present; any other exit code means an error — warn and exit: "Could not determine change status. Is this a git repository?")
 
