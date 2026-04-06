@@ -84,7 +84,7 @@ git diff --staged
 ```
 If output is empty, warn: "No staged changes found. Stage files with `git add` first." and exit.
 
-**Default** (no target — auto-detect):
+**Default** (no explicit target selector — auto-detect, including options-only invocations such as `--model …` or `--focus …`):
 
 Check for presence first (fast, no content captured):
 ```bash

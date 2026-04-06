@@ -56,6 +56,17 @@ class TestStagedTarget:
         result = parse_arguments(None)
         assert result["explicit_staged"] is False
 
+    def test_options_only_do_not_set_explicit_staged(self):
+        """Non-target options alone keep explicit_staged=False."""
+        result = parse_arguments(
+            "--model claude-haiku-4-5-20251001 --focus security"
+        )
+        assert result["target_type"] == "staged"
+        assert result["model"] == "claude-haiku-4-5-20251001"
+        assert result["focus"] == "security"
+        assert result["explicit_staged"] is False
+        assert result["error"] is None
+
 
 class TestPRTarget:
     """--pr N sets target to PR with number."""
