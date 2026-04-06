@@ -8,14 +8,14 @@
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | 98% ± 6% | 68% ± 34% | **+31%** |
+| Pass rate | 100% ± 10% | 70% ± 30% | **+30%** |
 | Min / Max | 80% / 100% | 0% / 100% | |
-| Time (s) | ~43.0 ± 34.8 | ~45.6 ± 61.5 | -2.7 |
-| Tokens | ~26,892 ± 7,377 | ~25,644 ± 13,928 | +1,249 |
+| Time (s) | ~39.7 ± 36.3 | ~44.7 ± 66.4 | -5.0 |
+| Tokens | ~27,046 ± 7,954 | ~26,357 ± 14,885 | +688 |
 
-20 evals × 2 configurations = 40 runs. Token statistics are computed over 8 of 20 primary (run_number=1) runs per configuration (16 of 40 total) — evals 5–10 and 15–20 use simulated transcripts and have no recorded time or token measurements; evals 1–4 and 11–14 have real measurements. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
+20 evals × 2 configurations = 40 runs. Token statistics are computed over 7 of 20 primary (run_number=1) runs per configuration (14 of 40 total) — evals 5–10 and 15–20 use simulated transcripts and have no recorded time or token measurements; evals 1, 3–4 and 11–14 have real measurements; eval 2 measurements are excluded as stale pre-v1.3 data (re-run pending). Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
-**Discriminating evals**: Evals 2, 4, 5, 7, 8, 9, 10, 13, 15, 16, 19 discriminate. Eval 2 is the primary discriminating eval (+0.40 delta). Eval 5 (copilot severity normalization) has the highest delta (+1.0). Eval 13 (focus-option) discriminates at +0.67. Evals 15 (triage-skips-false-positive, +1.0 delta) and 16 (triage-all-skipped, +0.67 delta) and 19 (rescan-offered-after-apply, +0.67 delta) are the new discriminating evals from Phase III. Evals 3, 6, 11, 12, 14, 17, 18, 20 are non-discriminating: baseline handles conflict detection, no-findings output, empty-staged warning, PR metadata inclusion (with fixture), skip handling, triage-not-on-claude-path (regression guard), triage-user-includes-skipped (intuitive S-prefix), and rescan-not-offered-after-skip correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
+**Discriminating evals**: Evals 4, 5, 7, 8, 9, 10, 13, 15, 16, 19 discriminate (eval 2 discrimination status pending v1.3 re-run). Eval 5 (copilot severity normalization) has the highest delta (+1.0). Eval 13 (focus-option) discriminates at +0.67. Evals 15 (triage-skips-false-positive, +1.0 delta) and 16 (triage-all-skipped, +0.67 delta) and 19 (rescan-offered-after-apply, +0.67 delta) are the new discriminating evals from Phase III. Evals 3, 6, 11, 12, 14, 17, 18, 20 are non-discriminating: baseline handles conflict detection, no-findings output, empty-staged warning, PR metadata inclusion (with fixture), skip handling, triage-not-on-claude-path (regression guard), triage-user-includes-skipped (intuitive S-prefix), and rescan-not-offered-after-skip correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
 
 ## Eval Results
 
@@ -30,20 +30,16 @@
 
 **Zero-delta (0.80/0.80) due to eval harness constraint**. Both configurations correctly identify consistency mode and find the stale step reference. The sole failing assertion in both — "spawns a subagent" — fails because the Agent tool is not available inside eval executor subagents. In production, with-skill delegates to a fresh subagent while the baseline reviews inline.
 
-### Eval 2 — `spec-mode-plan-tasks-mismatch`
+### Eval 2 — `consistency-mode-plan-tasks-mismatch`
 
-**Scenario**: Spec fixture pair (plan.md + tasks.md). plan.md defines --dry-run, --verbose, and --target ENV; tasks.md only covers --target and --dry-run — --verbose is missing entirely.
+**Scenario**: plan.md + tasks.md fixture pair. plan.md defines --dry-run, --verbose, and --target ENV; tasks.md only covers --target and --dry-run — --verbose is missing entirely. In v1.3, spec mode was removed; plan.md+tasks.md directories now use consistency mode like any other path target.
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
-| with-skill    | 1.00      | 5/5    | 0      |
-| without-skill | 0.60      | 3/5    | 2      |
+| with-skill    | null      | null   | null   |
+| without-skill | null      | null   | null   |
 
-**Discriminating** (+0.40 delta). Failing assertions for without-skill:
-- **Spec mode not entered explicitly**: without-skill reviewed the files without declaring spec mode as a distinct workflow state.
-- **Subagent not spawned**: inline review, no fresh-context delegation.
-
-without-skill classified the missing --verbose task as Critical; with-skill correctly flagged it as Major (a documented feature with no implementation path).
+**Pending v1.3 re-run.** Eval renamed from `spec-mode-plan-tasks-mismatch` to `consistency-mode-plan-tasks-mismatch` in v1.3. The prior assertion (`enters-spec-mode`) is semantically inverted under the new criterion (`enters-consistency-mode`); historical pass/fail data and performance measurements are excluded from summary aggregates until a fresh run is recorded. Discrimination status TBD.
 
 ### Eval 3 — `argument-conflict-error`
 
@@ -258,3 +254,4 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 - **Eval 3 redesign note**: Previously tested "no staged changes → warn and exit" (non-discriminating). Redesigned to test argument conflict (`--staged` + path → error). Also non-discriminating — conflict detection is simple enough that a capable baseline handles it correctly.
 - **Delta from adding evals 11–14**: adding 4 mostly non-discriminating evals (11, 12, 14) plus one discriminating eval (13) reduced the headline delta from +31% to +27%.
 - **Delta from adding evals 15–20**: adding 3 discriminating evals (15, 16, 19) and 3 non-discriminating evals (17, 18, 20) restores and exceeds the headline delta: +27% → +31%. Evals 17, 18, 20 are non-discriminating by design — they serve as regression guards or verify intuitive behaviors that pass without skill knowledge.
+- **Delta from v1.3 spec-mode removal (eval 2 re-scope)**: eval 2 renamed and criteria inverted; historical pass/fail data and measurements excluded from aggregates pending re-run. Headline delta shifts from +31% to +30% (pass rate means recomputed excluding eval 2; stale time/token measurements also excluded).
