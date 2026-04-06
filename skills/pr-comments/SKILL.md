@@ -415,7 +415,7 @@ Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
 
 ### 13b. Bot Re-request and Polling
 
-> **WARNING — This step does NOT end at Step 14.** After the POST, you MUST enter the polling loop. Step 14 is only reachable via the polling loop exit conditions — never by falling through from 13b.
+> **WARNING — This step does NOT normally end at Step 14.** After the POST, follow `references/bot-polling.md`: in the normal path, enter the polling loop. Step 14 is reachable only through the polling-loop exit conditions or the documented manual-mode decline path from `references/bot-polling.md` — never by falling through from 13b.
 
 **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too.
 

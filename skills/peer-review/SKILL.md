@@ -275,7 +275,7 @@ You are reviewing a list of findings produced by an external code reviewer.
 Your job is to classify each finding as recommend or skip.
 
 Review mode: [consistency / diff]
-Content type: [file contents / diff text]
+Content type: [file contents for consistency mode / diff text for diff mode]
 
 Recommend a finding if:
 - The issue is real and not already addressed in the reviewed content
