@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.22"
+  version: "1.23"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -415,6 +415,8 @@ Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
 
 ### 13b. Bot Re-request and Polling
 
+> **WARNING — This step does NOT normally end at Step 14.** After the POST, follow `references/bot-polling.md`: in the normal path, enter the polling loop. Step 14 is reachable only through the polling-loop exit conditions or the documented manual-mode decline path from `references/bot-polling.md` — never by falling through from 13b.
+
 **Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too.
 
 **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it auto-triggers a review on push and cannot be re-requested via API. Because it was not explicitly re-requested, do not include it in the polling offer; re-invoke the skill when its review arrives.
@@ -430,9 +432,16 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
 ```
 Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed.
 
-**If bot reviewers were re-requested**, **you must now continue with the shared polling loop in `references/bot-polling.md`** — do not skip to the report. Because this step already required the pre-POST snapshot and the POST re-request, **do not restart at that file's Step 13b entry/setup section, do not take another snapshot there, and do not send another POST there**. Follow only that file's instructions for manual mode vs. auto-mode, signal checking, and loop exit conditions.
+**After the POST, execute these in order — do NOT proceed to Step 14 directly unless `references/bot-polling.md` tells you to after a manual-mode decline:**
+
+1. Confirm the pre-POST snapshot was recorded (timestamp + unresolved thread IDs)
+2. Confirm the POST re-request was sent for each bot reviewer
+3. **Resume the shared bot-polling flow in `references/bot-polling.md` after its setup section** — do not restart the setup section (snapshot and POST are already done), but still follow any manual-mode poll-offer / stop-and-wait behavior before the signal-checking and loop-exit logic
+4. Step 14 only when `references/bot-polling.md` routes you there: either after the polling flow exits through its defined exit conditions, or immediately after the user declines the manual-mode poll offer
 
 ### 14. Report
+
+> **Entry gate:** Reach Step 14 only after one of the allowed handoffs defined by `references/bot-polling.md`: either the shared polling loop reached one of its documented exit conditions, or — in manual mode — the user explicitly declined polling and you are proceeding directly to the report. If you just completed Step 13b with bot reviewers re-requested and the user has **not** declined polling, you are **not here yet** — return to Step 13b item 3 and resume the shared polling flow's signal-checking/exit logic first.
 
 **You must now execute `references/report-templates.md`** — use the templates in that file to structure your final report. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
 

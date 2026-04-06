@@ -138,94 +138,44 @@
     },
     {
       "eval_id": 2,
-      "eval_name": "spec-mode-plan-tasks-mismatch",
+      "eval_name": "consistency-mode-plan-tasks-mismatch",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 5,
-        "failed": 0,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
         "total": 5,
-        "time_seconds": 65.7,
-        "tokens": 25817,
-        "tool_calls": 6,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
         "errors": 0
       },
-      "expectations": [
-        {
-          "text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md",
-          "passed": true,
-          "evidence": "Mode explicitly set to Spec after detecting plan.md + tasks.md in fixture directory."
-        },
-        {
-          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
-          "passed": true,
-          "evidence": "Step 4 executed as an explicit fresh-context reviewer pass, framed as a distinct entity with no prior session context."
-        },
-        {
-          "text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md",
-          "passed": true,
-          "evidence": "Major findings #1 and #2: --verbose missing from argument parsing task and has no implementation task anywhere in tasks.md."
-        },
-        {
-          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
-          "passed": true,
-          "evidence": "Findings presented under Major and Minor headings."
-        },
-        {
-          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
-          "passed": true,
-          "evidence": "Apply prompt shown at end of response, generation stops."
-        }
-      ],
+      "expectations": null,
       "notes": [
-        "Primary discriminating eval (+0.40 delta). Spec mode detection and structured reviewer delegation are the key differentiators."
+        "Historical (v1.2): spec mode detection and structured reviewer delegation were the key differentiators. Eval 2 re-named and re-scoped in v1.3 \u2014 re-run needed for current discriminating behavior.",
+        "Eval renamed from spec-mode-plan-tasks-mismatch to consistency-mode-plan-tasks-mismatch in v1.3 \u2014 spec mode removed. Expectations nulled: old assertion (enters-spec-mode) is semantically inverted under new criterion (enters-consistency-mode). Re-run needed to capture valid pass/fail data."
       ]
     },
     {
       "eval_id": 2,
-      "eval_name": "spec-mode-plan-tasks-mismatch",
+      "eval_name": "consistency-mode-plan-tasks-mismatch",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.6,
-        "passed": 3,
-        "failed": 2,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
         "total": 5,
-        "time_seconds": 52.1,
-        "tokens": 20647,
-        "tool_calls": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
         "errors": 0
       },
-      "expectations": [
-        {
-          "text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md",
-          "passed": false,
-          "evidence": "No explicit spec mode declaration \u2014 agent reviewed the files without identifying a distinct mode workflow."
-        },
-        {
-          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
-          "passed": false,
-          "evidence": "Reviewed inline in the same response, no subagent spawned."
-        },
-        {
-          "text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md",
-          "passed": true,
-          "evidence": "Found --verbose missing from all tasks (classified as Critical C1 and C2)."
-        },
-        {
-          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
-          "passed": true,
-          "evidence": "Findings grouped under Critical, Major, Minor headings."
-        },
-        {
-          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
-          "passed": true,
-          "evidence": "Apply prompt shown at end of response."
-        }
-      ],
+      "expectations": null,
       "notes": [
-        "Failing: spec mode not declared, review inline. without_skill classified --verbose as Critical vs Major by with_skill."
+        "Historical (v1.2 failure): spec mode not declared, review inline. without_skill classified --verbose as Critical vs Major by with_skill. See re-run note below.",
+        "Eval renamed from spec-mode-plan-tasks-mismatch to consistency-mode-plan-tasks-mismatch in v1.3 \u2014 spec mode removed. Expectations nulled: old assertion (enters-spec-mode) is semantically inverted under new criterion (enters-consistency-mode). Re-run needed to capture valid pass/fail data."
       ]
     },
     {
@@ -1518,48 +1468,48 @@
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.98,
-        "stddev": 0.06,
+        "mean": 1.0,
+        "stddev": 0.1,
         "min": 0.8,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 43.0,
-        "stddev": 34.8,
+        "mean": 39.7,
+        "stddev": 36.3,
         "min": 8.1,
         "max": 105.5
       },
       "tokens": {
-        "mean": 26892,
-        "stddev": 7377,
+        "mean": 27045.7,
+        "stddev": 7953.8,
         "min": 22326,
         "max": 44948
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.68,
-        "stddev": 0.34,
+        "mean": 0.7,
+        "stddev": 0.3,
         "min": 0.0,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 45.6,
-        "stddev": 61.5,
+        "mean": 44.7,
+        "stddev": 66.4,
         "min": 4.8,
         "max": 191.9
       },
       "tokens": {
-        "mean": 25644,
-        "stddev": 13928,
+        "mean": 26357.3,
+        "stddev": 14885.4,
         "min": 17663,
         "max": 59648
       }
     },
     "delta": {
-      "pass_rate": "+0.31",
-      "time_seconds": "-2.7",
-      "tokens": "+1249"
+      "pass_rate": "+0.30",
+      "time_seconds": "-5.0",
+      "tokens": "+688"
     }
   }
 }

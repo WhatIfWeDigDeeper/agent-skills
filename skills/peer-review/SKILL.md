@@ -1,11 +1,11 @@
 ---
 name: peer-review
 description: >-
-  Get a fresh-context review of specs, staged changes, branches, PRs, or file sets.
+  Get a fresh-context review of staged changes, branches, PRs, or file sets.
   Delegates to a fresh-context reviewer by default; routes to external LLM CLIs
   (Copilot, Codex, Gemini) when --model specifies one.
   Use when: user says "review my changes", "peer review", "check for consistency",
-  "review this spec", "review staged", "review PR N", "check this for issues",
+  "review staged", "review PR N", "check this for issues",
   "fresh review", "another set of eyes", "sanity check", "quick review before I push",
   "look this over", "anything wrong with this", or wants a lightweight review before
   opening a PR. Also use for "review these files", "check this diff", or when the user
@@ -15,12 +15,12 @@ compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Peer Review
 
-Get a fresh-context review of in-progress work — specs, staged changes, a branch diff, a PR, or a set of files — without accumulated session assumptions. Returns severity-grouped findings the author can apply or skip.
+Get a fresh-context review of in-progress work — staged changes, a branch diff, a PR, or a set of files — without accumulated session assumptions. Returns severity-grouped findings the author can apply or skip.
 
 ## Arguments
 
@@ -66,8 +66,7 @@ The skill auto-detects the review mode from the target:
 | Mode | Trigger | Focus |
 |------|---------|-------|
 | **Diff** | `--staged`, `--branch`, `--pr`, no target | Bugs, security issues, missing tests, style violations, unintended behavioral changes |
-| **Spec** | Path resolves to a directory containing both `plan.md` and `tasks.md` | All consistency checks + gaps between plan/tasks, underspecified items, incorrect shell commands, internal math errors, implied-but-missing tasks |
-| **Consistency** | Any other file/dir path | Drift between related files — stale step references, mismatched terminology, missing parallel updates |
+| **Consistency** | Any file/dir path | Drift between related files — stale step references, mismatched terminology, missing parallel updates, underspecified items, shell command errors, internal math/count errors |
 
 ## Process
 
@@ -106,7 +105,7 @@ If the PR is not found, error and exit. Prepend the PR title and body as context
 
 **Path** (file or directory):
 
-Read all files at the path (in Claude Code: use the `Read` tool). If the resolved path is a directory containing both `plan.md` and `tasks.md`, set mode to **spec**. Otherwise set mode to **consistency**.
+Read all files at the path (in Claude Code: use the `Read` tool). Set mode to **consistency**.
 
 ### 3. Select Prompt Template
 
@@ -142,13 +141,18 @@ Do NOT implement any changes. Return findings only.
 **Consistency mode prompt:**
 ```
 You are doing a consistency review across a set of related files.
-Look for: stale step references, mismatched terminology, missing parallel updates,
-descriptions that contradict each other, and underspecified items.
+Look for:
+- Stale step references, mismatched terminology, missing parallel updates
+- Descriptions that contradict each other
+- Underspecified items — too vague to implement unambiguously
+- Incorrect or incomplete shell commands
+- Internal math or count errors (e.g. "10 items" when only 8 are listed)
+- Items implied by one file but missing from another
 
 Severity guide:
 - critical: contradiction that would cause the reader to implement the wrong behavior
-- major: stale reference or mismatch that would confuse a reader or require rework to fix
-- minor: cosmetic inconsistency or minor terminology drift that doesn't affect meaning
+- major: stale reference, shell error, or missing item that would confuse a reader or require rework
+- minor: wording ambiguity, count discrepancy, or cosmetic inconsistency that doesn't block implementation
 
 [FILE CONTENTS]
 
@@ -159,40 +163,6 @@ For each finding include:
 - File: relative path of the file with the issue
 - Location: phrase anchor — quote a short phrase near the issue (do not use line numbers)
 - Problem: what is inconsistent or missing
-- Fix: what the change should be
-
-If there are no findings, return exactly: NO FINDINGS
-
-Do NOT implement any changes. Return findings only.
-[FOCUS_LINE]
-```
-
-**Spec mode prompt:**
-```
-You are doing a spec review. The input is a plan.md + tasks.md pair.
-
-Check for:
-1. Consistency between plan.md and tasks.md — every behavior in the plan should have a task; every task should trace to the plan
-2. Underspecified task items — tasks that are too vague to implement unambiguously
-3. Incorrect or incomplete shell commands
-4. Internal math or count errors
-5. Tasks implied by the plan but missing from tasks.md
-6. Contradictions within or between the two files
-
-Severity guide:
-- critical: contradiction or missing task that would cause the wrong thing to be built
-- major: underspecified item or shell error that would require re-work to implement correctly
-- minor: wording ambiguity, count discrepancy, or cosmetic inconsistency that doesn't block implementation
-
-[FILE CONTENTS]
-
-Return a structured list of findings grouped by severity (critical/major/minor).
-For each finding include:
-- Title: one-line summary of the issue
-- Severity: critical | major | minor
-- File: plan.md or tasks.md
-- Location: phrase anchor — quote a short phrase near the issue (do not use line numbers)
-- Problem: what is wrong or missing
 - Fix: what the change should be
 
 If there are no findings, return exactly: NO FINDINGS
@@ -304,8 +274,8 @@ Spawn a fresh Claude subagent (with `mode: "auto"` in Claude Code) with the foll
 You are reviewing a list of findings produced by an external code reviewer.
 Your job is to classify each finding as recommend or skip.
 
-Review mode: [spec / consistency / diff]
-Content type: [file contents / diff text]
+Review mode: [consistency / diff]
+Content type: [file contents for consistency mode / diff text for diff mode]
 
 Recommend a finding if:
 - The issue is real and not already addressed in the reviewed content
@@ -325,7 +295,7 @@ FINDING N: skip — [one-line reason]
 
 [NORMALIZED FINDINGS — title, severity, file, location, problem, fix for each]
 
-[COLLECTED CONTENT — file contents for spec/consistency mode, diff text for diff mode]
+[COLLECTED CONTENT — file contents for consistency mode / diff text for diff mode]
 ```
 
 Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed or is otherwise invalid (including missing `FINDING N:` lines, wrong format, empty response, duplicate `FINDING N:` lines, conflicting `recommend` and `skip` decisions for the same `N`, IDs outside the valid `1..N` finding range, or any other violation of the "exactly one line per finding" rule), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.

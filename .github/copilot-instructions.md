@@ -77,6 +77,7 @@ uv run --with pytest pytest tests/
 ## Command And Tooling Gotchas
 
 - Do not hardcode `/tmp/`; use `mktemp`, `$TMPDIR`, or `${TMPDIR:-/private/tmp}`. `${TMPDIR:-/tmp}` is also a violation — the fallback must be `/private/tmp`, not `/tmp`.
+- **`trap` cleanup fires at the end of each Bash tool call**: use `trap 'rm -f "$FILE"' EXIT INT TERM` immediately after `mktemp` only when that temp file is created and consumed within the same tool call. When a temp file must persist across multiple tool calls, write it to a named path (e.g. `"${TMPDIR:-/private/tmp}/name.txt"`) without a `trap` — `trap 'rm -f "$FILE"' EXIT` fires when the subshell exits at the end of each call, deleting the file before the next call runs. Clean up explicitly in a later call instead.
 - If `git commit` fails because of GPG/keyring access, use `--no-gpg-sign` only as a fallback after the failure.
 - In sandboxed environments, HTTPS `git push` may hang on credentials. A working pattern is:
 
@@ -100,7 +101,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - When a workflow pauses for user confirmation, make the stop explicit: tell the agent to output the prompt as its final message and stop generating until the user replies. If the workflow also has auto/manual modes, specify every confirmation gate each mode affects. If auto mode is meant to be hands-free, say explicitly whether later gates (for example push/re-request prompts) are skipped or still require confirmation.
 - When listing exit conditions for a workflow loop, state that they are the only valid exit conditions and explicitly forbid subjective early exits.
 - When a SKILL.md step does setup work (snapshot, POST, etc.) before delegating to a reference file that has its own entry/setup section covering the same actions, the delegation sentence must name the target section and list what not to re-run — otherwise agents re-enter the setup section and duplicate actions already done in SKILL.md.
-- When a SKILL.md step creates a temp file with `mktemp`, document `trap 'rm -f "$FILE"' EXIT INT TERM` immediately after the `mktemp` call — a manual `rm -f` at the end of the block is skipped on error or interruption.
+- When a SKILL.md step creates a temp file with `mktemp` and uses it within the same tool call, document `trap 'rm -f "$FILE"' EXIT INT TERM` immediately after the `mktemp` call — a manual `rm -f` at the end of the block is skipped on error or interruption. When the temp file must persist across multiple tool calls, use a named path without `trap` instead (see the `trap` cleanup bullet above).
 - Bash snippets that assign CLI output to a variable should include `2>&1` so error messages flow into the captured variable and reach fallback/error handling paths (e.g., `REVIEW_OUTPUT=$(cli ... 2>&1)`).
 
 ## Persistence

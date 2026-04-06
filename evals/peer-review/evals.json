@@ -33,15 +33,15 @@
     },
     {
       "id": 2,
-      "name": "spec-mode-plan-tasks-mismatch",
+      "name": "consistency-mode-plan-tasks-mismatch",
       "prompt": "/peer-review evals/peer-review/fixtures/spec/",
-      "expected_output": "The skill reads plan.md and tasks.md in the fixtures/spec/ directory, enters spec mode (because both plan.md and tasks.md are present), spawns a fresh-context reviewer subagent, and returns findings that include the missing --verbose task: plan.md documents a --verbose flag with defined behavior, but tasks.md has no task to implement it. Argument parsing task also only lists --target and --dry-run, omitting --verbose. Findings are grouped by severity.",
+      "expected_output": "The skill reads plan.md and tasks.md in the fixtures/spec/ directory, enters consistency mode (spec mode was removed in v1.3 — plan.md+tasks.md directories now use consistency mode), spawns a fresh-context reviewer subagent, and returns findings that include the missing --verbose task: plan.md documents a --verbose flag with defined behavior, but tasks.md has no task to implement it. Argument parsing task also only lists --target and --dry-run, omitting --verbose. Findings are grouped by severity.",
       "context": "The fixtures/spec/ directory contains a plan.md and tasks.md pair. plan.md defines three flags: --dry-run, --verbose, and --target ENV. tasks.md only implements --target and --dry-run \u2014 it has no task for --verbose, and the argument parsing task does not list --verbose.",
       "files": [],
       "assertions": [
         {
-          "id": "enters-spec-mode",
-          "text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md"
+          "id": "enters-consistency-mode",
+          "text": "The agent enters consistency mode (not spec mode) because spec mode was removed in v1.3; plan.md+tasks.md directories now use consistency mode like any other path target"
         },
         {
           "id": "spawns-reviewer-subagent",
