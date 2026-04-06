@@ -6,8 +6,9 @@ from conftest import detect_mode, parse_arguments
 class TestModeDetection:
     """Test auto-detection of review mode from target and directory contents."""
 
-    def test_spec_mode_when_both_files_present(self):
-        assert detect_mode(has_plan_md=True, has_tasks_md=True) == "spec"
+    def test_consistency_mode_when_both_files_present(self):
+        """plan.md+tasks.md directories use consistency mode (spec mode removed in v1.3)."""
+        assert detect_mode(has_plan_md=True, has_tasks_md=True) == "consistency"
 
     def test_consistency_mode_when_only_plan_md(self):
         assert detect_mode(has_plan_md=True, has_tasks_md=False) == "consistency"

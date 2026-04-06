@@ -112,10 +112,9 @@ def parse_arguments(args: str | None) -> dict:
 def detect_mode(has_plan_md: bool, has_tasks_md: bool) -> str:
     """Detect review mode from directory contents per SKILL.md.
 
-    Returns: "spec" | "consistency"
+    Returns: "consistency" (spec mode was removed in v1.3; plan.md+tasks.md
+    directories now use consistency mode like any other path target)
     """
-    if has_plan_md and has_tasks_md:
-        return "spec"
     return "consistency"
 
 

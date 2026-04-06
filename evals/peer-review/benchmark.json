@@ -138,7 +138,7 @@
     },
     {
       "eval_id": 2,
-      "eval_name": "spec-mode-plan-tasks-mismatch",
+      "eval_name": "consistency-mode-plan-tasks-mismatch",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -151,40 +151,15 @@
         "tool_calls": 6,
         "errors": 0
       },
-      "expectations": [
-        {
-          "text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md",
-          "passed": true,
-          "evidence": "Mode explicitly set to Spec after detecting plan.md + tasks.md in fixture directory."
-        },
-        {
-          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
-          "passed": true,
-          "evidence": "Step 4 executed as an explicit fresh-context reviewer pass, framed as a distinct entity with no prior session context."
-        },
-        {
-          "text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md",
-          "passed": true,
-          "evidence": "Major findings #1 and #2: --verbose missing from argument parsing task and has no implementation task anywhere in tasks.md."
-        },
-        {
-          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
-          "passed": true,
-          "evidence": "Findings presented under Major and Minor headings."
-        },
-        {
-          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
-          "passed": true,
-          "evidence": "Apply prompt shown at end of response, generation stops."
-        }
-      ],
+      "expectations": null,
       "notes": [
-        "Primary discriminating eval (+0.40 delta). Spec mode detection and structured reviewer delegation are the key differentiators."
+        "Primary discriminating eval (+0.40 delta). Spec mode detection and structured reviewer delegation are the key differentiators.",
+        "Eval renamed from spec-mode-plan-tasks-mismatch to consistency-mode-plan-tasks-mismatch in v1.3 \u2014 spec mode removed. Expectations nulled: old assertion (enters-spec-mode) is semantically inverted under new criterion (enters-consistency-mode). Re-run needed to capture valid pass/fail data."
       ]
     },
     {
       "eval_id": 2,
-      "eval_name": "spec-mode-plan-tasks-mismatch",
+      "eval_name": "consistency-mode-plan-tasks-mismatch",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -197,35 +172,10 @@
         "tool_calls": 4,
         "errors": 0
       },
-      "expectations": [
-        {
-          "text": "The agent enters spec mode because the target directory contains both plan.md and tasks.md",
-          "passed": false,
-          "evidence": "No explicit spec mode declaration \u2014 agent reviewed the files without identifying a distinct mode workflow."
-        },
-        {
-          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
-          "passed": false,
-          "evidence": "Reviewed inline in the same response, no subagent spawned."
-        },
-        {
-          "text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md",
-          "passed": true,
-          "evidence": "Found --verbose missing from all tasks (classified as Critical C1 and C2)."
-        },
-        {
-          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
-          "passed": true,
-          "evidence": "Findings grouped under Critical, Major, Minor headings."
-        },
-        {
-          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
-          "passed": true,
-          "evidence": "Apply prompt shown at end of response."
-        }
-      ],
+      "expectations": null,
       "notes": [
-        "Failing: spec mode not declared, review inline. without_skill classified --verbose as Critical vs Major by with_skill."
+        "Failing: spec mode not declared, review inline. without_skill classified --verbose as Critical vs Major by with_skill.",
+        "Eval renamed from spec-mode-plan-tasks-mismatch to consistency-mode-plan-tasks-mismatch in v1.3 \u2014 spec mode removed. Expectations nulled: old assertion (enters-spec-mode) is semantically inverted under new criterion (enters-consistency-mode). Re-run needed to capture valid pass/fail data."
       ]
     },
     {
