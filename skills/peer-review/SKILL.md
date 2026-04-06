@@ -93,7 +93,7 @@ git diff --quiet; UNSTAGED_PRESENT=$?
 ```
 (`0` = nothing present, `1` = changes present; any other exit code means an error — warn and exit: "Could not determine change status. Is this a git repository?")
 
-- **Neither present** → warn: "No staged or unstaged changes found. Working tree is clean." and exit.
+- **Neither present** → warn: "No staged or unstaged changes to review." and exit.
 - **Staged only** → collect staged content and proceed: `git diff --staged`
 - **Unstaged only** → collect unstaged content and proceed: `git diff` — note in the output header: "No staged changes — reviewing unstaged changes."
 - **Both present** → output: "You have both staged and unstaged changes. Review which? [staged/unstaged/all]" as your **final message and stop generating**. On reply, collect:
