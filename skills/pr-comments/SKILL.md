@@ -434,8 +434,8 @@ Note: POST alone is sufficient to re-trigger the review — no prior DELETE is n
 
 **After the POST, execute these in order — do NOT proceed to Step 14 directly unless `references/bot-polling.md` tells you to after a manual-mode decline:**
 
-1. Pre-POST snapshot recorded (timestamp + unresolved thread IDs)
-2. POST re-request sent for each bot reviewer
+1. Confirm the pre-POST snapshot was recorded (timestamp + unresolved thread IDs)
+2. Confirm the POST re-request was sent for each bot reviewer
 3. **Resume the shared bot-polling flow in `references/bot-polling.md` after its setup section** — do not restart the setup section (snapshot and POST are already done), but still follow any manual-mode poll-offer / stop-and-wait behavior before the signal-checking and loop-exit logic
 4. Step 14 only when `references/bot-polling.md` routes you there: either after the polling flow exits through its defined exit conditions, or immediately after the user declines the manual-mode poll offer
 
