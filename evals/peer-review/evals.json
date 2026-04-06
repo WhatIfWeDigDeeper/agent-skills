@@ -463,7 +463,7 @@
       "assertions": [
         {
           "id": "detects-both-areas",
-          "text": "The agent detects that both staged and unstaged changes are present"
+          "text": "The output indicates that both staged and unstaged changes are present (for example, 'You have both staged and unstaged changes')"
         },
         {
           "id": "prompts-user-to-choose",

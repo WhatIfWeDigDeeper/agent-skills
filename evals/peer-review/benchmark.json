@@ -1536,7 +1536,7 @@
       },
       "expectations": [
         {
-          "text": "The agent detects that both staged and unstaged changes are present",
+          "text": "The output indicates that both staged and unstaged changes are present (for example, 'You have both staged and unstaged changes')",
           "passed": true,
           "evidence": "Transcript Step 2: ran both git diff --staged and git diff, found both non-empty."
         },
@@ -1572,7 +1572,7 @@
       },
       "expectations": [
         {
-          "text": "The agent detects that both staged and unstaged changes are present",
+          "text": "The output indicates that both staged and unstaged changes are present (for example, 'You have both staged and unstaged changes')",
           "passed": true,
           "evidence": "Transcript shows both staged (src/auth.js) and unstaged (src/utils.js) changes identified and reviewed."
         },
