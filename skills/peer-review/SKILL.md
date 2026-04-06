@@ -295,7 +295,7 @@ FINDING N: skip — [one-line reason]
 
 [NORMALIZED FINDINGS — title, severity, file, location, problem, fix for each]
 
-[COLLECTED CONTENT — file contents for spec/consistency mode, diff text for diff mode]
+[COLLECTED CONTENT — file contents for consistency mode / diff text for diff mode]
 ```
 
 Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed or is otherwise invalid (including missing `FINDING N:` lines, wrong format, empty response, duplicate `FINDING N:` lines, conflicting `recommend` and `skip` decisions for the same `N`, IDs outside the valid `1..N` finding range, or any other violation of the "exactly one line per finding" rule), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.
