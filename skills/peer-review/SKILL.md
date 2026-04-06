@@ -91,7 +91,7 @@ Check for presence first (fast, no content captured):
 git diff --staged --quiet; STAGED_PRESENT=$?
 git diff --quiet; UNSTAGED_PRESENT=$?
 ```
-(`0` = nothing present, `1` = changes present)
+(`0` = nothing present, `1` = changes present; any other exit code means an error — warn and exit: "Could not determine change status. Is this a git repository?")
 
 - **Neither present** → warn: "No staged or unstaged changes found. Working tree is clean." and exit.
 - **Staged only** → collect staged content and proceed: `git diff --staged`
