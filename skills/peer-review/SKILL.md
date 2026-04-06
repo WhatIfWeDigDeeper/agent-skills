@@ -15,7 +15,7 @@ compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.3"
+  version: "1.4"
 ---
 
 # Peer Review
@@ -32,8 +32,8 @@ If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, print usage and exit:
 Usage: /peer-review [target] [--model MODEL] [--focus TOPIC]
 
 Targets (pick one):
-  (none)            Staged changes (git diff --staged)
-  --staged          Same as no target — explicit form
+  (none)            Auto-detect: staged, unstaged, or prompt if both exist
+  --staged          Staged changes only — skip auto-detection (git diff --staged)
   --pr N            PR #N diff + description
   --branch NAME     Branch diff vs default branch
   path/to/file-or-dir  Specific files or directory
@@ -78,11 +78,27 @@ Parse `$ARGUMENTS` per the Arguments section above. Set `model` to `claude-opus-
 
 Execute the appropriate collection command:
 
-**Staged** (`--staged` or no target):
+**Staged** (explicit `--staged`):
 ```bash
 git diff --staged
 ```
 If output is empty, warn: "No staged changes found. Stage files with `git add` first." and exit.
+
+**Default** (no target — auto-detect):
+
+Check both areas:
+```bash
+STAGED=$(git diff --staged)
+UNSTAGED=$(git diff)
+```
+
+- **Neither present** → warn: "No staged or unstaged changes found. Working tree is clean." and exit.
+- **Staged only** → proceed with staged content (same as `--staged`).
+- **Unstaged only** → proceed with unstaged content; note in the output header: "No staged changes — reviewing unstaged changes."
+- **Both present** → output: "You have both staged and unstaged changes. Review which? [staged/unstaged/all]" as your **final message and stop generating**. On reply, collect:
+  - `staged` → `git diff --staged`
+  - `unstaged` → `git diff`
+  - `all` → `git diff HEAD`
 
 **Branch** (`--branch NAME`):
 
@@ -121,6 +137,15 @@ Severity guide:
 - major: likely to confuse users, break edge cases, or make future changes harder without being immediately fatal
 - minor: style, naming, or polish issues that don't affect correctness
 
+Do NOT report:
+- Import ordering or grouping preferences
+- Whitespace-only issues or formatting style (unless it changes behavior, e.g. Python indentation)
+- Missing comments on self-explanatory code
+- Suggestions to add type annotations when the file doesn't already use them
+- Renaming suggestions based on personal preference when the current name is clear
+
+Flag missing test coverage only for non-trivial behavioral changes — not for one-line renames, comment edits, or config tweaks.
+
 [DIFF CONTENT]
 
 Return a structured list of findings grouped by severity (critical/major/minor).
@@ -153,6 +178,11 @@ Severity guide:
 - critical: contradiction that would cause the reader to implement the wrong behavior
 - major: stale reference, shell error, or missing item that would confuse a reader or require rework
 - minor: wording ambiguity, count discrepancy, or cosmetic inconsistency that doesn't block implementation
+
+Do NOT report:
+- Minor wording preferences that don't change meaning
+- Formatting differences between files (indentation, bullet style) unless they signal a copy-paste error
+- Issues with content outside the provided files
 
 [FILE CONTENTS]
 

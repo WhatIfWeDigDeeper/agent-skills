@@ -19,6 +19,7 @@ def parse_arguments(args: str | None) -> dict:
             "path": str | None,
             "model": str,  # Defaults to "claude-opus-4-6" on successful parses.
             "focus": str | None,
+            "explicit_staged": bool,  # True when --staged flag was explicitly given.
             "error": str | None,
         }
     """
@@ -29,6 +30,7 @@ def parse_arguments(args: str | None) -> dict:
         "path": None,
         "model": None,
         "focus": None,
+        "explicit_staged": False,
         "error": None,
     }
 
@@ -50,6 +52,7 @@ def parse_arguments(args: str | None) -> dict:
                 result["error"] = "specify one target at a time — targets are mutually exclusive."
                 return result
             result["target_type"] = "staged"
+            result["explicit_staged"] = True
             i += 1
 
         elif tok == "--pr":

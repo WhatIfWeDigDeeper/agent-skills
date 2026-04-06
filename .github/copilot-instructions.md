@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `CLAUDE.md`. The two files serve different assistants (Copilot vs. Claude Code) but should encode the same project conventions.
+**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `CLAUDE.md`. The two files serve different assistants (Copilot vs. Claude Code) but should encode the same project conventions. When running `/learn` in this project, always update **both** `CLAUDE.md` and `.github/copilot-instructions.md` without asking which to update.
 
 ## Project Overview
 
@@ -49,6 +49,7 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - Place the top-level `notes` array at the root of `benchmark.json`, not inside `metadata` — between the closing `}` of `metadata` and the opening `[` of `runs`.
 - When renaming action labels or vocabulary in `SKILL.md`, also search `CLAUDE.md` for hardcoded step references that use the old name — step renames must propagate there just as they do to `evals.json` and `benchmark.json`.
 - Eval assertions must test user-facing output, not internal signals: if a skill uses an internal return value from a subagent (e.g. `NO FINDINGS`) and translates it to user-visible text (e.g. `'No issues found.'`), the assertion must test the user-visible string — not the internal signal. An assertion testing the internal signal will never catch regressions in the translation/presentation layer.
+- **When assertion semantics are inverted** (not just renamed), null ALL result fields in the affected `benchmark.json` runs: `pass_rate`, `passed`, `failed`, `time_seconds`, `tokens`, and `tool_calls`. The measurement fields still feed `run_summary` aggregates even when pass/fail is null. After nulling, recompute `run_summary` excluding those runs from all stat calculations, then update `benchmark.md` Summary table and README Eval Δ.
 - Fixture-based eval prompts must embed the fixture in the `prompt` field, not `expected_output`: `expected_output` is prose describing the expected grading outcome for the eval runner — it is not readable by the executor. Putting fixture CLI/tool responses in `expected_output` would confuse the executor about what to output, or cause the grader to treat fixture data as the expected result.
 
 ## Tests And Validation
@@ -89,6 +90,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - When passing shell variables into `jq`, use `jq --arg name "$value"` instead of shell string interpolation inside the filter.
 - `rg` alternation uses bare `|`, not `\|`.
 - In an unquoted heredoc (`<<EOF`), `\"` is a literal backslash-quote — the receiver sees `\"`, not `"`. If you need a double quote in the heredoc body, write plain `"` directly, or use `<<'EOF'` to suppress shell processing.
+- **`gh api -f body` strips backtick-quoted text**: backticks inside a `-f body="..."` argument are interpreted as shell command substitution, silently stripping the content. Use a heredoc with `--input -` or write the body to a temp file and pass `--body-file` instead.
 - GitHub review thread `isOutdated` means the diff location moved, not that the concern is resolved.
 - **`replace_all` removing trailing text can merge the next line**: when the removed substring is the last non-whitespace content on a line, the Edit tool may collapse the following line onto the same line. Verify surrounding context after any `replace_all` that targets text at the end of a line.
 - **External CLI tools (gemini, copilot) may need network access and writable filesystem access outside a restrictive sandbox**: `gemini` needs network access to make API calls, and `copilot` may also need writable access for session-state files to avoid EPERM noise. In Claude Code, this may require enabling `dangerouslyDisableSandbox: true`; in other runtimes, use the equivalent setting that grants the needed capabilities.

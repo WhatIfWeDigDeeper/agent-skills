@@ -42,6 +42,20 @@ class TestStagedTarget:
         assert result["focus"] == "security"
         assert result["error"] is None
 
+    def test_explicit_staged_sets_flag(self):
+        """--staged explicitly given sets explicit_staged=True."""
+        result = parse_arguments("--staged")
+        assert result["explicit_staged"] is True
+
+    def test_no_args_does_not_set_explicit_staged(self):
+        """No target leaves explicit_staged=False (auto-detect applies)."""
+        result = parse_arguments("")
+        assert result["explicit_staged"] is False
+
+    def test_none_does_not_set_explicit_staged(self):
+        result = parse_arguments(None)
+        assert result["explicit_staged"] is False
+
 
 class TestPRTarget:
     """--pr N sets target to PR with number."""

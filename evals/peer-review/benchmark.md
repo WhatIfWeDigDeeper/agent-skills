@@ -1,21 +1,21 @@
 # peer-review Benchmark Results
 
 **Model**: claude-sonnet-4-6
-**Date**: 2026-04-05
-**Evals**: 20 (1 run each, with-skill vs. without-skill)
+**Date**: 2026-04-06
+**Evals**: 23 (1 run each, with-skill vs. without-skill)
 
 ## Summary
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | 100% ± 10% | 70% ± 30% | **+30%** |
+| Pass rate | 97% ± 7% | 68% ± 34% | **+29%** |
 | Min / Max | 80% / 100% | 0% / 100% | |
 | Time (s) | ~39.7 ± 36.3 | ~44.7 ± 66.4 | -5.0 |
 | Tokens | ~27,046 ± 7,954 | ~26,357 ± 14,885 | +688 |
 
-20 evals × 2 configurations = 40 runs. Token statistics are computed over 7 of 20 primary (run_number=1) runs per configuration (14 of 40 total) — evals 5–10 and 15–20 use simulated transcripts and have no recorded time or token measurements; evals 1, 3–4 and 11–14 have real measurements; eval 2 measurements are excluded as stale pre-v1.3 data (re-run pending). Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
+23 evals × 2 configurations = 46 runs. Token statistics are computed over 7 of 23 primary (run_number=1) runs per configuration (14 of 46 total) — evals 5–10, 15–23 use simulated transcripts and have no recorded time or token measurements; evals 1, 3–4 and 11–14 have real measurements. Summary-table Delta values are computed from unrounded means (with_skill=0.97391, without_skill=0.67957), so they may differ slightly from subtracting the displayed rounded means.
 
-**Discriminating evals**: Evals 4, 5, 7, 8, 9, 10, 13, 15, 16, 19 discriminate (eval 2 discrimination status pending v1.3 re-run). Eval 5 (copilot severity normalization) has the highest delta (+1.0). Eval 13 (focus-option) discriminates at +0.67. Evals 15 (triage-skips-false-positive, +1.0 delta) and 16 (triage-all-skipped, +0.67 delta) and 19 (rescan-offered-after-apply, +0.67 delta) are the new discriminating evals from Phase III. Evals 3, 6, 11, 12, 14, 17, 18, 20 are non-discriminating: baseline handles conflict detection, no-findings output, empty-staged warning, PR metadata inclusion (with fixture), skip handling, triage-not-on-claude-path (regression guard), triage-user-includes-skipped (intuitive S-prefix), and rescan-not-offered-after-skip correctly without the skill. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
+**Discriminating evals**: Evals 2, 4, 5, 7, 8, 9, 10, 13, 15, 16, 19, 21 discriminate. Evals 5 and 15 have the highest delta (+1.0 each). Eval 21 (both-staged-and-unstaged-prompt) discriminates at +0.67: the disambiguation prompt is entirely skill-defined. Eval 2 (consistency-mode-plan-tasks-mismatch) discriminates at +0.40 after v1.4 re-run. Evals 3, 6, 11, 12, 14, 17, 18, 20, 22, 23 are non-discriminating. Evals 22 (unstaged-only-auto-review) and 23 (staged-explicit-bypasses-detection) are non-discriminating: these behaviors are intuitive enough that the baseline handles them correctly. Adding evals 22 and 23 diluted the headline delta from +30% to +29%. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
 
 ## Eval Results
 
@@ -36,10 +36,10 @@
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
-| with-skill    | null      | null   | null   |
-| without-skill | null      | null   | null   |
+| with-skill    | 0.80      | 4/5    | 1      |
+| without-skill | 0.40      | 2/5    | 3      |
 
-**Pending v1.3 re-run.** Eval renamed from `spec-mode-plan-tasks-mismatch` to `consistency-mode-plan-tasks-mismatch` in v1.3. The prior assertion (`enters-spec-mode`) is semantically inverted under the new criterion (`enters-consistency-mode`); historical pass/fail data and performance measurements are excluded from summary aggregates until a fresh run is recorded. Discrimination status TBD.
+**Discriminating** (+0.40 delta). Re-run in v1.4 with updated v1.3 assertions. with-skill correctly enters consistency mode, finds the --verbose gap, groups findings by severity, and presents the standard apply prompt. without-skill finds the --verbose gap and groups findings, but fails to enter an explicitly named consistency mode and presents a prose "Apply Prompt" section rather than the standard numbered selection format. The "spawns subagent" assertion fails in both configurations due to eval harness constraint.
 
 ### Eval 3 — `argument-conflict-error`
 
@@ -245,6 +245,39 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 **Non-discriminating**. Both configurations output the skip summary and produce no re-scan offer — baseline naturally skips applying and makes no edits when told to skip. Verifies re-scan suppression on the skip path.
 
+### Eval 21 — `both-staged-and-unstaged-prompt`
+
+**Scenario**: `/peer-review` (no target) with both staged and unstaged changes present (one file each). Skill should detect both and prompt the user to choose which to review.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 0.33      | 1/3    | 2      |
+
+**Discriminating** (+0.67 delta). The disambiguation prompt ("You have both staged and unstaged changes. Review which? [staged/unstaged/all]") is entirely skill-defined. without-skill silently reviewed both files (staged and unstaged) without asking — missing both the prompt and the stop-before-reviewer requirement.
+
+### Eval 22 — `unstaged-only-auto-review`
+
+**Scenario**: `/peer-review` (no target) with no staged changes but unstaged changes present. Reviewer returns NO FINDINGS.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 1.00      | 3/3    | 0      |
+
+**Non-discriminating**. Auto-reviewing unstaged changes when nothing is staged, and noting that fact, is intuitive enough that both configurations handle it correctly. Baseline included a note ("No changes are currently staged — reviewing those instead.") without skill guidance. Establishes this behavior works correctly.
+
+### Eval 23 — `staged-explicit-bypasses-detection`
+
+**Scenario**: `/peer-review --staged` with both staged and unstaged changes present. Explicit --staged should skip auto-detection and review staged only.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 1.00      | 3/3    | 0      |
+
+**Non-discriminating**. Using `--staged` as a flag to scope review to staged changes only is intuitive; baseline correctly excluded the unstaged file and noted it was out of scope. The internal distinction (skipping auto-detect logic) is not observable in the output. Verifies explicit --staged behavior works correctly.
+
 ## Notes
 
 - **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For evals 1 and 4, the "spawns subagent" assertion fails in both configurations for this reason. In production use, the skill correctly delegates to a fresh subagent.
@@ -255,3 +288,4 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 - **Delta from adding evals 11–14**: adding 4 mostly non-discriminating evals (11, 12, 14) plus one discriminating eval (13) reduced the headline delta from +31% to +27%.
 - **Delta from adding evals 15–20**: adding 3 discriminating evals (15, 16, 19) and 3 non-discriminating evals (17, 18, 20) restores and exceeds the headline delta: +27% → +31%. Evals 17, 18, 20 are non-discriminating by design — they serve as regression guards or verify intuitive behaviors that pass without skill knowledge.
 - **Delta from v1.3 spec-mode removal (eval 2 re-scope)**: eval 2 renamed and criteria inverted; historical pass/fail data and measurements excluded from aggregates pending re-run. Headline delta shifts from +31% to +30% (pass rate means recomputed excluding eval 2; stale time/token measurements also excluded).
+- **Delta from v1.4 evals (evals 2, 21, 22, 23)**: eval 2 re-run confirms +0.40 delta. Eval 21 (both-staged-and-unstaged-prompt) adds +0.67 delta. Evals 22 and 23 are non-discriminating, diluting the headline delta from +30% to +29%.
