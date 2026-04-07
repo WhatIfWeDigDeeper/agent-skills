@@ -3,7 +3,7 @@
 **Model**: claude-sonnet-4-6
 **Date**: 2026-03-29 (updated 2026-04-03 for spec 15; eval 10 re-run 2026-04-07 under v1.24)
 **Evals**: 1–36 (1 primary run each per configuration; evals 12, 14, 20, 22, 23, and 24 have supplementary regression runs)
-**Skill version**: 1.24
+**Skill version**: v1.21 (primary); eval 10 re-run under v1.24
 
 ## Summary
 
