@@ -4,18 +4,18 @@ description: >-
   Get a fresh-context review of staged changes, branches, PRs, or file sets.
   Delegates to a fresh-context reviewer by default; routes to external LLM CLIs
   (Copilot, Codex, Gemini) when --model specifies one.
-  Use when: user says "review my changes", "peer review", "check for consistency",
-  "review staged", "review PR N", "check this for issues",
-  "fresh review", "another set of eyes", "sanity check", "quick review before I push",
-  "look this over", "anything wrong with this", or wants a lightweight review before
-  opening a PR. Also use for "review these files", "check this diff", or when the user
-  pastes a diff or spec and asks if anything looks off.
+  Use when: user says "peer review" (e.g. "peer review PR 5", "peer review staged",
+  "peer review this branch"), "fresh review", "another set of eyes", "sanity check",
+  "quick review before I push", or routes to an external model
+  ("review with Gemini", "review with Copilot", "review using Codex").
+  Do NOT trigger on bare "review" phrases (e.g. "review my changes", "review PR N",
+  "review staged") — those route to code-review.
 license: MIT
 compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.3"
+  version: "1.4"
 ---
 
 # Peer Review
@@ -32,8 +32,8 @@ If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, print usage and exit:
 Usage: /peer-review [target] [--model MODEL] [--focus TOPIC]
 
 Targets (pick one):
-  (none)            Staged changes (git diff --staged)
-  --staged          Same as no target — explicit form
+  (none)            Auto-detect: staged, unstaged, or prompt if both exist
+  --staged          Staged changes only — skip auto-detection (git diff --staged)
   --pr N            PR #N diff + description
   --branch NAME     Branch diff vs default branch
   path/to/file-or-dir  Specific files or directory
@@ -50,7 +50,7 @@ Options:
 ```
 
 Parse `$ARGUMENTS` left-to-right:
-- Strip `--staged` → set target type to staged
+- Strip `--staged` → set target type to staged (explicit-staged flag = true; staged-only, no auto-detection)
 - Strip `--pr N` → set target type to PR, store N
 - Strip `--branch NAME` → set target type to branch, store NAME
 - Strip `--model MODEL` → store model override
@@ -78,11 +78,30 @@ Parse `$ARGUMENTS` per the Arguments section above. Set `model` to `claude-opus-
 
 Execute the appropriate collection command:
 
-**Staged** (`--staged` or no target):
+**Staged** (explicit `--staged`):
 ```bash
 git diff --staged
 ```
 If output is empty, warn: "No staged changes found. Stage files with `git add` first." and exit.
+
+**Default** (no explicit target selector — auto-detect, including options-only invocations such as `--model …` or `--focus …`):
+
+Check for presence first (fast, no content captured):
+```bash
+STAGED_PRESENT=0
+git diff --staged --quiet || STAGED_PRESENT=$?
+UNSTAGED_PRESENT=0
+git diff --quiet || UNSTAGED_PRESENT=$?
+```
+(`0` = nothing present, `1` = changes present; any other exit code means an error — warn and exit: "Could not determine change status. Is this a git repository?")
+
+- **Neither present** → warn: "No staged or unstaged changes to review." and exit.
+- **Staged only** → collect staged content and proceed: `git diff --staged`
+- **Unstaged only** → collect unstaged content and proceed: `git diff`. In the final output, add a dedicated note line immediately below the `## Peer Review — [target]` heading: `Note: No staged changes — reviewing unstaged changes.` Include this note line in both findings and no-findings outputs for this path; do not fold it into `[target]`.
+- **Both present** → output: "You have both staged and unstaged changes. Review which? [staged/unstaged/all]" as your **final message and stop generating**. On reply, collect:
+  - `staged` → `git diff --staged`
+  - `unstaged` → `git diff`
+  - `all` → `git diff HEAD`
 
 **Branch** (`--branch NAME`):
 
@@ -121,6 +140,15 @@ Severity guide:
 - major: likely to confuse users, break edge cases, or make future changes harder without being immediately fatal
 - minor: style, naming, or polish issues that don't affect correctness
 
+Do NOT report:
+- Import ordering or grouping preferences
+- Whitespace-only issues or formatting style (unless it changes behavior, e.g. Python indentation)
+- Missing comments on self-explanatory code
+- Suggestions to add type annotations when the file doesn't already use them
+- Renaming suggestions based on personal preference when the current name is clear
+
+Flag missing test coverage only for non-trivial behavioral changes — not for one-line renames, comment edits, or config tweaks.
+
 [DIFF CONTENT]
 
 Return a structured list of findings grouped by severity (critical/major/minor).
@@ -153,6 +181,11 @@ Severity guide:
 - critical: contradiction that would cause the reader to implement the wrong behavior
 - major: stale reference, shell error, or missing item that would confuse a reader or require rework
 - minor: wording ambiguity, count discrepancy, or cosmetic inconsistency that doesn't block implementation
+
+Do NOT report:
+- Minor wording preferences that don't change meaning
+- Formatting differences between files (indentation, bullet style) unless they signal a copy-paste error
+- Issues with content outside the provided files
 
 [FILE CONTENTS]
 

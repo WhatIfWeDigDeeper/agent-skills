@@ -4,7 +4,7 @@ from conftest import parse_arguments
 
 
 class TestNoArguments:
-    """No arguments defaults to staged mode."""
+    """No arguments triggers auto-detect (explicit_staged=False); target_type defaults to staged."""
 
     def test_empty_string(self):
         result = parse_arguments("")
@@ -23,7 +23,7 @@ class TestNoArguments:
 
 
 class TestStagedTarget:
-    """--staged sets target to staged."""
+    """--staged sets target to staged (staged-only, explicit_staged=True; skips auto-detection)."""
 
     def test_staged_flag(self):
         result = parse_arguments("--staged")
@@ -40,6 +40,31 @@ class TestStagedTarget:
         result = parse_arguments("--staged --focus security")
         assert result["target_type"] == "staged"
         assert result["focus"] == "security"
+        assert result["error"] is None
+
+    def test_explicit_staged_sets_flag(self):
+        """--staged explicitly given sets explicit_staged=True."""
+        result = parse_arguments("--staged")
+        assert result["explicit_staged"] is True
+
+    def test_no_args_does_not_set_explicit_staged(self):
+        """No target leaves explicit_staged=False (auto-detect applies)."""
+        result = parse_arguments("")
+        assert result["explicit_staged"] is False
+
+    def test_none_does_not_set_explicit_staged(self):
+        result = parse_arguments(None)
+        assert result["explicit_staged"] is False
+
+    def test_options_only_do_not_set_explicit_staged(self):
+        """Non-target options alone keep explicit_staged=False."""
+        result = parse_arguments(
+            "--model claude-haiku-4-5-20251001 --focus security"
+        )
+        assert result["target_type"] == "staged"
+        assert result["model"] == "claude-haiku-4-5-20251001"
+        assert result["focus"] == "security"
+        assert result["explicit_staged"] is False
         assert result["error"] is None
 
 

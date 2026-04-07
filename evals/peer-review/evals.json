@@ -452,6 +452,72 @@
           "text": "No files are edited or modified by the agent"
         }
       ]
+    },
+    {
+      "id": 21,
+      "name": "both-staged-and-unstaged-prompt",
+      "prompt": "/peer-review with no target specified. Simulate: git diff --staged returns a one-line change in src/auth.js (staged). git diff returns a one-line change in src/utils.js (unstaged). Both areas have changes.",
+      "expected_output": "The skill detects both staged and unstaged changes and prompts the user to choose which to review: 'You have both staged and unstaged changes. Review which? [staged/unstaged/all]'. The skill stops generating and waits for a reply. It does not proceed to spawn a reviewer or show findings.",
+      "context": "Tests the auto-detection path when both staged and unstaged changes are present. The skill must prompt the user rather than silently picking one.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "detects-both-areas",
+          "text": "The output indicates that both staged and unstaged changes are present (for example, 'You have both staged and unstaged changes')"
+        },
+        {
+          "id": "prompts-user-to-choose",
+          "text": "The agent outputs a prompt asking the user which changes to review (staged/unstaged/all)"
+        },
+        {
+          "id": "stops-before-reviewer",
+          "text": "The agent stops generating after the prompt — it does not spawn a reviewer or show findings without the user's reply"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "name": "unstaged-only-auto-review",
+      "prompt": "/peer-review with no target specified. Simulate: git diff --staged returns empty (nothing staged). git diff returns a one-line change in src/config.js (unstaged). The reviewer (simulated) returns: NO FINDINGS.",
+      "expected_output": "The skill detects no staged changes and unstaged changes present, and automatically reviews the unstaged changes without prompting. The output header notes that unstaged changes are being reviewed (e.g. 'No staged changes — reviewing unstaged changes.'). The review produces no findings and the output includes 'No issues found.' with no apply prompt.",
+      "context": "Tests the auto-detection path when only unstaged changes are present. The skill should review them automatically (no prompt needed) and note this in its output.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "auto-reviews-unstaged",
+          "text": "The agent automatically reviews the unstaged changes without prompting the user to choose"
+        },
+        {
+          "id": "notes-unstaged-review",
+          "text": "The output includes a note that unstaged changes are being reviewed (e.g. 'No staged changes' or 'reviewing unstaged changes')"
+        },
+        {
+          "id": "no-issues-output",
+          "text": "The output includes 'No issues found.' (the no-findings output from the reviewer)"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "name": "staged-explicit-bypasses-detection",
+      "prompt": "/peer-review --staged. Simulate: git diff --staged returns a one-line change in src/auth.js (staged). git diff returns a one-line change in src/utils.js (unstaged). Both areas have changes. The reviewer (simulated) returns: NO FINDINGS.",
+      "expected_output": "Because --staged was given explicitly, the skill skips auto-detection and reviews only the staged changes. It does NOT prompt the user to choose between staged/unstaged/all. The output header reflects a staged review. The review produces no findings and the output includes 'No issues found.'",
+      "context": "Tests that the explicit --staged flag bypasses the auto-detection logic. Even though unstaged changes exist, the skill should not prompt — it should honor the explicit target and review staged only.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-detection-prompt",
+          "text": "The agent does NOT output a prompt asking the user which changes to review — it proceeds directly with the staged review"
+        },
+        {
+          "id": "reviews-staged-only",
+          "text": "The agent reviews the staged changes (from git diff --staged), not the unstaged changes"
+        },
+        {
+          "id": "no-issues-output",
+          "text": "The output includes 'No issues found.' (the no-findings output from the reviewer)"
+        }
+      ]
     }
   ]
 }

@@ -17,10 +17,21 @@ def parse_arguments(args: str | None) -> dict:
             "pr_number": str | None,
             "branch_name": str | None,
             "path": str | None,
-            "model": str,  # Defaults to "claude-opus-4-6" on successful parses.
+            "model": str | None,  # Defaults to "claude-opus-4-6" on successful parses; on error returns it may be None or a previously parsed value.
             "focus": str | None,
+            "explicit_staged": bool,
             "error": str | None,
         }
+
+    Interpretation invariant:
+        - target_type == "staged" and explicit_staged == True means the caller
+          explicitly passed --staged.
+        - target_type == "staged" and explicit_staged == False means no
+          explicit target was supplied, so the default staged/auto-detect
+          behavior applies.
+        - In particular, no args returns target_type == "staged" with
+          explicit_staged == False; callers must not treat that as an
+          explicit staged-only request.
     """
     result = {
         "target_type": None,
@@ -29,6 +40,7 @@ def parse_arguments(args: str | None) -> dict:
         "path": None,
         "model": None,
         "focus": None,
+        "explicit_staged": False,
         "error": None,
     }
 
@@ -50,6 +62,7 @@ def parse_arguments(args: str | None) -> dict:
                 result["error"] = "specify one target at a time — targets are mutually exclusive."
                 return result
             result["target_type"] = "staged"
+            result["explicit_staged"] = True
             i += 1
 
         elif tok == "--pr":
