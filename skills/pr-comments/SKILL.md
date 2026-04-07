@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.24"
+  version: "1.25"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -118,7 +118,7 @@ Also fetch top-level review bodies submitted with the review itself (e.g. the su
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  --jq '.[] | select((.state == "CHANGES_REQUESTED" or .state == "COMMENTED") and .body != "" and .body != null) | {id, body, state, submitted_at, author: .user.login}' \
+  --jq '.[] | select((.state == "CHANGES_REQUESTED" or .state == "COMMENTED") and .body and (.body | length > 0)) | {id, body, state, submitted_at, author: .user.login}' \
   | jq -s '.'
 ```
 

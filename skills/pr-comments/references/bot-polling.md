@@ -57,9 +57,9 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
 2. **Check for bot activity after `fetch_timestamp`** — a bot may have submitted a review (removing itself from `requested_reviewers`) or posted a timeline comment between the Step 2 fetch and now:
    ```bash
    gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-     | jq -s --arg ts "$fetch_timestamp" '[.[] | .[] | select((.user.login | endswith("[bot]")) and .submitted_at != null and .submitted_at >= $ts)]'
+     | jq -s --arg ts "$fetch_timestamp" '[.[] | .[] | select((.user.login | endswith("[bot]")) and (.submitted_at | type == "string") and .submitted_at >= $ts)]'
    gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
-     | jq -s --arg ts "$fetch_timestamp" '[.[] | .[] | select((.user.login | endswith("[bot]")) and .created_at != null and .created_at >= $ts)]'
+     | jq -s --arg ts "$fetch_timestamp" '[.[] | .[] | select((.user.login | endswith("[bot]")) and (.created_at | type == "string") and .created_at >= $ts)]'
    ```
    If either query returns results, treat it as a post-fetch bot response.
 
@@ -95,20 +95,20 @@ This gate is executed from Step 6c when the plan is empty or every plan row's `A
 
 ## Stale-HEAD Bot Detection
 
-Use this query at two call sites: Step 13 (augment reviewer list) and Step 6c above (check before falling through to Step 7).
+Use this query at two call sites: Step 13's stale-HEAD bot re-request logic and Step 6c above (check before falling through to Step 7).
 
-Get the PR's canonical HEAD SHA from the API (not `git rev-parse HEAD`, which may diverge) and find any previously-reviewing bots whose most recent submitted review was on an older commit. Excludes `claude[bot]` (cannot be re-requested via API) and filters to submitted reviews only (state != PENDING, submitted_at != null):
+Get the PR's canonical HEAD SHA from the API (not `git rev-parse HEAD`, which may diverge) and find any previously-reviewing bots whose most recent submitted review was on an older commit. Excludes `claude[bot]` (cannot be re-requested via API) and filters to submitted reviews only (excludes PENDING state, requires non-null submitted_at):
 
 ```bash
 head_sha=$(gh api repos/{owner}/{repo}/pulls/{pr_number} --jq '.head.sha')
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
   | jq -s --arg head_sha "$head_sha" '
       [.[] | .[]]
-      | map(select((.user.login | endswith("[bot]")) and .user.login != "claude[bot]" and .state != "PENDING" and .submitted_at != null))
+      | map(select((.user.login | endswith("[bot]")) and (.user.login == "claude[bot]" | not) and (.state == "PENDING" | not) and (.submitted_at | type == "string")))
       | sort_by(.user.login)
       | group_by(.user.login)
       | map(sort_by(.submitted_at) | last)
-      | map(select(.commit_id != $head_sha))
+      | map(select((.commit_id == $head_sha) | not))
       | map(.user.login)'
 ```
 
@@ -156,7 +156,7 @@ If new thread IDs appear relative to the snapshot, the bot posted review comment
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  | jq -s --arg ts "$snapshot_timestamp" '[.[] | .[] | select(.user.login == "<bot_login>" and .submitted_at != null and .submitted_at >= $ts)]'
+  | jq -s --arg ts "$snapshot_timestamp" '[.[] | .[] | select(.user.login == "<bot_login>" and (.submitted_at | type == "string") and .submitted_at >= $ts)]'
 ```
 Evaluate Signal 2 **per bot**: track which bots have submitted a new review since `snapshot_timestamp`. If all polled bots have a new review with `submitted_at` at or after `snapshot_timestamp` but Signal 1 has not fired (no new threads), all bots reviewed without inline comments (e.g., approved or left only review-body summaries). Exit the poll cleanly, note it in the report, and proceed to Step 14. If only some bots have responded, continue polling for the remaining ones.
 
@@ -164,7 +164,7 @@ Evaluate Signal 2 **per bot**: track which bots have submitted a new review sinc
 
 ```bash
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
-  | jq -s --arg ts "$snapshot_timestamp" '[.[] | .[] | select(.user.login == "<bot_login>" and .created_at != null and .created_at >= $ts)]'
+  | jq -s --arg ts "$snapshot_timestamp" '[.[] | .[] | select(.user.login == "<bot_login>" and (.created_at | type == "string") and .created_at >= $ts)]'
 ```
 
 In both Signal 2 and Signal 3, `<bot_login>` must be the canonical `.user.login` value from the reviews or comments API — **not** the login from `requested_reviewers`, which may be a shortened form (e.g. `"Copilot"` instead of `"copilot-pull-request-reviewer[bot]"`). Use the canonical login resolved in the Step 6c setup above. Do **not** replace the equality check with a broad pattern such as `(.user.login | endswith("[bot]"))`, because that will match unrelated bots (Dependabot, CI bots, etc.) and can cause false positives in the polling logic. If you cannot yet determine the canonical login for a given bot (for example, because it has never left a review or comment), either:
