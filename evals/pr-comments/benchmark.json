@@ -53,7 +53,8 @@
       24
     ],
     "skill_version": "1.24",
-    "skill_version_note": "Suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07 to add report-includes-pr-url assertion"
+    "skill_version_note": "Suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07 to add report-includes-pr-url assertion",
+    "last_updated": "2026-04-07T00:00:00Z"
   },
   "runs": [
     {
