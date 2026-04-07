@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.23"
+  version: "1.24"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -364,7 +364,7 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 
 **Also include bots that have previously reviewed this PR but haven't yet seen the current HEAD**. Run the canonical query once from `references/bot-polling.md` → **Stale-HEAD Bot Detection** while building this reviewer list, then merge those bot logins with the commenter list and deduplicate before the empty-check below.
 
-If the deduplicated reviewer list is empty, skip this step and proceed to the report.
+If the deduplicated reviewer list is empty, skip this step and proceed to Step 14.
 
 **Display names for bot accounts**: The REST comments API exposes each commenter's login as `user.login` (e.g. `copilot-pull-request-reviewer[bot]`), which you should store or reference as the `author` value from Step 2. When building the prompt or status line, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
@@ -441,7 +441,7 @@ Note: POST alone is sufficient to re-trigger the review — no prior DELETE is n
 
 ### 14. Report
 
-> **Entry gate:** Reach Step 14 only after one of the allowed handoffs defined by `references/bot-polling.md`: either the shared polling loop reached one of its documented exit conditions, or — in manual mode — the user explicitly declined polling and you are proceeding directly to the report. If you just completed Step 13b with bot reviewers re-requested and the user has **not** declined polling, you are **not here yet** — return to Step 13b item 3 and resume the shared polling flow's signal-checking/exit logic first.
+> **Entry gate:** Reach Step 14 via one of: Step 13 found no reviewers (empty list); the user declined the Step 13 push/re-request prompt (manual mode); the shared polling loop in `references/bot-polling.md` reached one of its documented exit conditions; or the user declined the manual-mode poll offer in `references/bot-polling.md`. If you just completed Step 13b with bot reviewers re-requested and the user has **not** declined polling, you are **not here yet** — return to Step 13b item 3 and resume the shared polling flow's signal-checking/exit logic first.
 
 **You must now execute `references/report-templates.md`** — use the templates in that file to structure your final report. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
 

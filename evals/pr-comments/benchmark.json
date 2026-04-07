@@ -52,7 +52,9 @@
       23,
       24
     ],
-    "skill_version": "1.21"
+    "skill_version": "1.24",
+    "skill_version_note": "Suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07 to add report-includes-pr-url assertion",
+    "last_updated": "2026-04-07T00:00:00Z"
   },
   "runs": [
     {
@@ -974,37 +976,44 @@
       "run_number": 1,
       "result": {
         "pass_rate": 1.0,
-        "passed": 4,
+        "passed": 5,
         "failed": 0,
-        "total": 4,
+        "total": 5,
         "time_seconds": null,
         "tokens": null,
-        "tool_calls": 0,
-        "errors": 0
+        "tool_calls": null,
+        "errors": null
       },
       "expectations": [
         {
           "text": "The agent skips all three outdated threads without posting replies to any of them",
           "passed": true,
-          "evidence": "Step 11 states 'No `reply` or `decline` actions. No API calls made.' All three threads are classified as `skip` in the plan table (Step 7). Final report confirms: 'Skipped 3 outdated threads'."
+          "evidence": "All three threads classified as skip in Step 6 (isOutdated=true, concern no longer applies per file read). Step 11: 'No threads require replies (all are skip). Nothing to post.'"
         },
         {
           "text": "The agent does not create a commit (there are no changes to implement)",
           "passed": true,
-          "evidence": "Step 10 is explicitly skipped: 'No code changes were made. Step 10 is skipped per the skill rule.'"
+          "evidence": "Step 8: 'All threads are skip — no code changes to implement. Proceeding directly to Step 11.' Step 10 (commit) never executed."
         },
         {
           "text": "The agent does NOT present a push/re-request prompt because the reviewer list is empty (no threads were replied to or implemented)",
           "passed": true,
-          "evidence": "Step 13 explicitly states 'Deduplicated reviewer list: empty.' and then 'Step 13 is skipped. No push. No re-request review prompt shown.'"
+          "evidence": "Step 13: 'Deduplicated reviewer list is empty. Skip this step and proceed to Step 14.' No push/re-request prompt shown."
         },
         {
           "text": "The final report notes that all threads were outdated and skipped",
           "passed": true,
-          "evidence": "Step 14 report explicitly states 'Skipped 3 outdated threads' and lists all three with '\u2192 skipped (outdated)': src/old.ts:5 @alice, src/legacy.py:10 @bob, src/deprecated.js:20 @carol."
+          "evidence": "Report header: '3 threads reviewed — all skipped (outdated, concerns already addressed)'. Each row notes 'Outdated thread; the [element] no longer exists'. Closing: 'All three review threads were marked isOutdated: true and in each case the referenced code no longer exists.'"
+        },
+        {
+          "text": "The final report includes the PR URL as the last line of output",
+          "passed": true,
+          "evidence": "Final line of report is 'https://github.com/example/repo/pull/42' with no content after it."
         }
       ],
-      "notes": []
+      "notes": [
+        "Re-run (2026-04-07): 5/5 confirmed. Skill faithfully reads each file to verify concern no longer applies before skipping, then produces a report table with all three threads marked outdated."
+      ]
     },
     {
       "eval_id": 10,
@@ -1012,39 +1021,44 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.25,
-        "passed": 1,
-        "failed": 3,
-        "total": 4,
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
         "time_seconds": null,
         "tokens": null,
-        "tool_calls": 0,
-        "errors": 0
+        "tool_calls": null,
+        "errors": null
       },
       "expectations": [
         {
           "text": "The agent skips all three outdated threads without posting replies to any of them",
-          "passed": false,
-          "evidence": "The agent did not post replies, but did actively resolve all three via GraphQL mutation (Step 4: 'resolveReviewThread' called for T1, T2, T3). Silently skipping and actively resolving are different behaviors."
+          "passed": true,
+          "evidence": "Response: 'All 3 threads skipped — no action required' and 'I have not: Posted any replies'. General assistant treats isOutdated=true as sufficient without reading files."
         },
         {
           "text": "The agent does not create a commit (there are no changes to implement)",
           "passed": true,
-          "evidence": "No git commit commands appear anywhere in the transcript. Step 5 summary explicitly states: 'No code changes were necessary.'"
+          "evidence": "Response: 'I have not: Made any code changes, Created any commits'."
         },
         {
           "text": "The agent does NOT present a push/re-request prompt because the reviewer list is empty (no threads were replied to or implemented)",
-          "passed": false,
-          "evidence": "The agent did not request re-review, but the stated cause \u2014 'reviewer list is empty' \u2014 is never mentioned in the transcript. The agent's reasoning for not re-requesting is that no commits were pushed, not that the reviewer list is empty."
+          "passed": true,
+          "evidence": "No push or re-request prompt in response. Passes for the wrong reason: general assistant lacks the push/re-request workflow entirely rather than detecting an empty reviewer list."
         },
         {
           "text": "The final report notes that all threads were outdated and skipped",
+          "passed": true,
+          "evidence": "Result section states 'All 3 threads skipped — no action required'; assessment explicitly notes all three threads are isOutdated: true."
+        },
+        {
+          "text": "The final report includes the PR URL as the last line of output",
           "passed": false,
-          "evidence": "The final summary (Step 5) does note all three threads were outdated, but the threads were not 'skipped' \u2014 they were 'resolved' ('Threads resolved: 3'). The word 'skipped' does not appear."
+          "evidence": "PR URL (https://github.com/example/repo/pull/42) never appears in the response. Response ends with an offer to verify file state, not the PR URL."
         }
       ],
       "notes": [
-        "Without-skill agent resolved all outdated threads rather than skipping them."
+        "Re-run (2026-04-07): 4/5 (80%) confirmed. General assistant skips outdated threads without file verification, omits the mandatory PR URL final line. The no-push-rerequest-prompt assertion (assertion 3) passes for the wrong reason — agent lacks the workflow entirely rather than detecting an empty reviewer list. Note: auto-grader summary said 3/5 (60%) but that was a counting error; individual expectations show 4 passed."
       ]
     },
     {
@@ -3801,10 +3815,10 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.3266,
-        "stddev": 0.2077,
+        "mean": 0.3419,
+        "stddev": 0.2216,
         "min": 0.0,
-        "max": 0.75
+        "max": 0.8
       },
       "time_seconds": {
         "mean": null,
@@ -3820,7 +3834,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.67",
+      "pass_rate": "+0.66",
       "time_seconds": null,
       "tokens": null
     }
