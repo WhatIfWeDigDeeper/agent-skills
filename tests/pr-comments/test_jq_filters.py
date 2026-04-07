@@ -151,6 +151,43 @@ def test_post_fetch_excludes_null_submitted():
     assert len(result) == 0
 
 
+# --- Post-fetch bot timeline comment detection (bot-polling.md Step 6c) ---
+# Mirrors POST_FETCH_REVIEW_FILTER but uses created_at (timeline comments)
+# instead of submitted_at (reviews).
+
+POST_FETCH_COMMENT_FILTER = (
+    '[.[] | .[] | select((.user.login | endswith("[bot]"))'
+    ' and (.created_at | type == "string")'
+    " and .created_at >= $ts)]"
+)
+
+
+def test_post_fetch_comment_includes_recent_bot():
+    data = [
+        {"user": {"login": "copilot-pull-request-reviewer[bot]"}, "created_at": "2026-04-01T13:00:00Z"},
+        {"user": {"login": "copilot-pull-request-reviewer[bot]"}, "created_at": "2026-04-01T11:00:00Z"},
+    ]
+    result = run_jq(POST_FETCH_COMMENT_FILTER, data, {"ts": "2026-04-01T12:00:00Z"})
+    assert len(result) == 1
+    assert result[0]["created_at"] == "2026-04-01T13:00:00Z"
+
+
+def test_post_fetch_comment_excludes_humans():
+    data = [
+        {"user": {"login": "human-user"}, "created_at": "2026-04-01T14:00:00Z"},
+    ]
+    result = run_jq(POST_FETCH_COMMENT_FILTER, data, {"ts": "2026-04-01T12:00:00Z"})
+    assert len(result) == 0
+
+
+def test_post_fetch_comment_excludes_null_created():
+    data = [
+        {"user": {"login": "bot-no-comment[bot]"}, "created_at": None},
+    ]
+    result = run_jq(POST_FETCH_COMMENT_FILTER, data, {"ts": "2026-04-01T12:00:00Z"})
+    assert len(result) == 0
+
+
 # --- Signal 2 per-bot filter (bot-polling.md) ---
 # bot-polling.md uses a <bot_login> placeholder in the jq filter; the test
 # parameterizes it via --arg bot to validate the jq logic mechanically.
@@ -242,6 +279,7 @@ def test_no_bang_equals_in_filters():
     for name, val in [
         ("STALE_HEAD_FILTER", STALE_HEAD_FILTER),
         ("POST_FETCH_REVIEW_FILTER", POST_FETCH_REVIEW_FILTER),
+        ("POST_FETCH_COMMENT_FILTER", POST_FETCH_COMMENT_FILTER),
         ("SIGNAL2_FILTER", SIGNAL2_FILTER),
         ("SIGNAL3_FILTER", SIGNAL3_FILTER),
         ("REVIEW_BODY_FILTER", REVIEW_BODY_FILTER),
