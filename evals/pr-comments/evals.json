@@ -314,6 +314,10 @@
         {
           "id": "report-notes-all-skipped",
           "text": "The final report notes that all threads were outdated and skipped"
+        },
+        {
+          "id": "report-includes-pr-url",
+          "text": "The final report includes the PR URL as the last line of output"
         }
       ]
     },

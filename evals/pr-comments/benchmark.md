@@ -9,13 +9,13 @@
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 32.7% ± 20.8% | **+67%** |
+| Pass Rate | **100%** ± 0% | 34.2% ± 22.2% | **+66%** |
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
 Time and token statistics in this table are computed only over primary runs (`run_number = 1`) that have recorded, non-null `time_seconds` / `tokens` values in `benchmark.json` (with_skill: 3 of 36; without_skill: 5 of 36; i.e., 8 of 72 total primary runs). Runs with `time_seconds: null` or `tokens: null` (including simulated transcripts), as well as all regression runs (`run_number > 1`), are excluded from these aggregates, so the reported means/stddevs may differ from a full-suite measurement; the top-level `run_summary.time_seconds` and `run_summary.tokens` fields remain `null` by design.
 
-The skill improves correctness by +67 percentage points. All 36 with-skill evals pass 100%. Spec 15 Phase 1 added assertions to evals 13 and 18, Phase 4A added eval 36 for follow-up issue filing; all recorded against v1.21. Prior run entries were produced against v1.17; evals 7, 9, 11, 17, and 18 were re-graded under updated v1.20 auto Step 13 expectations using existing transcripts.
+The skill improves correctness by +66 percentage points. All 36 with-skill evals pass 100%. Spec 15 Phase 1 added assertions to evals 13 and 18, Phase 4A added eval 36 for follow-up issue filing; all recorded against v1.21. Prior run entries were produced against v1.17; evals 7, 9, 11, 17, and 18 were re-graded under updated v1.20 auto Step 13 expectations using existing transcripts.
 
 ## Per-Eval Results
 
@@ -30,7 +30,7 @@ The skill improves correctness by +67 percentage points. All 36 with-skill evals
 | 7 | Push + re-request auto path | **5/5 (100%)** | 2/5 (40%) | Auto push/re-request, remove-then-add reviewer pattern, include declined commenter |
 | 8 | Push + re-request decline path | **4/4 (100%)** | 3/4 (75%) | Interactive prompt shown before acting, no push when user declines, manual push instruction |
 | 9 | Bot reviewer handling | **5/5 (100%)** | 1/5 (20%) | Human/bot reviewer split, REST for bots, shortened bot display in auto status |
-| 10 | All threads outdated — no reviewer list | **4/4 (100%)** | 1/4 (25%) | No replies, no commit, no push/re-request prompt, report notes all skipped |
+| 10 | All threads outdated — no reviewer list | **5/5 (100%)** | 4/5 (80%) | No replies, no commit, no push/re-request prompt, report notes all skipped, PR URL in final output |
 | 11 | Reply-only run (no code changes) | **5/5 (100%)** | 2/5 (40%) | Reply classification, no commit for reply-only, auto re-request without prompt, skip push with no commit |
 | 12 | Bot poll — confirm + loop back | **6/6 (100%)** | 0/6 (0%) | Poll offer after bot re-request, GraphQL snapshot comparison, loop-back to Step 2, re-offer after round 2 |
 | 13 | Bot poll — user declines poll | **8/8 (100%)** | 5/8 (63%) | Snapshot ordering before POST and bot display name shortening are skill-specific |
@@ -108,7 +108,7 @@ Tests that the skill correctly separates human and bot reviewers when re-request
 ### Eval 10 — All threads outdated — no reviewer list
 **Prompt**: Three threads, all marked as outdated (code has already changed past those comments).
 
-Tests the all-outdated edge case: no replies are posted, no commit is made, no push/re-request prompt is shown (reviewer list is empty), and the final report notes all threads were skipped. The without-skill run typically attempted to reply to at least one outdated thread (missing the isOutdated signal from GraphQL) or presented a stale plan without filtering outdated threads.
+Tests the all-outdated edge case: no replies are posted, no commit is made, no push/re-request prompt is shown (reviewer list is empty), the final report notes all threads were skipped, and the PR URL appears as the last output line. The without-skill run correctly handles the first four assertions but fails the PR URL assertion — a general assistant does not follow the skill-specific convention of outputting the URL as the mandatory final line.
 
 ### Eval 11 — Reply-only run (no code changes)
 **Prompt**: Two threads, both clarifying questions. No code changes needed.
