@@ -261,7 +261,7 @@ def test_no_bang_equals_in_source_files():
     for path in source_files:
         in_jq_block = False
         for lineno, line in enumerate(path.read_text().splitlines(), 1):
-            if line.strip().startswith("| jq ") or line.strip().startswith("--jq "):
+            if "| jq " in line.strip() or "--jq " in line.strip():
                 in_jq_block = True
             elif line.strip().startswith("```") and in_jq_block:
                 in_jq_block = False
