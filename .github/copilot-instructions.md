@@ -39,10 +39,11 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - Every skill with evals should keep `evals/<skill-name>/benchmark.json` in sync with the latest results.
 - After updating a benchmark, also update the `Eval Δ` column in `README.md` and the `±` stat values in the `benchmark.md` Summary table — the table mirrors `run_summary` and is not auto-generated.
 - `grading.json` files must include a `summary` block with `passed`, `failed`, `total`, and `pass_rate`.
-- Use `null`, not `0` or `0.0`, for unknown token/time measurements in benchmark data.
+- Use `null`, not `0` or `0.0`, for unknown token/time/tool_calls/errors measurements in benchmark data. When updating or adding runs, backfill any existing `tokens: 0`, `time_seconds: 0.0`, `tool_calls: 0`, or `errors: 0` entries that represent unknown measurements to `null`.
 - Keep `run_summary.delta.pass_rate` at 2-decimal precision.
 - `run_summary.delta` values must be computed from exact (unrounded) run-data means, not from the rounded `mean` fields. When stored means are rounded, add a sentence to `benchmark.md`: "Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means."
-- When adding new evals, run them in the same task and update benchmark artifacts immediately.
+- When adding new evals or re-running existing evals, run them in the same task and update benchmark artifacts immediately — also update `metadata.skill_version` and `metadata.evals_run`.
+- When changing pass/fail verdicts on existing benchmark expectations, re-run the eval rather than re-grading with hypothetical reasoning — hypothetical re-grades can describe fundamentally different behavior from what was originally observed.
 - When adding a new skill to `README.md`, add an `Eval cost` note sourced from the skill's benchmark doc.
 - If reviewer feedback suggests benchmark values, recompute from the actual `runs` array instead of copying the suggestion.
 - When updating `pass_rate`, `passed`, `failed`, or `total` in a run entry, also scan both the run-level `notes` array and the top-level `notes` array for matching prose counts (e.g. "3/5 (60%)") and update them — numeric fields and prose strings drift independently.
@@ -101,8 +102,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 
 - Name skills from the user's action or role, not the underlying implementation detail.
 - **Prefer auto-detection with a disambiguation prompt over adding new flags** when a behavior is only needed in genuinely ambiguous situations. Handle unambiguous cases silently (e.g., only unstaged changes → auto-review with a note); prompt only when intent is unclear (e.g., both staged and unstaged → `[staged/unstaged/all]`). Explicit flags can still be offered as an escape hatch for scripting.
-- Prefer PR-driven workflows over auto-committing directly to shared branches.
-- Validate changes after editing, and keep README / CLAUDE documentation in sync when the change is substantial.
+- Keep README / CLAUDE documentation in sync when skill changes are substantial.
 - When a workflow pauses for user confirmation, make the stop explicit: tell the agent to output the prompt as its final message and stop generating until the user replies. If the workflow also has auto/manual modes, specify every confirmation gate each mode affects. If auto mode is meant to be hands-free, say explicitly whether later gates (for example push/re-request prompts) are skipped or still require confirmation.
 - When listing exit conditions for a workflow loop, state that they are the only valid exit conditions and explicitly forbid subjective early exits.
 - When a SKILL.md step does setup work (snapshot, POST, etc.) before delegating to a reference file that has its own entry/setup section covering the same actions, the delegation sentence must name the target section and list what not to re-run — otherwise agents re-enter the setup section and duplicate actions already done in SKILL.md.
@@ -114,3 +114,4 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 
 - Store durable project learnings in `CLAUDE.md`, not in per-user hidden memory directories.
 - Do not write to `~/.claude/projects/.../memory/` for this project.
+- Write timeless rules, not session history — do not reference specific PR numbers, dates, or session details in config rules. Those belong in commit messages.
