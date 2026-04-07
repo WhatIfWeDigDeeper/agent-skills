@@ -296,7 +296,7 @@
     {
       "id": 10,
       "prompt": "Please address the review comments on my PR. There are three threads, but all of them are marked as outdated — the code has already changed past those comments.",
-      "expected_output": "The skill fetches comments and thread state, recognizes all three threads are outdated, skips them without posting replies, makes no code changes, and does not present a push/re-request prompt (reviewer list is empty). Final report says no open review threads were acted upon.",
+      "expected_output": "The skill fetches comments and thread state, recognizes all three threads are outdated, skips them without posting replies, makes no code changes, and does not present a push/re-request prompt (reviewer list is empty). Final report says no open review threads were acted upon, and the PR URL appears as the last line of output.",
       "files": [],
       "assertions": [
         {
