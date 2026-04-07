@@ -10,9 +10,9 @@
 
 ## Tests
 
-- [x] **Update `conftest.py`** — add staged/unstaged detection logic to `parse_arguments()` or `detect_mode()`
-- [x] **Add detection tests** — both staged+unstaged → prompt; unstaged only → auto-review; `--staged` explicit → no detection
-- [x] **Run tests** — `uv run --with pytest pytest tests/peer-review/` passes
+- [x] **Update `conftest.py`** — add `explicit_staged` parsing/support in the peer-review test harness
+- [x] **Update unit-test coverage** — cover the `--staged` explicit-flag parsing path in `tests/peer-review/` without claiming git-diff presence detection branches are unit-tested
+- [x] **Run unit tests** — `uv run --with pytest pytest tests/peer-review/` passes
 
 ## Evals
 

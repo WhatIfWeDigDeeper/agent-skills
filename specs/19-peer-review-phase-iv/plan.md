@@ -77,11 +77,9 @@ Do NOT report:
 
 **Files**: `tests/peer-review/conftest.py`, `tests/peer-review/test_peer_review_argument_parsing.py`
 
-- Update `parse_arguments()` / `detect_mode()` in `conftest.py` to handle the staged/unstaged detection logic
-- Add test cases for:
-  - Both staged and unstaged → prompt path
-  - Unstaged only → auto-review unstaged path
-  - `--staged` explicit → always staged, no detection
+- Update `parse_arguments()` / `detect_mode()` in `conftest.py` only for the `explicit_staged` distinction used by the test harness
+- Add/update unit tests for argument parsing behavior, especially that explicit `--staged` remains distinguishable from the default target path
+- Validate staged/unstaged detection behavior via evals 21–23, since the prompt/auto-review logic is implemented in `skills/peer-review/SKILL.md`, not in `conftest.py`
 - Bump `metadata.version` from `"1.3"` to `"1.4"` in SKILL.md frontmatter (once per PR)
 
 ## Estimated impact
