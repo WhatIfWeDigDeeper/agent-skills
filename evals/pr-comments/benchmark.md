@@ -1,9 +1,9 @@
 # Skill Benchmark: pr-comments
 
 **Model**: claude-sonnet-4-6
-**Date**: 2026-03-29 (updated 2026-04-03 for spec 15)
+**Date**: 2026-03-29 (updated 2026-04-03 for spec 15; eval 10 re-run 2026-04-07 under v1.24)
 **Evals**: 1–36 (1 primary run each per configuration; evals 12, 14, 20, 22, 23, and 24 have supplementary regression runs)
-**Skill version**: 1.21
+**Skill version**: 1.24
 
 ## Summary
 
@@ -15,7 +15,7 @@
 
 Time and token statistics in this table are computed only over primary runs (`run_number = 1`) that have recorded, non-null `time_seconds` / `tokens` values in `benchmark.json` (with_skill: 3 of 36; without_skill: 5 of 36; i.e., 8 of 72 total primary runs). Runs with `time_seconds: null` or `tokens: null` (including simulated transcripts), as well as all regression runs (`run_number > 1`), are excluded from these aggregates, so the reported means/stddevs may differ from a full-suite measurement; the top-level `run_summary.time_seconds` and `run_summary.tokens` fields remain `null` by design.
 
-The skill improves correctness by +66 percentage points. All 36 with-skill evals pass 100%. Spec 15 Phase 1 added assertions to evals 13 and 18, Phase 4A added eval 36 for follow-up issue filing; all recorded against v1.21. Prior run entries were produced against v1.17; evals 7, 9, 11, 17, and 18 were re-graded under updated v1.20 auto Step 13 expectations using existing transcripts.
+The skill improves correctness by +66 percentage points. All 36 with-skill evals pass 100%. Spec 15 Phase 1 added assertions to evals 13 and 18, Phase 4A added eval 36 for follow-up issue filing; all recorded against v1.21. Eval 10 was re-run under v1.24 (2026-04-07) to add the `report-includes-pr-url` assertion and update evidence. Prior run entries were produced against v1.17; evals 7, 9, 11, 17, and 18 were re-graded under updated v1.20 auto Step 13 expectations using existing transcripts.
 
 ## Per-Eval Results
 
