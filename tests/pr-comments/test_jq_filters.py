@@ -253,9 +253,10 @@ def test_no_bang_equals_in_source_files():
     """Source skill files must not contain != inside jq filter blocks."""
     from pathlib import Path
 
+    repo_root = Path(__file__).resolve().parent.parent.parent
     source_files = [
-        Path("skills/pr-comments/references/bot-polling.md"),
-        Path("skills/pr-comments/SKILL.md"),
+        repo_root / "skills/pr-comments/references/bot-polling.md",
+        repo_root / "skills/pr-comments/SKILL.md",
     ]
     for path in source_files:
         in_jq_block = False
