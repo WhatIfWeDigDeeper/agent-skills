@@ -1,11 +1,12 @@
-"""Tests for jq filter snippets in bot-polling.md and SKILL.md.
+"""Tests for jq filter snippets documented in bot-polling.md and SKILL.md.
 
 These filters must avoid jq's ``!=`` operator because zsh escapes ``!``
 in Bash arguments, turning ``!=`` into ``\\!=`` and causing parse errors.
 The rewrites use ``(== | not)`` or ``(type == "string")`` instead.
 
-Each test runs the actual jq filter from the skill reference files against
-sample JSON to verify the rewrite produces the expected output.
+Each test runs a copied jq filter expression corresponding to the skill
+reference files against sample JSON to verify the rewrite produces the
+expected output. Keep these constants in sync with the documented filters.
 """
 
 import json
@@ -200,8 +201,8 @@ def test_signal3_excludes_old_comments():
 
 
 # --- SKILL.md review body filter ---
-# The SKILL.md --jq filter outputs individual objects; the test wraps results
-# in [...] for assertion convenience and uses slurp=False accordingly.
+# SKILL.md uses --jq '.[] | select(...)' (per-item output) piped to jq -s.
+# The test collapses both steps into '[.[] | select(...)]' with slurp=False.
 
 REVIEW_BODY_FILTER = (
     '[.[] | select((.state == "CHANGES_REQUESTED" or .state == "COMMENTED")'
