@@ -39,10 +39,11 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - Every skill with evals should keep `evals/<skill-name>/benchmark.json` in sync with the latest results.
 - After updating a benchmark, also update the `Eval Δ` column in `README.md` and the `±` stat values in the `benchmark.md` Summary table — the table mirrors `run_summary` and is not auto-generated.
 - `grading.json` files must include a `summary` block with `passed`, `failed`, `total`, and `pass_rate`.
-- Use `null`, not `0` or `0.0`, for unknown token/time measurements in benchmark data.
+- Use `null`, not `0` or `0.0`, for unknown token/time measurements in benchmark data (`tokens`, `time_seconds` feed `run_summary` aggregates). Treat `tool_calls` and `errors` as optional per-run metadata: use `null` only when truly unknown, keep `0` when actually measured. When updating or adding runs, backfill any existing `tokens: 0`, `time_seconds: 0.0`, `tool_calls: 0`, or `errors: 0` entries to `null` only when they represent unknown measurements.
 - Keep `run_summary.delta.pass_rate` at 2-decimal precision.
 - `run_summary.delta` values must be computed from exact (unrounded) run-data means, not from the rounded `mean` fields. When stored means are rounded, add a sentence to `benchmark.md`: "Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means."
-- When adding new evals, run them in the same task and update benchmark artifacts immediately.
+- When adding new evals or re-running existing evals, run them in the same task and update benchmark artifacts immediately — also update `metadata.skill_version` and `metadata.evals_run`. Exception: for validation-only runs, do not add run entries or bump `metadata.skill_version`.
+- When changing pass/fail verdicts on existing benchmark expectations, re-run the eval rather than re-grading with hypothetical reasoning — hypothetical re-grades can describe fundamentally different behavior from what was originally observed.
 - When adding a new skill to `README.md`, add an `Eval cost` note sourced from the skill's benchmark doc.
 - If reviewer feedback suggests benchmark values, recompute from the actual `runs` array instead of copying the suggestion.
 - When updating `pass_rate`, `passed`, `failed`, or `total` in a run entry, also scan both the run-level `notes` array and the top-level `notes` array for matching prose counts (e.g. "3/5 (60%)") and update them — numeric fields and prose strings drift independently.
@@ -50,7 +51,7 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - Place the top-level `notes` array at the root of `benchmark.json`, not inside `metadata` — between the closing `}` of `metadata` and the opening `[` of `runs`.
 - When renaming action labels or vocabulary in `SKILL.md`, also search `CLAUDE.md` for hardcoded step references that use the old name — step renames must propagate there just as they do to `evals.json` and `benchmark.json`.
 - Eval assertions must test user-facing output, not internal signals: if a skill uses an internal return value from a subagent (e.g. `NO FINDINGS`) and translates it to user-visible text (e.g. `'No issues found.'`), the assertion must test the user-visible string — not the internal signal. An assertion testing the internal signal will never catch regressions in the translation/presentation layer.
-- **When assertion semantics are inverted** (not just renamed), null ALL result fields in the affected `benchmark.json` runs: `pass_rate`, `passed`, `failed`, `time_seconds`, `tokens`, and `tool_calls`. The measurement fields still feed `run_summary` aggregates even when pass/fail is null. After nulling, recompute `run_summary` excluding those runs from all stat calculations, then update `benchmark.md` Summary table and README Eval Δ.
+- **When assertion semantics are inverted** (not just renamed), null ALL result fields in the affected `benchmark.json` runs: `pass_rate`, `passed`, `failed`, `time_seconds`, `tokens`, `tool_calls`, and `errors`. The measurement fields still feed `run_summary` aggregates even when pass/fail is null. After nulling, recompute `run_summary` excluding those runs from all stat calculations, then update `benchmark.md` Summary table and README Eval Δ.
 - Fixture-based eval prompts must embed the fixture in the `prompt` field, not `expected_output`: `expected_output` is prose describing the expected grading outcome for the eval runner — it is not readable by the executor. Putting fixture CLI/tool responses in `expected_output` would confuse the executor about what to output, or cause the grader to treat fixture data as the expected result.
 
 ## Tests And Validation
@@ -69,7 +70,7 @@ uv run --with pytest pytest tests/
 
 ## Git And PR Workflow
 
-- Never commit directly to `main`.
+- Never commit directly to `main`. Always create a feature branch and open a PR for review.
 - Do not rewrite history on a PR that already has review comments. Avoid force-push, rebase, and `git commit --amend` on pushed commits.
 - This repo uses squash merges.
 - After pushing follow-up commits to an existing PR branch, compare `git log origin/main..HEAD --oneline` against the PR title/body and update the PR description if behavior changed.
@@ -101,8 +102,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 
 - Name skills from the user's action or role, not the underlying implementation detail.
 - **Prefer auto-detection with a disambiguation prompt over adding new flags** when a behavior is only needed in genuinely ambiguous situations. Handle unambiguous cases silently (e.g., only unstaged changes → auto-review with a note); prompt only when intent is unclear (e.g., both staged and unstaged → `[staged/unstaged/all]`). Explicit flags can still be offered as an escape hatch for scripting.
-- Prefer PR-driven workflows over auto-committing directly to shared branches.
-- Validate changes after editing, and keep README / CLAUDE documentation in sync when the change is substantial.
+- Keep README / CLAUDE documentation in sync when skill changes are substantial.
 - When a workflow pauses for user confirmation, make the stop explicit: tell the agent to output the prompt as its final message and stop generating until the user replies. If the workflow also has auto/manual modes, specify every confirmation gate each mode affects. If auto mode is meant to be hands-free, say explicitly whether later gates (for example push/re-request prompts) are skipped or still require confirmation.
 - When listing exit conditions for a workflow loop, state that they are the only valid exit conditions and explicitly forbid subjective early exits.
 - When a SKILL.md step does setup work (snapshot, POST, etc.) before delegating to a reference file that has its own entry/setup section covering the same actions, the delegation sentence must name the target section and list what not to re-run — otherwise agents re-enter the setup section and duplicate actions already done in SKILL.md.
@@ -114,3 +114,4 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 
 - Store durable project learnings in `CLAUDE.md`, not in per-user hidden memory directories.
 - Do not write to `~/.claude/projects/.../memory/` for this project.
+- Write timeless rules, not session history — do not reference specific PR numbers, dates, or session details in config rules. Those belong in commit messages.
