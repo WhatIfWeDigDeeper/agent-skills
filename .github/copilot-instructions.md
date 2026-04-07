@@ -46,6 +46,7 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - When adding a new skill to `README.md`, add an `Eval cost` note sourced from the skill's benchmark doc.
 - If reviewer feedback suggests benchmark values, recompute from the actual `runs` array instead of copying the suggestion.
 - When updating `pass_rate`, `passed`, `failed`, or `total` in a run entry, also scan both the run-level `notes` array and the top-level `notes` array for matching prose counts (e.g. "3/5 (60%)") and update them — numeric fields and prose strings drift independently.
+- When adding version-scoped notes to `benchmark.json`'s top-level `notes` array, also audit older entries that reference the same eval IDs — they can describe behavior removed in an earlier version. Stale semantic descriptions contradict newer entries and mislead reviewers. Update or replace them in the same commit.
 - Place the top-level `notes` array at the root of `benchmark.json`, not inside `metadata` — between the closing `}` of `metadata` and the opening `[` of `runs`.
 - When renaming action labels or vocabulary in `SKILL.md`, also search `CLAUDE.md` for hardcoded step references that use the old name — step renames must propagate there just as they do to `evals.json` and `benchmark.json`.
 - Eval assertions must test user-facing output, not internal signals: if a skill uses an internal return value from a subagent (e.g. `NO FINDINGS`) and translates it to user-visible text (e.g. `'No issues found.'`), the assertion must test the user-visible string — not the internal signal. An assertion testing the internal signal will never catch regressions in the translation/presentation layer.
@@ -93,11 +94,13 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - **`gh api -f body` strips backtick-quoted text**: backticks inside a `-f body="..."` argument are interpreted as shell command substitution, silently stripping the content. Use a heredoc with `--input -` or write the body to a temp file and pass `--body-file` instead.
 - GitHub review thread `isOutdated` means the diff location moved, not that the concern is resolved.
 - **`replace_all` removing trailing text can merge the next line**: when the removed substring is the last non-whitespace content on a line, the Edit tool may collapse the following line onto the same line. Verify surrounding context after any `replace_all` that targets text at the end of a line.
+- **Inserting elements into a JSON array with Edit requires a trailing comma on the preceding element**: when replacing the closing `]` to insert new objects, the previous element's `}` must end with `,` in the replacement string. Validate after array edits: `python3 -c 'import json; json.load(open("file.json"))'`.
 - **External CLI tools (gemini, copilot) may need network access and writable filesystem access outside a restrictive sandbox**: `gemini` needs network access to make API calls, and `copilot` may also need writable access for session-state files to avoid EPERM noise. In Claude Code, this may require enabling `dangerouslyDisableSandbox: true`; in other runtimes, use the equivalent setting that grants the needed capabilities.
 
 ## Skill Design Guidance
 
 - Name skills from the user's action or role, not the underlying implementation detail.
+- **Prefer auto-detection with a disambiguation prompt over adding new flags** when a behavior is only needed in genuinely ambiguous situations. Handle unambiguous cases silently (e.g., only unstaged changes → auto-review with a note); prompt only when intent is unclear (e.g., both staged and unstaged → `[staged/unstaged/all]`). Explicit flags can still be offered as an escape hatch for scripting.
 - Prefer PR-driven workflows over auto-committing directly to shared branches.
 - Validate changes after editing, and keep README / CLAUDE documentation in sync when the change is substantial.
 - When a workflow pauses for user confirmation, make the stop explicit: tell the agent to output the prompt as its final message and stop generating until the user replies. If the workflow also has auto/manual modes, specify every confirmation gate each mode affects. If auto mode is meant to be hands-free, say explicitly whether later gates (for example push/re-request prompts) are skipped or still require confirmation.
@@ -105,6 +108,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - When a SKILL.md step does setup work (snapshot, POST, etc.) before delegating to a reference file that has its own entry/setup section covering the same actions, the delegation sentence must name the target section and list what not to re-run — otherwise agents re-enter the setup section and duplicate actions already done in SKILL.md.
 - When a SKILL.md step creates a temp file with `mktemp` and uses it within the same tool call, document `trap 'rm -f "$FILE"' EXIT INT TERM` immediately after the `mktemp` call — a manual `rm -f` at the end of the block is skipped on error or interruption. When the temp file must persist across multiple tool calls, use a named path without `trap` instead (see the `trap` cleanup bullet above).
 - Bash snippets that assign CLI output to a variable should include `2>&1` so error messages flow into the captured variable and reach fallback/error handling paths (e.g., `REVIEW_OUTPUT=$(cli ... 2>&1)`).
+- **When capturing `git diff --quiet` exit codes**, use `VAR=0; git diff --quiet || VAR=$?` — not `git diff --quiet; VAR=$?`. In strict runners (`set -e`) the non-zero exit from "changes present" aborts the script before the assignment runs.
 
 ## Persistence
 

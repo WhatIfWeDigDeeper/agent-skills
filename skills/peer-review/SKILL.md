@@ -4,12 +4,12 @@ description: >-
   Get a fresh-context review of staged changes, branches, PRs, or file sets.
   Delegates to a fresh-context reviewer by default; routes to external LLM CLIs
   (Copilot, Codex, Gemini) when --model specifies one.
-  Use when: user says "review my changes", "peer review", "check for consistency",
-  "review staged", "review PR N", "check this for issues",
-  "fresh review", "another set of eyes", "sanity check", "quick review before I push",
-  "look this over", "anything wrong with this", or wants a lightweight review before
-  opening a PR. Also use for "review these files", "check this diff", or when the user
-  pastes a diff or spec and asks if anything looks off.
+  Use when: user says "peer review" (e.g. "peer review PR 5", "peer review staged",
+  "peer review this branch"), "fresh review", "another set of eyes", "sanity check",
+  "quick review before I push", or routes to an external model
+  ("review with Gemini", "review with Copilot", "review using Codex").
+  Do NOT trigger on bare "review" phrases (e.g. "review my changes", "review PR N",
+  "review staged") — those route to code-review.
 license: MIT
 compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
