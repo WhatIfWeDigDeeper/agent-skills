@@ -97,6 +97,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - **`replace_all` removing trailing text can merge the next line**: when the removed substring is the last non-whitespace content on a line, the Edit tool may collapse the following line onto the same line. Verify surrounding context after any `replace_all` that targets text at the end of a line.
 - **Inserting elements into a JSON array with Edit requires a trailing comma on the preceding element**: when replacing the closing `]` to insert new objects, the previous element's `}` must end with `,` in the replacement string. Validate after array edits: `python3 -c 'import json; json.load(open("file.json"))'`.
 - **External CLI tools (gemini, copilot) may need network access and writable filesystem access outside a restrictive sandbox**: `gemini` needs network access to make API calls, and `copilot` may also need writable access for session-state files to avoid EPERM noise. In Claude Code, this may require enabling `dangerouslyDisableSandbox: true`; in other runtimes, use the equivalent setting that grants the needed capabilities.
+- **zsh escapes `!` in jq filters**: `!=` in a jq expression passed as a Bash argument becomes `\!=`, causing jq parse errors. Workarounds: write the jq filter to a file and use `jq -f`, or rewrite `!=` as `(== | not)`. For null checks, use `(.field | type == "string")` instead of `.field != null`. Skill jq snippets must avoid `!=` for portability.
 
 ## Skill Design Guidance
 
