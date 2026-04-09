@@ -136,9 +136,9 @@ All must appear in the Confirmation prompt template block — not in the branche
 ## Verification
 
 1. `wc -l skills/pr-comments/SKILL.md` → ≤ 446 lines
-2. `uv run --with pytest pytest tests/pr-comments/` → all 193 tests pass
+2. `uv run --with pytest pytest tests/pr-comments/` → all 216 tests pass
 3. `npx cspell skills/pr-comments/SKILL.md` → no unknown words
-4. `rg -n 'Proceed\? \[y/N/auto\]' skills/pr-comments/SKILL.md` → expect exactly 1 match (the new Confirmation prompt template block)
+4. `rg -n 'Proceed\? \[y/N/auto\]' skills/pr-comments/SKILL.md` → expect exactly 2 matches (Arguments section + Step 7 confirmation prompt block)
 5. `rg -n 'not here yet' skills/pr-comments/SKILL.md` → expect exactly 1 match (the unchanged Step 14 Entry gate at L444)
 6. `rg -n 'do NOT proceed|does NOT normally end at Step 14' skills/pr-comments/SKILL.md` → expect 0 matches (both defensive guards removed)
 7. `rg -n 'stop generating' skills/pr-comments/SKILL.md` → expect 1 match in Step 7 (inside the template block; no orphaned instances in the branches)

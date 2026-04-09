@@ -257,7 +257,7 @@ Before touching anything, show the user a clear summary as a table:
 Proceed? [y/N/auto]
 ```
 
-**Confirmation prompt template.** When this prompt is required, emit it as your final message and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
+**Confirmation prompt template.** When this prompt is required, emit `Proceed? [y/N/auto]` as your final message and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
 
 Responses:
 - `y` — proceed normally

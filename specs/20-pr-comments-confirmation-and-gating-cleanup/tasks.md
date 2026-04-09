@@ -20,7 +20,7 @@
 
 ### Phase 1 verification
 
-- [x] `rg -n 'Proceed\? \[y/N/auto\]' skills/pr-comments/SKILL.md` → exactly 1 match (the template block)
+- [x] `rg -n 'Proceed\? \[y/N/auto\]' skills/pr-comments/SKILL.md` → exactly 2 matches (Arguments section + plan table example; prompt string also now named explicitly in the template block)
 - [x] `rg -n 'stop generating' skills/pr-comments/SKILL.md` → no orphaned matches outside the template block (may also appear in `references/bot-polling.md` — those are unrelated and expected)
 - [x] `wc -l skills/pr-comments/SKILL.md` → line count dropped by at least 3 vs pre-Phase-1 (457)
 - [x] `uv run --with pytest pytest tests/pr-comments/` → all pass
