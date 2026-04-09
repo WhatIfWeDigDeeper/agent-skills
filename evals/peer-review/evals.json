@@ -518,6 +518,120 @@
           "text": "The output includes 'No issues found.' (the no-findings output from the reviewer)"
         }
       ]
+    },
+    {
+      "id": 24,
+      "name": "rescan-y-response",
+      "prompt": "Simulate the re-scan flow: the skill has already applied one finding (changed 'Step 3' to 'Step 4' in docs/SKILL.md) and shown the re-scan offer 'Re-scan modified files for new issues? [y/n]'. The user replies: y. The re-scan reviewer (simulated) returns one finding: Title: 'Missing period at end of sentence', Severity: minor, File: docs/SKILL.md, Location: 'See Step 4 for details', Problem: sentence ends without a period, Fix: add a period after 'details'.",
+      "expected_output": "The skill runs a consistency-mode re-scan on docs/SKILL.md, receives one finding, presents it grouped by severity with a standard apply prompt (not the triage form). No second re-scan offer is shown after this apply step.",
+      "context": "Tests the re-scan 'y' path: consistency mode re-scan is run, findings are presented, and a second re-scan offer is suppressed. The apply prompt on the re-scan cycle must use the standard Claude-path form (no S-numbers, no triage section).",
+      "files": [],
+      "assertions": [
+        {
+          "id": "rescan-runs-consistency-mode",
+          "text": "The re-scan uses consistency mode (not diff mode) — the re-scan reviewer is given the current file contents rather than a diff"
+        },
+        {
+          "id": "rescan-finding-shown",
+          "text": "The re-scan finding ('Missing period at end of sentence') is presented grouped under a severity heading"
+        },
+        {
+          "id": "standard-apply-prompt-on-rescan",
+          "text": "The apply prompt after the re-scan is the standard Claude-path form ('Apply all, select by number, or skip?') — not the triage form with S-numbers"
+        },
+        {
+          "id": "no-second-rescan-offer",
+          "text": "After the re-scan apply step, no second re-scan offer is shown — the re-scan is offered at most once"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "name": "pr-url-output",
+      "prompt": "/peer-review --pr 55. Treat this as if PR #55 exists with title 'Refactor config loader', body 'Simplifies the config loading path.', URL 'https://github.com/example/repo/pull/55', and a minimal one-file diff updating config.js. The reviewer (simulated) returns: NO FINDINGS. The user is not prompted for re-scan (no findings means no apply, no re-scan offer).",
+      "expected_output": "The skill outputs the standard no-findings format: '## Peer Review — PR #55 (claude-opus-4-6)' followed by 'No issues found.' followed by the PR URL 'https://github.com/example/repo/pull/55' as the last line. No apply prompt is shown.",
+      "context": "Tests that the PR URL is output as the final line whenever the target is --pr N, including the no-findings terminal path. The URL must appear on its own line as the last output.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-issues-output",
+          "text": "The output includes 'No issues found.' (the no-findings output)"
+        },
+        {
+          "id": "pr-url-final-line",
+          "text": "The PR URL ('https://github.com/example/repo/pull/55') appears as the last line of the output"
+        },
+        {
+          "id": "no-apply-prompt",
+          "text": "The apply prompt is NOT shown (no findings to apply)"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "name": "unsupported-model-error",
+      "prompt": "/peer-review --staged --model gpt-4o. The diff content is minimal. Do not attempt to call any CLI — just handle the unsupported model value.",
+      "expected_output": "The skill detects that 'gpt-4o' does not match any supported --model prefix (not claude-*, not copilot, not codex, not gemini). It outputs an error message stating the model is unsupported and listing the supported options, then exits without spawning a reviewer or presenting findings.",
+      "context": "Tests the unsupported --model error path. The --model value 'gpt-4o' is not a claude-* prefix and does not match any supported external CLI (copilot, codex, gemini). The skill must error clearly with guidance on supported values.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "unsupported-model-error-shown",
+          "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')"
+        },
+        {
+          "id": "supported-options-listed",
+          "text": "The error message lists the supported external CLIs (copilot, codex, gemini) and mentions claude-* as the Claude model prefix"
+        },
+        {
+          "id": "exits-without-review",
+          "text": "The skill exits without presenting findings or an apply prompt"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "name": "branch-not-found-error",
+      "prompt": "/peer-review --branch feature/does-not-exist. The branch does not exist — git diff returns an error for the unknown branch. Do not actually run a review; just handle the missing branch case.",
+      "expected_output": "The skill attempts to collect the diff for branch 'feature/does-not-exist', finds the branch does not exist, and outputs an error message stating the branch was not found followed by a list of available branches (from 'git branch -a'). It exits without spawning a reviewer or presenting findings.",
+      "context": "Tests the branch-not-found error path. When the requested branch does not exist in the repository, the skill must error helpfully with a list of available branches rather than silently failing or passing an empty diff to the reviewer.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "branch-not-found-error-shown",
+          "text": "The output states that branch 'feature/does-not-exist' was not found"
+        },
+        {
+          "id": "available-branches-listed",
+          "text": "The error output includes a list of available branches (from git branch -a or equivalent)"
+        },
+        {
+          "id": "exits-without-review",
+          "text": "The skill exits without spawning a reviewer subagent or presenting findings"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "name": "submodel-splitting",
+      "prompt": "/peer-review --staged --model copilot:gpt-4o-mini. The diff content is minimal. When you attempt to call the copilot CLI, treat it as having returned the following JSON output — do not actually run copilot: {\"summary\": \"One issue found.\", \"overall_risk\": \"low\", \"findings\": [{\"severity\": \"medium\", \"file\": \"src/index.js\", \"title\": \"Unhandled promise rejection\", \"details\": \"The async call at line 12 is not wrapped in try/catch.\", \"suggested_fix\": \"Wrap in try/catch or add .catch() handler.\"}]}",
+      "expected_output": "The skill splits '--model copilot:gpt-4o-mini' on ':' to get binary 'copilot' and sub-model 'gpt-4o-mini'. It invokes the copilot CLI with '--model gpt-4o-mini' (the sub-model flag). The finding's severity 'medium' is normalized to 'major'. The finding is presented with an apply prompt.",
+      "context": "Tests that '--model PREFIX:SUBMODEL' syntax correctly splits on ':' and passes the sub-model flag to the CLI. Also tests that 'medium' severity is normalized to 'major' per the normalization table.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "submodel-flag-used",
+          "text": "The skill invokes (or simulates invoking) copilot with a sub-model argument referencing 'gpt-4o-mini'"
+        },
+        {
+          "id": "medium-normalized-to-major",
+          "text": "The finding with severity 'medium' from the copilot JSON is presented to the user as 'major' (not 'medium')"
+        },
+        {
+          "id": "apply-prompt-shown",
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings"
+        }
+      ]
     }
   ]
 }

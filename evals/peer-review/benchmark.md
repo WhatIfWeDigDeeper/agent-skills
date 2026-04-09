@@ -1,21 +1,21 @@
 # peer-review Benchmark Results
 
 **Model**: claude-sonnet-4-6
-**Date**: 2026-04-06
-**Evals**: 23 (1 run each, with-skill vs. without-skill)
+**Date**: 2026-04-09
+**Evals**: 28 (1 run each, with-skill vs. without-skill)
 
 ## Summary
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | 97% ± 7% | 68% ± 34% | **+29%** |
+| Pass rate | 98% ± 6% | 73% ± 33% | **+25%** |
 | Min / Max | 80% / 100% | 0% / 100% | |
 | Time (s) | ~39.7 ± 36.3 | ~44.7 ± 66.4 | -5.0 |
 | Tokens | ~27,046 ± 7,954 | ~26,357 ± 14,885 | +688 |
 
-23 evals × 2 configurations = 46 runs. Token statistics are computed over 7 of 23 primary (run_number=1) runs per configuration (14 of 46 total) — evals 2, 5–10, and 15–23 have no recorded time or token measurements (evals 5–10 and 15–23 use simulated transcripts); evals 1, 3–4, and 11–14 have real measurements. Summary-table Delta values are computed from unrounded means (with_skill=0.97391, without_skill=0.67957), so they may differ slightly from subtracting the displayed rounded means.
+28 evals × 2 configurations = 56 runs. Token statistics are computed over 7 of 28 primary (run_number=1) runs per configuration (14 of 56 total) — evals 2, 5–10, and 15–28 have no recorded time or token measurements (evals 5–10 and 15–28 use simulated transcripts); evals 1, 3–4, and 11–14 have real measurements. Summary-table Delta values are computed from unrounded means (with_skill=0.97857, without_skill=0.72500), so they may differ slightly from subtracting the displayed rounded means.
 
-**Discriminating evals**: Evals 2, 4, 5, 7, 8, 9, 10, 13, 15, 16, 19, 21 discriminate. Evals 5 and 15 have the highest delta (+1.0 each). Eval 21 (both-staged-and-unstaged-prompt) discriminates at +0.67: the disambiguation prompt is entirely skill-defined. Eval 2 (consistency-mode-plan-tasks-mismatch) discriminates at +0.40 after v1.4 re-run. Evals 3, 6, 11, 12, 14, 17, 18, 20, 22, 23 are non-discriminating. Evals 22 (unstaged-only-auto-review) and 23 (staged-explicit-bypasses-detection) are non-discriminating: these behaviors are intuitive enough that the baseline handles them correctly. Adding evals 22 and 23 diluted the headline delta from +30% to +29%. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
+**Discriminating evals**: Evals 2, 4, 5, 7, 8, 9, 10, 13, 15, 16, 19, 21, 28 discriminate. Evals 5 and 15 have the highest delta (+1.0 each). Eval 28 (submodel-splitting) discriminates at +0.33: severity normalization (medium → major) fails without_skill. Eval 21 (both-staged-and-unstaged-prompt) discriminates at +0.67. Eval 2 (consistency-mode-plan-tasks-mismatch) discriminates at +0.40. Evals 3, 6, 11, 12, 14, 17, 18, 20, 22, 23, 24, 25, 26, 27 are non-discriminating. Eval 26 (unsupported-model-error) is non-discriminating due to eval contamination: the without_skill agent read the SKILL.md from the filesystem. Adding evals 24–28 (1 discriminating, 4 non-discriminating) diluted the headline delta from +29% to +25%. Eval 1 is zero-delta (0.80/0.80) due to an eval harness constraint.
 
 ## Eval Results
 
@@ -278,6 +278,62 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 **Non-discriminating**. Using `--staged` as a flag to scope review to staged changes only is intuitive; baseline correctly excluded the unstaged file and noted it was out of scope. The internal distinction (skipping auto-detect logic) is not observable in the output. Verifies explicit --staged behavior works correctly.
 
+### Eval 24 — `rescan-y-response`
+
+**Scenario**: Re-scan offer shown after applying one finding. User replies `y`. Re-scan reviewer returns one minor finding. Tests that re-scan uses consistency mode, no second offer is shown, and apply prompt is standard Claude-path form.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 4/4    | 0      |
+| without-skill | 1.00      | 4/4    | 0      |
+
+**Non-discriminating**. Re-scan behavior with consistency mode, suppressed second offer, and standard apply prompt is intuitive enough for a capable baseline. Establishes re-scan flow works correctly end-to-end.
+
+### Eval 25 — `pr-url-output`
+
+**Scenario**: `/peer-review --pr 55` with fixture PR data. Reviewer returns NO FINDINGS. Tests that the PR URL appears as the last line at the terminal state.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 1.00      | 3/3    | 0      |
+
+**Non-discriminating**. Baseline naturally appended the PR URL. Mirrors eval 12 — the URL behavior is intuitive enough to pass without skill guidance. The consolidated PR URL rule in Step 6 is correct but not a discriminating differentiator.
+
+### Eval 26 — `unsupported-model-error`
+
+**Scenario**: `/peer-review --staged --model gpt-4o` — unsupported model value. Tests that the skill errors with a specific message listing supported options.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 1.00      | 3/3    | 0      |
+
+**Non-discriminating in this run due to contamination.** The without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message. The specific phrasing ("Unsupported --model value: …. Supported external CLIs: copilot, codex, gemini.") is skill-defined, but this result cannot be used as a reliable baseline measurement.
+
+### Eval 27 — `branch-not-found-error`
+
+**Scenario**: `/peer-review --branch feature/does-not-exist` when the branch doesn't exist. Tests that the skill errors and lists available branches.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 1.00      | 3/3    | 0      |
+
+**Non-discriminating**. Listing available branches after a not-found error is intuitive; baseline handled it correctly without skill guidance. Establishes branch-not-found handling works correctly.
+
+### Eval 28 — `submodel-splitting`
+
+**Scenario**: `/peer-review --staged --model copilot:gpt-4o-mini` with fixture copilot JSON returning one finding with severity `medium`. Tests colon-splitting of `--model` value and normalization of `medium` → `major`.
+
+| Configuration | Pass rate | Passed | Failed |
+|---------------|-----------|--------|--------|
+| with-skill    | 1.00      | 3/3    | 0      |
+| without-skill | 0.67      | 2/3    | 1      |
+
+**Discriminating** (+0.33 delta). Failing assertion for without_skill:
+- **Severity not normalized**: without_skill presented the finding with severity `medium` as-is — the normalization rule (`medium` → `major`) is skill-defined. Matches the pattern of evals 5, 7, 8, 9, 10 where CLI output normalization discriminates. Sub-model splitting itself passed in both configurations (the `:` split and `--model` flag are intuitive); severity normalization is the differentiator.
+
 ## Notes
 
 - **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For evals 1 and 4, the "spawns subagent" assertion fails in both configurations for this reason. In production use, the skill correctly delegates to a fresh subagent.
@@ -289,3 +345,5 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 - **Delta from adding evals 15–20**: adding 3 discriminating evals (15, 16, 19) and 3 non-discriminating evals (17, 18, 20) restores and exceeds the headline delta: +27% → +31%. Evals 17, 18, 20 are non-discriminating by design — they serve as regression guards or verify intuitive behaviors that pass without skill knowledge.
 - **Delta from v1.3 spec-mode removal (eval 2 re-scope)**: eval 2 renamed and criteria inverted; historical pass/fail data and measurements excluded from aggregates pending re-run. Headline delta shifts from +31% to +30% (pass rate means recomputed excluding eval 2; stale time/token measurements also excluded).
 - **Delta from v1.4 evals (evals 2, 21, 22, 23)**: eval 2 re-run confirms +0.40 delta. Eval 21 (both-staged-and-unstaged-prompt) adds +0.67 delta. Evals 22 and 23 are non-discriminating, diluting the headline delta from +30% to +29%.
+- **Delta from v1.5 evals (evals 24–28)**: eval 28 (submodel-splitting) discriminates at +0.33. Evals 24, 25, 27 are non-discriminating. Eval 26 is contaminated and unreliable as a baseline measurement. Adding 1 discriminating and 4 non-discriminating evals diluted the headline delta from +29% to +25%.
+- **Evals 15–28 use simulated transcripts**: fixture CLI responses and triage/branch/reviewer outputs are embedded in eval prompts rather than calling real external systems. Time and token measurements are null for these runs.
