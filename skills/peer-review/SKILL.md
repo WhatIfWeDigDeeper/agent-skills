@@ -345,7 +345,7 @@ If there are no findings (reviewer returned `NO FINDINGS` on the Claude path, or
 No issues found.
 ```
 
-Then stop. Do not show an apply prompt.
+Then stop. Do not show an apply prompt. If the target was `--pr N`, append the PR URL as the last line before stopping.
 
 **External CLI path only — if triage skipped all findings**, output:
 
@@ -358,7 +358,7 @@ Triage filtered all [N] findings:
 - [title] — [reason]
 ```
 
-Then stop. Do not show an apply prompt.
+Then stop. Do not show an apply prompt. If the target was `--pr N`, append the PR URL as the last line before stopping.
 
 **Otherwise**, display the recommended findings numbered sequentially (`1, 2, 3...`) grouped by severity. If there are triage-skipped findings, list them below the separator with `S`-prefix numbering (`S1, S2...`):
 
@@ -418,7 +418,7 @@ Output this as your **final message and stop generating**. Do not supply an answ
 
 On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode), and spawn a fresh Claude subagent (always Claude regardless of the original `--model`). Feed findings into Step 5 using the Claude path (no triage section, standard apply prompt `[all/1,3,5/skip]`). If no new issues are found, output "No new issues found in re-scan." and stop. **Do not offer another re-scan** — after applying during a re-scan cycle, output "Applied N finding(s)." and stop.
 
-On `n`: stop.
+On `n`: apply the Step 6 PR URL terminal-output rule if the target is `--pr N`, then stop.
 
 ## Notes
 

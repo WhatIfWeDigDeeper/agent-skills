@@ -1901,34 +1901,34 @@
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 3,
-        "failed": 0,
-        "total": 3,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
+        "total": null,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
           "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
-          "passed": true,
-          "evidence": "Output contains 'Unsupported --model value: gpt-4o'."
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The error message lists the supported external CLIs (copilot, codex, gemini) and mentions claude-* as the Claude model prefix",
-          "passed": true,
-          "evidence": "Output states 'Supported external CLIs: copilot, codex, gemini. For Claude models, use a claude-* prefix'."
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The skill exits without presenting findings or an apply prompt",
-          "passed": true,
-          "evidence": "Execution stopped after the error message with no review findings or apply prompt generated."
+          "passed": null,
+          "evidence": null
         }
       ],
       "notes": [
-        "Non-discriminating in this run (1.0/1.0) due to contamination: without_skill agent read SKILL.md from the filesystem and reproduced the skill-defined error message. The specific error phrasing is skill-defined but cannot be confirmed as discriminating from this run."
+        "Excluded from aggregates (contaminated run): without_skill agent read SKILL.md from the filesystem and reproduced the skill-defined error message. Both sides nulled to keep paired-eval computation consistent — run_summary is computed over 27 paired evals excluding this eval entirely."
       ]
     },
     {

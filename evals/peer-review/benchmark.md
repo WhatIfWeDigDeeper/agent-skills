@@ -306,10 +306,10 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
-| with-skill    | 1.00      | 3/3    | 0      |
+| with-skill    | N/A       | —      | —      |
 | without-skill | N/A       | —      | —      |
 
-**Excluded from aggregates (contaminated run).** The without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message. The without_skill result is nulled in benchmark.json and excluded from the run_summary mean/stddev/delta calculations. The specific phrasing ("Unsupported --model value: …. Supported external CLIs: copilot, codex, gemini.") is skill-defined but cannot be confirmed as discriminating from this run. Re-run in a sandboxed environment to get a valid baseline.
+**Excluded from aggregates (contaminated run).** The without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message. Both sides are nulled in benchmark.json and excluded from the run_summary mean/stddev/delta calculations. The specific phrasing ("Unsupported --model value: …. Supported external CLIs: copilot, codex, gemini.") is skill-defined but cannot be confirmed as discriminating from this run. Re-run in a sandboxed environment to get a valid baseline.
 
 ### Eval 27 — `branch-not-found-error`
 
