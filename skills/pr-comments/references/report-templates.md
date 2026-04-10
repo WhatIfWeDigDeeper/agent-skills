@@ -15,7 +15,7 @@ Use these templates for Step 14, omitting lines that don't apply.
 
 [List of each action taken]
 
-PR #N is ready for your final review.
+{closing line}
 <PR URL>
 ```
 
@@ -64,7 +64,7 @@ Exited: no new threads after iteration 3.
 
 M out-of-scope declined comments — file follow-up issues? [all/select/none]
 
-PR #N is ready for your final review.
+{closing line}
 <PR URL>
 ```
 
