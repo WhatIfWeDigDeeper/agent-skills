@@ -147,4 +147,4 @@ List files modified with before/after line counts, sections updated or created, 
 
 - **Prefer specificity**: `Run npm run dev before e2e tests` beats `ensure services are running` — vague rules train agents to interpret rather than follow
 - **One learning, one location**: if it already exists anywhere in the config or a skill, update that entry rather than creating a second one
-- **Strip obvious explanations from rule text**: include only the non-obvious directive; omit common-knowledge consequences. "Use `git merge` not rebase when review comments exist" is enough — don't append "this creates a merge commit without rewriting history."
+- **Strip obvious explanations from rule text**: include only the non-obvious directive; omit common-knowledge consequences. "Use `git fetch origin && git merge origin/main` when review comments exist" is enough — don't append "this creates a merge commit without rewriting history."
