@@ -177,6 +177,16 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 - **Sandbox**: "Requires OS keyring/network access — lift any sandbox restrictions (in Claude Code: `dangerouslyDisableSandbox: true`)" — not "requires `dangerouslyDisableSandbox: true`"
 - **PR attribution**: Use a neutral placeholder like `Generated with [AssistantName](url)` that each assistant substitutes with its own name and link — not a brand-specific string
 
+## Available Skills
+
+When the user's request matches a skill's trigger phrases, read the skill file and follow its workflow exactly.
+
+| Skill | File | Trigger phrases |
+|-------|------|-----------------|
+| peer-review | `skills/peer-review/SKILL.md` | "peer review", "fresh review", "another set of eyes", "sanity check", "quick review before I push", "review with Gemini/Copilot/Codex" |
+
+**Do NOT trigger** `peer-review` on bare "review" phrases like "review my changes" or "review PR N" — those route to `code-review`.
+
 ## Skill Design Patterns
 
 - **Naming perspective**: Name skills from the user's action/role, not the underlying operation. E.g., `pr-comments` (author addressing feedback on their PR) not `pr-review` (which implies being the reviewer).
