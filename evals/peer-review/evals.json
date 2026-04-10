@@ -263,7 +263,7 @@
       "id": 12,
       "name": "pr-target-context",
       "prompt": "/peer-review --pr 42. Treat this as if PR #42 exists with title 'Add retry logic to API client', body 'This PR adds exponential backoff to all outbound API calls. Closes #38.', and a minimal one-file diff adding a retry loop in src/api.js. Do not actually call gh \u2014 just process the fixture PR data and diff. The reviewer (simulated) returns: NO FINDINGS.",
-      "expected_output": "The skill fetches (or simulates) the PR metadata and diff, prepends the PR title and body as context to the reviewer prompt, spawns a reviewer, receives NO FINDINGS, and outputs the standard no-findings format: '## Peer Review \u2014 PR #42 ([model identifier])' followed by 'No issues found.' The header shows the assistant's own model identifier (e.g. claude-opus-4-6 for a Claude assistant) since model defaults to self. No apply prompt is shown.",
+      "expected_output": "The skill fetches (or simulates) the PR metadata and diff, prepends the PR title and body as context to the reviewer prompt, spawns a reviewer, receives NO FINDINGS, and outputs the standard no-findings format: '## Peer Review \u2014 PR #42 ([model identifier])' followed by 'No issues found.' The header shows the assistant's own model identifier (e.g. a claude-* model name for a Claude assistant) since model defaults to self. No apply prompt is shown.",
       "context": "Tests that the --pr N target: (1) collects both PR metadata and the diff, (2) prepends the title+body as context to the reviewer prompt, and (3) correctly handles the NO FINDINGS case without showing an apply prompt.",
       "files": [],
       "assertions": [

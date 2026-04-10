@@ -20,4 +20,4 @@
 
 - [x] **3.1** Run `uv run --with pytest pytest tests/peer-review/ -v` — all tests should still pass (no test logic depends on the default model value).
 - [x] **3.2** Run `npx cspell skills/peer-review/SKILL.md` — check for any new unknown words.
-- [x] **3.3** Re-read SKILL.md end-to-end and verify no remaining hardcoded `claude-opus-4-6` references exist anywhere in SKILL.md.
+- [x] **3.3** Re-read SKILL.md end-to-end and verify `claude-opus-4-6` no longer appears as the default model or in default-setting instructions. Example identifiers in the Step 5 header-substitution guidance are acceptable.

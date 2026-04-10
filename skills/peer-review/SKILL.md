@@ -348,7 +348,7 @@ If there are no findings (reviewer returned `NO FINDINGS` on the self/Claude pat
 No issues found.
 ```
 
-If `model` is `self`, substitute your own model name or identifier in the header (e.g. a Claude assistant would display `claude-opus-4-6`, Copilot would display `copilot`).
+If `model` is `self`, substitute your own model name or identifier in the header (e.g. a Claude assistant would display `claude-*`, Copilot would display `copilot`).
 
 Then stop. Do not show an apply prompt. If the target was `--pr N`, append the PR URL as the last line before stopping.
 
