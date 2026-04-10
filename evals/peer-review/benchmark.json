@@ -2,10 +2,10 @@
   "metadata": {
     "skill_name": "peer-review",
     "skill_path": "skills/peer-review",
-    "skill_version": "1.4",
+    "skill_version": "1.5",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-04-06T00:00:00Z",
+    "timestamp": "2026-04-09T00:00:00Z",
     "evals_run": [
       1,
       2,
@@ -29,7 +29,12 @@
       20,
       21,
       22,
-      23
+      23,
+      24,
+      25,
+      26,
+      27,
+      28
     ],
     "runs_per_configuration": 1
   },
@@ -46,7 +51,8 @@
     "Evals 15-20 added in v1.2 for triage layer and post-apply re-scan. All use simulated fixtures; time_seconds and tokens are null.",
     "Evals 15 (triage-skips-false-positive) and 16 (triage-all-skipped) and 19 (rescan-offered-after-apply) are discriminating. Evals 17, 18, 20 are non-discriminating: triage-not-on-claude-path and rescan-not-offered-after-skip are natural baseline behaviors; triage-user-includes-skipped passes because 'S1' literal selection is intuitive.",
     "Evals 2, 21, 22, 23 added/re-run in v1.4. Eval 2 (consistency-mode-plan-tasks-mismatch) re-run with v1.3-compatible assertions — discriminating (+0.40 delta). Eval 21 (both-staged-and-unstaged-prompt) discriminates (+0.67 delta): disambiguation prompt is entirely skill-defined. Evals 22 (unstaged-only-auto-review) and 23 (staged-explicit-bypasses-detection) are non-discriminating: these behaviors are intuitive enough that the baseline handles them correctly. Adding evals 22 and 23 diluted the headline delta from +0.30 to +0.29.",
-    "Summary-table delta values are computed from unrounded means (with_skill=0.97391, without_skill=0.67957), so they may differ slightly from subtracting the displayed rounded means. Time/token statistics are computed only over the 7 primary runs with non-null measurements (evals 1, 3, 4, 11, 12, 13, 14); the other 16 evals have null measurements, including the eval 2 re-run and the simulated-transcript/fixture groups (evals 5-10 and 15-23)."
+    "Summary-table delta values are computed from unrounded means over 27 paired evals (eval 26 excluded from both sides due to contamination; with_skill=0.97778, without_skill=0.71481), so they may differ slightly from subtracting the displayed rounded means. Time/token statistics are computed only over the 7 primary runs with non-null measurements (evals 1, 3, 4, 11, 12, 13, 14); the other 21 evals have null measurements, including the eval 2 re-run and the simulated-transcript/fixture groups (evals 5-10, 15-28). Eval 26 without_skill result is nulled (contaminated run) and excluded from all aggregates.",
+    "Evals 24-28 added in v1.5 review pass. Eval 28 (submodel-splitting) discriminates at +0.33: severity normalization (medium \u2192 major) fails without_skill, matching the pattern of evals 5, 7, 8, 9, 10. Evals 24 (rescan-y-response), 25 (pr-url-output), and 27 (branch-not-found-error) are non-discriminating: these behaviors are intuitive enough for a capable baseline to handle correctly. Eval 26 (unsupported-model-error) is non-discriminating in this run due to contamination: the without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message format; the specific phrasing is skill-defined but cannot be confirmed as discriminating from this run. Adding evals 24-28 (1 discriminating, 3 non-discriminating, 1 contaminated/excluded) diluted the headline delta from +0.29 to +0.26."
   ],
   "runs": [
     {
@@ -1734,13 +1740,383 @@
       "notes": [
         "Non-discriminating (1.0/1.0). --staged as a scope flag is intuitive enough that baseline handles it correctly."
       ]
+    },
+    {
+      "eval_id": 24,
+      "eval_name": "rescan-y-response",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The re-scan uses consistency mode (not diff mode) \u2014 the re-scan reviewer is given the current file contents rather than a diff",
+          "passed": true,
+          "evidence": "Execution explicitly collected current file contents of docs/SKILL.md for consistency-mode review, not a diff."
+        },
+        {
+          "text": "The re-scan finding ('Missing period at end of sentence') is presented grouped under a severity heading",
+          "passed": true,
+          "evidence": "Finding was presented under the 'Minor' severity heading."
+        },
+        {
+          "text": "The apply prompt after the re-scan is the standard Claude-path form ('Apply all, select by number, or skip?') \u2014 not the triage form with S-numbers",
+          "passed": true,
+          "evidence": "Prompt reads 'Apply all, select by number, or skip? [all/1/skip]' with no S-number triage form."
+        },
+        {
+          "text": "After the re-scan apply step, no second re-scan offer is shown \u2014 the re-scan is offered at most once",
+          "passed": true,
+          "evidence": "Execution stopped after the apply prompt with no second re-scan offer presented."
+        }
+      ],
+      "notes": [
+        "Non-discriminating (1.0/1.0). Re-scan behavior with consistency mode and suppressed second offer is intuitive enough for a capable baseline."
+      ]
+    },
+    {
+      "eval_id": 24,
+      "eval_name": "rescan-y-response",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The re-scan uses consistency mode (not diff mode) \u2014 the re-scan reviewer is given the current file contents rather than a diff",
+          "passed": true,
+          "evidence": "Explicitly stated 'reading the current contents of docs/SKILL.md (consistency mode \u2014 full file contents, not a diff)' before presenting findings."
+        },
+        {
+          "text": "The re-scan finding ('Missing period at end of sentence') is presented grouped under a severity heading",
+          "passed": true,
+          "evidence": "Finding was presented under '### Minor' severity heading."
+        },
+        {
+          "text": "The apply prompt after the re-scan is the standard Claude-path form ('Apply all, select by number, or skip?') \u2014 not the triage form with S-numbers",
+          "passed": true,
+          "evidence": "Prompt reads 'Apply all, select by number, or skip? [all/1/skip]' with no S-number triage form."
+        },
+        {
+          "text": "After the re-scan apply step, no second re-scan offer is shown \u2014 the re-scan is offered at most once",
+          "passed": true,
+          "evidence": "Response ends at the apply prompt with no subsequent re-scan offer."
+        }
+      ],
+      "notes": [
+        "Non-discriminating (1.0/1.0). Baseline handled re-scan flow correctly without skill guidance."
+      ]
+    },
+    {
+      "eval_id": 25,
+      "eval_name": "pr-url-output",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": true,
+          "evidence": "Output contains 'No issues found.' as specified by Step 5 of the skill."
+        },
+        {
+          "text": "The PR URL ('https://github.com/example/repo/pull/55') appears as the last line of the output",
+          "passed": true,
+          "evidence": "The URL appears as the final line of output per Step 6 PR URL rule."
+        },
+        {
+          "text": "The apply prompt is NOT shown (no findings to apply)",
+          "passed": true,
+          "evidence": "Step 5 explicitly states 'do not show an apply prompt' when there are no findings."
+        }
+      ],
+      "notes": [
+        "Non-discriminating (1.0/1.0). Baseline naturally appended the PR URL. Same pattern as eval 12."
+      ]
+    },
+    {
+      "eval_id": 25,
+      "eval_name": "pr-url-output",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": true,
+          "evidence": "Output contains 'No issues found.' after presenting the review result."
+        },
+        {
+          "text": "The PR URL ('https://github.com/example/repo/pull/55') appears as the last line of the output",
+          "passed": true,
+          "evidence": "The URL 'https://github.com/example/repo/pull/55' appears as the last line before the grading JSON."
+        },
+        {
+          "text": "The apply prompt is NOT shown (no findings to apply)",
+          "passed": true,
+          "evidence": "No apply/confirm prompt was shown \u2014 the reviewer returned NO FINDINGS so there is nothing to apply."
+        }
+      ],
+      "notes": [
+        "Non-discriminating (1.0/1.0). Baseline included the PR URL naturally. The URL rule is skill-defined but intuitive enough to pass without guidance."
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "unsupported-model-error",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
+        "total": null,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "The error message lists the supported external CLIs (copilot, codex, gemini) and mentions claude-* as the Claude model prefix",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": null,
+          "evidence": null
+        }
+      ],
+      "notes": [
+        "Excluded from aggregates (contaminated run): without_skill agent read SKILL.md from the filesystem and reproduced the skill-defined error message. Both sides nulled to keep paired-eval computation consistent — run_summary is computed over 27 paired evals excluding this eval entirely."
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "unsupported-model-error",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
+        "total": null,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
+          "passed": null,
+          "evidence": "Contaminated run — agent read SKILL.md from filesystem and reproduced the skill-defined error message. Result is unreliable as a true baseline measurement and excluded from aggregates."
+        },
+        {
+          "text": "The error message lists the supported external CLIs (copilot, codex, gemini) and mentions claude-* as the Claude model prefix",
+          "passed": null,
+          "evidence": "Contaminated — see above."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": null,
+          "evidence": "Contaminated — see above."
+        }
+      ],
+      "notes": [
+        "CONTAMINATED: without_skill agent read SKILL.md from the filesystem, making this result unreliable as a true baseline measurement. All result fields nulled; this run is excluded from run_summary aggregates. Delta computed over 27 paired evals (eval 26 excluded from both sides)."
+      ]
+    },
+    {
+      "eval_id": 27,
+      "eval_name": "branch-not-found-error",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that branch 'feature/does-not-exist' was not found",
+          "passed": true,
+          "evidence": "Output explicitly states 'Branch feature/does-not-exist not found. Available branches:'."
+        },
+        {
+          "text": "The error output includes a list of available branches (from git branch -a or equivalent)",
+          "passed": true,
+          "evidence": "Output includes a list of branches from git branch -a output, both local and remote."
+        },
+        {
+          "text": "The skill exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Execution stopped after the error message with no reviewer subagent spawned or review findings presented."
+        }
+      ],
+      "notes": [
+        "Non-discriminating (1.0/1.0). Listing available branches on a not-found error is intuitive."
+      ]
+    },
+    {
+      "eval_id": 27,
+      "eval_name": "branch-not-found-error",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that branch 'feature/does-not-exist' was not found",
+          "passed": true,
+          "evidence": "Response explicitly states 'The branch feature/does-not-exist does not exist in this repository'."
+        },
+        {
+          "text": "The error output includes a list of available branches (from git branch -a or equivalent)",
+          "passed": true,
+          "evidence": "Ran git branch -a and listed both local branches and remote branches."
+        },
+        {
+          "text": "The skill exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "No review was conducted, no subagent spawned, only error message and branch list output."
+        }
+      ],
+      "notes": [
+        "Non-discriminating (1.0/1.0). Baseline naturally listed available branches without skill guidance."
+      ]
+    },
+    {
+      "eval_id": 28,
+      "eval_name": "submodel-splitting",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill invokes (or simulates invoking) copilot with a sub-model argument referencing 'gpt-4o-mini'",
+          "passed": true,
+          "evidence": "Simulated invocation shown as: git diff --staged | copilot review --model gpt-4o-mini."
+        },
+        {
+          "text": "The finding with severity 'medium' from the copilot JSON is presented to the user as 'major' (not 'medium')",
+          "passed": true,
+          "evidence": "Severity 'medium' normalized to 'major' per the severity table; finding presented under '### Major' heading."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": true,
+          "evidence": "Prompt shown: 'Apply all, select by number, or skip? [all/1/skip]'."
+        }
+      ],
+      "notes": [
+        "Discriminating (+0.33 delta). Severity normalization (medium \u2192 major) is skill-defined and fails without_skill, matching pattern of evals 5, 7, 8, 9, 10."
+      ]
+    },
+    {
+      "eval_id": 28,
+      "eval_name": "submodel-splitting",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill invokes (or simulates invoking) copilot with a sub-model argument referencing 'gpt-4o-mini'",
+          "passed": true,
+          "evidence": "Simulated 'copilot review --staged --model gpt-4o-mini --format json' command shown."
+        },
+        {
+          "text": "The finding with severity 'medium' from the copilot JSON is presented to the user as 'major' (not 'medium')",
+          "passed": false,
+          "evidence": "Finding was presented with severity 'medium' \u2014 no remapping to 'major' was applied."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": true,
+          "evidence": "The prompt 'Apply all, select by number, or skip?' was shown after the findings section."
+        }
+      ],
+      "notes": [
+        "Severity normalization (medium \u2192 major) is skill-defined; without_skill presented 'medium' as-is."
+      ]
     }
   ],
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.97,
-        "stddev": 0.07,
+        "mean": 0.98,
+        "stddev": 0.06,
         "min": 0.8,
         "max": 1.0
       },
@@ -1759,8 +2135,8 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.68,
-        "stddev": 0.34,
+        "mean": 0.71,
+        "stddev": 0.33,
         "min": 0.0,
         "max": 1.0
       },
@@ -1778,7 +2154,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.29",
+      "pass_rate": "+0.26",
       "time_seconds": "-5.0",
       "tokens": "+688"
     }
