@@ -17,7 +17,7 @@ def parse_arguments(args: str | None) -> dict:
             "pr_number": str | None,
             "branch_name": str | None,
             "path": str | None,
-            "model": str | None,  # Defaults to "self" on successful parses; on error returns it may be None or a previously parsed value.
+            "model": str | None,  # Defaults to "self" on successful parses; on error, it may be None or a previously parsed value.
             "focus": str | None,
             "explicit_staged": bool,
             "error": str | None,

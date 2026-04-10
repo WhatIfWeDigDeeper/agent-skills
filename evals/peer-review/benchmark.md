@@ -203,14 +203,14 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 ### Eval 17 — `triage-not-on-claude-path`
 
-**Scenario**: `/peer-review --staged` (default Claude model) with 2 findings from the Claude reviewer subagent.
+**Scenario**: `/peer-review --staged` (default `self` model) with 2 findings from the internal reviewer instance.
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
 | with-skill    | 1.00      | 3/3    | 0      |
 | without-skill | 1.00      | 3/3    | 0      |
 
-**Non-discriminating**. This is a regression guard: without-skill naturally produces no "Triage filtered" section (it has no concept of triage), uses a standard apply prompt without S-numbers, and lists both findings. Establishes that the Claude path never activates triage.
+**Non-discriminating**. This is a regression guard: without-skill naturally produces no "Triage filtered" section (it has no concept of triage), uses a standard apply prompt without S-numbers, and lists both findings. Establishes that the self/Claude path never activates triage.
 
 ### Eval 18 — `triage-user-includes-skipped`
 
