@@ -88,24 +88,29 @@ class TestGeminiRouting:
 
 
 class TestNonClaudeEnvironment:
-    """In non-Claude environments, claude-* is unsupported; self still routes internal."""
+    """In non-Claude environments, claude-* routes to the claude CLI binary; self still routes internal."""
 
     def test_self_routes_to_internal_in_non_claude_env(self):
         result = route_model("self", assistant="copilot")
         assert result["route"] == "internal"
         assert result["binary"] is None
 
-    def test_claude_model_raises_in_copilot_env(self):
-        with pytest.raises(ValueError, match="Unsupported --model value"):
-            route_model("claude-opus-4-6", assistant="copilot")
+    def test_claude_model_routes_to_claude_binary_in_copilot_env(self):
+        result = route_model("claude-opus-4-6", assistant="copilot")
+        assert result["route"] == "claude"
+        assert result["binary"] == "claude"
+        assert result["submodel"] == "claude-opus-4-6"
 
-    def test_claude_model_raises_in_gemini_env(self):
-        with pytest.raises(ValueError, match="Unsupported --model value"):
-            route_model("claude-haiku-4-5-20251001", assistant="gemini")
+    def test_claude_model_routes_to_claude_binary_in_gemini_env(self):
+        result = route_model("claude-haiku-4-5-20251001", assistant="gemini")
+        assert result["route"] == "claude"
+        assert result["binary"] == "claude"
+        assert result["submodel"] == "claude-haiku-4-5-20251001"
 
-    def test_claude_model_raises_in_codex_env(self):
-        with pytest.raises(ValueError, match="Unsupported --model value"):
-            route_model("claude-sonnet-4-6", assistant="codex")
+    def test_claude_model_routes_to_claude_binary_in_codex_env(self):
+        result = route_model("claude-sonnet-4-6", assistant="codex")
+        assert result["route"] == "claude"
+        assert result["binary"] == "claude"
 
     def test_copilot_routes_normally_in_non_claude_env(self):
         result = route_model("copilot:gpt-4o", assistant="copilot")

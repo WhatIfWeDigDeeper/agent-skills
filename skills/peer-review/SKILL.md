@@ -41,7 +41,7 @@ Targets (pick one):
 Options:
   --model MODEL     Reviewer model (default: self — use the current assistant)
                     `self` means the assistant spawns a fresh instance of itself as reviewer
-                    Explicit Claude models: any claude-* value (Claude environments only)
+                    Explicit Claude models: any claude-* value (routes to claude CLI in non-Claude environments)
                     External CLIs: copilot[:submodel], codex[:submodel], gemini[:submodel]
                       copilot — npm install -g @github/copilot-cli (or VS Code extension)
                       codex   — npm install -g @openai/codex
@@ -218,22 +218,23 @@ Delegate to a fresh-context reviewer — pass the completed prompt (template + c
 
 **If `model` starts with `claude-`:**
 
-- **Claude assistants**: spawn the reviewer using that specific model rather than the current assistant's default.
-- **Non-Claude assistants**: `claude-*` is unsupported — error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model, Claude environments only), copilot[:submodel], codex[:submodel], gemini[:submodel]."
+- **Claude assistants**: spawn the reviewer using that specific model rather than the current assistant's default (internal path — no triage).
+- **Non-Claude assistants**: route to the `claude` CLI binary with the full model string as the model flag (e.g. `--model claude-sonnet-4-6`). This follows the same external-CLI path as copilot/codex/gemini, including the triage layer.
 
 The reviewer's only job is to return findings. It must not modify any files.
 
-**Otherwise (external CLI path — copilot, codex, gemini):**
+**Otherwise (external CLI path — claude [non-Claude env], copilot, codex, gemini):**
 
-Determine the CLI binary and optional sub-model from the `--model` value. If `--model` contains `:` (e.g. `copilot:gpt-4o-mini`), split on `:` — the left part is the binary name, the right part is the sub-model.
+Determine the CLI binary and model flag from the `--model` value. For `claude-*` values in non-Claude environments, the binary is `claude` and the model flag is the full model string. For other external CLIs, if `--model` contains `:` (e.g. `copilot:gpt-4o-mini`), split on `:` — the left part is the binary name, the right part is the sub-model.
 
-| `--model` prefix | Binary | Sub-model flag |
-|-----------------|--------|---------------|
+| `--model` value/prefix | Binary | Model flag |
+|------------------------|--------|------------|
+| `claude-*` (non-Claude env) | `claude` | `--model claude-*` (full string) |
 | `copilot` | `copilot` | `--model SUBMODEL` |
 | `codex` | `codex` | `--model SUBMODEL` |
 | `gemini` | `gemini` | `-m SUBMODEL` |
 
-If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model, Claude environments only), copilot[:submodel], codex[:submodel], gemini[:submodel]."
+If the prefix does not match `claude-*`, `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]."
 
 **4a. Check binary availability:**
 
@@ -242,6 +243,7 @@ command -v <binary> >/dev/null 2>&1 || { echo "<binary> CLI not found. Install w
 ```
 
 Install hints:
+- `claude`: `npm install -g @anthropic-ai/claude-code` (Claude Code CLI)
 - `copilot`: `npm install -g @github/copilot-cli` or via the GitHub Copilot VS Code extension
 - `codex`: `npm install -g @openai/codex`
 - `gemini`: `npm install -g @google/gemini-cli`
@@ -339,7 +341,7 @@ FINDING N: skip — [one-line reason]
 
 Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed or is otherwise invalid (including missing `FINDING N:` lines, wrong format, empty response, duplicate `FINDING N:` lines, conflicting `recommend` and `skip` decisions for the same `N`, IDs outside the valid `1..N` finding range, or any other violation of the "exactly one line per finding" rule), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.
 
-**4f.** Continue to Step 5 with the classified findings (`recommended` and `skipped` buckets). When `model` is `self` or starts with `claude-`, there is no triage — pass all findings directly to Step 5 as `recommended`.
+**4f.** Continue to Step 5 with the classified findings (`recommended` and `skipped` buckets). When on the internal path (`model` is `self`, or `model` starts with `claude-` and the current assistant is Claude), there is no triage — pass all findings directly to Step 5 as `recommended`.
 
 ### 5. Present Findings
 
@@ -437,6 +439,6 @@ On `n`: apply the Step 6 PR URL terminal-output rule if the target is `--pr N`, 
 - **Fresh-context guarantee**: the reviewer has no history from the current session. It sees only the content you pass it. This is the primary value of the skill — the reviewer cannot rationalize away issues the author has normalized.
 - **`--focus` does not suppress critical findings**: narrowing focus changes emphasis, not the severity threshold. A `critical` finding outside the focus topic will still be reported.
 - **Multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` route the review prompt to the respective external CLI rather than using the self path (spawning a fresh reviewer instance). This allows getting a non-Claude perspective (e.g. `--model copilot:gpt-4o-mini`). The binary must be installed and on `PATH`; if absent the skill errors with an install hint. Each CLI's output is normalized to the same severity-grouped findings format before Step 5.
-- **Triage layer** (external CLI path only): after normalizing findings from an external CLI, a fresh internal reviewer instance (in Claude Code: a subagent) classifies each finding as `recommend` or `skip`. Recommended findings are numbered `1, 2, 3...` in the apply prompt; skipped findings are listed below the separator with `S`-prefix numbering. Users can include a skipped finding by referencing its S-number (e.g. `1,S1`). If triage output cannot be parsed, all findings are treated as recommended. The triage layer does not activate on the internal `self/claude-*` path.
+- **Triage layer** (external CLI path only): after normalizing findings from an external CLI, a fresh internal reviewer instance (in Claude Code: a subagent) classifies each finding as `recommend` or `skip`. Recommended findings are numbered `1, 2, 3...` in the apply prompt; skipped findings are listed below the separator with `S`-prefix numbering. Users can include a skipped finding by referencing its S-number (e.g. `1,S1`). If triage output cannot be parsed, all findings are treated as recommended. The triage layer does not activate on the internal path (`self`, or `claude-*` when the current assistant is Claude). For non-Claude assistants using `--model claude-*`, the `claude` CLI is invoked as an external binary and triage applies as normal.
 - **Post-apply re-scan**: after applying at least one finding, the skill offers to re-scan the modified files for new issues. The re-scan always uses consistency mode and always spawns a fresh reviewer using `self` semantics (regardless of the original `--model`). The re-scan is offered at most once — a second apply during a re-scan cycle does not trigger another offer.
 - **PR URL output**: when the target is `--pr N`, the PR URL is output as the last line at whichever terminal state is reached — the single rule at the top of Step 6 governs all cases.

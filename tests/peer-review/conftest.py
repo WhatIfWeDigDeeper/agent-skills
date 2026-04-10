@@ -156,11 +156,8 @@ def route_model(model: str | None, assistant: str = "claude") -> dict:
     if model_lower.startswith("claude-"):
         if assistant.lower() == "claude":
             return {"route": "internal", "binary": None, "submodel": None}
-        raise ValueError(
-            f"Unsupported --model value: '{model}'. "
-            "Supported values: self (default), claude-* (explicit Claude model, Claude environments only), "
-            "copilot[:submodel], codex[:submodel], gemini[:submodel]."
-        )
+        # Non-Claude environments route to the claude CLI binary
+        return {"route": "claude", "binary": "claude", "submodel": model}
 
     if ":" in model:
         prefix, submodel = model.split(":", 1)
@@ -177,6 +174,6 @@ def route_model(model: str | None, assistant: str = "claude") -> dict:
 
     raise ValueError(
         f"Unsupported --model value: '{model}'. "
-        "Supported values: self (default), claude-* (explicit Claude model, Claude environments only), "
+        "Supported values: self (default), claude-* (explicit Claude model), "
         "copilot[:submodel], codex[:submodel], gemini[:submodel]."
     )

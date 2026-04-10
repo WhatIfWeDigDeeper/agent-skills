@@ -28,9 +28,9 @@ Current condition (Step 4):
 > If `model` starts with `claude-` → Claude path; otherwise → external CLI path
 
 New condition:
-> If `model` is `self` → **self path** (the assistant uses its own reviewer mechanism — in Claude Code this means spawning a subagent); if `model` starts with `claude-` → Claude path (explicit Claude-only override; in non-Claude environments this should error rather than falling through to an external CLI path); otherwise → external CLI path (copilot/codex/gemini)
+> If `model` is `self` → **self path** (the assistant uses its own reviewer mechanism — in Claude Code this means spawning a subagent); if `model` starts with `claude-` → **Claude path** (for Claude assistants: internal; for non-Claude assistants: route to the `claude` CLI binary); otherwise → external CLI path (copilot/codex/gemini)
 
-The self path and the Claude path share identical behavior today only when the current assistant is Claude — the only difference is that `self` doesn't name a specific model. For Claude, "self" *is* the Claude path. For a non-Claude assistant, "self" would mean using whatever subagent/subprocess mechanism that assistant supports, while an explicit `claude-*` override should fail as unsupported. The skill can't prescribe exactly how — it just says "spawn a fresh instance of yourself."
+When running in Claude, `self` and `claude-*` both use the internal reviewer path (no triage). When running in a non-Claude assistant, `claude-*` routes to the `claude` CLI binary like any other external CLI, and the triage layer applies as normal. The skill can't prescribe exactly how each assistant invokes subprocesses — it just says "spawn a fresh instance of yourself" for `self`.
 
 ### Header Display
 
@@ -49,7 +49,7 @@ Instruction: "If `model` is `self`, substitute your own model name or identifier
 Options:
   --model MODEL     Reviewer model (default: self — use the current assistant)
                     self means the assistant spawns a fresh instance of itself as reviewer
-                    Explicit Claude models: any claude-* value (Claude environments only)
+                    Explicit Claude models: any claude-* value (routes to claude CLI in non-Claude environments)
                     External CLIs: copilot[:submodel], codex[:submodel], gemini[:submodel]
                       copilot — npm install -g @github/copilot-cli (or VS Code extension)
                       codex   — npm install -g @openai/codex
@@ -64,7 +64,7 @@ The unsupported `--model` error (find `For Claude models, use a \`claude-*\` pre
 > "For Claude models, use a `claude-*` prefix (e.g. `--model claude-opus-4-6`)."
 
 Update to:
-> "Supported values: self (default), claude-* (explicit Claude model; Claude environments only), copilot[:submodel], codex[:submodel], gemini[:submodel]."
+> "Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]."
 
 ### What Does NOT Change
 
