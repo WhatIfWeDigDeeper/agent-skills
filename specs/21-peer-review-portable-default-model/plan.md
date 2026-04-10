@@ -30,12 +30,12 @@ Current condition (Step 4):
 New condition:
 > If `model` is `self` → **self path** (the assistant uses its own reviewer mechanism — in Claude Code this means spawning a subagent); if `model` starts with `claude-` → **internal path** (all assistants handle Claude models natively — no external CLI needed); otherwise → external CLI path (copilot/codex/gemini)
 
-`self` and `claude-*` both use the internal reviewer path (no triage), regardless of which assistant is running the skill. Copilot, Codex, and Gemini all support Claude models natively — the routing table is environment-agnostic. The skill can't prescribe exactly how each assistant invokes its reviewer — it just says "use your native mechanism" for `self` and `claude-*`.
+`self` and `claude-*` both use the internal reviewer path (no triage), regardless of which assistant is running the skill. The routing table is environment-agnostic. Each assistant is expected to use its own native mechanism for selecting Claude models; if an assistant cannot honor an explicit `claude-*` model override, it should treat the value as unsupported and stop with the standard unsupported-model error. The skill does not prescribe exactly how each assistant invokes its reviewer.
 
 ### Header Display
 
 Current: `## Peer Review — [target] ([model])`
-Example: `## Peer Review — staged (claude-opus-4-6)`
+Example: `## Peer Review — staged (claude-*)` *(model-neutral form; avoid hardcoding specific model IDs)*
 
 New behavior:
 - When model is `self` → show the assistant's own name/identifier (e.g. `claude-*`, `copilot`, `gemini`) — the assistant substitutes its own identity
