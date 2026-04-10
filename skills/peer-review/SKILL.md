@@ -212,13 +212,14 @@ Focus especially on [TOPIC]. Still report any critical findings outside this foc
 
 ### 4. Spawn Reviewer
 
-**If `model` is `self` or starts with `claude-`:**
+**If `model` is `self`:**
 
-Delegate to a fresh-context reviewer — pass the completed prompt (template + collected content). The reviewer has no prior session context — this is intentional. In Claude Code, spawn a subagent with `mode: "auto"` to suppress approval prompts.
+Delegate to a fresh-context reviewer — pass the completed prompt (template + collected content). The reviewer has no prior session context — this is intentional. The assistant spawns a fresh instance of itself as the reviewer. In Claude Code, spawn a subagent with `mode: "auto"` to suppress approval prompts. Other assistants use their own subprocess mechanism.
 
-When `model` is `self`, the assistant spawns a fresh instance of itself as the reviewer. In Claude Code, this means spawning a subagent. Other assistants use their own subprocess mechanism.
+**If `model` starts with `claude-`:**
 
-When `model` is an explicit `claude-*` value, spawn the reviewer using that specific model rather than the current assistant's default. This is a Claude-specific override — non-Claude assistants should treat `claude-*` as unsupported and error with the standard unsupported-model message.
+- **Claude assistants**: spawn the reviewer using that specific model rather than the current assistant's default.
+- **Non-Claude assistants**: `claude-*` is unsupported — error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model, Claude environments only), copilot[:submodel], codex[:submodel], gemini[:submodel]."
 
 The reviewer's only job is to return findings. It must not modify any files.
 

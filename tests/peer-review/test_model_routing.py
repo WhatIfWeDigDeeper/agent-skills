@@ -6,7 +6,7 @@ from conftest import route_model
 
 
 class TestSelfAndClaudeRouting:
-    """self and claude-* model values route to the internal reviewer path."""
+    """self and claude-* model values route to the internal reviewer path (Claude environment)."""
 
     def test_self_routes_to_internal(self):
         result = route_model("self")
@@ -85,6 +85,32 @@ class TestGeminiRouting:
         assert result["route"] == "gemini"
         assert result["binary"] == "gemini"
         assert result["submodel"] == "gemini-2.0-flash"
+
+
+class TestNonClaudeEnvironment:
+    """In non-Claude environments, claude-* is unsupported; self still routes internal."""
+
+    def test_self_routes_to_internal_in_non_claude_env(self):
+        result = route_model("self", assistant="copilot")
+        assert result["route"] == "internal"
+        assert result["binary"] is None
+
+    def test_claude_model_raises_in_copilot_env(self):
+        with pytest.raises(ValueError, match="Unsupported --model value"):
+            route_model("claude-opus-4-6", assistant="copilot")
+
+    def test_claude_model_raises_in_gemini_env(self):
+        with pytest.raises(ValueError, match="Unsupported --model value"):
+            route_model("claude-haiku-4-5-20251001", assistant="gemini")
+
+    def test_claude_model_raises_in_codex_env(self):
+        with pytest.raises(ValueError, match="Unsupported --model value"):
+            route_model("claude-sonnet-4-6", assistant="codex")
+
+    def test_copilot_routes_normally_in_non_claude_env(self):
+        result = route_model("copilot:gpt-4o", assistant="copilot")
+        assert result["route"] == "copilot"
+        assert result["submodel"] == "gpt-4o"
 
 
 class TestUnsupportedModel:

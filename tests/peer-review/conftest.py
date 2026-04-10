@@ -131,8 +131,13 @@ def detect_mode(has_plan_md: bool, has_tasks_md: bool) -> str:
     return "consistency"
 
 
-def route_model(model: str | None) -> dict:
+def route_model(model: str | None, assistant: str = "claude") -> dict:
     """Determine reviewer route from --model value per SKILL.md Step 4.
+
+    Args:
+        model: The --model value passed by the user.
+        assistant: The executing assistant type ("claude" or any other value for
+            non-Claude environments). Defaults to "claude".
 
     Returns:
         {
@@ -145,8 +150,17 @@ def route_model(model: str | None) -> dict:
         return {"route": "internal", "binary": None, "submodel": None}
 
     model_lower = model.lower()
-    if model_lower == "self" or model_lower.startswith("claude-"):
+    if model_lower == "self":
         return {"route": "internal", "binary": None, "submodel": None}
+
+    if model_lower.startswith("claude-"):
+        if assistant.lower() == "claude":
+            return {"route": "internal", "binary": None, "submodel": None}
+        raise ValueError(
+            f"Unsupported --model value: '{model}'. "
+            "Supported values: self (default), claude-* (explicit Claude model, Claude environments only), "
+            "copilot[:submodel], codex[:submodel], gemini[:submodel]."
+        )
 
     if ":" in model:
         prefix, submodel = model.split(":", 1)
