@@ -38,7 +38,7 @@ Current: `## Peer Review — [target] ([model])`
 Example: `## Peer Review — staged (claude-opus-4-6)`
 
 New behavior:
-- When model is `self` → show the assistant's own name/identifier (e.g. `claude-opus-4-6`, `copilot`, `gemini`) — the assistant substitutes its own identity
+- When model is `self` → show the assistant's own name/identifier (e.g. `claude-*`, `copilot`, `gemini`) — the assistant substitutes its own identity
 - When model is explicit → show the explicit value as before
 
 Instruction: "If `model` is `self`, substitute your own model name or identifier in the header."
@@ -48,6 +48,7 @@ Instruction: "If `model` is `self`, substitute your own model name or identifier
 ```
 Options:
   --model MODEL     Reviewer model (default: self — use the current assistant)
+                    self means the assistant spawns a fresh instance of itself as reviewer
                     Explicit Claude models: any claude-* value
                     External CLIs: copilot[:submodel], codex[:submodel], gemini[:submodel]
                       copilot — npm install -g @github/copilot-cli (or VS Code extension)
@@ -71,7 +72,7 @@ Update to:
 - The review prompt templates — unchanged
 - The apply/re-scan workflow — unchanged
 - The consistency-mode re-scan rationale note (already added) — unchanged
-- Unit test logic for argument parsing, mode routing, triage — unchanged (these don't test the default model value)
+- The overall unit-test areas remain the same (argument parsing, mode routing, triage), but helpers/expectations should be updated to reflect the new `self` default and routing semantics, with added routing/triage coverage as needed
 
 ## Impact
 
