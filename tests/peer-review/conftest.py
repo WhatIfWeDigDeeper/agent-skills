@@ -136,17 +136,17 @@ def route_model(model: str | None) -> dict:
 
     Returns:
         {
-            "route": "claude" | "copilot" | "codex" | "gemini",
-            "binary": str | None,  # CLI binary name (None for claude path)
+            "route": "internal" | "copilot" | "codex" | "gemini",
+            "binary": str | None,  # CLI binary name (None for internal path)
             "submodel": str | None,  # Sub-model if specified after ':'
         }
     """
     if not model:
-        return {"route": "claude", "binary": None, "submodel": None}
+        return {"route": "internal", "binary": None, "submodel": None}
 
     model_lower = model.lower()
     if model_lower == "self" or model_lower.startswith("claude-"):
-        return {"route": "claude", "binary": None, "submodel": None}
+        return {"route": "internal", "binary": None, "submodel": None}
 
     if ":" in model:
         prefix, submodel = model.split(":", 1)

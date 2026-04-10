@@ -10,28 +10,28 @@ class TestSelfAndClaudeRouting:
 
     def test_self_routes_to_internal(self):
         result = route_model("self")
-        assert result["route"] == "claude"
+        assert result["route"] == "internal"
         assert result["binary"] is None
         assert result["submodel"] is None
 
     def test_explicit_claude_model_routes_to_claude(self):
         result = route_model("claude-opus-4-6")
-        assert result["route"] == "claude"
+        assert result["route"] == "internal"
         assert result["binary"] is None
         assert result["submodel"] is None
 
     def test_any_claude_prefix_routes_to_claude(self):
         result = route_model("claude-haiku-4-5-20251001")
-        assert result["route"] == "claude"
+        assert result["route"] == "internal"
         assert result["binary"] is None
 
     def test_empty_model_routes_to_claude(self):
         result = route_model("")
-        assert result["route"] == "claude"
+        assert result["route"] == "internal"
 
     def test_none_routes_to_claude(self):
         result = route_model(None)
-        assert result["route"] == "claude"
+        assert result["route"] == "internal"
 
 
 class TestCopilotRouting:
@@ -88,7 +88,7 @@ class TestGeminiRouting:
 
 
 class TestUnsupportedModel:
-    """Unsupported --model values raise ValueError rather than silently falling back to claude."""
+    """Unsupported --model values raise ValueError rather than silently falling back to the internal path."""
 
     def test_unknown_prefix_raises(self):
         with pytest.raises(ValueError, match="Unsupported --model value"):
