@@ -911,7 +911,7 @@
         {
           "text": "The output header includes the PR number (e.g. 'PR #42')",
           "passed": true,
-          "evidence": "Header: '## Peer Review \u2014 PR #42 (claude-opus-4-6)' \u2014 assistant substituted its own model identifier for `self`"
+          "evidence": "Header: '## Peer Review \u2014 PR #42 (claude-sonnet-4-6)' \u2014 assistant substituted its own model identifier for `self`"
         },
         {
           "text": "The output includes 'No issues found.' (the no-findings output)",
@@ -952,7 +952,7 @@
         {
           "text": "The output header includes the PR number (e.g. 'PR #42')",
           "passed": true,
-          "evidence": "Output header: '## Peer Review \u2014 PR #42 (claude-opus-4-6)' \u2014 baseline adopted skill-like header format; assistant substituted its own model identifier for `self`."
+          "evidence": "Output header included 'PR #42' and followed the same header pattern, with the baseline substituting its own model identifier for `self`."
         },
         {
           "text": "The output includes 'No issues found.' (the no-findings output)",
@@ -1264,14 +1264,14 @@
       },
       "expectations": [
         {
-          "text": "The output does NOT contain a 'Triage filtered' section \u2014 triage does not run on the Claude path",
+          "text": "The output does NOT contain a 'Triage filtered' section \u2014 triage does not run on the self/Claude path",
           "passed": true,
-          "evidence": "Per SKILL.md Step 4f: Claude path passes all findings directly to Step 5 as recommended. No 'Triage filtered' section produced."
+          "evidence": "Per SKILL.md Step 4f: self/Claude path passes all findings directly to Step 5 as recommended. No 'Triage filtered' section produced."
         },
         {
           "text": "The apply prompt is the standard form ('Apply all, select by number, or skip?') \u2014 not the triage form mentioning S-numbers",
           "passed": true,
-          "evidence": "Apply all, select by number, or skip? [all/1,2/skip] \u2014 standard form per SKILL.md Step 5 Claude path."
+          "evidence": "Apply all, select by number, or skip? [all/1,2/skip] \u2014 standard form per SKILL.md Step 5 self/Claude path."
         },
         {
           "text": "Both findings (Missing return type annotation and Inconsistent spacing) appear in the output",
@@ -1300,7 +1300,7 @@
       },
       "expectations": [
         {
-          "text": "The output does NOT contain a 'Triage filtered' section \u2014 triage does not run on the Claude path",
+          "text": "The output does NOT contain a 'Triage filtered' section \u2014 triage does not run on the self/Claude path",
           "passed": true,
           "evidence": "No 'Triage filtered' section produced; the assistant has no concept of triage sections."
         },
@@ -1316,7 +1316,7 @@
         }
       ],
       "notes": [
-        "Non-discriminating: correct behavior is natural baseline. Regression guard only \u2014 ensures triage does not accidentally activate on Claude path."
+        "Non-discriminating: correct behavior is natural baseline. Regression guard only \u2014 ensures triage does not accidentally activate on self/Claude path."
       ]
     },
     {

@@ -336,7 +336,7 @@ FINDING N: skip — [one-line reason]
 
 Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed or is otherwise invalid (including missing `FINDING N:` lines, wrong format, empty response, duplicate `FINDING N:` lines, conflicting `recommend` and `skip` decisions for the same `N`, IDs outside the valid `1..N` finding range, or any other violation of the "exactly one line per finding" rule), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.
 
-**4f.** Continue to Step 5 with the classified findings (`recommended` and `skipped` buckets). When coming from the Claude path (Step 4 first branch), there is no triage — pass all findings directly to Step 5 as `recommended`.
+**4f.** Continue to Step 5 with the classified findings (`recommended` and `skipped` buckets). When coming from the self/Claude path (Step 4 first branch), there is no triage — pass all findings directly to Step 5 as `recommended`.
 
 ### 5. Present Findings
 
@@ -389,7 +389,7 @@ S2. **[Skipped title]** — [reason]
 Apply all recommended, include skipped by S-number, or skip? [all/1,2/1,S1/skip]
 ```
 
-On the Claude path (no triage), there is no "Triage filtered" section and the apply prompt is the standard form: `Apply all, select by number, or skip? [all/1,3,5/skip]`
+On the self/Claude path (no triage), there is no "Triage filtered" section and the apply prompt is the standard form: `Apply all, select by number, or skip? [all/1,3,5/skip]`
 
 Output this as your **final message and stop generating**. Do not supply an answer, do not assume a default, do not proceed to the next step. Resume only after the user replies.
 
@@ -399,7 +399,7 @@ Output this as your **final message and stop generating**. Do not supply an answ
 
 On user reply:
 
-- `all` — apply every **recommended** finding by editing the files directly (in Claude Code: use the `Edit` tool); report each change as you make it. On the Claude path (no triage), `all` applies every finding.
+- `all` — apply every **recommended** finding by editing the files directly (in Claude Code: use the `Edit` tool); report each change as you make it. On the self/Claude path (no triage), `all` applies every finding.
 - `1,3,5` (comma-separated numbers) — apply only the listed findings. Numbers refer to the sequential display positions of recommended findings as numbered in Step 5 (not original finding IDs — when triage skips some findings, the remaining recommended findings are renumbered `1, 2, 3...`); `S`-prefixed numbers (e.g. `S1`, `S2`) refer to skipped findings by their triage order. Both can be mixed (e.g. `1,S1`).
 - `skip` — output "Skipped N findings. No changes made." and stop. No re-scan is offered. Apply the Step 6 PR URL terminal-output rule if the target is `--pr N`.
 
@@ -425,7 +425,7 @@ Re-scan modified files for new issues? [y/n]
 
 Output this as your **final message and stop generating**. Do not supply an answer, do not assume a default, do not continue to the next step. Resume only after the user replies.
 
-On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode), and spawn a fresh Claude subagent (always Claude regardless of the original `--model`). Feed findings into Step 5 using the Claude path (no triage section, standard apply prompt `[all/1,3,5/skip]`). If no new issues are found, output "No new issues found in re-scan." and stop. **Do not offer another re-scan** — after applying during a re-scan cycle, output "Applied N finding(s)." and stop.
+On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode), and spawn a fresh Claude subagent (always Claude regardless of the original `--model`). Feed findings into Step 5 using the self/Claude path (no triage section, standard apply prompt `[all/1,3,5/skip]`). If no new issues are found, output "No new issues found in re-scan." and stop. **Do not offer another re-scan** — after applying during a re-scan cycle, output "Applied N finding(s)." and stop.
 
 On `n`: apply the Step 6 PR URL terminal-output rule if the target is `--pr N`, then stop.
 
@@ -434,6 +434,6 @@ On `n`: apply the Step 6 PR URL terminal-output rule if the target is `--pr N`, 
 - **Fresh-context guarantee**: the reviewer has no history from the current session. It sees only the content you pass it. This is the primary value of the skill — the reviewer cannot rationalize away issues the author has normalized.
 - **`--focus` does not suppress critical findings**: narrowing focus changes emphasis, not the severity threshold. A `critical` finding outside the focus topic will still be reported.
 - **Multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` route the review prompt to the respective external CLI rather than using the self path (spawning a fresh reviewer instance). This allows getting a non-Claude perspective (e.g. `--model copilot:gpt-4o-mini`). The binary must be installed and on `PATH`; if absent the skill errors with an install hint. Each CLI's output is normalized to the same severity-grouped findings format before Step 5.
-- **Triage layer** (external CLI path only): after normalizing findings from an external CLI, a fresh Claude subagent classifies each finding as `recommend` or `skip`. Recommended findings are numbered `1, 2, 3...` in the apply prompt; skipped findings are listed below the separator with `S`-prefix numbering. Users can include a skipped finding by referencing its S-number (e.g. `1,S1`). If triage output cannot be parsed, all findings are treated as recommended. The triage layer does not activate on the Claude path.
+- **Triage layer** (external CLI path only): after normalizing findings from an external CLI, a fresh Claude subagent classifies each finding as `recommend` or `skip`. Recommended findings are numbered `1, 2, 3...` in the apply prompt; skipped findings are listed below the separator with `S`-prefix numbering. Users can include a skipped finding by referencing its S-number (e.g. `1,S1`). If triage output cannot be parsed, all findings are treated as recommended. The triage layer does not activate on the internal `self/claude-*` path.
 - **Post-apply re-scan**: after applying at least one finding, the skill offers to re-scan the modified files for new issues. The re-scan always uses consistency mode and always spawns a Claude subagent (regardless of the original `--model`). The re-scan is offered at most once — a second apply during a re-scan cycle does not trigger another offer.
 - **PR URL output**: when the target is `--pr N`, the PR URL is output as the last line at whichever terminal state is reached — the single rule at the top of Step 6 governs all cases.
