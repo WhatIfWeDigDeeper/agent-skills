@@ -6,7 +6,7 @@ from conftest import route_model
 
 
 class TestSelfAndClaudeRouting:
-    """self and claude-* model values route to the internal reviewer path (Claude environment)."""
+    """`self` always routes internally; `claude-*` routes internally when `assistant == "claude"`."""
 
     def test_self_routes_to_internal(self):
         result = route_model("self")
