@@ -339,7 +339,7 @@ FINDING N: skip — [one-line reason]
 
 Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed or is otherwise invalid (including missing `FINDING N:` lines, wrong format, empty response, duplicate `FINDING N:` lines, conflicting `recommend` and `skip` decisions for the same `N`, IDs outside the valid `1..N` finding range, or any other violation of the "exactly one line per finding" rule), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.
 
-**4f.** Continue to Step 5 with the classified findings (`recommended` and `skipped` buckets). When coming from the self/Claude path (Step 4 first branch), there is no triage — pass all findings directly to Step 5 as `recommended`.
+**4f.** Continue to Step 5 with the classified findings (`recommended` and `skipped` buckets). When `model` is `self` or starts with `claude-`, there is no triage — pass all findings directly to Step 5 as `recommended`.
 
 ### 5. Present Findings
 
