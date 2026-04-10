@@ -14,6 +14,9 @@ Use these templates for Step 14, omitting lines that don't apply.
 {poll status — omit if not applicable}
 
 [List of each action taken]
+
+PR #N is ready for your final review.
+<PR URL>
 ```
 
 **Changes line** (pick one):
@@ -60,6 +63,9 @@ Updated PR body: reflects 3 commits (was 1).
 Exited: no new threads after iteration 3.
 
 M out-of-scope declined comments — file follow-up issues? [all/select/none]
+
+PR #N is ready for your final review.
+<PR URL>
 ```
 
 Omit "Updated PR title/body" lines if PR metadata was not changed. Omit the follow-up issues offer if there were no out-of-scope declines.
