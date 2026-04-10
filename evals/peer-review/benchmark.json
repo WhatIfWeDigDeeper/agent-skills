@@ -2,7 +2,7 @@
   "metadata": {
     "skill_name": "peer-review",
     "skill_path": "skills/peer-review",
-    "skill_version": "1.5",
+    "skill_version": "1.6",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
     "timestamp": "2026-04-09T00:00:00Z",
@@ -911,7 +911,7 @@
         {
           "text": "The output header includes the PR number (e.g. 'PR #42')",
           "passed": true,
-          "evidence": "Header: '## Peer Review \u2014 PR #42 (claude-opus-4-6)'"
+          "evidence": "Header: '## Peer Review \u2014 PR #42 (claude-opus-4-6)' \u2014 assistant substituted its own model identifier for `self`"
         },
         {
           "text": "The output includes 'No issues found.' (the no-findings output)",
@@ -952,7 +952,7 @@
         {
           "text": "The output header includes the PR number (e.g. 'PR #42')",
           "passed": true,
-          "evidence": "Output header: '## Peer Review \u2014 PR #42 (claude-opus-4-6)' \u2014 baseline adopted skill-like header format."
+          "evidence": "Output header: '## Peer Review \u2014 PR #42 (claude-opus-4-6)' \u2014 baseline adopted skill-like header format; assistant substituted its own model identifier for `self`."
         },
         {
           "text": "The output includes 'No issues found.' (the no-findings output)",
