@@ -282,6 +282,10 @@
         {
           "id": "no-apply-prompt",
           "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings"
+        },
+        {
+          "id": "header-model-not-literal-self",
+          "text": "The header's model token is NOT the literal string 'self' — the assistant substitutes its own model identifier (e.g. a claude-* name) in the header"
         }
       ]
     },
@@ -564,6 +568,10 @@
         {
           "id": "no-apply-prompt",
           "text": "The apply prompt is NOT shown (no findings to apply)"
+        },
+        {
+          "id": "header-model-not-literal-self",
+          "text": "The header's model token is NOT the literal string 'self' — the assistant substitutes its own model identifier in the header"
         }
       ]
     },

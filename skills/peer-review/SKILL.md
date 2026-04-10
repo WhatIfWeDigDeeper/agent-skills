@@ -218,7 +218,7 @@ Delegate to a fresh-context reviewer — pass the completed prompt (template + c
 
 **If `model` starts with `claude-`:**
 
-The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. Each assistant selects the requested model natively; no external CLI is required. In Claude Code, spawn a subagent with the specified model. Other assistants use their own equivalent mechanism.
+The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. Each assistant selects the requested model natively; no external CLI is required. In Claude Code, spawn a subagent with the specified model. Other assistants use their own equivalent mechanism. **If the current assistant cannot select the requested `claude-*` model, treat it as unsupported and stop:** "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]."
 
 The reviewer's only job is to return findings. It must not modify any files.
 
