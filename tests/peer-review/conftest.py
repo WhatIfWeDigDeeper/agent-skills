@@ -131,13 +131,8 @@ def detect_mode(has_plan_md: bool, has_tasks_md: bool) -> str:
     return "consistency"
 
 
-def route_model(model: str | None, assistant: str = "claude") -> dict:
+def route_model(model: str | None) -> dict:
     """Determine reviewer route from --model value per SKILL.md Step 4.
-
-    Args:
-        model: The --model value passed by the user.
-        assistant: The executing assistant type ("claude" or any other value for
-            non-Claude environments). Defaults to "claude".
 
     Returns:
         {
@@ -150,14 +145,8 @@ def route_model(model: str | None, assistant: str = "claude") -> dict:
         return {"route": "internal", "binary": None, "submodel": None}
 
     model_lower = model.lower()
-    if model_lower == "self":
+    if model_lower == "self" or model_lower.startswith("claude-"):
         return {"route": "internal", "binary": None, "submodel": None}
-
-    if model_lower.startswith("claude-"):
-        if assistant.lower() == "claude":
-            return {"route": "internal", "binary": None, "submodel": None}
-        # Non-Claude environments route to the claude CLI binary
-        return {"route": "claude", "binary": "claude", "submodel": model}
 
     if ":" in model:
         prefix, submodel = model.split(":", 1)

@@ -28,9 +28,9 @@ Current condition (Step 4):
 > If `model` starts with `claude-` → Claude path; otherwise → external CLI path
 
 New condition:
-> If `model` is `self` → **self path** (the assistant uses its own reviewer mechanism — in Claude Code this means spawning a subagent); if `model` starts with `claude-` → **Claude path** (for Claude assistants: internal; for non-Claude assistants: route to the `claude` CLI binary); otherwise → external CLI path (copilot/codex/gemini)
+> If `model` is `self` → **self path** (the assistant uses its own reviewer mechanism — in Claude Code this means spawning a subagent); if `model` starts with `claude-` → **internal path** (all assistants handle Claude models natively — no external CLI needed); otherwise → external CLI path (copilot/codex/gemini)
 
-When running in Claude, `self` and `claude-*` both use the internal reviewer path (no triage). When running in a non-Claude assistant, `claude-*` routes to the `claude` CLI binary like any other external CLI, and the triage layer applies as normal. The skill can't prescribe exactly how each assistant invokes subprocesses — it just says "spawn a fresh instance of yourself" for `self`.
+`self` and `claude-*` both use the internal reviewer path (no triage), regardless of which assistant is running the skill. Copilot, Codex, and Gemini all support Claude models natively — the routing table is environment-agnostic. The skill can't prescribe exactly how each assistant invokes its reviewer — it just says "use your native mechanism" for `self` and `claude-*`.
 
 ### Header Display
 
@@ -49,7 +49,7 @@ Instruction: "If `model` is `self`, substitute your own model name or identifier
 Options:
   --model MODEL     Reviewer model (default: self — use the current assistant)
                     self means the assistant spawns a fresh instance of itself as reviewer
-                    Explicit Claude models: any claude-* value (routes to claude CLI in non-Claude environments)
+                    Explicit Claude models: any claude-* value (internal path — assistant selects model natively)
                     External CLIs: copilot[:submodel], codex[:submodel], gemini[:submodel]
                       copilot — npm install -g @github/copilot-cli (or VS Code extension)
                       codex   — npm install -g @openai/codex

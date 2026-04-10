@@ -103,6 +103,16 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - **zsh escapes `!` in jq filters**: `!=` in a jq expression passed as a Bash argument becomes `\!=`, causing jq parse errors. Workarounds: write the jq filter to a file and use `jq -f`, or rewrite `!=` as `(== | not)`. For null checks, use `(.field | type == "string")` instead of `.field != null`. Skill jq snippets must avoid `!=` for portability.
 - **jq bot-login exclusions need exact equality, not `contains()`**: when excluding a specific bot from a jq filter, use `.user.login == "claude[bot]"` — not `.user.login | contains("claude")`, which silently excludes unrelated bots sharing the substring (e.g. `claude-reviewer[bot]`, `claude-pr-reviewer[bot]`). This bug is easy to introduce and passes casual review; catch it by naming the exact login you mean to exclude.
 
+## Available Skills
+
+When the user's request matches a skill's trigger phrases, read the skill file and follow its workflow exactly.
+
+| Skill | File | Trigger phrases |
+|-------|------|-----------------|
+| peer-review | `skills/peer-review/SKILL.md` | "peer review", "fresh review", "another set of eyes", "sanity check", "quick review before I push", "review with Gemini/Copilot/Codex" |
+
+**Do NOT trigger** `peer-review` on bare "review" phrases like "review my changes" or "review PR N" — those route to `code-review`.
+
 ## Skill Design Guidance
 
 - Name skills from the user's action or role, not the underlying implementation detail.
