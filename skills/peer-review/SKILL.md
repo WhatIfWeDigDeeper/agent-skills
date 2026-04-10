@@ -406,6 +406,10 @@ When applying a finding, use the phrase anchor from the finding's Location field
 
 After all edits are complete, output: "Applied N finding(s)." on its own line.
 
+If no files were actually modified (all findings were skipped or the apply step made no changes), output the PR URL as the final line if the target is `--pr N`, then stop — do not offer a re-scan.
+
+If this is a re-scan cycle, output the PR URL as the final line if the target is `--pr N`, then stop — do not offer another re-scan, even if files were modified earlier in the workflow.
+
 **Post-apply re-scan** (offered only when at least one file was actually modified, and only once — not during a re-scan cycle):
 
 ```
