@@ -5,10 +5,16 @@ import pytest
 from conftest import route_model
 
 
-class TestClaudeRouting:
-    """Any claude-* model value routes to the Claude subagent path."""
+class TestSelfAndClaudeRouting:
+    """self and claude-* model values route to the internal reviewer path."""
 
-    def test_default_model_routes_to_claude(self):
+    def test_self_routes_to_internal(self):
+        result = route_model("self")
+        assert result["route"] == "claude"
+        assert result["binary"] is None
+        assert result["submodel"] is None
+
+    def test_explicit_claude_model_routes_to_claude(self):
         result = route_model("claude-opus-4-6")
         assert result["route"] == "claude"
         assert result["binary"] is None

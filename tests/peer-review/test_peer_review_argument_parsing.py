@@ -171,9 +171,9 @@ class TestOptions:
     """Options --model and --focus are parsed correctly."""
 
     def test_default_model_is_reviewer_default(self):
-        """Model defaults to claude-opus-4-6 per SKILL.md Step 1 when --model is omitted."""
+        """Model defaults to self per SKILL.md Step 1 when --model is omitted."""
         result = parse_arguments("")
-        assert result["model"] == "claude-opus-4-6"
+        assert result["model"] == "self"
 
     def test_model_override(self):
         result = parse_arguments("--model claude-opus-4-6")
