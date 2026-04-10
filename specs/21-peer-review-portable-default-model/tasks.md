@@ -7,7 +7,7 @@
 - [x] **1.3** Update Step 4 routing condition (find `If model starts with claude-`) → `If model is self or starts with claude-`. Also remove the parenthetical `(including the default claude-opus-4-6)` from the condition heading. Add a sentence: "When model is `self`, the assistant spawns a fresh instance of itself as the reviewer. In Claude Code, this means spawning a subagent. Other assistants use their own subprocess mechanism."
 - [x] **1.4** Update Step 4 error message (find `For Claude models, use a claude-* prefix`) → `Supported values: self (default), claude-* (explicit Claude model), copilot, codex, gemini.`
 - [x] **1.5a** Update Notes bullet "Multi-LLM routing" (find `rather than spawning a Claude subagent`) → `rather than using the self path (spawning a fresh reviewer instance)` — assistant-neutral wording.
-- [x] **1.5** Update Step 5 header instruction (find `## Peer Review — [target] ([model])`) → add: "If `model` is `self`, substitute your own model name or identifier in the header (e.g. a Claude assistant would display `claude-opus-4-6`, Copilot would display `copilot`)."
+- [x] **1.5** Update Step 5 header instruction (find `## Peer Review — [target] ([model])`) → add: "If `model` is `self`, substitute your own model name or identifier in the header (e.g. a Claude assistant would display `claude-*`, Copilot would display `copilot`)."
 - [x] **1.6** Bump version in frontmatter: `"1.5"` → `"1.6"`.
 
 ## Phase 2: Eval & Benchmark Updates

@@ -218,6 +218,8 @@ Delegate to a fresh-context reviewer — pass the completed prompt (template + c
 
 When `model` is `self`, the assistant spawns a fresh instance of itself as the reviewer. In Claude Code, this means spawning a subagent. Other assistants use their own subprocess mechanism.
 
+When `model` is an explicit `claude-*` value (e.g. `claude-opus-4-6`), spawn the reviewer using that specific model rather than the current assistant's default.
+
 The reviewer's only job is to return findings. It must not modify any files.
 
 **Otherwise (external CLI path — copilot, codex, gemini):**
@@ -230,7 +232,7 @@ Determine the CLI binary and optional sub-model from the `--model` value. If `--
 | `codex` | `codex` | `--model SUBMODEL` |
 | `gemini` | `gemini` | `-m SUBMODEL` |
 
-If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot, codex, gemini."
+If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]."
 
 **4a. Check binary availability:**
 
