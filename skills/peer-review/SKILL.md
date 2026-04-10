@@ -390,7 +390,7 @@ Output this as your **final message and stop generating**. Do not supply an answ
 
 ### 6. Apply
 
-**PR URL rule**: whenever the target was `--pr N` and the skill reaches a terminal state (skip, no re-scan offered, re-scan declined, re-scan complete), output the PR URL as the last line. Apply this rule once at the actual terminal point — do not output the URL mid-workflow.
+**PR URL rule**: whenever the target was `--pr N` and the skill reaches a terminal state (including the Step 5 `NO FINDINGS` / `No issues recommended.` stop points, plus skip, no re-scan offered, re-scan declined, and re-scan complete), output the PR URL as the last line. Apply this rule once at the actual terminal point — do not output the URL mid-workflow.
 
 On user reply:
 
