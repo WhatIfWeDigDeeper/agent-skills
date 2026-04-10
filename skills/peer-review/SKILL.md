@@ -41,7 +41,7 @@ Targets (pick one):
 Options:
   --model MODEL     Reviewer model (default: self — use the current assistant)
                     `self` means the assistant spawns a fresh instance of itself as reviewer
-                    Explicit Claude models: any claude-* value
+                    Explicit Claude models: any claude-* value (Claude environments only)
                     External CLIs: copilot[:submodel], codex[:submodel], gemini[:submodel]
                       copilot — npm install -g @github/copilot-cli (or VS Code extension)
                       codex   — npm install -g @openai/codex
@@ -218,7 +218,7 @@ Delegate to a fresh-context reviewer — pass the completed prompt (template + c
 
 When `model` is `self`, the assistant spawns a fresh instance of itself as the reviewer. In Claude Code, this means spawning a subagent. Other assistants use their own subprocess mechanism.
 
-When `model` is an explicit `claude-*` value, spawn the reviewer using that specific model rather than the current assistant's default.
+When `model` is an explicit `claude-*` value, spawn the reviewer using that specific model rather than the current assistant's default. This is a Claude-specific override — non-Claude assistants should treat `claude-*` as unsupported and error with the standard unsupported-model message.
 
 The reviewer's only job is to return findings. It must not modify any files.
 
