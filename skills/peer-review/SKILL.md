@@ -306,7 +306,7 @@ If parsing fails for any CLI: output raw text with the prefix "Could not parse s
 
 **4e. Triage findings (external CLI path only):**
 
-Spawn a fresh Claude subagent (with `mode: "auto"` in Claude Code) with the following triage prompt:
+Spawn a fresh internal reviewer instance (in Claude Code: a subagent with `mode: "auto"`) with the following triage prompt:
 
 ```
 You are reviewing a list of findings produced by an external code reviewer.
