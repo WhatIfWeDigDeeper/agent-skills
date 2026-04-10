@@ -342,6 +342,8 @@ Parse the triage subagent's response. For each `FINDING N:` line, assign the fin
 
 ### 5. Present Findings
 
+In all output blocks below, `[model]` is the literal `--model` value. If `model` is `self`, substitute your own model name or identifier (e.g. a Claude assistant would display `claude-*`, Copilot would display `copilot`).
+
 If there are no findings (reviewer returned `NO FINDINGS` on the self/Claude path, or the external CLI returned nothing before triage), output:
 
 ```
@@ -349,8 +351,6 @@ If there are no findings (reviewer returned `NO FINDINGS` on the self/Claude pat
 
 No issues found.
 ```
-
-If `model` is `self`, substitute your own model name or identifier in the header (e.g. a Claude assistant would display `claude-*`, Copilot would display `copilot`).
 
 Then stop. Do not show an apply prompt. If the target was `--pr N`, append the PR URL as the last line before stopping.
 

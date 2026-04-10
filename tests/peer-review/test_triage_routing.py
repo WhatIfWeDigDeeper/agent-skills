@@ -7,7 +7,7 @@ def uses_triage(model: str | None) -> bool:
     """Return True if the model routes through the external CLI path (triage activates).
 
     Triage only activates on the external CLI path (copilot, codex, gemini).
-    The Claude path never triggers triage.
+    The self/Claude path never triggers triage.
     """
     result = route_model(model)
     return result["route"] in ("copilot", "codex", "gemini")

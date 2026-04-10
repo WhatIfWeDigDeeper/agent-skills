@@ -63,7 +63,7 @@ The unsupported `--model` error (find `For Claude models, use a \`claude-*\` pre
 > "For Claude models, use a `claude-*` prefix (e.g. `--model claude-opus-4-6`)."
 
 Update to:
-> "Supported values: self (default), claude-* (explicit Claude model), copilot, codex, gemini."
+> "Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]."
 
 ### What Does NOT Change
 
