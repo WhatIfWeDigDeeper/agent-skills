@@ -1,8 +1,9 @@
 .DS_Store
 *-workspace/
 __pycache__/
-.claude/skills/
 .agents/
+.claude/skills/
+.claude/worktrees/
 .claude/settings.local.json
 tests/learn/fixtures/
 tests/js-deps/fixtures/
