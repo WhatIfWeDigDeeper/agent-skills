@@ -396,7 +396,7 @@ On user reply:
 
 - `all` — apply every **recommended** finding by editing the files directly (in Claude Code: use the `Edit` tool); report each change as you make it. On the Claude path (no triage), `all` applies every finding.
 - `1,3,5` (comma-separated numbers) — apply only the listed findings. Numbers refer to the sequential display positions of recommended findings as numbered in Step 5 (not original finding IDs — when triage skips some findings, the remaining recommended findings are renumbered `1, 2, 3...`); `S`-prefixed numbers (e.g. `S1`, `S2`) refer to skipped findings by their triage order. Both can be mixed (e.g. `1,S1`).
-- `skip` — output "Skipped N findings. No changes made." and stop. No re-scan is offered.
+- `skip` — output "Skipped N findings. No changes made." and stop. No re-scan is offered. Apply the Step 6 PR URL terminal-output rule if the target is `--pr N`.
 
 When applying a finding, use the phrase anchor from the finding's Location field to locate the text in the file — do not use line numbers. If the phrase anchor cannot be found in the file, skip that finding and note it: "Skipped finding N — location anchor not found in [file]."
 
