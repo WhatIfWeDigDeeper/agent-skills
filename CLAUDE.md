@@ -74,7 +74,7 @@ Valid frontmatter fields: `name`, `description` (required), `license`, `compatib
 4. Document the workflow with numbered process steps
 5. Add bash code blocks for commands that should be executed
 6. Include example outputs where helpful
-7. Create a symlink so Claude Code can discover it: `ln -s ../../skills/<skill-name> .claude/skills/<skill-name>` (local only — `.claude/skills/` is gitignored). **After editing an existing skill, verify the symlink still resolves correctly** — a skill invocation may load a stale version if the symlink points to a cached or wrong path. **Claude Code also caches skill content at session load** — edits to a skill file don't take effect until a fresh session is started.
+7. Create a symlink so Claude Code can discover it: `ln -s ../../skills/<skill-name> .claude/skills/<skill-name>` (local only — `.claude/skills/` is gitignored). **After editing an existing skill, verify the symlink still resolves correctly** — a skill invocation may load a stale version if the symlink points to a cached or wrong path. **In a worktree, edit skills at the worktree path `skills/<name>/SKILL.md` — not via `.claude/skills/<name>/SKILL.md`**, which resolves to the main repo's copy. **Claude Code also caches skill content at session load** — edits to a skill file don't take effect until a fresh session is started.
 8. Update `README.md` — add the skill to the table and add a notes section
 
 When substantially modifying an existing skill, also update its entry in `README.md`.
