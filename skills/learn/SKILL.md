@@ -16,7 +16,7 @@ compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.6"
+  version: "0.7"
 ---
 
 # Learn from Conversation
@@ -147,3 +147,4 @@ List files modified with before/after line counts, sections updated or created, 
 
 - **Prefer specificity**: `Run npm run dev before e2e tests` beats `ensure services are running` — vague rules train agents to interpret rather than follow
 - **One learning, one location**: if it already exists anywhere in the config or a skill, update that entry rather than creating a second one
+- **Strip obvious explanations from rule text**: include only the non-obvious directive; omit common-knowledge consequences. "Use `git merge` not rebase when review comments exist" is enough — don't append "this creates a merge commit without rewriting history."
