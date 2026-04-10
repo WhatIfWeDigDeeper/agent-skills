@@ -25,6 +25,11 @@ class TestSelfAndClaudeRouting:
         assert result["route"] == "internal"
         assert result["binary"] is None
 
+    def test_claude_sonnet_routes_to_internal(self):
+        result = route_model("claude-sonnet-4-6")
+        assert result["route"] == "internal"
+        assert result["binary"] is None
+
     def test_empty_model_routes_to_internal(self):
         result = route_model("")
         assert result["route"] == "internal"
@@ -85,41 +90,6 @@ class TestGeminiRouting:
         assert result["route"] == "gemini"
         assert result["binary"] == "gemini"
         assert result["submodel"] == "gemini-2.0-flash"
-
-
-class TestClaudeModelPortability:
-    """`claude-*` routes internally regardless of which assistant is running the skill.
-
-    Copilot, Codex, and Gemini all support Claude models natively — no external `claude`
-    CLI binary is needed. The routing table is environment-agnostic.
-    """
-
-    def test_claude_model_routes_to_internal(self):
-        result = route_model("claude-opus-4-6")
-        assert result["route"] == "internal"
-        assert result["binary"] is None
-
-    def test_claude_haiku_routes_to_internal(self):
-        result = route_model("claude-haiku-4-5-20251001")
-        assert result["route"] == "internal"
-        assert result["binary"] is None
-        assert result["submodel"] is None
-
-    def test_claude_sonnet_routes_to_internal(self):
-        result = route_model("claude-sonnet-4-6")
-        assert result["route"] == "internal"
-        assert result["binary"] is None
-
-    def test_self_routes_to_internal(self):
-        result = route_model("self")
-        assert result["route"] == "internal"
-        assert result["binary"] is None
-
-    def test_copilot_routes_to_copilot_binary(self):
-        result = route_model("copilot:gpt-4o")
-        assert result["route"] == "copilot"
-        assert result["binary"] == "copilot"
-        assert result["submodel"] == "gpt-4o"
 
 
 class TestUnsupportedModel:
