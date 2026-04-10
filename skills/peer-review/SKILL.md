@@ -218,7 +218,7 @@ Delegate to a fresh-context reviewer — pass the completed prompt (template + c
 
 **If `model` starts with `claude-`:**
 
-The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. In Claude Code, spawn a subagent with the specified model. In Copilot, select the Claude model natively (Copilot supports Claude models directly; no external CLI is required). Other assistants use their own equivalent mechanism.
+The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. Each assistant selects the requested model natively; no external CLI is required. In Claude Code, spawn a subagent with the specified model. Other assistants use their own equivalent mechanism.
 
 The reviewer's only job is to return findings. It must not modify any files.
 
