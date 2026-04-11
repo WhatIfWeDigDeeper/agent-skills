@@ -43,7 +43,8 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - Keep `run_summary.delta.pass_rate` at 2-decimal precision.
 - `run_summary.delta` values must be computed from exact (unrounded) run-data means, not from the rounded `mean` fields. When stored means are rounded, add a sentence to `benchmark.md`: "Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means."
 - When adding new evals or re-running existing evals, run them in the same task and update benchmark artifacts immediately — also update `metadata.skill_version` and `metadata.evals_run`. Exception: for validation-only runs, do not add run entries or bump `metadata.skill_version`.
-- When changing pass/fail verdicts on existing benchmark expectations, re-run the eval rather than re-grading with hypothetical reasoning — hypothetical re-grades can describe fundamentally different behavior from what was originally observed.
+- When changing pass/fail verdicts on existing benchmark expectations, re-run the eval rather than re-grading with hypothetical reasoning — hypothetical re-grades can describe fundamentally different behavior from what was originally observed. The same applies when adding a new assertion to an existing run entry — evidence must come from an observed transcript, not inferred reasoning. Spawn a fresh executor run to get real evidence.
+- When renaming an eval's `name` field in `evals.json`, also update `eval_name` in all matching `benchmark.json` run entries, any prose mentions in `benchmark.json` `notes` strings, and the corresponding `benchmark.md` section header.
 - When adding a new skill to `README.md`, add an `Eval cost` note sourced from the skill's benchmark doc.
 - If reviewer feedback suggests benchmark values, recompute from the actual `runs` array instead of copying the suggestion.
 - When updating `pass_rate`, `passed`, `failed`, or `total` in a run entry, also scan both the run-level `notes` array and the top-level `notes` array for matching prose counts (e.g. "3/5 (60%)") and update them — numeric fields and prose strings drift independently.
@@ -78,7 +79,7 @@ uv run --with pytest pytest tests/
 - This repo uses squash merges.
 - After pushing follow-up commits to an existing PR branch, compare `git log origin/main..HEAD --oneline` against the PR title/body and update the PR description if behavior changed.
 - After implementing or fully addressing a PR review comment, resolve the thread through the GitHub GraphQL API only when no further reviewer follow-up is needed.
-- After merging a PR, sync local `main` with `git reset --hard origin/main`, but only after checking for uncommitted changes.
+- After merging a PR, sync local `main` with `git reset --hard origin/main`, but only after running `git status --porcelain` as a standalone command. If it produces any output, STOP — stash first (`git stash`), reset, then pop. Never chain `git status --porcelain && git reset --hard` — doing so bypasses the decision point and silently discards staged changes.
 
 ## Command And Tooling Gotchas
 
