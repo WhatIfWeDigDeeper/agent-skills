@@ -201,7 +201,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 **Discriminating** (+0.67 delta). without-skill still offered an apply prompt ("Would you like me to apply either of these anyway?") and did not output "No issues recommended." — the all-skipped path and its specific phrasing are skill-defined. The triage summary content appeared in prose (satisfying assertion 3 loosely), but the required phrase and suppressed apply prompt both fail.
 
-### Eval 17 — `triage-not-on-claude-path`
+### Eval 17 — `triage-not-on-self-path`
 
 **Scenario**: `/peer-review --staged` (default `self` model) with 2 findings from the internal reviewer instance.
 

@@ -49,7 +49,7 @@
     "Evals 11-14 added in v1.1 review pass. Eval 13 (focus-option) discriminates (+0.67 delta): the skill-defined focus line format and apply prompt both fail without_skill. Evals 11, 12, 14 are non-discriminating: empty-staged warning, PR metadata inclusion (when fixture data is explicit in the prompt), and skip handling are natural baseline behaviors.",
     "Evals 11-14 have real time and token measurements (subagent executor ran the full workflow, not pure transcript simulation).",
     "Evals 15-20 added in v1.2 for triage layer and post-apply re-scan. All use simulated fixtures; time_seconds and tokens are null.",
-    "Evals 15 (triage-skips-false-positive) and 16 (triage-all-skipped) and 19 (rescan-offered-after-apply) are discriminating. Evals 17, 18, 20 are non-discriminating: triage-not-on-claude-path and rescan-not-offered-after-skip are natural baseline behaviors; triage-user-includes-skipped passes because 'S1' literal selection is intuitive.",
+    "Evals 15 (triage-skips-false-positive) and 16 (triage-all-skipped) and 19 (rescan-offered-after-apply) are discriminating. Evals 17, 18, 20 are non-discriminating: triage-not-on-self-path and rescan-not-offered-after-skip are natural baseline behaviors; triage-user-includes-skipped passes because 'S1' literal selection is intuitive.",
     "Evals 2, 21, 22, 23 added/re-run in v1.4. Eval 2 (consistency-mode-plan-tasks-mismatch) re-run with v1.3-compatible assertions — discriminating (+0.40 delta). Eval 21 (both-staged-and-unstaged-prompt) discriminates (+0.67 delta): disambiguation prompt is entirely skill-defined. Evals 22 (unstaged-only-auto-review) and 23 (staged-explicit-bypasses-detection) are non-discriminating: these behaviors are intuitive enough that the baseline handles them correctly. Adding evals 22 and 23 diluted the headline delta from +0.30 to +0.29.",
     "Summary-table delta values are computed from unrounded means over 27 paired evals (eval 26 excluded from both sides due to contamination; with_skill=0.97778, without_skill=0.71481), so they may differ slightly from subtracting the displayed rounded means. Time/token statistics are computed only over the 7 primary runs with non-null measurements (evals 1, 3, 4, 11, 12, 13, 14); the other 21 evals have null measurements, including the eval 2 re-run and the simulated-transcript/fixture groups (evals 5-10, 15-28). Both eval 26 result entries are nulled and excluded from all aggregates so paired summary calculations stay aligned after the contaminated run.",
     "Evals 12 and 25 updated in v1.6 review pass: added header-model-not-literal-self assertion to both. Both evals remain non-discriminating (1.0/1.0) \u2014 general assistants naturally substitute their own model identifier and never print literal 'self' since they have no knowledge of the keyword. Eval 12 now has 5 assertions; eval 25 now has 4 assertions.",
@@ -1260,7 +1260,7 @@
     },
     {
       "eval_id": 17,
-      "eval_name": "triage-not-on-claude-path",
+      "eval_name": "triage-not-on-self-path",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1296,7 +1296,7 @@
     },
     {
       "eval_id": 17,
-      "eval_name": "triage-not-on-claude-path",
+      "eval_name": "triage-not-on-self-path",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {

@@ -375,7 +375,7 @@
     },
     {
       "id": 17,
-      "name": "triage-not-on-claude-path",
+      "name": "triage-not-on-self-path",
       "prompt": "/peer-review --staged. Simulate: staged diff contains a change to src/utils.js adding a new helper function. The reviewer (using default model self, i.e. the self/Claude path — simulated) returns two findings: Finding 1 (Major): 'Missing return type annotation' in src/utils.js; Finding 2 (Minor): 'Inconsistent spacing' in src/utils.js.",
       "expected_output": "Both findings are presented directly without any 'Triage filtered' section. The apply prompt is the standard self/Claude-path form: 'Apply all, select by number, or skip? [all/1,3,5/skip]' — not the triage form mentioning S-numbers. No triage subagent is spawned.",
       "context": "Regression guard ensuring the triage layer does not activate on the self/Claude path (default --model or any claude-* value). The reviewer's output should go directly to Step 5 without a triage pass.",
