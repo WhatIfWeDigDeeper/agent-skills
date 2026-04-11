@@ -973,7 +973,7 @@
         {
           "text": "The header's model token is NOT the literal string 'self' \u2014 the assistant substitutes its own model identifier (e.g. a claude-* name) in the header",
           "passed": true,
-          "evidence": "Baseline substituted its own model identifier for `self` in the header \u2014 general assistants have no concept of the `self` keyword and naturally use their own identifier."
+          "evidence": "Observed output header: '## Peer Review — PR #42 (reviewed by claude-sonnet-4-6)' — the baseline used its own model identifier 'claude-sonnet-4-6', not the literal string 'self'."
         }
       ],
       "notes": [
@@ -1909,7 +1909,7 @@
         {
           "text": "The header's model token is NOT the literal string 'self' \u2014 the assistant substitutes its own model identifier in the header",
           "passed": true,
-          "evidence": "Baseline shows its own model identifier in the header, not the literal word 'self' \u2014 general assistants have no knowledge of the `self` keyword."
+          "evidence": "Observed output header line: '**Reviewer model**: claude-sonnet-4-6' — the baseline used its own model identifier, not the literal string 'self'. Baseline has no concept of the `self` keyword."
         }
       ],
       "notes": [
@@ -1938,7 +1938,7 @@
           "evidence": null
         },
         {
-          "text": "The error message lists the supported external CLIs (copilot, codex, gemini) and mentions claude-* as the Claude model prefix",
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)",
           "passed": null,
           "evidence": null
         },
@@ -1974,7 +1974,7 @@
           "evidence": null
         },
         {
-          "text": "The error message lists the supported external CLIs (copilot, codex, gemini) and mentions claude-* as the Claude model prefix",
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)",
           "passed": null,
           "evidence": null
         },
