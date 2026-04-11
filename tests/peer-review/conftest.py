@@ -163,6 +163,6 @@ def route_model(model: str | None) -> dict:
 
     raise ValueError(
         f"Unsupported --model value: '{model}'. "
-        "Supported values: self (default), claude-* (explicit Claude model), "
+        "Supported values: self (default), claude-* (if your assistant supports model selection), "
         "copilot[:submodel], codex[:submodel], gemini[:submodel]."
     )

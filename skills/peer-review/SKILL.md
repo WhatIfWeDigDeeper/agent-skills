@@ -232,7 +232,7 @@ Determine the CLI binary and optional sub-model from the `--model` value. If `--
 | `codex` | `codex` | `--model SUBMODEL` |
 | `gemini` | `gemini` | `-m SUBMODEL` |
 
-If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]."
+If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel], gemini[:submodel]."
 
 **4a. Check binary availability:**
 
