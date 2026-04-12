@@ -91,7 +91,7 @@ Fetch the current PR body, append the review guide in a demarcated block, and up
 ```bash
 CURRENT_BODY=$(gh pr view {pr_number} --json body --jq .body 2>&1)
 # Append or replace the review guide section, then write to temp file
-BODY_FILE=$(mktemp)
+BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-body.XXXXXX")
 trap 'rm -f "$BODY_FILE"' EXIT INT TERM
 printf '%s' "$UPDATED_BODY" > "$BODY_FILE"
 gh pr edit {pr_number} --body-file "$BODY_FILE"

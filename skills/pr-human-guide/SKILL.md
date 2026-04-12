@@ -176,7 +176,7 @@ Update the PR description by writing the body to a temp file and using
 `--body-file` (never `--body "$VAR"` — zsh corrupts the `<!--` marker):
 
 ```bash
-TMPFILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX.md")
+TMPFILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX")
 trap 'rm -f "$TMPFILE"' EXIT INT TERM
 printf '%s' "$UPDATED_BODY" > "$TMPFILE"
 gh pr edit {pr_number} --body-file "$TMPFILE"

@@ -48,8 +48,8 @@ words:
   - oneline
   - opusplan
   - osascript
-  - pipenv
   - Pipfile
+  - pipenv
   - prauthor
   - preconfigure
   - PREOF
