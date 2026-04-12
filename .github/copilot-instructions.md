@@ -72,6 +72,7 @@ uv run --with pytest pytest tests/
 - This repo uses cspell. After editing markdown or instruction files, run `npx cspell <file>` on each modified file.
 - If cspell flags a legitimate repo term, add it to `cspell.config.yaml` immediately.
 - If a word is no longer used, remove it from `cspell.config.yaml` after confirming with `rg -w <word>`.
+- Keep the `words` list in `cspell.config.yaml` alphabetically sorted — insert new entries in the correct alphabetical position, not at the end of the list.
 - Adding a singular form to `cspell.config.yaml` does not automatically cover its plural — add both forms explicitly (e.g., `metacharacter` and `metacharacters`) if both appear in the codebase.
 
 ## Git And PR Workflow

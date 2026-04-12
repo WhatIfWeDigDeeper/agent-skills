@@ -103,6 +103,8 @@ When substantially modifying an existing skill, also update its entry in `README
 
 This repo uses cspell. When you see a cspell diagnostic — whether from the IDE, a linter run, or noticing an unknown-word warning on a file you just edited — immediately add the term to the `words` list in `cspell.config.yaml`. Do not wait for the user to point it out. Use `npx cspell <file>` to check any file you've modified before finishing a task. Conversely, when you change phrasing that caused a word to be added, remove it if it no longer appears anywhere in the repo (use `rg -w <word>` to confirm) — stale wordlist entries accumulate silently and are caught by reviewers, not linters. Before merging a new cspell CI step (or after changing the set of files it scans), run `npx cspell "skills/**/*.md" "specs/**/*.md"` against all in-scope files locally to backfill any pre-existing wordlist gaps — otherwise CI will fail immediately on the first PR.
 
+**Keep the `words` list in `cspell.config.yaml` alphabetically sorted** — insert new entries in the correct alphabetical position, not at the end of the list.
+
 **Adding a singular form to `cspell.config.yaml` does not automatically cover its plural** — add both `word` and `words` explicitly (e.g., `metacharacter` and `metacharacters`) if both appear in the codebase. cspell does not inflect wordlist entries.
 
 **Intentional non-ASCII content** (e.g. Cyrillic homoglyph examples in eval prompts or spec descriptions) must use `<!-- cspell:disable-line -->` on that line rather than adding non-ASCII entries to the `words` list. Non-ASCII wordlist entries look wrong in review and don't generalize to other contexts.

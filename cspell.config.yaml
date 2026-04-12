@@ -3,37 +3,41 @@ ignorePaths: []
 dictionaryDefinitions: []
 dictionaries: []
 words:
-  - rescan
   - actioned
-  - blockquotes
-  - preconfigure
-  - stddevs
   - ALLSKIP
   - anthropics
+  - asyncio
   - asyncpg
+  - basenames
+  - blockquotes
   - bunx
   - codepoints
   - commenters
   - conftest
   - continuerc
-  - dedup
   - cursorrules
+  - dedup
+  - DOABC
+  - Dockerfiles
+  - dogfood
+  - DOXYZ
   - EBADPLATFORM
-  - EPERM
-  - endswith
   - elif
+  - endswith
   - ensurepip
-  - exfiltration
+  - EPERM
   - evals
+  - exfiltration
   - fastapi
   - frontmatter
   - GHSA
+  - goroutines
   - heredocs
   - lockfiles
+  - metacharacter
+  - metacharacters
+  - metaprogramming
   - mktemp
-  - DOABC
-  - Dockerfiles
-  - DOXYZ
   - mongosh
   - myapp
   - myorg
@@ -44,32 +48,38 @@ words:
   - oneline
   - opusplan
   - osascript
+  - Pipfile
   - pipenv
-  - PREOF
-  - PRRT
   - prauthor
-  - reinvocation
-  - repoll
-  - repolls
+  - preconfigure
+  - PREOF
+  - prhumanreview
+  - PRRT
   - psql
   - pyproject
   - PYEOF
   - PYSEC
   - pytest
   - REAUDIT
+  - reinvocation
+  - repoll
+  - repolls
   - rerequest
+  - rescan
   - runbooks
   - sandboxed
+  - skillshortname
   - splitlines
-  - submodel
-  - substeps
-  - underspecification
-  - underspecified
-  - dogfood
   - startswith
   - stddev
+  - stddevs
+  - submodel
   - subshell
+  - substeps
+  - tfvars
   - toplevel
+  - underspecification
+  - underspecified
   - unmatch
   - unupgradable
   - venv
@@ -80,15 +90,5 @@ words:
   - wordlist
   - worktree
   - worktrees
-  - asyncio
-  - goroutines
-  - metacharacter
-  - metacharacters
-  - metaprogramming
-  - Pipfile
-  - tfvars
-  - basenames
-  - prhumanreview
-  - skillshortname
 ignoreWords: []
 import: []
