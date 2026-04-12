@@ -79,7 +79,12 @@ words:
   - wordlist
   - worktree
   - worktrees
+  - asyncio
+  - goroutines
   - metacharacter
   - metacharacters
+  - metaprogramming
+  - Pipfile
+  - tfvars
 ignoreWords: []
 import: []

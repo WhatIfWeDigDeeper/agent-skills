@@ -10,6 +10,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 | [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn", "/learn help" | [+13%](evals/learn/benchmark.md) |
 | [peer-review](skills/peer-review/SKILL.md) | Fresh-context review of staged changes, branches, PRs, or file sets — returns severity-grouped findings you can apply or skip | "peer review", "peer review PR 42", "peer review staged", "review with Gemini", "fresh review", "another set of eyes", "/peer-review", "/peer-review --staged", "/peer-review --pr 42", "/peer-review skills/pr-comments/" | [+26%](evals/peer-review/benchmark.md) |
 | [pr-comments](skills/pr-comments/SKILL.md) | Address review comments on your own PR: implement valid suggestions, reply to invalid ones, resolve threads, credit commenters in commits, push and re-request review, and poll for bot reviewers across multiple rounds hands-free (auto mode by default; use `--manual` to confirm each iteration) | "address PR comments", "implement PR feedback", "respond to review comments", "/pr-comments", "/pr-comments 42", "/pr-comments --max 5", "/pr-comments --manual" | [+66%](evals/pr-comments/benchmark.md) |
+| [pr-human-guide](skills/pr-human-guide/SKILL.md) | Analyzes a PR diff and appends a categorized review guide to the PR description, highlighting areas that need human judgment: security, config/infra, new dependencies, data model changes, novel patterns, and concurrency | "review guide", "human review guide", "prep for review", "flag for review", "/pr-human-guide", "/pr-human-guide 42" | [+39%](evals/pr-human-guide/benchmark.md) |
 | [ship-it](skills/ship-it/SKILL.md) | Create branch, commit, push, and open a pull request | "ship it", "/ship-it" "/ship-it fix login timeout", "/ship-it help" | [+38%](evals/ship-it/benchmark.md) |
 | [uv-deps](skills/uv-deps/SKILL.md) | Security audits and dependency updates for Python projects using uv | "audit Python packages", "update pyproject.toml", "fix Python CVEs", "/uv-deps", "/uv-deps fastapi", "/uv-deps help" | [+83%](evals/uv-deps/benchmark.md) |
 
@@ -79,6 +80,15 @@ cp -r skills/* ~/.claude/skills/
   ```text
   /learn tests were not run
   ```
+
+### `pr-human-guide`
+
+- Run `/pr-human-guide` on the current branch's PR, or pass a PR number: `/pr-human-guide 42`.
+- Produces a categorized **Review Guide** section appended to the PR description — organized by concern type (Security, Config/Infrastructure, New Dependencies, Data Model Changes, Novel Patterns, Concurrency/State). Categories with no flagged items are omitted.
+- **Novel pattern detection** compares the diff against sibling files to identify code that doesn't match existing codebase conventions — new frameworks, different error handling strategies, first use of a library.
+- **Idempotent**: re-running after new commits replaces the existing guide rather than appending a duplicate.
+- **Complementary to other review skills**: `peer-review` does automated code review; `pr-human-guide` tells the human reviewer where to focus their own judgment.
+- **Eval cost**: with-skill runs ~20.9 seconds slower and ~5,517 tokens heavier than baseline on average across 8 evals (cost of reading SKILL.md and categories.md); 6 of 8 evals discriminate (+39% delta) ([details](evals/pr-human-guide/benchmark.md))
 
 ### `ship-it`
 

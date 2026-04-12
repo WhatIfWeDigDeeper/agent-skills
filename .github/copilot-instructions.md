@@ -15,6 +15,7 @@ Evals belong under `evals/` at the repo root, not inside skill directories.
 ## Core Editing Rules
 
 - Keep instructions assistant-neutral unless a tool or platform detail is inherently assistant-specific.
+- **Skill description has a 500-character hard limit** — the `description` field in SKILL.md frontmatter is capped at 500 characters by the skills runtime. Keep descriptions concise; count characters before finalizing.
 - Preserve the existing workflow style in `SKILL.md`: numbered process sections, executable bash blocks, tables where useful, and examples where useful.
 - When substantially modifying a skill, update its `README.md` entry and notes.
 - Bump `metadata.version` on every `SKILL.md` change or reference-file change that affects the skill.
@@ -24,7 +25,7 @@ Evals belong under `evals/` at the repo root, not inside skill directories.
 git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  version:'
 ```
 
-- Only bump once per PR. Follow-up reviewer-fix commits should not add another bump. This limit applies to the PR as a whole — a PR touching SKILL.md plus multiple reference files still gets exactly one version increment total. Do not add a new bump for each changed reference file.
+- Only bump once per PR. Follow-up reviewer-fix commits should not add another bump. Each reviewer-fix commit should touch only the files needed to address the feedback. This limit applies to the PR as a whole — a PR touching SKILL.md plus multiple reference files still gets exactly one version increment total. Do not add a new bump for each changed reference file. **Exception: do not bump the version when a skill is first introduced** — a new skill's initial version (e.g. `"0.1"`) is set at creation time; the "once per PR" bump applies only to subsequent changes. Check `git diff --name-status origin/main...HEAD -- skills/<name>/SKILL.md`: `A` (added) means first introduction in this PR; `M` (modified) triggers the bump rule.
 
 ## Specs
 
@@ -37,7 +38,7 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 ## Evals And Benchmarks
 
 - Every skill with evals should keep `evals/<skill-name>/benchmark.json` in sync with the latest results.
-- After updating a benchmark, also update the `Eval Δ` column in `README.md` and the `±` stat values in the `benchmark.md` Summary table — the table mirrors `run_summary` and is not auto-generated.
+- After updating a benchmark, also update the `Eval Δ` column in `README.md` and the `±` stat values in the `benchmark.md` Summary table — the table mirrors `run_summary` and is not auto-generated. Also update the `Eval cost` bullet in the skill's Skill Notes section in `README.md` — it contains the delta percentage and discriminating eval count and does not auto-update.
 - `grading.json` files must include a `summary` block with `passed`, `failed`, `total`, and `pass_rate`.
 - Use `null`, not `0` or `0.0`, for unknown token/time measurements in benchmark data (`tokens`, `time_seconds` feed `run_summary` aggregates). Treat `tool_calls` and `errors` as optional per-run metadata: use `null` only when truly unknown, keep `0` when actually measured. When updating or adding runs, backfill any existing `tokens: 0`, `time_seconds: 0.0`, `tool_calls: 0`, or `errors: 0` entries to `null` only when they represent unknown measurements.
 - Keep `run_summary.delta.pass_rate` at 2-decimal precision.
@@ -54,6 +55,7 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - Eval assertions must test user-facing output, not internal signals: if a skill uses an internal return value from a subagent (e.g. `NO FINDINGS`) and translates it to user-visible text (e.g. `'No issues found.'`), the assertion must test the user-visible string — not the internal signal. An assertion testing the internal signal will never catch regressions in the translation/presentation layer.
 - **When assertion semantics are inverted** (not just renamed), null ALL result fields in the affected `benchmark.json` runs: `pass_rate`, `passed`, `failed`, `time_seconds`, `tokens`, `tool_calls`, and `errors`. The measurement fields still feed `run_summary` aggregates even when pass/fail is null. After nulling, recompute `run_summary` excluding those runs from all stat calculations, then update `benchmark.md` Summary table and README Eval Δ.
 - Fixture-based eval prompts must embed the fixture in the `prompt` field, not `expected_output`: `expected_output` is prose describing the expected grading outcome for the eval runner — it is not readable by the executor. Putting fixture CLI/tool responses in `expected_output` would confuse the executor about what to output, or cause the grader to treat fixture data as the expected result.
+- **Eval prompts must not name the skill or say "the user has invoked the X skill"** — skill-name leakage in the prompt context reaches the baseline agent, causing it to follow the skill's output format without needing the skill. All evals become non-discriminating and the delta collapses to 0%. Write prompts as natural user requests that don't reference the skill by name (e.g. "Can you add a review guide to PR #42?" not "The user has invoked the pr-human-guide skill on PR #42").
 - When a run is excluded from both sides of the paired comparison (e.g. contaminated), null all result fields in BOTH the `with_skill` and `without_skill` entries — not just the contaminated side. Leaving one side non-null makes the documented paired-eval count inconsistent with what mechanical consumers derive from filtering non-null entries. When nulling result fields, also null the `passed` and `evidence` fields in the run's `expectations` array — leaving verdicts set while results are null implies the grading is valid when it is not.
 - When a benchmark.json run entry has null result fields, the corresponding `benchmark.md` table row must show `N/A | — | —` in the Pass rate, Passed, and Failed columns — not the original computed values.
 
@@ -66,6 +68,7 @@ uv run --with pytest pytest tests/
 ```
 
 - Consider whether tests under `tests/<skill-name>/` need to be added or updated for behavior changes.
+- **Test file basenames must be skill-prefixed** (e.g., `test_prhumanreview_argument_parsing.py`, not `test_argument_parsing.py`) — pytest collects all test directories without `__init__.py`, so duplicate basenames across skill directories cause import collisions at collection time. Convention: `test_<skillshortname>_<topic>.py`.
 - This repo uses cspell. After editing markdown or instruction files, run `npx cspell <file>` on each modified file.
 - If cspell flags a legitimate repo term, add it to `cspell.config.yaml` immediately.
 - If a word is no longer used, remove it from `cspell.config.yaml` after confirming with `rg -w <word>`.
@@ -112,6 +115,7 @@ When the user's request matches a skill's trigger phrases, read the skill file a
 | Skill | File | Trigger phrases |
 |-------|------|-----------------|
 | peer-review | `skills/peer-review/SKILL.md` | "peer review", "fresh review", "another set of eyes", "sanity check", "quick review before I push", "review with Gemini/Copilot/Codex" |
+| pr-human-guide | `skills/pr-human-guide/SKILL.md` | "review guide", "human review guide", "prep for review", "flag for review", "flag for human review", "add review guide" |
 
 **Do NOT trigger** `peer-review` on bare "review" phrases like "review my changes" or "review PR N" — those route to `code-review`.
 
