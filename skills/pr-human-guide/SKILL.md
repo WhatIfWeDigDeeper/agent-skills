@@ -92,9 +92,11 @@ Rules:
   with a combined line range (or omit the range if changes are scattered)
 - If a file is large and changes are spread throughout, note the file without
   a line range rather than listing every hunk
-- Be selective — only flag areas where human judgment genuinely adds value
-  over automated review. Routine business logic, test updates, and
-  documentation changes do not qualify.
+- Use a single threshold policy: flag an area only when human judgment is
+  likely to materially affect review, risk assessment, or rollout decisions.
+  Routine business logic, test updates, and documentation changes normally do
+  not qualify; if a borderline change still has a concrete reviewer-relevant
+  risk or judgment call, include it, otherwise leave it out.
 
 ### 4. Generate the review guide
 
@@ -215,9 +217,6 @@ MANDATORY — output the PR URL as the last line. Never omit it, even if the URL
 - **Idempotency**: The HTML comment markers make re-runs safe. Running the
   skill again after new commits replaces the previous guide rather than
   appending a second one.
-- **False negatives vs. false positives**: Err toward flagging more rather
-  than less. A reviewer who trusts the guide to be complete may skip something
-  important if the guide under-flags. The guide is framed as "where to focus"
-  not "the only things to check."
+- **False negatives vs. false positives**: Apply the same threshold as Step 3 — flag when human judgment is likely to materially affect review, risk, or rollout. The guide is framed as "where to focus" not "the only things to check," so under-flagging routine changes is correct behavior, not a gap.
 - **No blocking**: This skill does not enforce review requirements or block
   merging. It is purely informational.

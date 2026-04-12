@@ -68,7 +68,7 @@ uv run --with pytest pytest tests/
 ```
 
 - Consider whether tests under `tests/<skill-name>/` need to be added or updated for behavior changes.
-- **Test file basenames must be skill-prefixed** (e.g., `test_prhumanreview_argument_parsing.py`, not `test_argument_parsing.py`) — pytest collects all test directories without `__init__.py`, so duplicate basenames across skill directories cause import collisions at collection time. Convention: `test_<skillshortname>_<topic>.py`.
+- Prefer test file basenames that remain unique across `tests/` subdirectories to avoid pytest import collisions when directories do not use `__init__.py`. Skill-prefixing is a recommended collision-avoidance convention (for example, `test_prhumanreview_argument_parsing.py` instead of a generic `test_argument_parsing.py`), but the key requirement is avoiding duplicate basenames. Recommended pattern: `test_<skillshortname>_<topic>.py`.
 - This repo uses cspell. After editing markdown or instruction files, run `npx cspell <file>` on each modified file.
 - If cspell flags a legitimate repo term, add it to `cspell.config.yaml` immediately.
 - If a word is no longer used, remove it from `cspell.config.yaml` after confirming with `rg -w <word>`.
