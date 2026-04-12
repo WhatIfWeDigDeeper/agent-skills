@@ -87,5 +87,8 @@ words:
   - metaprogramming
   - Pipfile
   - tfvars
+  - basenames
+  - prhumanreview
+  - skillshortname
 ignoreWords: []
 import: []
