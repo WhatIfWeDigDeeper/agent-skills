@@ -89,7 +89,7 @@ Line-level anchors: append `R{line}` for right-side lines (e.g., `#diff-{sha256}
 Fetch the current PR body, append the review guide in a demarcated block, and update:
 
 ```bash
-CURRENT_BODY=$(gh pr view {pr_number} --json body --jq .body)
+CURRENT_BODY=$(gh pr view {pr_number} --json body --jq .body 2>&1)
 # Append or replace the review guide section, then write to temp file
 BODY_FILE=$(mktemp)
 trap 'rm -f "$BODY_FILE"' EXIT INT TERM

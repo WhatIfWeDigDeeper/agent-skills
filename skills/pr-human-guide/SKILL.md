@@ -55,7 +55,7 @@ Capture: `pr_number`, `pr_url`, `pr_title`, `base_branch`, `pr_body`.
 Also capture repo owner/name:
 
 ```bash
-REPO=$(gh repo view --json nameWithOwner --jq '.nameWithOwner')
+REPO=$(gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>&1)
 OWNER="${REPO%%/*}"
 REPO_NAME="${REPO##*/}"
 ```

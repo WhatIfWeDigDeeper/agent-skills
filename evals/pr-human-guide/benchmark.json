@@ -35,7 +35,7 @@
         {"text": "The review guide includes a Security section flagging the auth middleware changes", "passed": true, "evidence": "Guide has '### Security' section with src/auth/middleware.ts (L42-59) entry noting JWT token validation and role-based access control gate."},
         {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": true, "evidence": "Output shows exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing markers around the guide block."},
         {"text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts", "passed": true, "evidence": "Entry links to https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82 (SHA-256 anchor for src/auth/middleware.ts)."},
-        {"text": "The skill calls gh pr edit to update the PR body with the review guide", "passed": true, "evidence": "gh pr edit 42 --body '...' command shown with full updated body."}
+        {"text": "The skill calls gh pr edit to update the PR body with the review guide", "passed": true, "evidence": "gh pr edit 42 --body-file ... command shown with the full updated body written via a body file."}
       ],
       "notes": []
     },
