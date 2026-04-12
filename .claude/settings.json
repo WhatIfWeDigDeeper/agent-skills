@@ -11,7 +11,8 @@
       "Search",
       "Glob",
       "Grep",
-      "WebFetch"
+      "WebFetch",
+      "WebSearch"
     ],
     "deny": [
       "Read(.env*)",

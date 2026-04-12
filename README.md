@@ -88,7 +88,7 @@ cp -r skills/* ~/.claude/skills/
 - **Novel pattern detection** compares the diff against sibling files to identify code that doesn't match existing codebase conventions — new frameworks, different error handling strategies, first use of a library.
 - **Idempotent**: re-running after new commits replaces the existing guide rather than appending a duplicate.
 - **Complementary to other review skills**: `peer-review` does automated code review; `pr-human-guide` tells the human reviewer where to focus their own judgment.
-- **Eval cost**: with-skill runs ~20.9 seconds slower and ~5,517 tokens heavier than baseline on average across 8 evals (cost of reading SKILL.md and categories.md); 6 of 8 evals discriminate (+39% delta) ([details](evals/pr-human-guide/benchmark.md))
+- **Eval cost**: +20.9 seconds, +5,517 tokens over baseline ([details](evals/pr-human-guide/benchmark.md)); measured across 8 evals (cost of reading `SKILL.md` and `categories.md`), 6 of 8 of which discriminate (+39% delta).
 
 ### `ship-it`
 

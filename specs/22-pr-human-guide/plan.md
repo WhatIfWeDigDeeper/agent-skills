@@ -118,9 +118,19 @@ If the markers already exist in the body, replace the block between them (idempo
 Output a summary to the terminal:
 
 ```
-Review guide added to PR #{number} — {N} items across {M} categories.
+Review guide added to PR #{number}: {title}
+{N} item(s) across {M} category/categories.
 {pr_url}
 ```
+
+If this is a re-run that replaced an existing guide, use:
+```
+Review guide updated on PR #{number}: {title}
+{N} item(s) across {M} category/categories.
+{pr_url}
+```
+
+When N=0, omit the item count line.
 
 ### Interaction with Other Skills
 
