@@ -322,11 +322,13 @@ def find_drift_rows(
 
 
 def _text_present(needle: str, haystack: str) -> bool:
-    """Return True if needle appears as a whole token in haystack.
+    """Return True if needle appears in haystack.
 
-    For CLI flags (starting with '--'), require that the match is not
-    immediately followed by a word character or '-' — so '--body' does not
-    match inside '--body-file'.
+    For CLI flags (starting with '--'), uses boundary-aware matching: requires
+    the match is not immediately followed by a word character or '-', so
+    '--body' does not match inside '--body-file'.
+
+    For all other strings, uses plain substring matching (needle in haystack).
     """
     if needle.startswith("--"):
         pattern = re.escape(needle) + r"(?![\w-])"
