@@ -99,10 +99,11 @@ def format_terminal_report(
 def compute_diff_anchor(file_path: str) -> str:
     """Compute the SHA-256 diff anchor for a file path per SKILL.md Step 4.
 
-    Mirrors the shell command:
-        printf '%s' "path" | (sha256sum 2>/dev/null || shasum -a 256) | cut -d' ' -f1
+    Matches the documented cross-platform workflow: hash the raw file path bytes
+    with SHA-256 and use the lowercase hex digest as the GitHub diff anchor.
 
-    printf '%s' does not append a newline, so the hash covers the raw path bytes only.
+    Equivalent shell implementations use ``printf '%s'`` so no trailing newline is
+    included before selecting ``sha256sum`` or ``shasum -a 256``.
     """
     return hashlib.sha256(file_path.encode()).hexdigest()
 
