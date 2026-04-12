@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.27"
+  version: "1.28"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -199,6 +199,22 @@ For the outdated-and-addressed skip: `isOutdated` is true **and** the substance 
 
 For the previously-handled skip: the thread is unresolved but already has a reply from either the PR author or the authenticated GitHub user — it was handled in a prior run; do not re-reply or re-plan it. **Match by exact `login` string**: compare reply authors against `pr.author.login` and the login returned by `gh api user` (from Step 1) — not by role or pronoun.
 
+**For comments proposing new rules in instructions files:**
+
+When a comment targets a conventions or instructions file (`CLAUDE.md`, `.github/copilot-instructions.md`, `AGENTS.md`, or any file matching `*instructions*.md` or `*CLAUDE*.md`) and proposes adding or strengthening a rule using normative language ("must", "always", "convention requires", "convention is", "should always", "all … must", "all … should"), do the following before finalizing a `fix` classification:
+
+1. **Extract the empirical claim** the proposed rule makes (e.g., "all test files must have skill-prefixed basenames").
+
+2. **Grep for counter-examples.** Search the full local repo checkout (not limited to PR diff) for existing files or patterns that violate the claim. Use judgment to form an appropriate search (e.g., for a "must be prefixed" naming rule, list existing test files and check which don't match the prefix). This is not limited to the PR diff — scan the whole repo.
+
+3. **Decide based on counter-example count:**
+   - **0–1 counter-examples:** classify as `fix` normally. The rule is consistent with existing patterns (or the one exception is the file being changed in this PR).
+   - **≥2 counter-examples:** do not classify as `fix` outright. Instead:
+     - If the suggestion can be softened to a *preference* rather than a mandate (e.g., replace "must" with "prefer … when in doubt" or "to avoid collision"), reclassify as `fix` with the softened wording and note the counter-examples in the reply.
+     - If softening would remove the point of the suggestion, classify as `decline` with a reply citing the counter-examples (e.g., "Existing suites `tests/js-deps/` and `tests/pr-comments/` use un-prefixed names — adopting this as a mandatory rule would require renaming them and would still be inconsistent with the existing layout").
+
+This check applies only to suggestions targeting convention/instruction files. It does not apply to code-level suggestions or documentation other than these files.
+
 ### 6b. Cross-File Consistency Check
 
 After Step 6 completes (all comments classified), before presenting the plan in Step 7, scan other PR-modified files for identifiers that overlap with planned changes.
@@ -267,13 +283,33 @@ Responses:
 **When to show the prompt:**
 - **Manual mode (`--manual` was passed)** — always; emit the Confirmation prompt template above.
 - **Auto mode (default)** — skip; show the plan table for observability and proceed without waiting.
-- **Auto mode escalation** — if any condition requires manual confirmation in this iteration (security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), drop to manual confirmation regardless of mode and emit the Confirmation prompt template above. `consistency` rows always require explicit confirmation, even in auto mode.
+- **Auto mode escalation** — if any condition requires manual confirmation in this iteration (security screening flags from Step 5, oversized comments, diff-validation declines from Step 6, or `consistency` items from Step 6b), drop to manual confirmation regardless of mode and emit the Confirmation prompt template above. Step 6b `consistency` rows always require explicit confirmation, even in auto mode. Step 9 drift rows do not trigger this escalation — they are auto-applied without confirmation.
 
 ### 8. Apply Changes
 
 Apply all code changes — accepted suggestions and manual fixes — in a single pass. GitHub's suggestion feature embeds the proposed replacement as a `suggestion` fenced code block; apply it directly to the file like any other edit. Group changes in the same file into a single edit pass. Keep track of which thread corresponds to which change, and which GitHub login authored each suggestion.
 
-If there are no code changes to implement (for example, all threads were declined, marked as outdated, or only required a reply), skip the commit and proceed directly to Step 11.
+If there are no code changes to implement (for example, all threads were declined, marked as outdated, or only required a reply), skip Steps 9 and 10 and proceed directly to Step 11.
+
+### 9. Post-edit Drift Re-scan
+
+After all edits from Step 8 are applied, before committing, scan for stale sibling references introduced by those edits. This catches the case where a fix changes a command, flag, or phrasing in one file but leaves the same text in related artifacts (reference files, specs, benchmark evidence, README rows) — a common source of follow-on reviewer findings.
+
+1. **Collect replaced substrings.** From every file edited in Step 8, identify the non-trivial substrings that were replaced. Non-trivial means: ≥20 characters, or a CLI flag/command name (e.g., `--body-file`), or a file-path/URL literal. Skip pure whitespace changes, single-word tweaks, and numeric-only changes.
+
+2. **Search PR-modified files.** Using the diff already fetched in Step 4, search each file in the PR for occurrences of those replaced substrings. Scope is strictly limited to PR-modified files — do not search the entire repository.
+
+3. **Special-case: skill/spec/eval repo structure.** When the PR diff contains any path matching `skills/*/SKILL.md`, `evals/*/evals.json`, or `specs/*/plan.md`, also check these known sibling-artifact pairs even if not otherwise flagged:
+
+   | Canonical file changed | Sibling artifacts to check |
+   |------------------------|---------------------------|
+   | `skills/<name>/SKILL.md` | `skills/<name>/references/*.md`, `specs/*-<name>/plan.md`, `specs/*-<name>/tasks.md`, `evals/<name>/benchmark.json` `evidence` fields, `README.md` skill row |
+   | `evals/<name>/evals.json` assertion `text` | `evals/<name>/benchmark.json` expectation `text` fields |
+   | `specs/*-<name>/plan.md` | `specs/*-<name>/tasks.md` (and vice versa) |
+
+4. **Add `consistency` rows and fix immediately.** For each genuine match (the old substring appears in a sibling file in the same sense — not a coincidental occurrence), add a `consistency` row and apply the fix in the same pass. Include it in the Step 10 commit with the originating reviewer's credit. Step 9 drift rows are **auto-applied without confirmation** — they are mechanical corrections, not judgment calls, and do not trigger the Step 7 auto-mode escalation that Step 6b rows do. Step 11 and Step 12 skip Step 9 rows (no thread to reply to or resolve), same as Step 6b rows.
+
+5. **No matches → no rows.** Silent on clean.
 
 ### 10. (If Changes Were Made) Commit with Commenter Credit
 
@@ -453,5 +489,5 @@ After the POST:
 - **Draft PRs**: Treat comments the same as on open PRs.
 - **Suggestion conflicts**: If a suggestion overlaps with a line you're also editing for another comment, apply the suggestion diff as your starting point and layer the other change on top.
 - **Large PRs (20+ threads)**: Consider grouping the plan table by file. If the thread count is unwieldy, split into batches and confirm each batch separately to keep context manageable.
-- **Post-implementation validation**: This skill does not run CI, tests, or linting after implementing changes. CI runs after push and catches build failures. The consistency check (Step 6b) reduces but does not eliminate the chance of pushing inconsistent code. For pre-commit validation, configure git pre-commit hooks or assistant-specific hooks (e.g., Claude Code hooks).
+- **Post-implementation validation**: This skill does not run CI, tests, or linting after implementing changes. CI runs after push and catches build failures. Step 6b (pre-edit) and Step 9 (post-edit) together cover planned-change propagation and prose/command drift. Neither step substitutes for CI, tests, or linting. For pre-commit validation, configure git pre-commit hooks or assistant-specific hooks (e.g., Claude Code hooks).
 - **Concurrent invocations**: Overlapping skill runs on the same PR (e.g., manual invocation while an auto-loop is active) can double-reply or double-resolve threads. Avoid running multiple instances simultaneously.

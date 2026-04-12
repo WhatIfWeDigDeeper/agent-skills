@@ -1,0 +1,25 @@
+{
+  "summary": {"passed": 4, "failed": 0, "total": 4, "pass_rate": 1.0},
+  "expectations": [
+    {
+      "text": "The agent searches the repo for existing test files to check whether the proposed naming rule holds",
+      "passed": true,
+      "evidence": "The agent ran `find /Users/greg/code/agent-skills/tests -name '*.py' | sort` and examined all test file basenames across all skill test suites to check against the proposed skill-prefixed naming convention."
+    },
+    {
+      "text": "The agent identifies at least two existing test files that do not follow the proposed skill-prefixed naming rule",
+      "passed": true,
+      "evidence": "The agent identified ≥9 counter-examples: tests/js-deps/test_argument_parsing.py, tests/js-deps/test_workflow_routing.py, tests/pr-comments/test_comment_classification.py, tests/pr-comments/test_bot_poll_routing.py, tests/learn/test_detection.py, tests/peer-review/test_model_routing.py, tests/ship-it/test_help_shipit.py, tests/uv-deps/test_dev_sync.py, and others — none of these use skill-prefixed basenames."
+    },
+    {
+      "text": "The agent does not adopt the 'all test files must be skill-prefixed' rule verbatim into CLAUDE.md without modification",
+      "passed": true,
+      "evidence": "The agent classified the comment as `decline` and made no edit to CLAUDE.md. It noted the existing CLAUDE.md already has a preference-based rule ('Prefer skill-prefixed basenames... when a generic name would otherwise collide... When there is no collision risk, following an existing suite's established naming pattern is acceptable'), which is already softer than the proposed mandatory rule."
+    },
+    {
+      "text": "The agent either softens the rule to a preference (changes 'must' to 'prefer' or similar) or declines the suggestion, and references the counter-examples found in its plan note or reply",
+      "passed": true,
+      "evidence": "The agent declined the suggestion, explicitly citing ≥9 counter-examples (tests/js-deps/, tests/pr-comments/, tests/learn/, tests/ship-it/, tests/uv-deps/ suites) in the plan table Note column and in the reply. The plan note states: 'Soften must to preference; ≥9 existing test files across js-deps, pr-comments, learn, ship-it, uv-deps are NOT skill-prefixed — mandatory rule would be inconsistent with existing layout'. The agent also noted that CLAUDE.md already contains the correct softened wording."
+    }
+  ]
+}

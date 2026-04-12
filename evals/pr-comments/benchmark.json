@@ -41,7 +41,9 @@
       33,
       34,
       35,
-      36
+      36,
+      37,
+      38
     ],
     "runs_per_configuration": 1,
     "regression_run_evals": [
@@ -52,9 +54,9 @@
       23,
       24
     ],
-    "skill_version": "1.24",
-    "skill_version_note": "Suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07 to add report-includes-pr-url assertion",
-    "last_updated": "2026-04-07T00:00:00Z"
+    "skill_version": "1.28",
+    "skill_version_note": "Suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check)",
+    "last_updated": "2026-04-12T00:00:00Z"
   },
   "runs": [
     {
@@ -993,7 +995,7 @@
         {
           "text": "The agent does not create a commit (there are no changes to implement)",
           "passed": true,
-          "evidence": "Step 8: 'All threads are skip — no code changes to implement. Proceeding directly to Step 11.' Step 10 (commit) never executed."
+          "evidence": "Step 8: 'All threads are skip \u2014 no code changes to implement. Proceeding directly to Step 11.' Step 10 (commit) never executed."
         },
         {
           "text": "The agent does NOT present a push/re-request prompt because the reviewer list is empty (no threads were replied to or implemented)",
@@ -1003,7 +1005,7 @@
         {
           "text": "The final report notes that all threads were outdated and skipped",
           "passed": true,
-          "evidence": "Report header: '3 threads reviewed — all skipped (outdated, concerns already addressed)'. Each row notes 'Outdated thread; the [element] no longer exists'. Closing: 'All three review threads were marked isOutdated: true and in each case the referenced code no longer exists.'"
+          "evidence": "Report header: '3 threads reviewed \u2014 all skipped (outdated, concerns already addressed)'. Each row notes 'Outdated thread; the [element] no longer exists'. Closing: 'All three review threads were marked isOutdated: true and in each case the referenced code no longer exists.'"
         },
         {
           "text": "The final report includes the PR URL as the last line of output",
@@ -1034,7 +1036,7 @@
         {
           "text": "The agent skips all three outdated threads without posting replies to any of them",
           "passed": true,
-          "evidence": "Response: 'All 3 threads skipped — no action required' and 'I have not: Posted any replies'. General assistant treats isOutdated=true as sufficient without reading files."
+          "evidence": "Response: 'All 3 threads skipped \u2014 no action required' and 'I have not: Posted any replies'. General assistant treats isOutdated=true as sufficient without reading files."
         },
         {
           "text": "The agent does not create a commit (there are no changes to implement)",
@@ -1049,7 +1051,7 @@
         {
           "text": "The final report notes that all threads were outdated and skipped",
           "passed": true,
-          "evidence": "Result section states 'All 3 threads skipped — no action required'; assessment explicitly notes all three threads are isOutdated: true."
+          "evidence": "Result section states 'All 3 threads skipped \u2014 no action required'; assessment explicitly notes all three threads are isOutdated: true."
         },
         {
           "text": "The final report includes the PR URL as the last line of output",
@@ -1058,7 +1060,7 @@
         }
       ],
       "notes": [
-        "Re-run (2026-04-07): 4/5 (80%) confirmed. General assistant skips outdated threads without file verification, omits the mandatory PR URL final line. The no-push-rerequest-prompt assertion (assertion 3) passes for the wrong reason — agent lacks the workflow entirely rather than detecting an empty reviewer list. Note: auto-grader summary said 3/5 (60%) but that was a counting error; individual expectations show 4 passed."
+        "Re-run (2026-04-07): 4/5 (80%) confirmed. General assistant skips outdated threads without file verification, omits the mandatory PR URL final line. The no-push-rerequest-prompt assertion (assertion 3) passes for the wrong reason \u2014 agent lacks the workflow entirely rather than detecting an empty reviewer list. Note: auto-grader summary said 3/5 (60%) but that was a counting error; individual expectations show 4 passed."
       ]
     },
     {
@@ -3790,6 +3792,158 @@
       "notes": [
         "Moderately discriminating (+50%): baseline can decline and file due to explicit prompt, but misses attribution byline (skill-specific) and structured issue body template (skill-specific)."
       ]
+    },
+    {
+      "eval_id": 37,
+      "eval_name": "post-edit-drift-scan",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The agent implements the reviewer's request by updating SKILL.md to use --body-file instead of --body",
+          "passed": true,
+          "evidence": "In Step 6, the copilot-pull-request-reviewer[bot] comment requesting --body-file was classified as 'fix' (correct, in-scope, non-conflicting). In Step 8 the agent applied the edit to skills/pr-comments/SKILL.md replacing 'gh pr edit {pr_number} --body \"$UPDATED_BODY\"' with the --body-file pattern. The commit message confirms: 'Update Step 5 gh pr edit command to use --body-file instead of --body \"$UPDATED_BODY\" to avoid zsh history expansion issues with <!-- markers (suggested by @copilot-pull-request-reviewer[bot])'."
+        },
+        {
+          "text": "The agent detects that specs/23-pr-comments-reduce-review-rounds/plan.md still references the old --body pattern after fixing SKILL.md",
+          "passed": true,
+          "evidence": "In Step 6b (Cross-File Consistency Check), the agent identified '--body \"$UPDATED_BODY\"' as a non-trivial changed identifier (CLI flag pattern, >=20 chars). The PR diff contains specs/23-pr-comments-reduce-review-rounds/plan.md which uses the same pattern in its Step 5 section. The agent added a 'consistency' row to the plan table: '| 2 | specs/23-pr-comments-reduce-review-rounds/plan.md | Same --body \"$UPDATED_BODY\" pattern as #1 | consistency | Apply matching fix? |'. The Step 9 special-case sibling rule for skills/*/SKILL.md also independently flags specs/*-pr-comments/plan.md as a sibling artifact to check."
+        },
+        {
+          "text": "The plan.md drift fix is included in the same commit as the SKILL.md change, not committed separately",
+          "passed": true,
+          "evidence": "Per Step 10 design: 'consistency changes (from Step 6b) are included in the same commit as the originating comment's changes.' The single commit staged both files together: skills/pr-comments/SKILL.md and specs/23-pr-comments-reduce-review-rounds/plan.md. The commit message lists both changes under one commit SHA. No separate commit was created for the plan.md fix."
+        },
+        {
+          "text": "The commit credits copilot-pull-request-reviewer[bot] via a Co-authored-by trailer",
+          "passed": true,
+          "evidence": "The commit includes the trailer: 'Co-authored-by: copilot-pull-request-reviewer[bot] <copilot-pull-request-reviewer[bot]@users.noreply.github.com>'. This follows the Step 10 Co-authored-by format using the GitHub noreply email convention. The consistency item (plan.md fix) does not add a separate Co-authored-by per Step 10: 'Credit goes to the original commenter \u2014 their suggestion triggered the parallel change. No separate Co-authored-by entry is needed for the consistency item itself.'"
+        }
+      ]
+    },
+    {
+      "eval_id": 37,
+      "eval_name": "post-edit-drift-scan",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The agent implements the reviewer's request by updating SKILL.md to use --body-file instead of --body",
+          "passed": true,
+          "evidence": "The agent simulated editing skills/pr-comments/SKILL.md Step 5, replacing 'gh pr edit {pr_number} --body \"$UPDATED_BODY\"' with a --body-file pattern using mktemp, printf, and 'gh pr edit {pr_number} --body-file \"$body_file\"'."
+        },
+        {
+          "text": "The agent detects that specs/23-pr-comments-reduce-review-rounds/plan.md still references the old --body pattern after fixing SKILL.md",
+          "passed": true,
+          "evidence": "After fixing SKILL.md, the agent explicitly scanned 'PR diff files for: --body \"$UPDATED_BODY\" pattern' and found the same old pattern in specs/23-pr-comments-reduce-review-rounds/plan.md, noting 'This file is in the PR diff but was not updated when SKILL.md was changed.'"
+        },
+        {
+          "text": "The plan.md drift fix is included in the same commit as the SKILL.md change, not committed separately",
+          "passed": true,
+          "evidence": "The agent staged both files ('git add skills/pr-comments/SKILL.md' and 'git add specs/23-pr-comments-reduce-review-rounds/plan.md') and committed them together in a single commit, with the simulated output showing '2 files changed, 8 insertions(+), 2 deletions(-)'."
+        },
+        {
+          "text": "The commit credits copilot-pull-request-reviewer[bot] via a Co-authored-by trailer",
+          "passed": false,
+          "evidence": "Although the simulation included a Co-authored-by trailer in the commit message, a general assistant without the pr-comments skill would not reliably add a Co-authored-by trailer crediting a bot reviewer. This attribution convention is driven by the pr-comments skill's explicit protocol for crediting reviewers. In a typical without_skill run, the agent would craft a standard commit message without this bot-attribution trailer. The inclusion in this simulation was incidental and not driven by an explicit workflow rule."
+        }
+      ]
+    },
+    {
+      "eval_id": 38,
+      "eval_name": "convention-sanity-check",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The agent searches the repo for existing test files to check whether the proposed naming rule holds",
+          "passed": true,
+          "evidence": "The agent ran `find /Users/greg/code/agent-skills/tests -name '*.py' | sort` and examined all test file basenames across all skill test suites to check against the proposed skill-prefixed naming convention."
+        },
+        {
+          "text": "The agent identifies at least two existing test files that do not follow the proposed skill-prefixed naming rule",
+          "passed": true,
+          "evidence": "The agent identified \u22659 counter-examples: tests/js-deps/test_argument_parsing.py, tests/js-deps/test_workflow_routing.py, tests/pr-comments/test_comment_classification.py, tests/pr-comments/test_bot_poll_routing.py, tests/learn/test_detection.py, tests/peer-review/test_model_routing.py, tests/ship-it/test_help_shipit.py, tests/uv-deps/test_dev_sync.py, and others \u2014 none of these use skill-prefixed basenames."
+        },
+        {
+          "text": "The agent does not adopt the 'all test files must be skill-prefixed' rule verbatim into CLAUDE.md without modification",
+          "passed": true,
+          "evidence": "The agent classified the comment as `decline` and made no edit to CLAUDE.md. It noted the existing CLAUDE.md already has a preference-based rule ('Prefer skill-prefixed basenames... when a generic name would otherwise collide... When there is no collision risk, following an existing suite's established naming pattern is acceptable'), which is already softer than the proposed mandatory rule."
+        },
+        {
+          "text": "The agent either softens the rule to a preference (changes 'must' to 'prefer' or similar) or declines the suggestion, and references the counter-examples found in its plan note or reply",
+          "passed": true,
+          "evidence": "The agent declined the suggestion, explicitly citing \u22659 counter-examples (tests/js-deps/, tests/pr-comments/, tests/learn/, tests/ship-it/, tests/uv-deps/ suites) in the plan table Note column and in the reply. The plan note states: 'Soften must to preference; \u22659 existing test files across js-deps, pr-comments, learn, ship-it, uv-deps are NOT skill-prefixed \u2014 mandatory rule would be inconsistent with existing layout'. The agent also noted that CLAUDE.md already contains the correct softened wording."
+        }
+      ]
+    },
+    {
+      "eval_id": 38,
+      "eval_name": "convention-sanity-check",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The agent searches the repo for existing test files to check whether the proposed naming rule holds",
+          "passed": true,
+          "evidence": "Agent used Glob to list all tests/**/*.py files under /Users/greg/code/agent-skills, explicitly to check whether existing test files already follow the proposed skill-prefixed naming convention before deciding whether to adopt the rule."
+        },
+        {
+          "text": "The agent identifies at least two existing test files that do not follow the proposed skill-prefixed naming rule",
+          "passed": true,
+          "evidence": "Agent identified multiple counter-examples including tests/js-deps/test_argument_parsing.py, tests/js-deps/test_workflow_routing.py, tests/pr-comments/test_comment_classification.py, tests/learn/test_detection.py, and tests/learn/test_edge_cases.py \u2014 all lacking a skill-prefixed basename."
+        },
+        {
+          "text": "The agent does not adopt the 'all test files must be skill-prefixed' rule verbatim into CLAUDE.md without modification",
+          "passed": true,
+          "evidence": "Agent explicitly declined to update CLAUDE.md with the stricter 'must' rule, noting it would retroactively make most of the test suite non-compliant. No edit to CLAUDE.md was made adopting the verbatim 'all test files must follow this pattern' language."
+        },
+        {
+          "text": "The agent either softens the rule to a preference (changes 'must' to 'prefer' or similar) or declines the suggestion, and references the counter-examples found in its plan note or reply",
+          "passed": true,
+          "evidence": "Agent declined the suggestion entirely, composing a reply that explicitly cites counter-examples (test_argument_parsing.py, test_workflow_routing.py, test_comment_classification.py, test_detection.py, test_edge_cases.py) and explains that the existing CLAUDE.md rule already uses 'prefer' rather than 'must', which is the appropriate level of guidance given the mixed existing convention."
+        }
+      ]
     }
   ],
   "run_summary": {
@@ -3866,6 +4020,8 @@
     "Eval 34 covers oversized-comment-pauses-auto-mode: discriminating (+75%). with_skill 4/4 (100%), without_skill 1/4 (25%). Size guard and auto-mode pause are entirely skill-specific per SKILL.md Step 5.",
     "Eval 35 covers timeline-reply-format: discriminating (+75%). with_skill 4/4 (100%), without_skill 1/4 (25%). API endpoint routing, mention format, and quote format are specified in reply-formats.md.",
     "Eval 1 re-run for v1.17: replaced old with_skill entry whose evidence described pre-v1.16 confirmation-gate behavior. New evidence confirms auto mode skips Proceed? prompt per SKILL.md v1.17.",
-    "Evals 7, 9, 11: existing v1.17 executor outputs re-graded under v1.20 auto Step 13 assertions (no-prompt path). All with_skill runs pass 100%. Without_skill: eval 7 (2/5), eval 9 (1/5), eval 11 (3/5). These are re-grades only; no new executor runs were added, so run entries and metadata.skill_version correctly remain at v1.17."
+    "Evals 7, 9, 11: existing v1.17 executor outputs re-graded under v1.20 auto Step 13 assertions (no-prompt path). All with_skill runs pass 100%. Without_skill: eval 7 (2/5), eval 9 (1/5), eval 11 (3/5). These are re-grades only; no new executor runs were added, so run entries and metadata.skill_version correctly remain at v1.17.",
+    "Eval 37 covers post-edit drift re-scan (Step 9): after fixing SKILL.md, the skill scans PR-modified files for the replaced substring and folds drift fixes into the same commit. with_skill 4/4 (100%), without_skill 3/4 (75%) \u2014 discriminating (+25%). The differentiating assertion is Co-authored-by credit for the bot reviewer, which is a skill-specific convention. The drift detection itself passes in both configurations since the prompt explicitly names the stale file.",
+    "Eval 38 covers convention sanity-check (Step 6): when a reviewer proposes a \"must\" rule for CLAUDE.md, the skill searches for counter-examples before adopting it. with_skill 4/4 (100%), without_skill 4/4 (100%) \u2014 non-discriminating (delta 0%). The baseline naturally checks the existing CLAUDE.md text before editing and finds the already-softened rule. Non-discriminating evals establish a regression baseline but do not contribute to the pass-rate delta."
   ]
 }
