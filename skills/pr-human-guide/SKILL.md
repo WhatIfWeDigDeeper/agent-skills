@@ -38,8 +38,8 @@ The text following the skill invocation is available as `$ARGUMENTS`
 
 ### 1. Parse arguments and identify the PR
 
-If `$ARGUMENTS` contains `help`, `--help`, `-h`, or `?`, output this skill's
-documentation and stop.
+If `$ARGUMENTS`, after trimming whitespace and lowercasing, exactly matches
+`help`, `--help`, `-h`, or `?`, output this skill's documentation and stop.
 
 If a PR number is provided, use it. Otherwise detect from the current branch:
 
