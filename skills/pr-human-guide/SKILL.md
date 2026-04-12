@@ -119,7 +119,12 @@ Format each entry as:
 
 Omit the line range if changes are spread across the whole file.
 
-Wrap the section in HTML comment markers for idempotent re-runs:
+Wrap the section in HTML comment markers for idempotent re-runs.
+
+**Important**: The opening marker `<!--` contains `!`, which zsh history expansion
+corrupts to `<\!--` in double-quoted shell strings. Always construct the guide body
+using single-quoted strings, `$'...'` ANSI quoting, or Python file I/O — never
+a double-quoted bash variable — so the markers reach GitHub unescaped.
 
 ```markdown
 <!-- pr-human-guide -->
