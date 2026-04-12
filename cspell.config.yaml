@@ -48,16 +48,16 @@ words:
   - oneline
   - opusplan
   - osascript
-  - Pipfile
   - pipenv
+  - Pipfile
   - prauthor
   - preconfigure
   - PREOF
   - prhumanreview
   - PRRT
   - psql
-  - pyproject
   - PYEOF
+  - pyproject
   - PYSEC
   - pytest
   - REAUDIT

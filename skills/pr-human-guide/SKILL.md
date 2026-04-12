@@ -45,12 +45,12 @@ If a PR number is provided, use it. Otherwise detect from the current branch:
 
 ```bash
 gh pr view --json number,url,title,baseRefName,headRefName,body \
-  --jq '{number: .number, url: .url, title: .title, base: .baseRefName, head: .headRefName, body: .body}'
+  --jq '{number: .number, url: .url, title: .title, base_branch: .baseRefName, head_branch: .headRefName, body: .body}'
 ```
 
 If no PR is found, stop with: `No open PR found for the current branch. Pass a PR number explicitly.`
 
-Capture: `pr_number`, `pr_url`, `pr_title`, `base_branch`, `pr_body`.
+Capture: `pr_number`, `pr_url`, `pr_title`, `base_branch`, `head_branch`, `pr_body`.
 
 Also capture repo owner/name:
 
@@ -106,7 +106,7 @@ Generate a GitHub diff anchor for each file:
 
 ```bash
 # SHA-256 of the file path (cross-platform: sha256sum on Linux, shasum on macOS)
-ANCHOR=$(printf '%s' "path/to/file" | (sha256sum 2>/dev/null || shasum -a 256) | cut -d' ' -f1)
+ANCHOR=$(printf '%s' "path/to/file" | if command -v sha256sum >/dev/null 2>&1; then sha256sum; else shasum -a 256; fi | cut -d' ' -f1)
 # Full link
 LINK="https://github.com/${OWNER}/${REPO_NAME}/pull/${pr_number}/files#diff-${ANCHOR}"
 # Line-level anchor (right side): append R{line} to the link
