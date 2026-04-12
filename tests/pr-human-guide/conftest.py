@@ -8,12 +8,12 @@ OPENING_MARKER = "<!-- pr-human-guide -->"
 CLOSING_MARKER = "<!-- /pr-human-guide -->"
 
 
-def is_help_request(args: str) -> bool:
+def is_help_request(args: str | None) -> bool:
     """Return True if args is a help trigger per SKILL.md Step 1."""
     return args.strip().lower() in HELP_TRIGGERS if args and args.strip() else False
 
 
-def parse_pr_argument(args: str) -> dict:
+def parse_pr_argument(args: str | None) -> dict:
     """Parse the optional PR number argument per SKILL.md Step 1.
 
     Returns:
@@ -52,10 +52,7 @@ def replace_guide(body: str, new_guide: str) -> str:
         if closing_start != -1
         else len(body)
     )
-    before = body[:start].rstrip("\n")
-    after = body[end:].lstrip("\n")
-    parts = [p for p in [before, new_guide, after] if p]
-    return "\n\n".join(parts)
+    return body[:start] + new_guide + body[end:]
 
 
 def append_guide(body: str, new_guide: str) -> str:
