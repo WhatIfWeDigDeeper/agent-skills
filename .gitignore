@@ -5,6 +5,7 @@ __pycache__/
 .agents/
 .claude/skills/
 .claude/worktrees/
+.claude/scheduled_tasks.lock
 .claude/settings.local.json
 tests/learn/fixtures/
 tests/js-deps/fixtures/
