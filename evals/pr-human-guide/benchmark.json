@@ -389,15 +389,15 @@
       },
       "time_seconds": {
         "mean": 42.19,
-        "stddev": null,
-        "min": null,
-        "max": null
+        "stddev": 5.9,
+        "min": 35.22,
+        "max": 51.29
       },
       "tokens": {
         "mean": 30038,
-        "stddev": null,
-        "min": null,
-        "max": null
+        "stddev": 480,
+        "min": 29345,
+        "max": 30902
       }
     },
     "without_skill": {
@@ -409,15 +409,15 @@
       },
       "time_seconds": {
         "mean": 21.27,
-        "stddev": null,
-        "min": null,
-        "max": null
+        "stddev": 8.36,
+        "min": 11.32,
+        "max": 36.03
       },
       "tokens": {
         "mean": 24521,
-        "stddev": null,
-        "min": null,
-        "max": null
+        "stddev": 2974,
+        "min": 22526,
+        "max": 29696
       }
     },
     "delta": {

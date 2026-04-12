@@ -2,12 +2,12 @@
 name: pr-human-guide
 description: >-
   Analyzes a PR diff and appends a categorized review guide to the PR
-  description, highlighting where human judgment is needed: security, config/
-  infrastructure, new dependencies, data model changes, novel patterns, and
-  concurrency/state. Use this whenever a user wants to prepare a PR for human
-  review or flag areas for reviewer attention — including casual phrasing like
-  "prep this for review", "what should reviewers look at?", "add a review
-  guide", or "flag this for human review".
+  description, highlighting where human judgment is needed: security,
+  config/infrastructure, new dependencies, data model changes, novel
+  patterns, and concurrency/state. Use this whenever a user wants to prepare
+  a PR for human review or flag areas for reviewer attention — including
+  casual phrasing like "prep this for review", "what should reviewers look
+  at?", "add a review guide", or "flag this for human review".
 license: MIT
 compatibility: Requires git, gh, jq; sha256sum (Linux) or shasum (macOS)
 metadata:

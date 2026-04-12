@@ -7,11 +7,11 @@
 
 ## Summary
 
-| Metric | with_skill | without_skill | Delta |
+| Metric | with-skill | without-skill | Delta |
 |--------|------------|---------------|-------|
 | Pass rate | **100%** ±0% | 61% ±31% | **+39%** |
-| Time (s) | 42.2s | 21.3s | +20.9s |
-| Tokens | 30,038 | 24,521 | +5,517 |
+| Time (s) | 42.2s ±5.9s | 21.3s ±8.4s | +20.9s |
+| Tokens | 30,038 ±480 | 24,521 ±2,974 | +5,517 |
 
 > **Note**: 6 of 8 evals discriminate (1, 2, 3, 4, 5, 6). Evals 7 and 8 are non-discriminating — capable baselines independently produce structured output with correct category names and exact markers for those scenarios. The discriminating evals test format-specific behavior: exact HTML comment markers, SHA-256 diff anchor links, and the exact terminal report format.
 

@@ -1,7 +1,6 @@
 """Pytest fixtures and helpers for pr-human-guide skill tests."""
 
 import hashlib
-import re
 
 HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 

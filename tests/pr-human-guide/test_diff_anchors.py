@@ -1,7 +1,5 @@
 """Tests for SHA-256 diff anchor generation in pr-human-guide skill."""
 
-import pytest
-
 from conftest import build_diff_link, compute_diff_anchor
 
 

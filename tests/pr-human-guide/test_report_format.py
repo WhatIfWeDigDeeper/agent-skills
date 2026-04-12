@@ -1,7 +1,5 @@
 """Tests for terminal report format in pr-human-guide skill."""
 
-import pytest
-
 from conftest import format_terminal_report
 
 PR_URL = "https://github.com/owner/repo/pull/42"

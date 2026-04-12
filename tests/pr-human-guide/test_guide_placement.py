@@ -1,7 +1,5 @@
 """Tests for guide append/replace logic in pr-human-guide skill."""
 
-import pytest
-
 from conftest import (
     CLOSING_MARKER,
     OPENING_MARKER,
