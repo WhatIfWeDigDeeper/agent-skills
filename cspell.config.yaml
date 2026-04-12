@@ -68,6 +68,7 @@ words:
   - rescan
   - runbooks
   - sandboxed
+  - skillname
   - skillshortname
   - splitlines
   - startswith
@@ -81,6 +82,7 @@ words:
   - underspecification
   - underspecified
   - unmatch
+  - unsoftenable
   - unupgradable
   - venv
   - vite
