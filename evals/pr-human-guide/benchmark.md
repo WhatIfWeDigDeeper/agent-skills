@@ -1,14 +1,17 @@
 # pr-human-guide Benchmark
 
+**Model**: claude-sonnet-4-6
+**Date**: 2026-04-12
+**Evals**: 8 (1 run each, with_skill vs. without_skill)
+**Skill version**: 0.1
+
 ## Summary
 
-| Configuration | Mean pass rate | Stddev | Min | Max | Mean time (s) | Mean tokens |
-|---------------|---------------|--------|-----|-----|---------------|-------------|
-| with_skill    | 100%          | ±0%    | 100% | 100% | 42.2s        | 30,038      |
-| without_skill | 61%           | ±31%   | 25%  | 100% | 21.3s        | 24,521      |
-| **Delta**     | **+39%**      |        |     |     | **+20.9s**   | **+5,517**  |
-
-Skill version: 0.1 | Model: claude-sonnet-4-6 | Evals: 8 | Run date: 2026-04-12
+| Metric | with_skill | without_skill | Delta |
+|--------|------------|---------------|-------|
+| Pass rate | **100%** ±0% | 61% ±31% | **+39%** |
+| Time (s) | 42.2s | 21.3s | +20.9s |
+| Tokens | 30,038 | 24,521 | +5,517 |
 
 > **Note**: 6 of 8 evals discriminate (1, 2, 3, 4, 5, 6). Evals 7 and 8 are non-discriminating — capable baselines independently produce structured output with correct category names and exact markers for those scenarios. The discriminating evals test format-specific behavior: exact HTML comment markers, SHA-256 diff anchor links, and the exact terminal report format.
 

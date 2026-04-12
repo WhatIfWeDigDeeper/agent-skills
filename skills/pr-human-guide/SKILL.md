@@ -158,7 +158,8 @@ Check whether `<!-- pr-human-guide -->` already exists in `pr_body`.
 **If it exists** — replace the content between the markers with the new guide
 (idempotent re-run). Use a script that extracts everything before the opening
 marker and everything after the closing marker, then sandwiches the new guide
-between them.
+between them. If the closing marker is missing (e.g., manual edits corrupted
+the block), replace from the opening marker to the end of the body.
 
 **If it does not exist** — append the guide to the end of the existing body,
 with a blank line separator.
@@ -174,9 +175,11 @@ temp file and use `--body-file`:
 
 ```bash
 TMPFILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX.md")
+trap 'rm -f "$TMPFILE"' EXIT INT TERM
 printf '%s' "$UPDATED_BODY" > "$TMPFILE"
 gh pr edit {pr_number} --body-file "$TMPFILE"
 rm -f "$TMPFILE"
+trap - EXIT INT TERM
 ```
 
 ### 6. Report

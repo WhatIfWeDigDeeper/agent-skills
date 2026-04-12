@@ -27,7 +27,7 @@ def parse_pr_argument(args: str) -> dict:
     stripped = args.strip()
     if is_help_request(stripped):
         return {"type": "help"}
-    cleaned = stripped.lstrip("#")
+    cleaned = stripped.removeprefix("#")
     if cleaned.isdigit():
         return {"type": "pr_number", "number": int(cleaned)}
     return {"type": "detect"}
@@ -42,10 +42,17 @@ def replace_guide(body: str, new_guide: str) -> str:
     """Replace the existing guide block with new_guide per SKILL.md Step 5.
 
     new_guide must include the opening and closing markers.
-    Preserves all content before the opening marker and after the closing marker.
+    Preserves all content before the opening marker and after the closing marker
+    when present. If the closing marker is missing, replaces from the opening
+    marker to the end of body.
     """
     start = body.index(OPENING_MARKER)
-    end = body.index(CLOSING_MARKER) + len(CLOSING_MARKER)
+    closing_start = body.find(CLOSING_MARKER, start + len(OPENING_MARKER))
+    end = (
+        closing_start + len(CLOSING_MARKER)
+        if closing_start != -1
+        else len(body)
+    )
     before = body[:start].rstrip("\n")
     after = body[end:].lstrip("\n")
     parts = [p for p in [before, new_guide, after] if p]
