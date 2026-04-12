@@ -297,9 +297,9 @@ After all edits from Step 8 are applied, before committing, scan for stale sibli
 
 1. **Collect replaced substrings.** From every file edited in Step 8, identify the non-trivial substrings that were replaced. Non-trivial means: ≥20 characters, or a CLI flag (e.g., `--body-file`), or a file-path/URL literal. Skip pure whitespace changes, single-word tweaks, and numeric-only changes.
 
-2. **Search PR-modified files.** Using the diff already fetched in Step 4, search each file in the PR for occurrences of those replaced substrings. Scope is strictly limited to PR-modified files — do not search the entire repository.
+2. **Search PR-modified files by default.** Using the diff already fetched in Step 4, search each file in the PR for occurrences of those replaced substrings. Default scope is PR-modified files — do not search the entire repository, except for the sibling-artifact checks in item 3.
 
-3. **Special-case: skill/spec/eval repo structure.** When the PR diff contains any path matching `skills/*/SKILL.md`, `evals/*/evals.json`, or `specs/*/plan.md`, also check these known sibling-artifact pairs **even when those siblings are not part of the PR diff** — this is an intentional expansion beyond Step 2's PR-modified-file scope, targeting artifact relationships where drift commonly occurs but the sibling was not itself edited:
+3. **Special-case: skill/spec/eval repo structure.** When the PR diff contains any path matching `skills/*/SKILL.md`, `evals/*/evals.json`, or `specs/*/plan.md`, also check these known sibling-artifact pairs **even when those siblings are not part of the PR diff** — this is an intentional expansion beyond Step 2's default PR-modified-file scope, targeting artifact relationships where drift commonly occurs but the sibling was not itself edited:
 
    | Canonical file changed | Sibling artifacts to check |
    |------------------------|---------------------------|
@@ -307,9 +307,9 @@ After all edits from Step 8 are applied, before committing, scan for stale sibli
    | `evals/<name>/evals.json` assertion `text` | `evals/<name>/benchmark.json` expectation `text` fields |
    | `specs/*-<name>/plan.md` | `specs/*-<name>/tasks.md` (and vice versa) |
 
-4. **Add `consistency` rows and fix immediately.** For each genuine match (the old substring appears in a sibling file in the same sense — not a coincidental occurrence), add a `consistency` row and apply the fix in the same pass. Include it in the Step 10 commit with the originating reviewer's credit. Step 9 drift rows are **auto-applied without confirmation** — they are mechanical corrections, not judgment calls, and do not trigger the Step 7 auto-mode escalation that Step 6b rows do. Step 11 and Step 12 skip Step 9 rows (no thread to reply to or resolve), same as Step 6b rows.
+4. **Add `consistency` rows and fix immediately.** For each genuine match (the old substring appears in a sibling file in the same sense — not a coincidental occurrence), add a `consistency` row and apply the fix in the same pass. Include it in the Step 10 commit with the originating reviewer's credit. Step 9 drift rows are **auto-applied without confirmation** — they are mechanical corrections, not judgment calls, and do not trigger the Step 7 auto-mode escalation that Step 6b rows do. If Step 9 adds any rows, emit an updated drift summary before Step 10 that lists those new `consistency` rows and their files so the user sees the final committed change set; this is a disclosure/update, not a new approval gate. Step 11 and Step 12 skip Step 9 rows (no thread to reply to or resolve), same as Step 6b rows.
 
-5. **No matches → no rows.** Silent on clean.
+5. **No matches → no rows.** Silent on clean: if Step 9 finds nothing, do not emit any extra Step 9 summary beyond the normal workflow output.
 
 ### 10. (If Changes Were Made) Commit with Commenter Credit
 
