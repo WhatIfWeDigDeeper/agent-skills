@@ -73,8 +73,12 @@ Format the guide as a categorized markdown section with file diff links.
 
 GitHub diff anchor format:
 ```bash
-# SHA-256 of the file path for the diff anchor
-printf '%s' "path/to/file" | shasum -a 256 | cut -d' ' -f1
+# SHA-256 of the file path for the diff anchor (cross-platform)
+if command -v sha256sum >/dev/null 2>&1; then
+  printf '%s' "path/to/file" | sha256sum | cut -d' ' -f1
+else
+  printf '%s' "path/to/file" | shasum -a 256 | cut -d' ' -f1
+fi
 ```
 
 Link format: `https://github.com/{owner}/{repo}/pull/{number}/files#diff-{sha256}`
@@ -86,8 +90,11 @@ Fetch the current PR body, append the review guide in a demarcated block, and up
 
 ```bash
 CURRENT_BODY=$(gh pr view {pr_number} --json body --jq .body)
-# Append or replace the review guide section
-gh pr edit {pr_number} --body "$UPDATED_BODY"
+# Append or replace the review guide section, then write to temp file
+BODY_FILE=$(mktemp)
+trap 'rm -f "$BODY_FILE"' EXIT INT TERM
+printf '%s' "$UPDATED_BODY" > "$BODY_FILE"
+gh pr edit {pr_number} --body-file "$BODY_FILE"
 ```
 
 Use HTML comment markers so the section is identifiable and replaceable on re-runs:
