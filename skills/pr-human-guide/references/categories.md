@@ -211,8 +211,8 @@ When multiple items in the same file qualify for the same category:
 
 Flag an area only if a reasonable senior engineer would specifically want to
 review it beyond what automated tools would catch. When in doubt about a
-borderline case, flag it — false negatives (missing something important) are
-worse than false positives (flagging something routine).
+borderline case, flag it only when there is a concrete reviewer-relevant risk or
+uncertainty that merits human attention; otherwise, leave it out.
 
 Exceptions — never flag these regardless of content:
 - Changes that only affect comments or documentation

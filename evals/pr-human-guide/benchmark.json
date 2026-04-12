@@ -150,7 +150,7 @@
         {"text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk", "passed": true, "evidence": "'### New Dependencies' section lists both node-forge (pure JavaScript cryptography library) and aws-sdk (v2, legacy) with descriptions."},
         {"text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review", "passed": true, "evidence": "node-forge described as 'a pure JavaScript cryptography library. Check for known CVEs and confirm this is the right choice over native Node.js crypto'."},
         {"text": "The new encryption.ts file is flagged under Security or Novel Patterns", "passed": true, "evidence": "'### Security' section flags src/encryption.ts for RSA encryption concerns (hybrid encryption note, no input validation, no error handling)."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": false, "evidence": "Evaluation notes state 'Assertions for this eval do not test exact marker format', indicating the baseline used ad-hoc markdown headings rather than exact HTML comment markers."}
+        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": false, "evidence": "Baseline output used ad-hoc markdown headings for the review guide instead of the exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing HTML comment markers."}
       ],
       "notes": ["Discriminating on marker format: baseline produced structured New Dependencies and Security sections with correct content, but used ad-hoc markdown headings rather than exact <!-- pr-human-guide --> markers. Passed 3/4 assertions."]
     },
@@ -194,7 +194,7 @@
       "expectations": [
         {"text": "The review guide includes a Novel Patterns section flagging the Result type pattern", "passed": true, "evidence": "Guide has '### ⚠️ Novel Pattern — Result Type' section explicitly flagging ts-results Ok/Err pattern."},
         {"text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere", "passed": true, "evidence": "'This service uses ts-results (Ok/Err return values) instead of the try/catch + AppError pattern used in all other services (user.ts, product.ts, order.ts)'."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": false, "evidence": "Evaluation notes state 'Assertions do not require exact marker format', indicating the baseline used non-standard heading formatting rather than exact HTML comment markers. Baseline also found a logic bug in refundPayment the skill didn't flag."}
+        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": false, "evidence": "Baseline used non-standard heading formatting (e.g. '### ⚠️ Novel Pattern — Result Type') rather than the exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing HTML comment markers. Baseline also found a logic bug in refundPayment that the skill did not flag."}
       ],
       "notes": ["Discriminating on marker format: baseline identified the pattern contrast clearly and found a logic bug the skill didn't flag — but used non-standard heading formatting rather than exact <!-- pr-human-guide --> markers."]
     },

@@ -1,4 +1,6 @@
-[
+{
+  "skill_name": "pr-human-guide",
+  "evals": [
   {
     "id": 1,
     "name": "security-changes",
@@ -179,4 +181,5 @@
       }
     ]
   }
-]
+  ]
+}

@@ -122,9 +122,10 @@ Omit the line range if changes are spread across the whole file.
 Wrap the section in HTML comment markers for idempotent re-runs.
 
 **Important**: The opening marker `<!--` contains `!`, which zsh history expansion
-corrupts to `<\!--` in double-quoted shell strings. Always construct the guide body
-using single-quoted strings, `$'...'` ANSI quoting, or Python file I/O — never
-a double-quoted bash variable — so the markers reach GitHub unescaped.
+can corrupt to `<\!--` when the guide body is built or passed inline through
+double-quoted shell strings. Construct the guide body using single-quoted strings,
+`$'...'` ANSI quoting, or Python file I/O, then pass it to GitHub with
+`gh pr edit --body-file` so the markers reach GitHub unescaped.
 
 ```markdown
 <!-- pr-human-guide -->
@@ -171,14 +172,8 @@ the block), replace from the opening marker to the end of the body.
 **If it does not exist** — append the guide to the end of the existing body,
 with a blank line separator.
 
-Update the PR description:
-
-```bash
-gh pr edit {pr_number} --body "$UPDATED_BODY"
-```
-
-If `gh pr edit` fails due to body size or heredoc issues, write the body to a
-temp file and use `--body-file`:
+Update the PR description by writing the body to a temp file and using
+`--body-file` (never `--body "$VAR"` — zsh corrupts the `<!--` marker):
 
 ```bash
 TMPFILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX.md")
