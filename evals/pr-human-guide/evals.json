@@ -1,0 +1,185 @@
+{
+  "skill_name": "pr-human-guide",
+  "evals": [
+  {
+    "id": 1,
+    "name": "security-changes",
+    "prompt": "Can you add a review guide to PR #42? I want to flag anything reviewers should look at closely.\n\nPR #42 — 'Adds JWT authentication middleware and role-based access control'\nURL: https://github.com/owner/repo/pull/42\nCurrent PR description: 'Adds JWT authentication middleware and role-based access control.'\n\nDiff:\n\n```diff\ndiff --git a/src/auth/middleware.ts b/src/auth/middleware.ts\nindex a1b2c3d..e4f5a6b 100644\n--- a/src/auth/middleware.ts\n+++ b/src/auth/middleware.ts\n@@ -38,6 +38,24 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {\n   if (!req.headers.authorization) {\n     return res.status(401).json({ error: 'Unauthorized' });\n   }\n+\n+  const token = req.headers.authorization.split(' ')[1];\n+  try {\n+    const decoded = jwt.verify(token, process.env.JWT_SECRET);\n+    req.user = decoded;\n+    next();\n+  } catch (err) {\n+    return res.status(403).json({ error: 'Invalid token' });\n+  }\n+}\n+\n+export function requireRole(role: string) {\n+  return (req: Request, res: Response, next: NextFunction) => {\n+    if (!req.user || !req.user.roles.includes(role)) {\n+      return res.status(403).json({ error: 'Forbidden' });\n+    }\n+    next();\n+  };\n }\n```",
+    "expected_output": "The agent should identify this as a Security category change (new token validation logic and role-based permission checks) and include it in the review guide. The guide should be appended to the PR description using the exact HTML comment markers <!-- pr-human-guide --> / <!-- /pr-human-guide -->. The terminal output should report 1 item in 1 category.",
+    "assertions": [
+      {
+        "id": "flags-security-category",
+        "text": "The review guide includes a Security section flagging the auth middleware changes"
+      },
+      {
+        "id": "uses-html-markers",
+        "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers"
+      },
+      {
+        "id": "includes-diff-link",
+        "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts"
+      },
+      {
+        "id": "updates-pr-description",
+        "text": "The skill calls gh pr edit to update the PR body with the review guide"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "config-changes",
+    "prompt": "Before I request review on PR #55, can you prep the description with a guide calling out what needs careful human review?\n\nPR #55 — 'Updates deployment pipeline and IAM permissions for production'\nURL: https://github.com/owner/repo/pull/55\nCurrent PR description: 'Updates deployment pipeline and IAM permissions for production.'\n\nDiff:\n\n```diff\ndiff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml\nindex 1234567..abcdefg 100644\n--- a/.github/workflows/deploy.yml\n+++ b/.github/workflows/deploy.yml\n@@ -12,7 +12,7 @@ jobs:\n   deploy:\n     runs-on: ubuntu-latest\n     steps:\n-      - name: Deploy to staging\n+      - name: Deploy to production\n         uses: actions/checkout@v3\n+        env:\n+          AWS_REGION: us-east-1\n+          DEPLOY_ENV: production\ndiff --git a/deploy/terraform/main.tf b/deploy/terraform/main.tf\nindex 9876543..fedcba9 100644\n--- a/deploy/terraform/main.tf\n+++ b/deploy/terraform/main.tf\n@@ -5,7 +5,7 @@ resource \"aws_iam_role_policy\" \"app_policy\" {\n   policy = jsonencode({\n     Statement = [{\n       Effect   = \"Allow\"\n-      Action   = [\"s3:GetObject\"]\n+      Action   = [\"s3:GetObject\", \"s3:PutObject\", \"s3:DeleteObject\"]\n       Resource = \"arn:aws:s3:::my-app-bucket/*\"\n     }]\n   })\n```",
+    "expected_output": "The agent should identify Config/Infrastructure changes (CI/CD workflow changing from staging to production, IAM permissions being widened). Both files should appear in the review guide. The IAM change may also appear under Security given the permissions widening.",
+    "assertions": [
+      {
+        "id": "flags-config-category",
+        "text": "The review guide includes a Config / Infrastructure section"
+      },
+      {
+        "id": "flags-iam-change",
+        "text": "The review guide flags the IAM permissions widening in deploy/terraform/main.tf"
+      },
+      {
+        "id": "flags-workflow-change",
+        "text": "The review guide flags the GitHub Actions workflow change from staging to production"
+      },
+      {
+        "id": "updates-pr-description",
+        "text": "The skill calls gh pr edit to update the PR body with the review guide"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "new-dependency",
+    "prompt": "Add a review guide to PR #67 so my team knows what to focus on during review.\n\nPR #67 — 'Adds client-side encryption and AWS SDK integration'\nURL: https://github.com/owner/repo/pull/67\nCurrent PR description: 'Adds client-side encryption using node-forge and AWS SDK integration.'\n\nDiff:\n\n```diff\ndiff --git a/package.json b/package.json\nindex 1111111..2222222 100644\n--- a/package.json\n+++ b/package.json\n@@ -12,6 +12,8 @@ {\n   \"dependencies\": {\n     \"express\": \"^4.18.0\",\n     \"react\": \"^18.2.0\",\n+    \"node-forge\": \"^1.3.1\",\n+    \"aws-sdk\": \"^2.1450.0\"\n   }\n }\ndiff --git a/src/encryption.ts b/src/encryption.ts\nnew file +++ b/src/encryption.ts\n@@ -0,0 +1,18 @@\n+import * as forge from 'node-forge';\n+\n+export function encryptData(data: string, publicKey: string): string {\n+  const key = forge.pki.publicKeyFromPem(publicKey);\n+  return forge.util.encode64(key.encrypt(data));\n+}\n```",
+    "expected_output": "The agent should flag New Dependencies (node-forge is a cryptography library, aws-sdk provides network/cloud access — both elevated concern). The encryption.ts changes should also appear under Security (new crypto usage) and possibly Novel Patterns (first crypto module).",
+    "assertions": [
+      {
+        "id": "flags-new-dependency-category",
+        "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk"
+      },
+      {
+        "id": "flags-crypto-library",
+        "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review"
+      },
+      {
+        "id": "flags-security-or-novel",
+        "text": "The new encryption.ts file is flagged under Security or Novel Patterns"
+      },
+      {
+        "id": "uses-html-markers",
+        "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "novel-pattern",
+    "prompt": "Can you prep PR #88 for review? Add a guide to the description flagging anything that warrants close attention.\n\nPR #88 — 'Adds payment processing service'\nURL: https://github.com/owner/repo/pull/88\nCurrent PR description: 'Adds payment processing service using Result type pattern.'\n\nThe repository uses TypeScript. The src/services/ directory has several existing service files (user.ts, product.ts, order.ts). Here is a representative excerpt showing the error handling pattern used throughout:\n\n```ts\n// src/services/user.ts (representative)\ntry {\n  const user = await db.users.findById(id);\n  return user;\n} catch (err) {\n  throw new AppError(err.message);\n}\n```\n\nDiff:\n\n```diff\ndiff --git a/src/services/payment.ts b/src/services/payment.ts\nnew file +++ b/src/services/payment.ts\n@@ -0,0 +1,30 @@\n+import { Result, Ok, Err } from 'ts-results';\n+\n+export async function processPayment(amount: number): Promise<Result<string, Error>> {\n+  try {\n+    const charge = await stripe.charges.create({ amount });\n+    return Ok(charge.id);\n+  } catch (err) {\n+    return Err(new Error(`Payment failed: ${err.message}`));\n+  }\n+}\n+\n+export async function refundPayment(chargeId: string): Promise<Result<void, Error>> {\n+  const result = await processPayment(0);\n+  if (result.err) {\n+    return Err(result.val);\n+  }\n+  return Ok(undefined);\n+}\n```",
+    "expected_output": "The agent should identify this as a Novel Patterns change — the codebase uses try/catch with thrown AppError objects throughout, but this file introduces Result types (ts-results), which is a fundamentally different error handling strategy. The guide should explain the pattern contrast.",
+    "assertions": [
+      {
+        "id": "flags-novel-pattern-category",
+        "text": "The review guide includes a Novel Patterns section flagging the Result type pattern"
+      },
+      {
+        "id": "explains-pattern-contrast",
+        "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere"
+      },
+      {
+        "id": "uses-html-markers",
+        "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "no-special-areas",
+    "prompt": "Prep this PR for review.\n\nPR #101 — 'Adds bio and role display to UserCard component'\nURL: https://github.com/owner/repo/pull/101\nCurrent PR description: 'Adds bio and role display to UserCard component.'\n\nDiff:\n\n```diff\ndiff --git a/src/components/UserCard.tsx b/src/components/UserCard.tsx\nindex aaaaaaa..bbbbbbb 100644\n--- a/src/components/UserCard.tsx\n+++ b/src/components/UserCard.tsx\n@@ -8,7 +8,9 @@ export function UserCard({ user }: { user: User }) {\n   return (\n     <div className=\"user-card\">\n       <h2>{user.name}</h2>\n-      <p>{user.email}</p>\n+      <p>{user.email}</p>\n+      <p className=\"user-bio\">{user.bio}</p>\n+      <span className=\"user-role\">{user.role}</span>\n     </div>\n   );\n }\ndiff --git a/src/components/UserCard.test.tsx b/src/components/UserCard.test.tsx\nnew file +++ b/src/components/UserCard.test.tsx\n@@ -0,0 +1,15 @@\n+import { render, screen } from '@testing-library/react';\n+import { UserCard } from './UserCard';\n+\n+describe('UserCard', () => {\n+  it('renders user bio and role', () => {\n+    const user = { name: 'Alice', email: 'alice@example.com', bio: 'Engineer', role: 'admin' };\n+    render(<UserCard user={user} />);\n+    expect(screen.getByText('Engineer')).toBeInTheDocument();\n+    expect(screen.getByText('admin')).toBeInTheDocument();\n+  });\n+});\n```",
+    "expected_output": "The agent should not flag any areas for special human review. This is routine UI component work with a corresponding test — no security, config, dependency, data model, novel pattern, or concurrency concerns. The review guide should output the 'no areas requiring special human review attention' message, wrapped in the exact <!-- pr-human-guide --> / <!-- /pr-human-guide --> markers.",
+    "assertions": [
+      {
+        "id": "no-categories-flagged",
+        "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging"
+      },
+      {
+        "id": "outputs-no-areas-message",
+        "text": "The review guide body contains the message indicating no areas requiring special human review were identified"
+      },
+      {
+        "id": "uses-exact-markers",
+        "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats like <!-- REVIEW-GUIDE:START --> or similar)"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "idempotent-rerun",
+    "prompt": "I pushed new commits to PR #42 — can you refresh the review guide in the description?\n\nPR #42 — 'Adds caching layer using Redis'\nURL: https://github.com/owner/repo/pull/42\n\nThe current PR description is:\n```\nAdds caching layer using Redis.\n\n<!-- pr-human-guide -->\n## Review Guide\n\n> Areas identified by automated analysis as needing human judgment.\n> This is not a complete review checklist — it highlights where your attention matters most.\n\n### Novel Patterns\n- [`src/cache/redis.ts`](https://github.com/owner/repo/pull/42/files#diff-abc123) — First use of Redis in this codebase\n\n<!-- /pr-human-guide -->\n```\n\nThe PR diff now includes additional changes since the guide was last generated:\n\n```diff\ndiff --git a/src/cache/redis.ts b/src/cache/redis.ts\nindex 1111111..3333333 100644\n--- a/src/cache/redis.ts\n+++ b/src/cache/redis.ts\n@@ -1,5 +1,15 @@\n import Redis from 'ioredis';\n-const client = new Redis();\n+import { createClient } from 'redis';\n+\n+const primaryClient = new Redis(process.env.REDIS_URL);\n+const fallbackClient = createClient({ url: process.env.REDIS_FALLBACK_URL });\n+\n+export async function getWithFallback(key: string) {\n+  try {\n+    return await primaryClient.get(key);\n+  } catch {\n+    return await fallbackClient.get(key);\n+  }\n+}\n```",
+    "expected_output": "The agent should detect the existing <!-- pr-human-guide --> block and replace it with a fresh guide rather than appending a second block. The updated guide should reflect the current diff. The PR description should contain exactly one <!-- pr-human-guide --> block after the update. The terminal output should use the exact format 'Review guide updated on PR #42'.",
+    "assertions": [
+      {
+        "id": "replaces-existing-block",
+        "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two"
+      },
+      {
+        "id": "guide-reflects-current-diff",
+        "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide"
+      },
+      {
+        "id": "report-says-updated",
+        "text": "The terminal output contains the exact phrase 'Review guide updated on PR #' (not just general prose like 'the guide has been updated')"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "data-model-changes",
+    "prompt": "I'm getting PR #73 ready for review. Can you add a guide to the description flagging what needs careful attention?\n\nPR #73 — 'User profile schema migration'\nURL: https://github.com/owner/repo/pull/73\nCurrent PR description: 'Migrates user profile schema to v2 — renames username field and removes legacy data.'\n\nDiff:\n\n```diff\ndiff --git a/migrations/20240312_user_profile_v2.sql b/migrations/20240312_user_profile_v2.sql\nnew file mode 100644\n--- /dev/null\n+++ b/migrations/20240312_user_profile_v2.sql\n@@ -0,0 +1,5 @@\n+-- Migrate user profile schema to v2\n+ALTER TABLE users RENAME COLUMN username TO display_name;\n+ALTER TABLE users DROP COLUMN legacy_id;\n+ALTER TABLE users ALTER COLUMN bio SET NOT NULL;\ndiff --git a/schema.graphql b/schema.graphql\nindex 1234567..abcdefg 100644\n--- a/schema.graphql\n+++ b/schema.graphql\n@@ -8,7 +8,6 @@ type User {\n   id: ID!\n   email: String!\n-  username: String!\n+  displayName: String!\n-  legacyId: Int\n   bio: String\n }\n```",
+    "expected_output": "The agent should identify Data Model Changes: the RENAME COLUMN is a potentially breaking change if any clients reference 'username' directly, the DROP COLUMN is destructive, the SET NOT NULL on an existing column can fail if nulls exist, and the GraphQL schema removes the 'username' field and 'legacyId' field which breaks existing API consumers. All should appear under Data Model Changes.",
+    "assertions": [
+      {
+        "id": "flags-data-model-category",
+        "text": "The review guide includes a Data Model Changes section"
+      },
+      {
+        "id": "flags-column-rename",
+        "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients"
+      },
+      {
+        "id": "flags-destructive-operation",
+        "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation"
+      },
+      {
+        "id": "uses-html-markers",
+        "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "concurrency-state",
+    "prompt": "Hey, can you add a review guide to PR #89 before I send it out for review?\n\nPR #89 — 'Add background job processor'\nURL: https://github.com/owner/repo/pull/89\nCurrent PR description: 'Adds a background job processor using worker threads.'\n\nDiff:\n\n```diff\ndiff --git a/src/workers/job-processor.ts b/src/workers/job-processor.ts\nnew file mode 100644\n--- /dev/null\n+++ b/src/workers/job-processor.ts\n@@ -0,0 +1,30 @@\n+import { Worker, isMainThread } from 'worker_threads';\n+\n+let activeJobCount = 0;\n+const jobQueue: Job[] = [];\n+\n+export function enqueueJob(job: Job) {\n+  jobQueue.push(job);\n+  activeJobCount++;\n+  processNext();\n+}\n+\n+function processNext() {\n+  if (jobQueue.length === 0) return;\n+  const job = jobQueue.shift()!;\n+  const worker = new Worker('./worker-script.js', { workerData: job });\n+  worker.on('exit', () => {\n+    activeJobCount--;\n+    processNext();\n+  });\n+}\n+\n+export function getActiveJobCount(): number {\n+  return activeJobCount;\n+}\n```",
+    "expected_output": "The agent should identify Concurrency / State concerns: activeJobCount and jobQueue are module-level shared mutable state with no lock protection, and worker threads are being introduced for the first time. This also qualifies as Novel Patterns (first use of worker threads). Both categories should appear in the guide.",
+    "assertions": [
+      {
+        "id": "flags-concurrency-state-category",
+        "text": "The review guide includes a Concurrency / State section"
+      },
+      {
+        "id": "flags-shared-mutable-state",
+        "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern"
+      },
+      {
+        "id": "flags-worker-threads",
+        "text": "The review guide flags the new use of worker threads"
+      },
+      {
+        "id": "uses-html-markers",
+        "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers"
+      }
+    ]
+  }
+  ]
+}
