@@ -4,7 +4,7 @@
 
 - [x] **1.1** Verify the current version in `skills/pr-comments/SKILL.md` frontmatter is `"1.27"` before making any changes (run `rg '^  version:' skills/pr-comments/SKILL.md`)
 - [x] **1.2** Insert new **Step 9** between "8. Apply Changes" and "10. Commit" with the post-edit drift re-scan logic:
-  - Collect replaced substrings from Step 8 edits (≥20 chars, or CLI flag/command, or file-path/URL)
+  - Collect replaced substrings from Step 8 edits (≥20 chars, or CLI flag, or file-path/URL)
   - Search PR-modified files (Step 4 diff) for occurrences of the replaced substrings
   - Detect skill/spec/eval repo structure and apply sibling-artifact pair checks
   - Add `consistency` rows for genuine matches; silent on clean
@@ -56,6 +56,6 @@
 
 ## Phase 5: Verification
 
-- [ ] **5.1** Run `uv run --with pytest pytest tests/` — no regressions across all skill test suites
+- [x] **5.1** Run `uv run --with pytest pytest tests/` — no regressions across all skill test suites
 - [ ] **5.2** Invoke `/pr-comments` on a real or synthetic PR where a prior commit changed SKILL.md prose and left a sibling plan.md referencing the old phrasing — confirm Step 9 flags it **and** the fix is included in the same commit as the originating reviewer fix (not a separate commit)
 - [ ] **5.3** Invoke `/pr-comments` on a real or synthetic PR where a Copilot comment proposes a universal rule on CLAUDE.md with ≥2 counter-examples in the repo — confirm the classification is softened or declined

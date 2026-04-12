@@ -295,11 +295,11 @@ If there are no code changes to implement (for example, all threads were decline
 
 After all edits from Step 8 are applied, before committing, scan for stale sibling references introduced by those edits. This catches the case where a fix changes a command, flag, or phrasing in one file but leaves the same text in related artifacts (reference files, specs, benchmark evidence, README rows) — a common source of follow-on reviewer findings.
 
-1. **Collect replaced substrings.** From every file edited in Step 8, identify the non-trivial substrings that were replaced. Non-trivial means: ≥20 characters, or a CLI flag/command name (e.g., `--body-file`), or a file-path/URL literal. Skip pure whitespace changes, single-word tweaks, and numeric-only changes.
+1. **Collect replaced substrings.** From every file edited in Step 8, identify the non-trivial substrings that were replaced. Non-trivial means: ≥20 characters, or a CLI flag (e.g., `--body-file`), or a file-path/URL literal. Skip pure whitespace changes, single-word tweaks, and numeric-only changes.
 
 2. **Search PR-modified files.** Using the diff already fetched in Step 4, search each file in the PR for occurrences of those replaced substrings. Scope is strictly limited to PR-modified files — do not search the entire repository.
 
-3. **Special-case: skill/spec/eval repo structure.** When the PR diff contains any path matching `skills/*/SKILL.md`, `evals/*/evals.json`, or `specs/*/plan.md`, also check these known sibling-artifact pairs even if not otherwise flagged:
+3. **Special-case: skill/spec/eval repo structure.** When the PR diff contains any path matching `skills/*/SKILL.md`, `evals/*/evals.json`, or `specs/*/plan.md`, also check these known sibling-artifact pairs **even when those siblings are not part of the PR diff** — this is an intentional expansion beyond Step 2's PR-modified-file scope, targeting artifact relationships where drift commonly occurs but the sibling was not itself edited:
 
    | Canonical file changed | Sibling artifacts to check |
    |------------------------|---------------------------|

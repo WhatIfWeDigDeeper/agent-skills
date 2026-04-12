@@ -329,16 +329,14 @@ def _text_present(needle: str, haystack: str) -> bool:
     match inside '--body-file'.
     """
     if needle.startswith("--"):
-        pattern = _re.escape(needle) + r"(?![\w-])"
-        return bool(_re.search(pattern, haystack))
+        pattern = re.escape(needle) + r"(?![\w-])"
+        return bool(re.search(pattern, haystack))
     return needle in haystack
 
 
 # ---------------------------------------------------------------------------
 # Step 6 helpers: convention-rule sanity-check
 # ---------------------------------------------------------------------------
-
-import re as _re
 
 _CONVENTION_FILE_PATTERNS = (
     "CLAUDE.md",
@@ -382,7 +380,7 @@ def has_normative_language(body: str) -> bool:
     a mandatory convention ("must", "always", "convention requires", etc.).
     """
     for pattern in _NORMATIVE_PATTERNS:
-        if _re.search(pattern, body, _re.IGNORECASE):
+        if re.search(pattern, body, re.IGNORECASE):
             return True
     return False
 

@@ -4,7 +4,7 @@
     {
       "text": "The agent searches the repo for existing test files to check whether the proposed naming rule holds",
       "passed": true,
-      "evidence": "Agent used Glob to list all tests/**/*.py files under /Users/greg/code/agent-skills, explicitly to check whether existing test files already follow the proposed skill-prefixed naming convention before deciding whether to adopt the rule."
+      "evidence": "Agent used Glob to list all tests/**/*.py files in the repo, explicitly to check whether existing test files already follow the proposed skill-prefixed naming convention before deciding whether to adopt the rule."
     },
     {
       "text": "The agent identifies at least two existing test files that do not follow the proposed skill-prefixed naming rule",

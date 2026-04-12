@@ -4,7 +4,7 @@
     {
       "text": "The agent searches the repo for existing test files to check whether the proposed naming rule holds",
       "passed": true,
-      "evidence": "The agent ran `find /Users/greg/code/agent-skills/tests -name '*.py' | sort` and examined all test file basenames across all skill test suites to check against the proposed skill-prefixed naming convention."
+      "evidence": "The agent ran `find tests -name '*.py' | sort` and examined all test file basenames across all skill test suites to check against the proposed skill-prefixed naming convention."
     },
     {
       "text": "The agent identifies at least two existing test files that do not follow the proposed skill-prefixed naming rule",

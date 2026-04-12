@@ -16,7 +16,7 @@ The two patterns together were responsible for ~6 of ~31 Copilot findings (19%) 
 
 A new step between "Apply Changes" (Step 8) and "Commit" (Step 10). After all planned edits are applied in Step 8, before committing:
 
-1. **Collect replaced substrings.** From every file edited in Step 8, identify the non-trivial substrings that were replaced. "Non-trivial" means: ≥20 characters, or a CLI flag/command name, or a file-path/URL literal. Exclude pure whitespace changes, single-word tweaks, and numeric-only changes.
+1. **Collect replaced substrings.** From every file edited in Step 8, identify the non-trivial substrings that were replaced. "Non-trivial" means: ≥20 characters, or a CLI flag, or a file-path/URL literal. Exclude pure whitespace changes, single-word tweaks, and numeric-only changes.
 
 2. **Search PR-modified files.** Using the diff already fetched in Step 4, search each file that appears in the PR for occurrences of those replaced substrings. Scope: PR-modified files only (same constraint as Step 6b).
 
