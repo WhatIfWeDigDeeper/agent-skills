@@ -86,7 +86,7 @@ uv run --with pytest pytest tests/
 - After pushing follow-up commits to an existing PR branch, compare `git log origin/main..HEAD --oneline` against the PR title/body and update the PR description if behavior changed.
 - After implementing or fully addressing a PR review comment, resolve the thread through the GitHub GraphQL API only when no further reviewer follow-up is needed.
 - After merging a PR, sync local `main` with `git reset --hard origin/main`, but only after running `git status --porcelain` as a standalone command. If it produces any output, STOP — stash first (`git stash`), reset, then pop. Never chain `git status --porcelain && git reset --hard` — doing so bypasses the decision point and silently discards staged changes.
-- **When `gh pr merge` errors locally** (e.g. uncommitted changes prevent the local branch update), check `gh pr view --json state,mergedAt` — the GitHub merge may have already succeeded. If so, offer to stash uncommitted changes (`git stash`), run `git reset --hard origin/main`, then `git stash pop`.
+- **When `gh pr merge` errors locally** (e.g. uncommitted changes prevent the local branch update, or the local branch can't be checked out because it's already in use by a worktree), check `gh pr view --json state,mergedAt` — the GitHub merge may have already succeeded. If so, offer to stash uncommitted changes (`git stash`), run `git reset --hard origin/main`, then `git stash pop`.
 
 ## Command And Tooling Gotchas
 
