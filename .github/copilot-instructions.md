@@ -85,10 +85,12 @@ uv run --with pytest pytest tests/
 - After pushing follow-up commits to an existing PR branch, compare `git log origin/main..HEAD --oneline` against the PR title/body and update the PR description if behavior changed.
 - After implementing or fully addressing a PR review comment, resolve the thread through the GitHub GraphQL API only when no further reviewer follow-up is needed.
 - After merging a PR, sync local `main` with `git reset --hard origin/main`, but only after running `git status --porcelain` as a standalone command. If it produces any output, STOP — stash first (`git stash`), reset, then pop. Never chain `git status --porcelain && git reset --hard` — doing so bypasses the decision point and silently discards staged changes.
+- **When `gh pr merge` errors locally** (e.g. uncommitted changes prevent the local branch update), check `gh pr view --json state,mergedAt` — the GitHub merge may have already succeeded. If so, offer to stash uncommitted changes (`git stash`), run `git reset --hard origin/main`, then `git stash pop`.
 
 ## Command And Tooling Gotchas
 
 - Do not hardcode `/tmp/`; use `mktemp`, `$TMPDIR`, or `${TMPDIR:-/private/tmp}`. `${TMPDIR:-/tmp}` is also a violation — the fallback must be `/private/tmp`, not `/tmp`.
+- **`mktemp` X's must be last in the path component on macOS/BSD** — a suffix after the X's (e.g. `name-XXXXXX.md`) causes `mktemp` to fail or not substitute the Xs. Use `mktemp "${TMPDIR:-/private/tmp}/name-XXXXXX"` with no file-extension suffix.
 - **`trap` cleanup fires at the end of each Bash tool call**: use `trap 'rm -f "$FILE"' EXIT INT TERM` immediately after `mktemp` only when that temp file is created and consumed within the same tool call. When a temp file must persist across multiple tool calls, write it to a named path (e.g. `"${TMPDIR:-/private/tmp}/name.txt"`) without a `trap` — `trap 'rm -f "$FILE"' EXIT` fires when the subshell exits at the end of each call, deleting the file before the next call runs. Clean up explicitly in a later call instead.
 - If `git commit` fails because of GPG/keyring access, use `--no-gpg-sign` only as a fallback after the failure.
 - In sandboxed environments, HTTPS `git push` may hang on credentials. A working pattern is:

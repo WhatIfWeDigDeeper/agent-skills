@@ -1,9 +1,9 @@
 # Skill Benchmark: pr-comments
 
 **Model**: claude-sonnet-4-6
-**Date**: 2026-03-29 (updated 2026-04-03 for spec 15; eval 10 re-run 2026-04-07 under v1.24)
-**Evals**: 1–36 (1 primary run each per configuration; evals 12, 14, 20, 22, 23, and 24 have supplementary regression runs)
-**Skill version**: v1.21 (primary); eval 10 re-run under v1.24
+**Date**: 2026-03-29 (updated 2026-04-03 for spec 15; eval 10 re-run 2026-04-07 under v1.24; evals 37–38 added 2026-04-12 under v1.28)
+**Evals**: 1–38 (1 primary run each per configuration; evals 12, 14, 20, 22, 23, and 24 have supplementary regression runs)
+**Skill version**: v1.21 (primary); eval 10 re-run under v1.24; evals 37–38 run under v1.28
 
 ## Summary
 
@@ -13,9 +13,9 @@
 | Time | 36.1s ± 51.2s | 22.1s ± 28.9s | +14.0s |
 | Tokens | 21306 ± 2529 | 13955 ± 708 | +7351 |
 
-Time and token statistics in this table are computed only over primary runs (`run_number = 1`) that have recorded, non-null `time_seconds` / `tokens` values in `benchmark.json` (with_skill: 3 of 36; without_skill: 5 of 36; i.e., 8 of 72 total primary runs). Runs with `time_seconds: null` or `tokens: null` (including simulated transcripts), as well as all regression runs (`run_number > 1`), are excluded from these aggregates, so the reported means/stddevs may differ from a full-suite measurement; the top-level `run_summary.time_seconds` and `run_summary.tokens` fields remain `null` by design.
+Time and token statistics in this table are computed only over primary runs (`run_number = 1`) that have recorded, non-null `time_seconds` / `tokens` values in `benchmark.json` (with_skill: 3 of 38; without_skill: 5 of 38; i.e., 8 of 76 total primary runs). Runs with `time_seconds: null` or `tokens: null` (including simulated transcripts), as well as all regression runs (`run_number > 1`), are excluded from these aggregates, so the reported means/stddevs may differ from a full-suite measurement; the top-level `run_summary.time_seconds` and `run_summary.tokens` fields remain `null` by design.
 
-The skill improves correctness by +66 percentage points. All 36 with-skill evals pass 100%. Spec 15 Phase 1 added assertions to evals 13 and 18, Phase 4A added eval 36 for follow-up issue filing; all recorded against v1.21. Eval 10 was re-run under v1.24 (2026-04-07) to add the `report-includes-pr-url` assertion and update evidence. Prior run entries were produced against v1.17; evals 7, 9, 11, 17, and 18 were re-graded under updated v1.20 auto Step 13 expectations using existing transcripts.
+The skill improves correctness by +66 percentage points. All 38 with-skill evals pass 100%. Spec 15 Phase 1 added assertions to evals 13 and 18, Phase 4A added eval 36 for follow-up issue filing; all recorded against v1.21. Eval 10 was re-run under v1.24 (2026-04-07) to add the `report-includes-pr-url` assertion and update evidence. Spec 23 added evals 37–38 under v1.28: eval 37 (post-edit drift re-scan) is discriminating (+25%); eval 38 (convention sanity-check) is non-discriminating (0%) — baseline naturally finds the existing softened rule in CLAUDE.md. Prior run entries were produced against v1.17; evals 7, 9, 11, 17, and 18 were re-graded under updated v1.20 auto Step 13 expectations using existing transcripts.
 
 ## Per-Eval Results
 
@@ -57,6 +57,8 @@ The skill improves correctness by +66 percentage points. All 36 with-skill evals
 | 34 | Oversized comment pauses auto mode | **4/4 (100%)** | 1/4 (25%) | Size guard flags comment, auto-mode paused for confirmation |
 | 35 | Timeline reply format | **4/4 (100%)** | 1/4 (25%) | Issues API endpoint, @mention start, > quote, attribution line |
 | 36 | Follow-up issue filing | **4/4 (100%)** | 2/4 (50%) | Attribution byline and structured issue body template are skill-specific |
+| 37 | Post-edit drift re-scan | **4/4 (100%)** | 3/4 (75%) | Co-authored-by credit for bot reviewer is skill-specific; drift detection passes in both (prompt names the stale file) |
+| 38 | Convention sanity-check | **4/4 (100%)** | 4/4 (100%) | Non-discriminating — baseline finds existing softened rule in CLAUDE.md and declines the "must" framing naturally |
 
 ## What Each Eval Tests
 
@@ -261,3 +263,15 @@ Tests the follow-up issue filing path with explicit pre-authorization: the skill
 - **Eval 34 covers the size guard (+75%).** The size guard and auto-mode pause mechanism are entirely skill-specific per SKILL.md Step 5.
 - **Eval 35 covers timeline reply format (+75%).** The API endpoint routing, @mention-start, and > quote format are specified in reply-formats.md and not replicated by the baseline.
 - **Time and token values are partially reliable.** Evals 1–6 and 16 have measured timing from executor agents; the remainder used simulated transcripts — time/token fields are `null` for unmeasured runs. The pass rates are fully reliable; timing and token numbers are approximate.
+- **Eval 37 is weakly discriminating (+25%).** Post-edit drift detection passes in both configurations when the prompt explicitly names the stale file — a general assistant will find it. The Co-authored-by credit for the bot reviewer is the sole discriminating assertion; it is a skill-specific convention not followed by a general assistant.
+- **Eval 38 is non-discriminating (0%).** The convention sanity-check trigger (CLAUDE.md target + "must" language) fires in both configurations because the prompt instructs the agent to check existing patterns, and the repo's CLAUDE.md already contains the correctly-softened wording. A more discriminating variant would remove the explicit instruction from the prompt and test whether the agent spontaneously checks before adopting the rule. Kept as a regression baseline.
+
+### Eval 37 — `post-edit-drift-scan`
+**Prompt**: A Copilot comment requests updating SKILL.md to use `--body-file` instead of `--body "$UPDATED_BODY"`. The PR diff also includes a spec plan.md still using the old pattern. After fixing SKILL.md, scan for remaining references to the old pattern in the PR diff and include fixes in the same commit.
+
+Tests Step 9 (post-edit drift re-scan): after implementing the reviewer's fix, the skill greps PR-modified files for the replaced substring and folds the drift fix into the same commit. **with_skill 4/4 (100%), without_skill 3/4 (75%)**. Differentiating assertion: Co-authored-by credit for `copilot-pull-request-reviewer[bot]`.
+
+### Eval 38 — `convention-sanity-check`
+**Prompt**: A Copilot review body comment on CLAUDE.md proposes "all test files must be skill-prefixed to avoid pytest import collisions." The repo has existing un-prefixed test suites (tests/js-deps/, tests/pr-comments/).
+
+Tests Step 6 convention sanity-check: when a reviewer proposes a mandatory rule for an instructions file, grep for counter-examples before classifying as fix. **with_skill 4/4 (100%), without_skill 4/4 (100%) — non-discriminating.** Both configurations find the existing softened CLAUDE.md wording and decline the "must" framing. Eval is retained as a regression baseline.

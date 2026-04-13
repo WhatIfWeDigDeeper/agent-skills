@@ -1011,6 +1011,56 @@
           "text": "The gh issue create command includes a title summarizing the suggestion and a body referencing the PR number and @reviewer"
         }
       ]
+    },
+    {
+      "id": 37,
+      "name": "post-edit-drift-scan",
+      "prompt": "Please address the review comments on my PR. There is one inline comment from copilot-pull-request-reviewer[bot] on `skills/pr-comments/SKILL.md` requesting that the Step 5 bash snippet be updated to use `--body-file` instead of `--body \"$UPDATED_BODY\"` (to avoid zsh history expansion issues with `<!--` markers). The PR diff includes two modified files: `skills/pr-comments/SKILL.md` and `specs/23-pr-comments-reduce-review-rounds/plan.md`. The plan.md file still contains the old pattern `gh pr edit {pr_number} --body \"$UPDATED_BODY\"` in its Step 5 section — it was not updated when SKILL.md was changed. After fixing SKILL.md per the reviewer's request, scan for any remaining references to the old `--body \"$UPDATED_BODY\"` pattern in the PR diff and include any fixes in the same commit.",
+      "expected_output": "The skill implements the reviewer's fix to SKILL.md (replacing --body with --body-file). Then, in the post-edit drift scan, it detects that specs/23-pr-comments-reduce-review-rounds/plan.md still contains the old --body pattern. It adds a consistency row for the plan.md drift and applies the fix in the same commit as the SKILL.md change — not as a separate commit. The commit message credits copilot-pull-request-reviewer[bot] and includes a bullet for the SKILL.md fix and may mention the plan.md alignment.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "implements-reviewer-fix-to-skill-md",
+          "text": "The agent implements the reviewer's request by updating SKILL.md to use --body-file instead of --body"
+        },
+        {
+          "id": "detects-drift-in-plan-md",
+          "text": "The agent detects that specs/23-pr-comments-reduce-review-rounds/plan.md still references the old --body pattern after fixing SKILL.md"
+        },
+        {
+          "id": "drift-fix-in-same-commit",
+          "text": "The plan.md drift fix is included in the same commit as the SKILL.md change, not committed separately"
+        },
+        {
+          "id": "reviewer-credited-in-commit",
+          "text": "The commit credits copilot-pull-request-reviewer[bot] via a Co-authored-by trailer"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "name": "convention-sanity-check",
+      "prompt": "Please address the review comments on my PR. There is one review body comment from copilot-pull-request-reviewer[bot] targeting `CLAUDE.md`. The comment says: 'Repo test naming convention requires skill-prefixed basenames (test_<skillshortname>_<topic>.py) to avoid pytest import collisions across skill test directories — all test files must follow this pattern.' Before adopting this rule, check whether existing test files in the repo already follow a different convention.",
+      "expected_output": "The skill recognizes that the comment targets CLAUDE.md and proposes a mandatory naming rule ('must'). Before classifying as a straight fix, it searches the repo for counter-examples. It finds existing un-prefixed test files (e.g. tests/js-deps/test_install.py, tests/pr-comments/test_comment_classification.py) that contradict the proposed rule. Because there are 2 or more counter-examples, the skill either (a) reclassifies as fix with softened wording — changing 'must' to 'prefer' or 'to avoid collision' — and notes the counter-examples in the reply, or (b) declines with a reply citing the counter-examples. It does NOT adopt the 'must' framing unchanged into CLAUDE.md.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "searches-for-counter-examples",
+          "text": "The agent searches the repo for existing test files to check whether the proposed naming rule holds"
+        },
+        {
+          "id": "finds-counter-examples",
+          "text": "The agent identifies at least two existing test files that do not follow the proposed skill-prefixed naming rule"
+        },
+        {
+          "id": "does-not-adopt-must-rule-unchanged",
+          "text": "The agent does not adopt the 'all test files must be skill-prefixed' rule verbatim into CLAUDE.md without modification"
+        },
+        {
+          "id": "softens-or-declines-with-evidence",
+          "text": "The agent either softens the rule to a preference (changes 'must' to 'prefer' or similar) or declines the suggestion, and references the counter-examples found in its plan note or reply"
+        }
+      ]
     }
   ]
 }
