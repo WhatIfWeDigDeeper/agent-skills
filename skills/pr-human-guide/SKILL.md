@@ -124,10 +124,10 @@ Wrap the section in HTML comment markers for idempotent re-runs.
 **Important**: The opening marker `<!--` contains `!`, which zsh history expansion
 can corrupt to `<\!--` when the guide body is built or passed inline through
 double-quoted shell strings. Construct the guide body using single-quoted strings,
-`$'...'` ANSI quoting, or a Python script written to disk (via the Write tool)
-and executed directly — never piped via `<<'PYEOF'` heredoc, which corrupts `!`
-even with single-quoted delimiters. Then pass the result to GitHub with
-`gh pr edit --body-file` so the markers reach GitHub unescaped.
+`$'...'` ANSI quoting, or a Python script written to a file on disk and executed
+directly — never embed the script inline with a `<<'PYEOF'` heredoc, which can
+still corrupt `!` even with a single-quoted delimiter. Then pass the result to
+GitHub with `gh pr edit --body-file` so the markers reach GitHub unescaped.
 
 ```markdown
 <!-- pr-human-guide -->
