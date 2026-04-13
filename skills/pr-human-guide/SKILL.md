@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq; sha256sum (Linux) or shasum (macOS)
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.3"
+  version: "0.4"
 ---
 
 # PR Human Guide
@@ -127,18 +127,16 @@ Wrap the section in HTML comment markers for idempotent re-runs.
 **Important**: The opening marker `<!--` contains `!`, which zsh history expansion
 can corrupt to `<\!--` when the guide body is built or passed inline through
 double-quoted shell strings. Construct the guide body using single-quoted strings,
-`$'...'` ANSI quoting, or a Python script written to a file on disk and executed
-directly — never embed the script inline with a `<<'PYEOF'` heredoc, which can
-still corrupt `!` even with a single-quoted delimiter. Then pass the result to
-GitHub with `gh pr edit --body-file` so the markers reach GitHub unescaped.
-
-If using Python inline (via heredoc), avoid literal `!` by using `chr(33)`:
+`$'...'` ANSI quoting, or Python. If using an inline `<<'PYEOF'` heredoc, avoid
+literal `!` in the script body — use `chr(33)` instead:
 ```python
 OPEN  = "<" + chr(33) + "-- pr-human-guide -->"
 CLOSE = "<" + chr(33) + "-- /pr-human-guide -->"
 ```
 This lets the script run via `python3 - <<'PYEOF'` without triggering Write-tool
-approval for a temp file.
+approval for a temp file. Alternatively, write the script to disk and execute it
+directly. Then pass the result to GitHub with `gh pr edit --body-file` so the
+markers reach GitHub unescaped.
 
 ```markdown
 <!-- pr-human-guide -->
