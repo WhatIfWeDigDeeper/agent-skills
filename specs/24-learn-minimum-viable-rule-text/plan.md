@@ -50,7 +50,7 @@ The `learn` skill's existing `## Guidelines` bullet "Strip obvious explanations 
 2. `rg "Minimum viable rule text" skills/learn/SKILL.md` → exactly one match
 3. `## Guidelines` bullet count unchanged (3)
 4. `metadata.version: "0.8"` in frontmatter
-5. `npx cspell skills/learn/SKILL.md` — no new unknown words
+5. `npx cspell skills/learn/SKILL.md` — `parentheticals` added to `cspell.config.yaml`
 6. `uv run --with pytest pytest tests/` — no regressions
 
 ## Shipping

@@ -13,7 +13,7 @@
 - [x] **2.2** `rg "Minimum viable rule text" skills/learn/SKILL.md` → assert exactly one match
 - [x] **2.3** Confirm `## Guidelines` still has exactly 3 bullets
 - [x] **2.4** Confirm `metadata.version: "0.8"` in frontmatter
-- [x] **2.5** `npx cspell skills/learn/SKILL.md` — fix any unknown words in `cspell.config.yaml` (npm cache permission error unrelated to changes; no new words added)
+- [x] **2.5** `npx cspell skills/learn/SKILL.md` — fix any unknown words in `cspell.config.yaml` (`parentheticals` added; npm cache permission error unrelated to changes)
 - [x] **2.6** `uv run --with pytest pytest tests/` — 804 passed, no regressions
 
 ---
