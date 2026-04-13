@@ -1,5 +1,12 @@
 # GraphQL Queries
 
+> **zsh compatibility note**: GraphQL queries with typed variable declarations (`String!`, `Int!`, etc.) cannot be passed as inline shell strings in zsh — `!` triggers history expansion. Use Python subprocess or write the query to a file:
+> ```python
+> import subprocess
+> q = 'query($owner: String' + chr(33) + ', $name: String' + chr(33) + ', $number: Int' + chr(33) + ') { ... }'
+> subprocess.run(['gh', 'api', 'graphql', '-f', 'owner=OWNER', '-f', 'name=REPO', '-F', 'number=N', '--field', 'query=' + q], ...)
+> ```
+
 ## Fetch Thread Resolution State (Step 3)
 
 The REST API doesn't expose whether a thread is resolved. Use this query to get thread node IDs, resolution state, and outdated status:
