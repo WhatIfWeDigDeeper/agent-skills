@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq; sha256sum (Linux) or shasum (macOS)
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.1"
+  version: "0.2"
 ---
 
 # PR Human Guide
@@ -124,7 +124,9 @@ Wrap the section in HTML comment markers for idempotent re-runs.
 **Important**: The opening marker `<!--` contains `!`, which zsh history expansion
 can corrupt to `<\!--` when the guide body is built or passed inline through
 double-quoted shell strings. Construct the guide body using single-quoted strings,
-`$'...'` ANSI quoting, or Python file I/O, then pass it to GitHub with
+`$'...'` ANSI quoting, or a Python script written to disk (via the Write tool)
+and executed directly — never piped via `<<'PYEOF'` heredoc, which corrupts `!`
+even with single-quoted delimiters. Then pass the result to GitHub with
 `gh pr edit --body-file` so the markers reach GitHub unescaped.
 
 ```markdown
