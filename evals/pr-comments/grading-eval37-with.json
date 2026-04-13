@@ -1,0 +1,25 @@
+{
+  "summary": {"passed": 4, "failed": 0, "total": 4, "pass_rate": 1.0},
+  "expectations": [
+    {
+      "text": "The agent implements the reviewer's request by updating SKILL.md to use --body-file instead of --body",
+      "passed": true,
+      "evidence": "In Step 6, the copilot-pull-request-reviewer[bot] comment requesting --body-file was classified as 'fix' (correct, in-scope, non-conflicting). In Step 8 the agent applied the edit to skills/pr-comments/SKILL.md replacing 'gh pr edit {pr_number} --body \"$UPDATED_BODY\"' with the --body-file pattern. The commit message confirms: 'Update Step 5 gh pr edit command to use --body-file instead of --body \"$UPDATED_BODY\" to avoid zsh history expansion issues with <!-- markers (suggested by @copilot-pull-request-reviewer[bot])'."
+    },
+    {
+      "text": "The agent detects that specs/23-pr-comments-reduce-review-rounds/plan.md still references the old --body pattern after fixing SKILL.md",
+      "passed": true,
+      "evidence": "In Step 6b (Cross-File Consistency Check), the agent identified '--body \"$UPDATED_BODY\"' as a non-trivial changed identifier (CLI flag pattern, >=20 chars). The PR diff contains specs/23-pr-comments-reduce-review-rounds/plan.md which uses the same pattern in its Step 5 section. The agent added a 'consistency' row to the plan table: '| 2 | specs/23-pr-comments-reduce-review-rounds/plan.md | Same --body \"$UPDATED_BODY\" pattern as #1 | consistency | Apply matching fix? |'. The Step 9 special-case sibling rule for skills/*/SKILL.md also independently flags specs/*-pr-comments/plan.md as a sibling artifact to check."
+    },
+    {
+      "text": "The plan.md drift fix is included in the same commit as the SKILL.md change, not committed separately",
+      "passed": true,
+      "evidence": "Per Step 10 design: 'consistency changes (from Step 6b) are included in the same commit as the originating comment's changes.' The single commit staged both files together: skills/pr-comments/SKILL.md and specs/23-pr-comments-reduce-review-rounds/plan.md. The commit message lists both changes under one commit SHA. No separate commit was created for the plan.md fix."
+    },
+    {
+      "text": "The commit credits copilot-pull-request-reviewer[bot] via a Co-authored-by trailer",
+      "passed": true,
+      "evidence": "The commit includes the trailer: 'Co-authored-by: copilot-pull-request-reviewer[bot] <copilot-pull-request-reviewer[bot]@users.noreply.github.com>'. This follows the Step 10 Co-authored-by format using the GitHub noreply email convention. The consistency item (plan.md fix) does not add a separate Co-authored-by per Step 10: 'Credit goes to the original commenter — their suggestion triggered the parallel change. No separate Co-authored-by entry is needed for the consistency item itself.'"
+    }
+  ]
+}

@@ -150,10 +150,10 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
-| with-skill    | 1.00      | 4/4    | 0      |
-| without-skill | 1.00      | 4/4    | 0      |
+| with-skill    | 1.00      | 5/5    | 0      |
+| without-skill | 1.00      | 5/5    | 0      |
 
-**Non-discriminating**. Both configurations included PR title/body as context and produced the same output. The without-skill agent even reproduced the skill-defined `## Peer Review — PR #42` header format. This is likely because the fixture data was explicit in the eval prompt, making the correct behavior obvious. The eval establishes that PR metadata handling works correctly.
+**Non-discriminating**. Both configurations included PR title/body as context and produced the same output. The without-skill agent even reproduced the skill-defined `## Peer Review — PR #42` header format. This is likely because the fixture data was explicit in the eval prompt, making the correct behavior obvious. The eval establishes that PR metadata handling works correctly. Updated in v1.6 to add `header-model-not-literal-self` assertion (5th assertion) — both configurations pass since general assistants naturally substitute their own model identifier and never print literal `self`.
 
 ### Eval 13 — `focus-option`
 
@@ -201,16 +201,16 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 **Discriminating** (+0.67 delta). without-skill still offered an apply prompt ("Would you like me to apply either of these anyway?") and did not output "No issues recommended." — the all-skipped path and its specific phrasing are skill-defined. The triage summary content appeared in prose (satisfying assertion 3 loosely), but the required phrase and suppressed apply prompt both fail.
 
-### Eval 17 — `triage-not-on-claude-path`
+### Eval 17 — `triage-not-on-self-path`
 
-**Scenario**: `/peer-review --staged` (default Claude model) with 2 findings from the Claude reviewer subagent.
+**Scenario**: `/peer-review --staged` (default `self` model) with 2 findings from the internal reviewer instance.
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
 | with-skill    | 1.00      | 3/3    | 0      |
 | without-skill | 1.00      | 3/3    | 0      |
 
-**Non-discriminating**. This is a regression guard: without-skill naturally produces no "Triage filtered" section (it has no concept of triage), uses a standard apply prompt without S-numbers, and lists both findings. Establishes that the Claude path never activates triage.
+**Non-discriminating**. This is a regression guard: without-skill naturally produces no "Triage filtered" section (it has no concept of triage), uses a standard apply prompt without S-numbers, and lists both findings. Establishes that the self/Claude path never activates triage.
 
 ### Eval 18 — `triage-user-includes-skipped`
 
@@ -295,10 +295,10 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 | Configuration | Pass rate | Passed | Failed |
 |---------------|-----------|--------|--------|
-| with-skill    | 1.00      | 3/3    | 0      |
-| without-skill | 1.00      | 3/3    | 0      |
+| with-skill    | 1.00      | 4/4    | 0      |
+| without-skill | 1.00      | 4/4    | 0      |
 
-**Non-discriminating**. Baseline naturally appended the PR URL. Mirrors eval 12 — the URL behavior is intuitive enough to pass without skill guidance. The consolidated PR URL rule in Step 6 is correct but not a discriminating differentiator.
+**Non-discriminating**. Baseline naturally appended the PR URL. Mirrors eval 12 — the URL behavior is intuitive enough to pass without skill guidance. The consolidated PR URL rule in Step 6 is correct but not a discriminating differentiator. Updated in v1.6 to add `header-model-not-literal-self` assertion (4th assertion) — both configurations pass for the same reason as eval 12.
 
 ### Eval 26 — `unsupported-model-error`
 

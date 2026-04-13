@@ -263,7 +263,7 @@
       "id": 12,
       "name": "pr-target-context",
       "prompt": "/peer-review --pr 42. Treat this as if PR #42 exists with title 'Add retry logic to API client', body 'This PR adds exponential backoff to all outbound API calls. Closes #38.', and a minimal one-file diff adding a retry loop in src/api.js. Do not actually call gh \u2014 just process the fixture PR data and diff. The reviewer (simulated) returns: NO FINDINGS.",
-      "expected_output": "The skill fetches (or simulates) the PR metadata and diff, prepends the PR title and body as context to the reviewer prompt, spawns a reviewer, receives NO FINDINGS, and outputs the standard no-findings format: '## Peer Review \u2014 PR #42 (claude-opus-4-6)' followed by 'No issues found.' No apply prompt is shown.",
+      "expected_output": "The skill fetches (or simulates) the PR metadata and diff, prepends the PR title and body as context to the reviewer prompt, spawns a reviewer, receives NO FINDINGS, and outputs the standard no-findings format: '## Peer Review \u2014 PR #42 ([model identifier])' followed by 'No issues found.' The header shows the assistant's own model identifier (e.g. a claude-* model name for a Claude assistant) since model defaults to self. No apply prompt is shown.",
       "context": "Tests that the --pr N target: (1) collects both PR metadata and the diff, (2) prepends the title+body as context to the reviewer prompt, and (3) correctly handles the NO FINDINGS case without showing an apply prompt.",
       "files": [],
       "assertions": [
@@ -282,6 +282,10 @@
         {
           "id": "no-apply-prompt",
           "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings"
+        },
+        {
+          "id": "header-model-not-literal-self",
+          "text": "The header's model token is NOT the literal string 'self' — the assistant substitutes its own model identifier (e.g. a claude-* name) in the header"
         }
       ]
     },
@@ -371,15 +375,15 @@
     },
     {
       "id": 17,
-      "name": "triage-not-on-claude-path",
-      "prompt": "/peer-review --staged. Simulate: staged diff contains a change to src/utils.js adding a new helper function. The Claude reviewer subagent (simulated) returns two findings: Finding 1 (Major): 'Missing return type annotation' in src/utils.js; Finding 2 (Minor): 'Inconsistent spacing' in src/utils.js.",
-      "expected_output": "Both findings are presented directly without any 'Triage filtered' section. The apply prompt is the standard Claude-path form: 'Apply all, select by number, or skip? [all/1,3,5/skip]' — not the triage form mentioning S-numbers. No triage subagent is spawned.",
-      "context": "Regression guard ensuring the triage layer does not activate on the Claude path (default --model or any claude-* value). The Claude reviewer's output should go directly to Step 5 without a triage pass.",
+      "name": "triage-not-on-self-path",
+      "prompt": "/peer-review --staged. Simulate: staged diff contains a change to src/utils.js adding a new helper function. The reviewer (using default model self, i.e. the self/Claude path — simulated) returns two findings: Finding 1 (Major): 'Missing return type annotation' in src/utils.js; Finding 2 (Minor): 'Inconsistent spacing' in src/utils.js.",
+      "expected_output": "Both findings are presented directly without any 'Triage filtered' section. The apply prompt is the standard self/Claude-path form: 'Apply all, select by number, or skip? [all/1,3,5/skip]' — not the triage form mentioning S-numbers. No triage subagent is spawned.",
+      "context": "Regression guard ensuring the triage layer does not activate on the self/Claude path (default --model or any claude-* value). The reviewer's output should go directly to Step 5 without a triage pass.",
       "files": [],
       "assertions": [
         {
           "id": "no-triage-filtered-section",
-          "text": "The output does NOT contain a 'Triage filtered' section — triage does not run on the Claude path"
+          "text": "The output does NOT contain a 'Triage filtered' section — triage does not run on the self/Claude path"
         },
         {
           "id": "standard-apply-prompt-shown",
@@ -549,7 +553,7 @@
       "id": 25,
       "name": "pr-url-output",
       "prompt": "/peer-review --pr 55. Treat this as if PR #55 exists with title 'Refactor config loader', body 'Simplifies the config loading path.', URL 'https://github.com/example/repo/pull/55', and a minimal one-file diff updating config.js. The reviewer (simulated) returns: NO FINDINGS. The user is not prompted for re-scan (no findings means no apply, no re-scan offer).",
-      "expected_output": "The skill outputs the standard no-findings format: '## Peer Review — PR #55 (claude-opus-4-6)' followed by 'No issues found.' followed by the PR URL 'https://github.com/example/repo/pull/55' as the last line. No apply prompt is shown.",
+      "expected_output": "The skill outputs the standard no-findings format: '## Peer Review — PR #55 ([model identifier])' followed by 'No issues found.' followed by the PR URL 'https://github.com/example/repo/pull/55' as the last line. The header shows the assistant's own model identifier since model defaults to self. No apply prompt is shown.",
       "context": "Tests that the PR URL is output as the final line whenever the target is --pr N, including the no-findings terminal path. The URL must appear on its own line as the last output.",
       "files": [],
       "assertions": [
@@ -564,6 +568,10 @@
         {
           "id": "no-apply-prompt",
           "text": "The apply prompt is NOT shown (no findings to apply)"
+        },
+        {
+          "id": "header-model-not-literal-self",
+          "text": "The header's model token is NOT the literal string 'self' — the assistant substitutes its own model identifier in the header"
         }
       ]
     },
@@ -571,7 +579,7 @@
       "id": 26,
       "name": "unsupported-model-error",
       "prompt": "/peer-review --staged --model gpt-4o. The diff content is minimal. Do not attempt to call any CLI — just handle the unsupported model value.",
-      "expected_output": "The skill detects that 'gpt-4o' does not match any supported --model prefix (not claude-*, not copilot, not codex, not gemini). It outputs an error message stating the model is unsupported and listing the supported options, then exits without spawning a reviewer or presenting findings.",
+      "expected_output": "The skill detects that 'gpt-4o' does not match any supported --model value (not self, not claude-*, not copilot, not codex, not gemini). It outputs an error message stating the model is unsupported and listing the supported options including self (default), claude-*, copilot, codex, and gemini, then exits without spawning a reviewer or presenting findings.",
       "context": "Tests the unsupported --model error path. The --model value 'gpt-4o' is not a claude-* prefix and does not match any supported external CLI (copilot, codex, gemini). The skill must error clearly with guidance on supported values.",
       "files": [],
       "assertions": [
@@ -581,7 +589,7 @@
         },
         {
           "id": "supported-options-listed",
-          "text": "The error message lists the supported external CLIs (copilot, codex, gemini) and mentions claude-* as the Claude model prefix"
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)"
         },
         {
           "id": "exits-without-review",

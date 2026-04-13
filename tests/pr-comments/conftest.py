@@ -250,13 +250,175 @@ def should_repoll_guard_allow(
 
 
 def requires_manual_confirmation(plan_items: list[dict]) -> bool:
-    """Returns True if any item in the plan forces manual confirmation.
+    """Returns True if any Step 6b consistency item forces manual confirmation.
 
-    Per SKILL.md Step 7, `consistency` items always require manual confirmation
-    even in auto-mode. This helper only models the consistency-based trigger.
+    Per SKILL.md Step 7, Step 6b `consistency` items always require manual
+    confirmation even in auto-mode. Step 9 drift rows (source="9") do NOT
+    trigger this escalation — they are auto-applied without confirmation.
+
+    Items without a `source` field default to Step 6b behavior.
     """
-    manual_triggers = {"consistency"}
-    return any(item.get("action") in manual_triggers for item in plan_items)
+    return any(
+        item.get("action") == "consistency" and item.get("source", "6b") != "9"
+        for item in plan_items
+    )
+
+
+# ---------------------------------------------------------------------------
+# Step 9 helpers: post-edit drift re-scan
+# ---------------------------------------------------------------------------
+
+def is_nontrivial_substring(s: str) -> bool:
+    """Returns True if a replaced substring is worth scanning for in siblings.
+
+    Per SKILL.md Step 9, a substring is non-trivial if any of:
+    - length >= 20 characters
+    - starts with '--' (CLI flag, e.g. --body-file)
+    - contains '/' followed by a non-space character (file path or URL)
+
+    Pure whitespace changes, single-word tweaks, and numeric-only changes
+    are excluded.
+    """
+    if not s or not s.strip():
+        return False
+    s = s.strip()
+    if s.isdigit():
+        return False
+    if s.startswith("--"):
+        return True
+    if "/" in s and any(not c.isspace() for c in s.split("/", 1)[1][:1]):
+        return True
+    return len(s) >= 20
+
+
+def find_drift_rows(
+    replacements: list[tuple[str, str]],
+    pr_files: dict[str, str],
+) -> list[dict]:
+    """Find sibling references still using the old text after Step 8 edits.
+
+    Args:
+        replacements: list of (old_text, new_text) pairs from Step 8 edits.
+            Only non-trivial old_text values are scanned (per is_nontrivial_substring).
+        pr_files: mapping of {filename: file_content} for PR-modified files.
+
+    Returns:
+        list of {"file": str, "old": str} for each genuine match found.
+        Empty list means no drift — silent on clean.
+
+    CLI flag matching uses word-boundary semantics: `--body` does not match
+    within `--body-file`. A CLI flag match requires the flag to be followed
+    by a non-flag character (space, quote, newline, end of string) so that
+    flag prefixes don't produce false positives.
+    """
+    rows = []
+    for old_text, _new_text in replacements:
+        if not is_nontrivial_substring(old_text):
+            continue
+        for filename, content in pr_files.items():
+            if _text_present(old_text, content):
+                rows.append({"file": filename, "old": old_text})
+    return rows
+
+
+def _text_present(needle: str, haystack: str) -> bool:
+    """Return True if needle appears in haystack.
+
+    For CLI flags (starting with '--'), uses boundary-aware matching: requires
+    the match is not immediately followed by a word character or '-', so
+    '--body' does not match inside '--body-file'.
+
+    For all other strings, uses plain substring matching (needle in haystack).
+    """
+    if needle.startswith("--"):
+        pattern = re.escape(needle) + r"(?![\w-])"
+        return bool(re.search(pattern, haystack))
+    return needle in haystack
+
+
+# ---------------------------------------------------------------------------
+# Step 6 helpers: convention-rule sanity-check
+# ---------------------------------------------------------------------------
+
+_CONVENTION_FILE_PATTERNS = (
+    "CLAUDE.md",
+    "AGENTS.md",
+    "copilot-instructions.md",
+)
+
+_NORMATIVE_PATTERNS = (
+    r"\bmust\b",
+    r"\balways\b",
+    r"\bconvention requires\b",
+    r"\bconvention is\b",
+    r"\bshould always\b",
+    r"\ball .{0,40} must\b",
+    r"\ball .{0,40} should\b",
+)
+
+
+def is_convention_file(path: str) -> bool:
+    """Returns True if the file path targets a conventions/instructions file.
+
+    Per SKILL.md Step 6, the check applies to CLAUDE.md,
+    .github/copilot-instructions.md, AGENTS.md, or any file whose basename
+    matches *instructions*.md or *CLAUDE*.md.
+    """
+    basename = path.split("/")[-1] if "/" in path else path
+    for pattern in _CONVENTION_FILE_PATTERNS:
+        if basename == pattern:
+            return True
+    if "instructions" in basename and basename.endswith(".md"):
+        return True
+    if "CLAUDE" in basename and basename.endswith(".md"):
+        return True
+    return False
+
+
+def has_normative_language(body: str) -> bool:
+    """Returns True if the comment body proposes a universal rule.
+
+    Detects normative language patterns that suggest the reviewer is proposing
+    a mandatory convention ("must", "always", "convention requires", etc.).
+    """
+    for pattern in _NORMATIVE_PATTERNS:
+        if re.search(pattern, body, re.IGNORECASE):
+            return True
+    return False
+
+
+def triggers_convention_sanity_check(comment: dict) -> bool:
+    """Returns True if Step 6 should run the convention sanity-check for this comment.
+
+    Triggers when:
+    - The comment targets a conventions/instructions file, AND
+    - The body proposes a rule using normative language.
+    """
+    path = comment.get("path", "")
+    body = comment.get("body", "")
+    return is_convention_file(path) and has_normative_language(body)
+
+
+def classify_convention_suggestion(
+    counter_example_count: int,
+    can_soften: bool,
+) -> dict:
+    """Classify a convention-rule suggestion after counter-example search.
+
+    Per SKILL.md Step 6 convention sanity-check:
+    - 0-1 counter-examples: fix normally (rule is consistent with repo)
+    - >=2, can soften: fix with softened wording (preference not mandate)
+    - >=2, cannot soften: decline with counter-example evidence
+
+    Returns:
+        {"action": str, "softened": bool}
+        where softened=True means the wording should be loosened to a preference.
+    """
+    if counter_example_count <= 1:
+        return {"action": "fix", "softened": False}
+    if can_soften:
+        return {"action": "fix", "softened": True}
+    return {"action": "decline", "softened": False}
 
 
 def _nonwhitespace_prefix(body: str, length: int = 200) -> str:

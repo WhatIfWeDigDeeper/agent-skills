@@ -17,7 +17,7 @@ def parse_arguments(args: str | None) -> dict:
             "pr_number": str | None,
             "branch_name": str | None,
             "path": str | None,
-            "model": str | None,  # Defaults to "claude-opus-4-6" on successful parses; on error returns it may be None or a previously parsed value.
+            "model": str | None,  # Defaults to "self" on successful parses; on error, it may be None or a previously parsed value.
             "focus": str | None,
             "explicit_staged": bool,
             "error": str | None,
@@ -46,7 +46,7 @@ def parse_arguments(args: str | None) -> dict:
 
     if not args or not args.strip():
         result["target_type"] = "staged"
-        result["model"] = "claude-opus-4-6"
+        result["model"] = "self"
         return result
 
     tokens = args.strip().split()
@@ -117,7 +117,7 @@ def parse_arguments(args: str | None) -> dict:
         result["target_type"] = "staged"
 
     if result["model"] is None:
-        result["model"] = "claude-opus-4-6"
+        result["model"] = "self"
 
     return result
 
@@ -136,17 +136,17 @@ def route_model(model: str | None) -> dict:
 
     Returns:
         {
-            "route": "claude" | "copilot" | "codex" | "gemini",
-            "binary": str | None,  # CLI binary name (None for claude path)
+            "route": "internal" | "copilot" | "codex" | "gemini",
+            "binary": str | None,  # CLI binary name (None for internal path)
             "submodel": str | None,  # Sub-model if specified after ':'
         }
     """
     if not model:
-        return {"route": "claude", "binary": None, "submodel": None}
+        return {"route": "internal", "binary": None, "submodel": None}
 
     model_lower = model.lower()
-    if model_lower.startswith("claude-"):
-        return {"route": "claude", "binary": None, "submodel": None}
+    if model_lower == "self" or model_lower.startswith("claude-"):
+        return {"route": "internal", "binary": None, "submodel": None}
 
     if ":" in model:
         prefix, submodel = model.split(":", 1)
@@ -162,6 +162,7 @@ def route_model(model: str | None) -> dict:
         return {"route": "gemini", "binary": "gemini", "submodel": submodel}
 
     raise ValueError(
-        f"Unsupported --model value: '{model}'. Supported external CLIs: copilot, codex, gemini. "
-        "For Claude models, use a claude-* prefix (e.g. --model claude-opus-4-6)."
+        f"Unsupported --model value: '{model}'. "
+        "Supported values: self (default), claude-* (if your assistant supports model selection), "
+        "copilot[:submodel], codex[:submodel], gemini[:submodel]."
     )

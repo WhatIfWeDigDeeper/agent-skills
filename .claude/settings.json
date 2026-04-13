@@ -11,7 +11,8 @@
       "Search",
       "Glob",
       "Grep",
-      "WebFetch"
+      "WebFetch",
+      "WebSearch"
     ],
     "deny": [
       "Read(.env*)",
@@ -60,15 +61,6 @@
           {
             "type": "command",
             "command": "terminal-notifier -title 'agent-skills' -message 'Claude has a question for you' -sound Glass -activate com.microsoft.VSCode"
-          }
-        ]
-      },
-      {
-        "matcher": "idle_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "terminal-notifier -title 'agent-skills' -message 'Claude is waiting for your input' -sound Glass -activate com.microsoft.VSCode"
           }
         ]
       }
