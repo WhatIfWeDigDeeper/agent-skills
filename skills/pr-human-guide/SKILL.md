@@ -55,8 +55,8 @@ Capture: `pr_number`, `pr_url`, `pr_title`, `base_branch`, `head_branch`, `pr_bo
 Also capture repo owner/name:
 
 ```bash
-if ! REPO=$(gh repo view --json nameWithOwner --jq '.nameWithOwner'); then
-  echo "Failed to determine repo owner/name with 'gh repo view'." >&2
+if ! REPO=$(gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>&1); then
+  echo "Failed to determine repo owner/name with 'gh repo view': ${REPO}" >&2
   exit 1
 fi
 OWNER="${REPO%%/*}"
