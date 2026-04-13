@@ -116,6 +116,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - **`git checkout` fails on `.claude/settings.json`**: file is sandbox-blocked; use `dangerouslyDisableSandbox: true`.
 - **GraphQL queries with `!` type markers cannot be passed as inline shell strings in zsh** — `String!`, `Int!`, etc. trigger history expansion and produce `UNKNOWN_CHAR` errors from `gh api graphql`. Pass the query via Python subprocess (`subprocess.run(['gh', 'api', 'graphql', '--field', 'query=' + q], check=True)`) or write it to a file and pass `--field query=@/path/to/file`. This applies to any `gh api graphql` call with typed variable declarations.
 - **jq bot-login exclusions need exact equality, not `contains()`**: when excluding a specific bot from a jq filter, use `.user.login == "claude[bot]"` — not `.user.login | contains("claude")`, which silently excludes unrelated bots sharing the substring (e.g. `claude-reviewer[bot]`, `claude-pr-reviewer[bot]`). This bug is easy to introduce and passes casual review; catch it by naming the exact login you mean to exclude.
+- **Bash auto-backgrounds long-running commands**: use `TaskOutput` (`block: true`, `timeout: 300000`) to retrieve output — don't retry, it's already running.
 
 ## Available Skills
 
@@ -145,3 +146,4 @@ When the user's request matches a skill's trigger phrases, read the skill file a
 - Store durable project learnings in `CLAUDE.md`, not in per-user hidden memory directories.
 - Do not write to `~/.claude/projects/.../memory/` for this project.
 - Write timeless rules, not session history — do not reference specific PR numbers, dates, or session details in config rules. Those belong in commit messages.
+- In "X not Y" contrasts, annotate immediately after X — trailing parentheticals read as describing Y. `` `cd dir && cmd` (skips if cd fails), not `cd dir; cmd` ``
