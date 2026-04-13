@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.29"
+  version: "1.30"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -299,7 +299,7 @@ After all edits from Step 8 are applied, before committing, scan for stale sibli
 
 2. **Search PR-modified files by default.** Using the diff already fetched in Step 4, search each file in the PR for occurrences of those replaced substrings. Default scope is PR-modified files — do not search the entire repository, except for the sibling-artifact checks in item 3.
 
-3. **Special-case: skill/spec/eval repo structure.** When the PR diff contains any path matching `skills/*/SKILL.md`, `evals/*/evals.json`, or `specs/*/plan.md`, also check these known sibling-artifact pairs **even when those siblings are not part of the PR diff** — this is an intentional expansion beyond Step 2's default PR-modified-file scope, targeting artifact relationships where drift commonly occurs but the sibling was not itself edited:
+3. **Special-case: skill/spec/eval repo structure.** When the PR diff contains any path matching `skills/*/SKILL.md`, `evals/*/evals.json`, or `specs/*/plan.md`, also check these known sibling-artifact pairs **even when those siblings are not part of the PR diff** — this is an intentional expansion beyond Step 2's default PR-modified-file scope, targeting artifact relationships where drift commonly occurs but the sibling was not itself edited. (Adjust the `skills/` path prefix to match your repo's skill directory structure — e.g. `.agents/skills/` if that is where skills live.):
 
    | Canonical file changed | Sibling artifacts to check |
    |------------------------|---------------------------|
