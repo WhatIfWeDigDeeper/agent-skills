@@ -48,8 +48,9 @@ words:
   - oneline
   - opusplan
   - osascript
-  - Pipfile
+  - parentheticals
   - pipenv
+  - Pipfile
   - prauthor
   - preconfigure
   - PREOF
