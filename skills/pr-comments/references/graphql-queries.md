@@ -2,9 +2,24 @@
 
 > **zsh compatibility note**: GraphQL queries with typed variable declarations (`String!`, `Int!`, etc.) cannot be passed as inline shell strings in zsh — `!` triggers history expansion. Use Python subprocess or write the query to a file:
 > ```python
+> # Replace <OWNER>, <REPO>, and <PR_NUMBER> before running.
 > import subprocess
-> q = 'query($owner: String' + chr(33) + ', $name: String' + chr(33) + ', $number: Int' + chr(33) + ') { ... }'
-> subprocess.run(['gh', 'api', 'graphql', '-f', 'owner=OWNER', '-f', 'name=REPO', '-F', 'number=N', '--field', 'query=' + q], ...)
+> q = (
+>     'query($owner: String' + chr(33) + ', $name: String' + chr(33) + ', '
+>     '$number: Int' + chr(33) + ') { '
+>     'repository(owner: $owner, name: $name) { pullRequest(number: $number) { id } } '
+>     '}'
+> )
+> subprocess.run(
+>     [
+>         'gh', 'api', 'graphql',
+>         '-f', 'owner=<OWNER>',
+>         '-f', 'name=<REPO>',
+>         '-F', 'number=<PR_NUMBER>',
+>         '--field', 'query=' + q,
+>     ],
+>     check=True,
+> )
 > ```
 
 ## Fetch Thread Resolution State (Step 3)
