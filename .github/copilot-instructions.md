@@ -82,7 +82,7 @@ uv run --with pytest pytest tests/
 - Never commit directly to `main`. Always create a feature branch and open a PR for review.
 - Do not rewrite history on a PR that already has review comments. Avoid force-push, rebase, and `git commit --amend` on pushed commits.
 - **When a PR branch has merge conflicts and rebase is forbidden** (review comments exist), run `git fetch origin && git merge origin/main` — not rebase — to resolve them.
-- **`git merge` blocked by untracked files**: `git stash -u`, merge, then `git stash pop` — if it reports "already exists", the merge brought them in; `git stash drop` instead.
+- **`git merge` blocked by untracked files**: `git stash -u`, merge, then `git stash pop`. If pop reports "already exists" or conflicts, verify stash contents (`git stash show -p`) before `git stash drop` — pop may not have fully restored everything.
 - This repo uses squash merges.
 - After pushing follow-up commits to an existing PR branch, compare `git log origin/main..HEAD --oneline` against the PR title/body and update the PR description if behavior changed.
 - After implementing or fully addressing a PR review comment, resolve the thread through the GitHub GraphQL API only when no further reviewer follow-up is needed.
