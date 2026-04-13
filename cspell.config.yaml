@@ -49,8 +49,8 @@ words:
   - opusplan
   - osascript
   - parentheticals
-  - Pipfile
   - pipenv
+  - Pipfile
   - prauthor
   - preconfigure
   - PREOF
