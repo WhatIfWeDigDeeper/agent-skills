@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq; sha256sum (Linux) or shasum (macOS)
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.2"
+  version: "0.3"
 ---
 
 # PR Human Guide
@@ -55,7 +55,10 @@ Capture: `pr_number`, `pr_url`, `pr_title`, `base_branch`, `head_branch`, `pr_bo
 Also capture repo owner/name:
 
 ```bash
-REPO=$(gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>&1)
+if ! REPO=$(gh repo view --json nameWithOwner --jq '.nameWithOwner'); then
+  echo "Failed to determine repo owner/name with 'gh repo view'." >&2
+  exit 1
+fi
 OWNER="${REPO%%/*}"
 REPO_NAME="${REPO##*/}"
 ```
