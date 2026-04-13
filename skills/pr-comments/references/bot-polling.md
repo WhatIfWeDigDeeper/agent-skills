@@ -172,6 +172,12 @@ In both Signal 2 and Signal 3, `<bot_login>` must be the canonical `.user.login`
 - preconfigure a mapping from the requested reviewer name to its canonical login, or
 - skip Signals 2 and 3 for that bot until a first review/comment is observed and its `.user.login` can be recorded.
 
+  **Pre-configured mappings** (confirmed; use these when review history is absent):
+
+  | `requested_reviewers` login | Canonical `user.login` |
+  |-----------------------------|------------------------|
+  | `Copilot` | `copilot-pull-request-reviewer[bot]` |
+
 Evaluate Signal 3 **per bot** (same bot set as Signals 1 and 2 — do not check bots that are not being polled). If Signal 3 fires (new timeline comment from a polled bot), loop back to Step 2 to re-fetch.
 
 Check Signals 2 and 3 after each poll cycle — but only act on them if Signal 1 has not fired in the same cycle (new threads take priority). Do not use `requested_reviewers` as a completion signal — its state after a POST re-request is unreliable for detecting review completion.
