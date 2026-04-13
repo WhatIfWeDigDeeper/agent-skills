@@ -226,6 +226,7 @@ When the user's request matches a skill's trigger phrases, read the skill file a
 - **Capture stderr in CLI output**: Bash snippets that assign CLI output to a variable should include `2>&1` so error messages flow into the captured variable and reach fallback/error handling paths (e.g., `REVIEW_OUTPUT=$(cli ... 2>&1)`).
 - **When capturing `git diff --quiet` exit codes**, use `VAR=0; git diff --quiet || VAR=$?` — not `git diff --quiet; VAR=$?`. In strict runners (`set -e`) the non-zero exit from "changes present" aborts the script before the assignment runs.
 - **Reference-file delegation must name the target section and list what to skip**: When a SKILL.md step does setup work (e.g. snapshot, POST re-request) before delegating to a reference file that has its own entry/setup section covering the same actions, the delegation sentence must explicitly name the section to enter **and** say what not to re-run. E.g.: "proceed to the **Shared polling loop** — do not restart at the Step 13b entry/setup section, do not take another snapshot, and do not send another POST." Without this, agents re-enter the setup section and duplicate the snapshot/POST already done in SKILL.md.
+- **Repo-specific paths need portability notes**: When a skill step references a layout-specific path (e.g., `skills/*/SKILL.md`), add `(adjust prefix to match your repo's skill directory structure)` — downstream consumers with a different layout silently miss the trigger.
 
 ## Interaction Patterns
 
