@@ -483,18 +483,6 @@ After the POST:
 
 Use the templates in that file to structure your output. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
 
-**Minimum required output** (enforced even if the reference file is unavailable): Run `gh pr checks {pr_number}` and pick the CI-appropriate status line. The last two lines of your report MUST be the status line and URL:
-
-- All checks pass (or no checks exist): `PR #N is ready for your final review.`
-- Any check failing: `PR #N has failing CI — fix before merging.`
-- Checks still running: `PR #N — CI still running, re-check before merging.`
-
-Do **not** wrap the closing lines in a fenced code block. Emit them as plain text at the end of your response:
-`<CI-appropriate status line>`
-`<PR URL>`
-
-MANDATORY — output the PR URL as the final line of your response, every time, without exception. Do not omit it because the user already knows the URL or because the session is ending.
-
 ## Notes
 
 - **Keyring access required**: `gh` needs OS keyring/credential helper access. If your assistant runs in a sandbox, ensure it can reach the OS keyring.
