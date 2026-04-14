@@ -8,8 +8,6 @@ This repository contains reusable agent skills for Claude Code and other coding 
 
 - `evals/<skill-name>/`: eval cases, benchmark data, and benchmark docs
 - `tests/<skill-name>/`: unit tests for classifiable logic
-
-**Subdirectory instruction files**: `skills/CLAUDE.md` (skill format, version bumping, design patterns) and `evals/CLAUDE.md` (benchmarking rules) contain detailed guidance for those areas — refer to them when working in those directories.
 - `specs/<N>-<topic>/`: design specs and task tracking
 
 Evals belong under `evals/` at the repo root, not inside skill directories.
@@ -36,6 +34,31 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - If a spec has both `plan.md` and `tasks.md`, apply the corresponding fix to both files in the same pass.
 - When working through `specs/*/tasks.md`, mark each checkbox complete immediately after completing that item.
 - After editing spec files, re-read all modified spec files before finishing.
+
+## Evals And Benchmarks
+
+- Every skill with evals should keep `evals/<skill-name>/benchmark.json` in sync with the latest results.
+- After updating a benchmark, also update the `Eval Δ` column in `README.md` and the `±` stat values in the `benchmark.md` Summary table — the table mirrors `run_summary` and is not auto-generated. Also update the `Eval cost` bullet in the skill's Skill Notes section in `README.md` — it contains the delta percentage and discriminating eval count and does not auto-update.
+- `grading.json` files must include a `summary` block with `passed`, `failed`, `total`, and `pass_rate`.
+- Eval `evidence` strings must be repo-relative — no absolute `/Users/...` paths in `benchmark.json` or `grading-*.json`.
+- Use `null`, not `0` or `0.0`, for unknown token/time measurements in benchmark data (`tokens`, `time_seconds` feed `run_summary` aggregates). Treat `tool_calls` and `errors` as optional per-run metadata: use `null` only when truly unknown, keep `0` when actually measured. When updating or adding runs, backfill any existing `tokens: 0`, `time_seconds: 0.0`, `tool_calls: 0`, or `errors: 0` entries to `null` only when they represent unknown measurements.
+- Keep `run_summary.delta.pass_rate` at 2-decimal precision.
+- `run_summary.delta` values must be computed from exact (unrounded) run-data means, not from the rounded `mean` fields. When stored means are rounded, add a sentence to `benchmark.md`: "Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means."
+- When adding new evals or re-running existing evals, run them in the same task and update benchmark artifacts immediately — also update `metadata.skill_version` and `metadata.evals_run`. Exception: for validation-only runs, do not add run entries or bump `metadata.skill_version`.
+- When changing pass/fail verdicts on existing benchmark expectations, re-run the eval rather than re-grading with hypothetical reasoning — hypothetical re-grades can describe fundamentally different behavior from what was originally observed. The same applies when adding a new assertion to an existing run entry — evidence must come from an observed transcript, not inferred reasoning. Spawn a fresh executor run to get real evidence.
+- When renaming an eval's `name` field in `evals.json`, also update `eval_name` in all matching `benchmark.json` run entries, any prose mentions in `benchmark.json` `notes` strings, and the corresponding `benchmark.md` section header.
+- When adding a new skill to `README.md`, add an `Eval cost` note sourced from the skill's benchmark doc.
+- If reviewer feedback suggests benchmark values, recompute from the actual `runs` array instead of copying the suggestion.
+- When updating `pass_rate`, `passed`, `failed`, or `total` in a run entry, also scan both the run-level `notes` array and the top-level `notes` array for matching prose counts (e.g. "3/5 (60%)") and update them — numeric fields and prose strings drift independently.
+- When adding version-scoped notes to `benchmark.json`'s top-level `notes` array, also audit older entries that reference the same eval IDs — they can describe behavior removed in an earlier version. Stale semantic descriptions contradict newer entries and mislead reviewers. Update or replace them in the same commit.
+- Place the top-level `notes` array at the root of `benchmark.json`, not inside `metadata` — between the closing `}` of `metadata` and the opening `[` of `runs`.
+- When renaming action labels or vocabulary in `SKILL.md`, also search all CLAUDE.md files (`CLAUDE.md`, `evals/CLAUDE.md`, `skills/CLAUDE.md`) for hardcoded step references that use the old name — step renames must propagate there just as they do to `evals.json` and `benchmark.json`.
+- Eval assertions must test user-facing output, not internal signals: if a skill uses an internal return value from a subagent (e.g. `NO FINDINGS`) and translates it to user-visible text (e.g. `'No issues found.'`), the assertion must test the user-visible string — not the internal signal. An assertion testing the internal signal will never catch regressions in the translation/presentation layer.
+- **When assertion semantics are inverted** (not just renamed), null ALL result fields in the affected `benchmark.json` runs: `pass_rate`, `passed`, `failed`, `time_seconds`, `tokens`, `tool_calls`, and `errors`. The measurement fields still feed `run_summary` aggregates even when pass/fail is null. After nulling, recompute `run_summary` excluding those runs from all stat calculations, then update `benchmark.md` Summary table and README Eval Δ.
+- Fixture-based eval prompts must embed the fixture in the `prompt` field, not `expected_output`: `expected_output` is prose describing the expected grading outcome for the eval runner — it is not readable by the executor. Putting fixture CLI/tool responses in `expected_output` would confuse the executor about what to output, or cause the grader to treat fixture data as the expected result.
+- **Eval prompts must not name the skill or say "the user has invoked the X skill"** — skill-name leakage in the prompt context reaches the baseline agent, causing it to follow the skill's output format without needing the skill. All evals become non-discriminating and the delta collapses to 0%. Write prompts as natural user requests that don't reference the skill by name (e.g. "Can you add a review guide to PR #42?" not "The user has invoked the pr-human-guide skill on PR #42").
+- When a run is excluded from both sides of the paired comparison (e.g. contaminated), null all result fields in BOTH the `with_skill` and `without_skill` entries — not just the contaminated side. Leaving one side non-null makes the documented paired-eval count inconsistent with what mechanical consumers derive from filtering non-null entries. When nulling result fields, also null the `passed` and `evidence` fields in the run's `expectations` array — leaving verdicts set while results are null implies the grading is valid when it is not.
+- When a benchmark.json run entry has null result fields, the corresponding `benchmark.md` table row must show `N/A | — | —` in the Pass rate, Passed, and Failed columns — not the original computed values.
 
 ## Tests And Validation
 
@@ -105,6 +128,19 @@ When the user's request matches a skill's trigger phrases, read the skill file a
 | pr-human-guide | `skills/pr-human-guide/SKILL.md` | "review guide", "human review guide", "prep for review", "flag for review", "flag for human review", "add review guide" |
 
 **Do NOT trigger** `peer-review` on bare "review" phrases like "review my changes" or "review PR N" — those route to `code-review`.
+
+## Skill Design Guidance
+
+- Name skills from the user's action or role, not the underlying implementation detail.
+- **Prefer auto-detection with a disambiguation prompt over adding new flags** when a behavior is only needed in genuinely ambiguous situations. Handle unambiguous cases silently (e.g., only unstaged changes → auto-review with a note); prompt only when intent is unclear (e.g., both staged and unstaged → `[staged/unstaged/all]`). Explicit flags can still be offered as an escape hatch for scripting.
+- Keep README / CLAUDE documentation in sync when skill changes are substantial.
+- When a workflow pauses for user confirmation, make the stop explicit: tell the agent to output the prompt as its final message and stop generating until the user replies. If the workflow also has auto/manual modes, specify every confirmation gate each mode affects. If auto mode is meant to be hands-free, say explicitly whether later gates (for example push/re-request prompts) are skipped or still require confirmation.
+- When listing exit conditions for a workflow loop, state that they are the only valid exit conditions and explicitly forbid subjective early exits.
+- When a SKILL.md step does setup work (snapshot, POST, etc.) before delegating to a reference file that has its own entry/setup section covering the same actions, the delegation sentence must name the target section and list what not to re-run — otherwise agents re-enter the setup section and duplicate actions already done in SKILL.md.
+- When a SKILL.md step creates a temp file with `mktemp` and uses it within the same tool call, document `trap 'rm -f "$FILE"' EXIT INT TERM` immediately after the `mktemp` call — a manual `rm -f` at the end of the block is skipped on error or interruption. When the temp file must persist across multiple tool calls, use a named path without `trap` instead (see the `trap` cleanup bullet above).
+- **Repo-specific paths need portability notes**: When a skill step references a layout-specific path (e.g., `skills/*/SKILL.md`), add `(adjust prefix to match your repo's skill directory structure)` — downstream consumers with a different layout silently miss the trigger.
+- Bash snippets that assign CLI output to a variable should include `2>&1` so error messages flow into the captured variable and reach fallback/error handling paths (e.g., `REVIEW_OUTPUT=$(cli ... 2>&1)`).
+- **When capturing `git diff --quiet` exit codes**, use `VAR=0; git diff --quiet || VAR=$?` — not `git diff --quiet; VAR=$?`. In strict runners (`set -e`) the non-zero exit from "changes present" aborts the script before the assignment runs.
 
 ## Persistence
 
