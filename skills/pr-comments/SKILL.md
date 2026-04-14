@@ -489,10 +489,10 @@ Use the templates in that file to structure your output. Omit lines that don't a
 - Any check failing: `PR #N has failing CI — fix before merging.`
 - Checks still running: `PR #N — CI still running, re-check before merging.`
 
-```
-<CI-appropriate status line>
-<PR URL>
-```
+Do **not** wrap the closing lines in a fenced code block. Emit them as plain text at the end of your response:
+`<CI-appropriate status line>`
+`<PR URL>`
+
 MANDATORY — output the PR URL as the final line of your response, every time, without exception. Do not omit it because the user already knows the URL or because the session is ending.
 
 ## Notes
