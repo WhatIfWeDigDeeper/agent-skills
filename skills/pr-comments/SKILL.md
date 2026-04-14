@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.31"
+  version: "1.32"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -479,7 +479,16 @@ After the POST:
 
 > **Entry gate:** Reach Step 14 via one of: Step 13 found no reviewers (empty list); the user declined the Step 13 push/re-request prompt (manual mode); the shared polling loop in `references/bot-polling.md` reached one of its documented exit conditions; or the user declined the manual-mode poll offer in `references/bot-polling.md`. If you just completed Step 13b with bot reviewers re-requested and the user has **not** declined polling, you are **not here yet** — return to Step 13b item 3 and resume the shared polling flow's signal-checking/exit logic first.
 
-**You must now execute `references/report-templates.md`** — use the templates in that file to structure your final report. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
+**You MUST read `references/report-templates.md` before writing a single word of the final report.** No prior step's output, no ad-hoc summary, and no condensed version may substitute for this. Do not skip to the report without reading it first.
+
+Use the templates in that file to structure your output. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
+
+**Minimum required output** (enforced even if the reference file is unavailable): The last two lines of your report MUST be the PR status line and URL, on their own lines:
+```
+PR #N is ready for your final review.
+<PR URL>
+```
+MANDATORY — output the PR URL as the final line of your response, every time, without exception. Do not omit it because the user already knows the URL or because the session is ending.
 
 ## Notes
 
