@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq; sha256sum (Linux) or shasum (macOS)
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.5"
+  version: "0.6"
 ---
 
 # PR Human Guide
@@ -124,11 +124,8 @@ Omit the line range if changes are spread across the whole file.
 
 Wrap the section in HTML comment markers for idempotent re-runs.
 
-**Important**: The opening marker `<!--` contains `!`, which zsh history expansion
-can corrupt to `<\!--` when the guide body is built or passed inline through
-double-quoted shell strings. Construct the guide body using single-quoted strings,
-`$'...'` ANSI quoting, or Python. If using an inline `<<'PYEOF'` heredoc, avoid
-literal `!` in the script body — use `chr(33)` instead:
+**Important**: `<!--` contains `!`, which zsh corrupts to `<\!--` in heredoc bodies.
+Use `chr(33)` for every `!` in the script body, not just in marker variables:
 ```python
 OPEN  = "<" + chr(33) + "-- pr-human-guide -->"
 CLOSE = "<" + chr(33) + "-- /pr-human-guide -->"
