@@ -27,6 +27,8 @@ Evals live under `evals/` at the repo root, not inside `skills/` — they are de
 
 **Subdirectory CLAUDE.md files**: `skills/CLAUDE.md` (skill format, version bumping, design patterns), `evals/CLAUDE.md` (benchmarking rules), and `tests/CLAUDE.md` (test naming conventions, CI workflow requirements) auto-load in Claude Code when working in those directories — they are omitted from this root file to reduce context.
 
+**New subdirectory CLAUDE.md format**: Use `# <Name>` as the first heading and `This file auto-loads when working in \`<dir>/\`.` as the first body line — matches `skills/CLAUDE.md` and `evals/CLAUDE.md`.
+
 **Spec step numbers drift**: When editing or reviewing specs for an existing skill, verify step numbers (e.g. "Step 5", "Step 6") against the current SKILL.md — they shift as skills evolve and specs can silently fall out of sync.
 
 **Check off spec tasks as you complete them**: When working through a `specs/*/tasks.md`, mark each `- [ ]` item as `- [x]` immediately after completing it — do not batch updates at the end.
