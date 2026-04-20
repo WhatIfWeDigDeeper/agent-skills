@@ -124,16 +124,12 @@ Omit the line range if changes are spread across the whole file.
 
 Wrap the section in HTML comment markers for idempotent re-runs.
 
-**Important**: `<!--` contains `!`, which interactive zsh (with history expansion enabled) corrupts to `<\!--` in heredoc bodies.
-Use `chr(33)` for every `!` in the script body, not just in marker variables:
+**Important**: `<!--` contains `!`, which interactive zsh (with history expansion enabled) corrupts to `<\!--` in heredoc bodies. Python's `!=` operator is also affected — zsh corrupts it to `\!=`, causing a `SyntaxError`. Use `chr(33)` for every `!` in the script body — for markers:
 ```python
 OPEN  = "<" + chr(33) + "-- pr-human-guide -->"
 CLOSE = "<" + chr(33) + "-- /pr-human-guide -->"
 ```
-This lets the script run via `python3 - <<'PYEOF'` without triggering Write-tool
-approval for a temp file. Alternatively, write the script to disk and execute it
-directly. Then pass the result to GitHub with `gh pr edit --body-file` so the
-markers reach GitHub unescaped.
+For `!=` comparisons, rewrite as `not ... ==`. If the script has many such rewrites, prefer writing it to a file with the Write tool and executing it directly — this avoids all heredoc quoting issues. Then pass the result to GitHub with `gh pr edit --body-file` so the markers reach GitHub unescaped.
 
 ```markdown
 <!-- pr-human-guide -->
