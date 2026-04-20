@@ -227,7 +227,8 @@ MANDATORY — output the PR URL as the last line. Never omit it, even if the URL
   are. For large codebases, sample the most closely related modules.
 - **Idempotency**: The HTML comment markers make re-runs safe. Running the
   skill again after new commits replaces the previous guide rather than
-  appending a second one.
+  appending a second one. Note: any `- [x]` items checked by reviewers are
+  reset to `- [ ]` on re-run — checked state is not preserved.
 - **False negatives vs. false positives**: Apply the same threshold as Step 3 — flag when human judgment is likely to materially affect review, risk, or rollout. The guide is framed as "where to focus" not "the only things to check," so under-flagging routine changes is correct behavior, not a gap.
 - **No blocking**: This skill does not enforce review requirements or block
   merging. It is purely informational.
