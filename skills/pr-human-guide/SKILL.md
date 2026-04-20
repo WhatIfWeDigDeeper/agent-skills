@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq; sha256sum (Linux) or shasum (macOS)
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.4"
+  version: "0.5"
 ---
 
 # PR Human Guide
@@ -117,7 +117,7 @@ LINK="https://github.com/${OWNER}/${REPO_NAME}/pull/${pr_number}/files#diff-${AN
 
 Format each entry as:
 ```
-- [`path/to/file` (L{start}-{end})](link) — one-line reason
+- [ ] [`path/to/file` (L{start}-{end})](link) — one-line reason
 ```
 
 Omit the line range if changes are spread across the whole file.
@@ -146,13 +146,13 @@ markers reach GitHub unescaped.
 > This is not a complete review checklist — it highlights where your attention matters most.
 
 ### Security
-- [`src/auth/middleware.ts` (L42-67)](link) — New token validation logic
+- [ ] [`src/auth/middleware.ts` (L42-67)](link) — New token validation logic
 
 ### Config / Infrastructure
-- [`deploy/terraform/iam.tf` (L12-18)](link) — IAM role permissions widened
+- [ ] [`deploy/terraform/iam.tf` (L12-18)](link) — IAM role permissions widened
 
 ### Novel Patterns
-- [`src/cache/redis.ts`](link) — First use of Redis in this codebase; no existing caching pattern to reference
+- [ ] [`src/cache/redis.ts`](link) — First use of Redis in this codebase; no existing caching pattern to reference
 
 <!-- /pr-human-guide -->
 ```
@@ -227,7 +227,8 @@ MANDATORY — output the PR URL as the last line. Never omit it, even if the URL
   are. For large codebases, sample the most closely related modules.
 - **Idempotency**: The HTML comment markers make re-runs safe. Running the
   skill again after new commits replaces the previous guide rather than
-  appending a second one.
+  appending a second one. Note: any `- [x]` items checked by reviewers are
+  reset to `- [ ]` on re-run — checked state is not preserved.
 - **False negatives vs. false positives**: Apply the same threshold as Step 3 — flag when human judgment is likely to materially affect review, risk, or rollout. The guide is framed as "where to focus" not "the only things to check," so under-flagging routine changes is correct behavior, not a gap.
 - **No blocking**: This skill does not enforce review requirements or block
   merging. It is purely informational.
