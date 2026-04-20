@@ -70,6 +70,7 @@ uv run --with pytest pytest tests/
 
 - Consider whether tests under `tests/<skill-name>/` need to be added or updated for behavior changes.
 - Prefer test file basenames that remain unique across `tests/` subdirectories to avoid pytest import collisions when directories do not use `__init__.py`. Skill-prefixing is a recommended collision-avoidance convention (for example, `test_prhumanreview_argument_parsing.py` instead of a generic `test_argument_parsing.py`), but the key requirement is avoiding duplicate basenames. Recommended pattern: `test_<skillshortname>_<topic>.py`.
+- When adding a new skill with tests, create a corresponding `.github/workflows/test-<skill-name>-skill.yml` that runs only on path changes to `skills/<skill-name>/**` and `tests/<skill-name>/**`. Use `test-learn-skill.yml` as the template — it covers `push`, `pull_request`, and `workflow_dispatch` triggers, runs `uv run --with pytest pytest tests/<skill-name>/ -v`, and uploads fixtures on failure.
 - This repo uses cspell. After editing markdown or instruction files, run `npx cspell <file>` on each modified file.
 - If cspell flags a legitimate repo term, add it to `cspell.config.yaml` immediately.
 - If a word is no longer used, remove it from `cspell.config.yaml` after confirming with `rg -w <word>`.
@@ -119,6 +120,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - **`gh api --jq` does not accept `--arg`**: it treats any tokens after the filter as positional args and errors with "accepts 1 arg(s), received N". To inject a shell variable into a filter across paginated results, drop `--jq` and pipe the raw paginated stream to `jq -s --arg name "$value" '[.[] | .[] | select(...)]'` — the `-s` slurps the page-stream into one array and `--arg` is safe on standalone jq.
 - **jq bot-login exclusions need exact equality, not `contains()`**: when excluding a specific bot from a jq filter, use `.user.login == "claude[bot]"` — not `.user.login | contains("claude")`, which silently excludes unrelated bots sharing the substring (e.g. `claude-reviewer[bot]`, `claude-pr-reviewer[bot]`). This bug is easy to introduce and passes casual review; catch it by naming the exact login you mean to exclude.
 - **Bash auto-backgrounds long-running commands**: don't rerun — check the prior command's output or use your environment's wait/follow mechanism to retrieve results.
+- **GitHub Actions `workflow_dispatch` inputs**: never use `${{ inputs.field }}` directly in `run:` (injection risk) — pass via `env: VAR: ${{ inputs.field }}` and reference `"$VAR"`. Sanitize before using in git refs.
 
 ## Available Skills
 
