@@ -124,7 +124,7 @@ Omit the line range if changes are spread across the whole file.
 
 Wrap the section in HTML comment markers for idempotent re-runs.
 
-**Important**: `<!--` contains `!`, which zsh corrupts to `<\!--` in heredoc bodies.
+**Important**: `<!--` contains `!`, which interactive zsh (with history expansion enabled) corrupts to `<\!--` in heredoc bodies.
 Use `chr(33)` for every `!` in the script body, not just in marker variables:
 ```python
 OPEN  = "<" + chr(33) + "-- pr-human-guide -->"
