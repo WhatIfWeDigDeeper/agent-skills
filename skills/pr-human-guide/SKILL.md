@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq; sha256sum (Linux) or shasum (macOS)
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.5"
+  version: "0.6"
 ---
 
 # PR Human Guide
@@ -124,19 +124,15 @@ Omit the line range if changes are spread across the whole file.
 
 Wrap the section in HTML comment markers for idempotent re-runs.
 
-**Important**: The opening marker `<!--` contains `!`, which zsh history expansion
-can corrupt to `<\!--` when the guide body is built or passed inline through
-double-quoted shell strings. Construct the guide body using single-quoted strings,
-`$'...'` ANSI quoting, or Python. If using an inline `<<'PYEOF'` heredoc, avoid
-literal `!` in the script body — use `chr(33)` instead:
+**Important**: `<!--` contains `!`, which interactive zsh (with history expansion enabled) corrupts to `<\!--` in heredoc bodies. Python's `!=` operator is also affected — zsh corrupts `!=` to `\!=`, causing a `SyntaxError`. Two mitigations apply — one per `!` context:
+- **String literals** (e.g. markers): replace `!` with `chr(33)`:
 ```python
 OPEN  = "<" + chr(33) + "-- pr-human-guide -->"
 CLOSE = "<" + chr(33) + "-- /pr-human-guide -->"
 ```
-This lets the script run via `python3 - <<'PYEOF'` without triggering Write-tool
-approval for a temp file. Alternatively, write the script to disk and execute it
-directly. Then pass the result to GitHub with `gh pr edit --body-file` so the
-markers reach GitHub unescaped.
+- **`!=` comparisons**: rewrite as `not (a == b)`.
+
+If the script has many such rewrites, prefer writing it to a file with the Write tool and executing it directly — this avoids all heredoc quoting issues. Then pass the result to GitHub with `gh pr edit --body-file` so the markers reach GitHub unescaped.
 
 ```markdown
 <!-- pr-human-guide -->
