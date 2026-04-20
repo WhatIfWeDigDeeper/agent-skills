@@ -30,7 +30,9 @@ words:
   - exfiltration
   - fastapi
   - frontmatter
+  - geminicli
   - GHSA
+  - githubcopilot
   - goroutines
   - heredocs
   - lockfiles

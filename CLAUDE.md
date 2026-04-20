@@ -25,7 +25,7 @@ tests/
 
 Evals live under `evals/` at the repo root, not inside `skills/` — they are development artifacts and should not be bundled when a skill is distributed.
 
-**Subdirectory CLAUDE.md files**: `skills/CLAUDE.md` (skill format, version bumping, design patterns) and `evals/CLAUDE.md` (benchmarking rules) auto-load in Claude Code when working in those directories — they are omitted from this root file to reduce context.
+**Subdirectory CLAUDE.md files**: `skills/CLAUDE.md` (skill format, version bumping, design patterns), `evals/CLAUDE.md` (benchmarking rules), and `tests/CLAUDE.md` (test naming conventions, CI workflow requirements) auto-load in Claude Code when working in those directories — they are omitted from this root file to reduce context.
 
 **Spec step numbers drift**: When editing or reviewing specs for an existing skill, verify step numbers (e.g. "Step 5", "Step 6") against the current SKILL.md — they shift as skills evolve and specs can silently fall out of sync.
 
@@ -61,6 +61,7 @@ Evals live under `evals/` at the repo root, not inside `skills/` — they are de
 - **GraphQL queries with `!` type markers cannot be passed as inline shell strings in zsh** — `String!`, `Int!`, etc. trigger history expansion and produce `UNKNOWN_CHAR` errors from `gh api graphql`. Pass the query via Python subprocess (`subprocess.run(['gh', 'api', 'graphql', '--field', 'query=' + q], check=True)`) or write it to a file and pass `--field query=@/path/to/file`. This applies to any `gh api graphql` call with typed variable declarations.
 - **jq bot-login exclusions need exact equality, not `contains()`**: when excluding a specific bot from a jq filter, use `.user.login == "claude[bot]"` — not `.user.login | contains("claude")`, which silently excludes unrelated bots sharing the substring (e.g. `claude-reviewer[bot]`, `claude-pr-reviewer[bot]`). This bug is easy to introduce and passes casual review; catch it by naming the exact login you mean to exclude.
 - **Bash auto-backgrounds long-running commands**: use `TaskOutput` (`block: true`, `timeout: 300000`) to retrieve output — don't retry, it's already running.
+- **GitHub Actions `workflow_dispatch` inputs**: never use `${{ inputs.field }}` directly in `run:` (injection risk) — pass via `env: VAR: ${{ inputs.field }}` and reference `"$VAR"`. Sanitize before using in git refs.
 
 ## Spell Checking
 
@@ -98,7 +99,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - After modifying skill and reference files run `uv run --with pytest pytest tests/` to verify changes don't break existing assertions.
 - Consider whether new tests are needed to cover the changed behavior.
 - **When adding a new skill or substantially modifying an existing skill**, propose adding or updating tests under `tests/<skill-name>/`. Tests should cover help trigger detection, argument parsing, and any classifiable logic (workflow routing, comment classification, etc.). Follow the patterns in existing test suites (e.g. `tests/js-deps/`, `tests/ship-it/`).
-- **Keep test file basenames unique across `tests/`**. Prefer skill-prefixed basenames (for example, `test_prhumanreview_argument_parsing.py`) when a generic name like `test_argument_parsing.py` would otherwise collide with another suite, because pytest collects test directories without `__init__.py` and duplicate basenames can cause import collisions at collection time. When there is no collision risk, following an existing suite's established naming pattern is acceptable.
+- See `tests/CLAUDE.md` for test file naming conventions and CI workflow requirements (auto-loads when working in that directory).
 
 ## Portability
 
