@@ -18,10 +18,23 @@ jobs:
       id-token: write
 
     steps:
+      - name: Sanitize PR number input
+        id: sanitize
+        env:
+          PR_NUMBER_INPUT: ${{ inputs.pr_number }}
+        run: |
+          pr_num="${PR_NUMBER_INPUT#\#}"
+          if ! [[ "$pr_num" =~ ^[0-9]+$ ]]; then
+            echo "Error: pr_number must be numeric (got: $pr_num)" >&2
+            exit 1
+          fi
+          echo "pr_number=$pr_num" >> "$GITHUB_OUTPUT"
+
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          ref: refs/pull/${{ steps.sanitize.outputs.pr_number }}/head
 
       - name: Run Claude Code Review
         id: claude-review
@@ -30,6 +43,8 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review --comment'
+          prompt: |
+            /code-review:code-review --comment
+            Review PR #${{ steps.sanitize.outputs.pr_number }}.
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
