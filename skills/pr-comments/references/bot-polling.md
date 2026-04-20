@@ -143,7 +143,7 @@ Only offer when at least one bot reviewer was re-requested (Step 13b). Do not of
 
 ### Signals
 
-Poll every 60 seconds using three signals. Use `for i in $(seq 1 $max_iterations); do` — avoid `$((var + 1))` patterns, which trigger Claude Code permission prompts.
+Poll every 60 seconds using three signals. Use `for i in $(seq 1 N); do` (replace `N` with your chosen maximum poll attempts) and prefer this simple bounded-loop form over arithmetic-counter variants.
 
 **Signal 1 — New unresolved threads:**
 ```bash
