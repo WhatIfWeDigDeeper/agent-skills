@@ -129,7 +129,7 @@ Wrap the section in HTML comment markers for idempotent re-runs.
 OPEN  = "<" + chr(33) + "-- pr-human-guide -->"
 CLOSE = "<" + chr(33) + "-- /pr-human-guide -->"
 ```
-For `!=` comparisons, rewrite as `not ... ==`. If the script has many such rewrites, prefer writing it to a file with the Write tool and executing it directly — this avoids all heredoc quoting issues. Then pass the result to GitHub with `gh pr edit --body-file` so the markers reach GitHub unescaped.
+For `!=` comparisons, rewrite them with an explicit form such as `not (a == b)`. If the script has many such rewrites, prefer writing it to a file with the Write tool and executing it directly — this avoids all heredoc quoting issues. Then pass the result to GitHub with `gh pr edit --body-file` so the markers reach GitHub unescaped.
 
 ```markdown
 <!-- pr-human-guide -->
