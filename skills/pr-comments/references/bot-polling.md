@@ -30,6 +30,7 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
        --method POST --field "reviewers[]=${bot_reviewer}"
    done
    ```
+   **If the POST returns HTTP 422**, the bot (e.g. `copilot-pull-request-reviewer[bot]`) isn't a standard collaborator — skip and proceed to polling; it may still self-trigger.
 
 4. Proceed to the **Shared polling loop** below.
 

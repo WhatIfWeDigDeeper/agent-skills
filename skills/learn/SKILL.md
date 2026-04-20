@@ -16,7 +16,7 @@ compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.8"
+  version: "0.9"
 ---
 
 # Learn from Conversation
@@ -142,9 +142,10 @@ List files modified with before/after line counts, sections updated or created, 
 - **NEVER create a skill for a 2-step workflow with no branching** — if it fits in 2 config lines, it belongs in the config; a skill requires a reason to invoke, which a 2-step note doesn't earn
 - **NEVER silently duplicate a learning that contradicts existing content** — always surface the conflict to the user and propose which version to keep; silent contradictions cause agents to behave inconsistently depending on which rule they encounter first
 - **NEVER write vague learnings** — "be careful with deployments" teaches nothing; "run smoke tests against staging before promoting to prod because the CDN cache masks broken assets" is actionable and explains why
+- **NEVER write more than two lines for a config entry** — config files are loaded into the context window on every session; a bloated entry costs tokens in perpetuity. One line states the rule; a second line (only if the "why" is non-obvious) explains it. If you need three lines, the learning belongs in a skill, not the config.
 
 ## Guidelines
 
 - **Prefer specificity**: `Run npm run dev before e2e tests` beats `ensure services are running` — vague rules train agents to interpret rather than follow
 - **One learning, one location**: if it already exists anywhere in the config or a skill, update that entry rather than creating a second one
-- **Minimum viable rule text**: write the fewest characters that still convey the rule without losing specificity. One line is the target; a second line is only justified for a non-obvious "why." `cd dir && cmd` (skips cmd if cd fails), not `cd dir; cmd`, beats a paragraph on shell exit semantics.
+- **Minimum viable rule text**: write the fewest characters that still convey the rule without losing specificity. One line is the target; a second line only if the "why" is non-obvious. Config files load on every session — every extra line costs context window tokens permanently. `cd dir && cmd` (skips cmd if cd fails), not `cd dir; cmd`, beats a paragraph on shell exit semantics.

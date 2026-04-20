@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.33"
+  version: "1.34"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -269,11 +269,9 @@ Before touching anything, show the user a clear summary as a table:
 | 4 | path/old.ts:5 | One-line description | `skip` | outdated thread |
 | 5 | *(review body)* | One-line description of top-level review feedback | `skip` | bot PR summary, no action needed |
 | 6 | *(timeline)* | One-line description of timeline comment | `reply` | question from @reviewer |
-
-Proceed? [y/N/auto]
 ```
 
-**Confirmation prompt template.** When this prompt is required, emit `Proceed? [y/N/auto]` as your final message and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
+**Confirmation prompt template.** When this prompt is required, emit `Proceed? [y/N/auto]` as a separate line after the table and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
 
 Responses:
 - `y` — proceed normally
