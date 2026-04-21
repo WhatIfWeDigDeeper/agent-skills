@@ -142,10 +142,9 @@ List files modified with before/after line counts, sections updated or created, 
 - **NEVER create a skill for a 2-step workflow with no branching** — if it fits in 2 config lines, it belongs in the config; a skill requires a reason to invoke, which a 2-step note doesn't earn
 - **NEVER silently duplicate a learning that contradicts existing content** — always surface the conflict to the user and propose which version to keep; silent contradictions cause agents to behave inconsistently depending on which rule they encounter first
 - **NEVER write vague learnings** — "be careful with deployments" teaches nothing; "run smoke tests against staging before promoting to prod because the CDN cache masks broken assets" is actionable and explains why
-- **NEVER write verbose config entries: two lines max, and minimize characters per line** — config files load on every session and every character costs tokens in perpetuity; a single 500-character line can be costlier than three terse ones. One line states the rule; a second (only if the "why" is non-obvious) explains it. If the learning cannot be expressed concisely without losing essential specificity, it belongs in a skill; do not create a skill based on line count alone.
 
 ## Guidelines
 
 - **Prefer specificity**: `Run npm run dev before e2e tests` beats `ensure services are running` — vague rules train agents to interpret rather than follow
 - **One learning, one location**: if it already exists anywhere in the config or a skill, update that entry rather than creating a second one
-- **Minimum viable rule text**: write the fewest characters that still convey the rule without losing specificity. One line is the target; a second line only if the "why" is non-obvious. Config files load on every session — every extra character costs context window tokens permanently. `cd dir && cmd` (skips cmd if cd fails), not `cd dir; cmd`, beats a paragraph on shell exit semantics.
+- **Minimum viable rule text**: fewest characters that preserve specificity — short lines, not just few lines. Add a second line only for a non-obvious "why." `cd dir && cmd` (skips cmd if cd fails), not `cd dir; cmd`, beats a paragraph on shell exit semantics.
