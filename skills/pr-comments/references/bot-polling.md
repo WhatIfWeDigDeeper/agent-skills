@@ -148,7 +148,7 @@ Only offer when at least one bot reviewer was re-requested (Step 13b). Do not of
 
 ### Signals
 
-Poll every 60 seconds using three signals. Use `for i in $(seq 1 N); do` (replace `N` with your chosen maximum poll attempts) and prefer this simple bounded-loop form over arithmetic-counter variants.
+Poll every 60 seconds using three signals. Use `for i in $(seq 1 N); do`, where `N` matches the documented timeout and interval (`N=10` for a hard 10-minute timeout at 60-second intervals), and prefer this simple bounded-loop form over arithmetic-counter variants.
 
 **Signal 1 — New unresolved threads:**
 ```bash
