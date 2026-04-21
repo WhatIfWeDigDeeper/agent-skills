@@ -146,6 +146,7 @@ When the user's request matches a skill's trigger phrases, read the skill file a
 - When a SKILL.md step creates a temp file with `mktemp` and uses it within the same tool call, document `trap 'rm -f "$FILE"' EXIT INT TERM` immediately after the `mktemp` call — a manual `rm -f` at the end of the block is skipped on error or interruption. When the temp file must persist across multiple tool calls, use a named path without `trap` instead (see the `trap` cleanup bullet above).
 - **Repo-specific paths need portability notes**: When a skill step references a layout-specific path (e.g., `skills/*/SKILL.md`), add `(adjust prefix to match your repo's skill directory structure)` — downstream consumers with a different layout silently miss the trigger.
 - Bash snippets that assign CLI output to a variable should include `2>&1` so error messages flow into the captured variable and reach fallback/error handling paths (e.g., `REVIEW_OUTPUT=$(cli ... 2>&1)`).
+- `|| true` is too broad for a specific expected error — capture `resp=$(cmd 2>&1)` and `case`-match the tolerated status (e.g., `HTTP 422`); other errors still abort.
 - **When capturing `git diff --quiet` exit codes**, use `VAR=0; git diff --quiet || VAR=$?` — not `git diff --quiet; VAR=$?`. In strict runners (`set -e`) the non-zero exit from "changes present" aborts the script before the assignment runs.
 
 ## Persistence

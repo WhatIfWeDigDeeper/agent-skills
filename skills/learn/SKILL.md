@@ -147,4 +147,4 @@ List files modified with before/after line counts, sections updated or created, 
 
 - **Prefer specificity**: `Run npm run dev before e2e tests` beats `ensure services are running` — vague rules train agents to interpret rather than follow
 - **One learning, one location**: if it already exists anywhere in the config or a skill, update that entry rather than creating a second one
-- **Minimum viable rule text**: fewest characters that preserve specificity — short lines, not just few lines. Draft, then cut clauses inferable from context or adjacent rules. Add a second line only for a non-obvious "why." `cd dir && cmd` (skips cmd if cd fails), not `cd dir; cmd`, beats a paragraph on shell exit semantics.
+- **Minimum viable rule text**: every clause must be load-bearing — the rule, the fix, a non-obvious "why," or a concrete example. Draft, then audit with **"is this the min chars necessary?"** Cut any clause you can't defend. `cd dir && cmd` (skips cmd if cd fails), not `cd dir; cmd`, beats a paragraph on shell exit semantics.
