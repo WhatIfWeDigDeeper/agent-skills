@@ -104,6 +104,7 @@ uv run --with pytest pytest tests/
 TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=https://github.com/" push
 ```
 
+- `git push` denied as "pushing to main" on upstream-less branches: use `git push origin <branch>:<branch>`.
 - `gh api --paginate --jq` applies `--jq` per page. To deduplicate across all pages, collect pages first with `jq -s`.
 - When passing shell variables into `jq`, use `jq --arg name "$value"` instead of shell string interpolation inside the filter.
 - `rg` alternation uses bare `|`, not `\|`.
