@@ -26,6 +26,7 @@ words:
   - endswith
   - ensurepip
   - EPERM
+  - esac
   - evals
   - exfiltration
   - fastapi
