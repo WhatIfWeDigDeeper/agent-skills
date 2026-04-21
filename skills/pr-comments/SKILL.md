@@ -463,9 +463,9 @@ Use the **bot subset of the deduplicated reviewer list produced in Step 13** (ex
 Then use the REST API directly for each bot:
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-  --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
+  --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]' || true
 ```
-Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed.
+Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed. The trailing `|| true` keeps a non-fatal 422 (see `references/bot-polling.md`) from aborting `set -e` scripts.
 
 After the POST:
 
