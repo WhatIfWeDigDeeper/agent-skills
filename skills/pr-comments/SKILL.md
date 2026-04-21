@@ -271,7 +271,7 @@ Before touching anything, show the user a clear summary as a table:
 | 6 | *(timeline)* | One-line description of timeline comment | `reply` | question from @reviewer |
 ```
 
-**Confirmation prompt template.** When this prompt is required, emit `Proceed? [y/N/auto]` as a separate line after the table and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
+**Confirmation prompt template.** When this prompt is required, emit `Proceed? [y/N/auto]` outside the fenced code block shown above — after the closing backticks, as its own standalone line — and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
 
 Responses:
 - `y` — proceed normally
