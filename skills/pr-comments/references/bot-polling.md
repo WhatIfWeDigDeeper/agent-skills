@@ -35,7 +35,7 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
      fi
    done
    ```
-   **HTTP 422 is non-fatal** — it can happen for multiple reasons (for example, the reviewer is already requested, cannot be requested, or is a GitHub App / bot account such as `copilot-pull-request-reviewer[bot]`). If needed, check the API response `message` field for the exact reason before continuing. The bot may still self-trigger. Any other non-zero exit (auth, rate-limit, network) surfaces as a hard failure rather than silently letting polling proceed with no re-request actually sent.
+   **HTTP 422 is non-fatal** — it can happen for multiple reasons (for example, the reviewer is already requested, cannot be requested, or is a GitHub App / bot account such as `copilot-pull-request-reviewer[bot]`). The bot may still self-trigger. Any other non-zero exit (auth, rate-limit, network) surfaces as a hard failure rather than silently letting polling proceed with no re-request actually sent.
 
 4. Proceed to the **Shared polling loop** below.
 
@@ -148,7 +148,7 @@ Only offer when at least one bot reviewer was re-requested (Step 13b). Do not of
 
 ### Signals
 
-Poll every 60 seconds using three signals. Use `for i in $(seq 1 N); do`, where `N` matches the documented timeout and interval (`N=10` for a hard 10-minute timeout at 60-second intervals), and prefer this simple bounded-loop form over arithmetic-counter variants.
+Poll every 60 seconds using three signals. Use `for i in $(seq 1 N); do` with `N=10` to match the 10-minute timeout below; prefer this bounded-loop form over arithmetic-counter variants.
 
 **Signal 1 — New unresolved threads:**
 ```bash
