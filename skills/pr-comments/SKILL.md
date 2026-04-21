@@ -460,12 +460,18 @@ Use the **bot subset of the deduplicated reviewer list produced in Step 13** (ex
 
 **Before the POST call**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
 
-Then use the REST API directly for each bot:
+Then use the REST API directly for each bot. Capture the response and only swallow HTTP 422 (see `references/bot-polling.md`) — surface anything else:
+
 ```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-  --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]' || true
+if ! resp=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
+    --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]' 2>&1); then
+  case "$resp" in
+    *"HTTP 422"*) : ;;  # non-fatal: already requested / GitHub App / etc.
+    *) echo "Re-request failed: $resp" >&2; exit 1 ;;
+  esac
+fi
 ```
-Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed. The trailing `|| true` keeps a non-fatal 422 (see `references/bot-polling.md`) from aborting `set -e` scripts.
+Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed.
 
 After the POST:
 

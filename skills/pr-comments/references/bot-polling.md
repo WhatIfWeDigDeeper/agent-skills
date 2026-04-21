@@ -22,15 +22,20 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
 
 2. Take a **fresh** snapshot of the current unresolved thread node IDs — see **Shared Setup** above.
 
-3. POST the bot re-request for each bot reviewer:
+3. POST the bot re-request for each bot reviewer. Capture the response and only swallow HTTP 422 — surface anything else:
    ```bash
    bot_reviewers=("BOT_LOGIN_1" "BOT_LOGIN_2")
    for bot_reviewer in "${bot_reviewers[@]}"; do
-     gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-       --method POST --field "reviewers[]=${bot_reviewer}" || true
+     if ! resp=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
+         --method POST --field "reviewers[]=${bot_reviewer}" 2>&1); then
+       case "$resp" in
+         *"HTTP 422"*) : ;;  # non-fatal: already requested / GitHub App / etc.
+         *) echo "Re-request failed for ${bot_reviewer}: $resp" >&2; exit 1 ;;
+       esac
+     fi
    done
    ```
-   **If the POST returns HTTP 422**, treat it as a non-fatal validation result and proceed to polling; this can happen for multiple reasons (for example, the reviewer is already requested, cannot be requested, or is a GitHub App / bot account such as `copilot-pull-request-reviewer[bot]`). If needed, check the API response `message` field for the exact reason before continuing. The bot may still self-trigger. The trailing `|| true` guard keeps a non-zero exit (422 or otherwise) from aborting `set -e` scripts; capture stderr (`2>&1`) into a variable first if you need to distinguish 422 from a genuine failure.
+   **HTTP 422 is non-fatal** — it can happen for multiple reasons (for example, the reviewer is already requested, cannot be requested, or is a GitHub App / bot account such as `copilot-pull-request-reviewer[bot]`). If needed, check the API response `message` field for the exact reason before continuing. The bot may still self-trigger. Any other non-zero exit (auth, rate-limit, network) surfaces as a hard failure rather than silently letting polling proceed with no re-request actually sent.
 
 4. Proceed to the **Shared polling loop** below.
 
