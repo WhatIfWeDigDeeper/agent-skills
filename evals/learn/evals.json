@@ -103,6 +103,43 @@
           "text": "Transcript shows a plan or summary of proposed changes (what will be added, where) before any file write operations occur"
         }
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "Heads up — `npm run build` doesn't set `NODE_ENV=production`. You need `npm run build:prod` for production bundles; plain `npm run build` produces a dev-mode bundle.",
+      "expected_output": "Skill notices the existing `npm run build` bullet in the CLAUDE.md Commands section and updates it in place (clarifies it's dev-only) rather than appending a parallel entry that leaves the stale `build the app` description alongside new production-build content. One fact, not a workflow — no skill created.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- Node.js backend\n- Docker for local dev\n\n## Commands\n- `npm run build` — build the app\n- `npm test` — run tests\n- `npm run dev` — start dev server\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "claude-md-modified",
+          "text": "CLAUDE.md was modified"
+        },
+        {
+          "id": "original-build-entry-updated-in-place",
+          "text": "The original `- `npm run build` — build the app` bullet no longer appears verbatim — it was modified in place to reflect its dev-only scope or replaced with a clearer entry"
+        },
+        {
+          "id": "mentions-node-env-or-build-prod",
+          "text": "The updated CLAUDE.md mentions `NODE_ENV=production` and/or `npm run build:prod` in the context of the `build` entry"
+        },
+        {
+          "id": "no-stale-duplicate-entry",
+          "text": "CLAUDE.md does not contain the original `build the app` description alongside a separately appended production-build entry — the old description is not left stale next to new content"
+        },
+        {
+          "id": "no-new-skill",
+          "text": "No new skill file was created — this is a single fact, not a multi-step workflow"
+        },
+        {
+          "id": "summary-mentions-update-in-place",
+          "text": "Agent summary explicitly states that an existing entry was updated rather than new content being appended"
+        }
+      ]
     }
   ]
 }

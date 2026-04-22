@@ -9,7 +9,8 @@
     "evals_run": [
       0,
       1,
-      2
+      2,
+      3
     ],
     "runs_per_configuration": 1,
     "models_tested": [
@@ -17,7 +18,8 @@
         "executor_model": "claude-sonnet-4-6",
         "analyzer_model": "claude-sonnet-4-6",
         "timestamp": "2026-03-14T16:38:27Z",
-        "runs_per_configuration": 1
+        "runs_per_configuration": 1,
+        "notes": "evals 0-2 dated 2026-03-14; eval 3 backfilled 2026-04-22"
       },
       {
         "executor_model": "claude-opus-4-7",
@@ -28,9 +30,10 @@
     ]
   },
   "notes": [
-    "Multi-model benchmark: the same 3 evals were run on both claude-sonnet-4-6 and claude-opus-4-7 (1 run per eval per configuration). Per-model stats live in run_summary_by_model; the top-level run_summary mirrors the latest model (claude-opus-4-7) for compatibility with the single-model aggregate_benchmark.py script.",
-    "On claude-sonnet-4-6 the skill produced +13% pass-rate lift, concentrated in eval 2 (baseline 3/5 vs. with-skill 5/5) on multi-target routing and plan-before-apply. On claude-opus-4-7 the baseline reaches all 15 assertions on its own \u2014 lift collapses to +0% on this model, suggesting the current eval suite no longer discriminates skill value for Opus-tier baselines.",
-    "Self-graded by executor for the Opus 4.7 run \u2014 no separate analyzer pass. Sonnet 4.6 runs used the original narrated/simulated grading methodology described in the prior benchmark.md."
+    "Multi-model benchmark: all 4 evals ran on both claude-sonnet-4-6 and claude-opus-4-7 (1 run per eval per configuration; evals 0-2 on Sonnet dated 2026-03-14, eval 3 on Sonnet backfilled 2026-04-22 for symmetry; all Opus runs dated 2026-04-22). Per-model stats live in run_summary_by_model; the top-level run_summary mirrors the latest model (claude-opus-4-7) for compatibility with the single-model aggregate_benchmark.py script.",
+    "On claude-sonnet-4-6 the skill produces +10% pass-rate lift across 4 evals (was +13% with 3 evals \u2014 diluted by adding non-discriminating eval 3). The lift is still concentrated entirely in eval 2, where the baseline scored 3/5 vs. with-skill 5/5 on multi-target routing and plan-before-apply. On claude-opus-4-7 the baseline reaches all 21 assertions per configuration (5+5+5+6 across evals 0-3) on its own \u2014 lift is +0% across all four evals.",
+    "Eval 3 (update-in-place-existing-entry) was designed to test Route A's 'search existing content before appending' rule. Both models handled it correctly in both configurations (6/6 across all four cells) \u2014 the eval did not discriminate on either model.",
+    "Self-graded by executor for all runs \u2014 no separate analyzer pass. Earlier Sonnet 4.6 runs on evals 0-2 used the original narrated/simulated grading methodology; eval 3 Sonnet runs used the same live-workspace self-grading as Opus."
   ],
   "runs": [
     {
@@ -572,6 +575,206 @@
         }
       ],
       "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-in-place-existing-entry",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 55.42,
+        "tokens": 25328,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "CLAUDE.md was modified",
+          "passed": true,
+          "evidence": "CLAUDE.md edited from 10 to 12 lines; Commands section updated."
+        },
+        {
+          "text": "The original `- `npm run build` \u2014 build the app` bullet no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
+          "passed": true,
+          "evidence": "Original bullet replaced with '- `npm run build` \u2014 dev-mode bundle only (does NOT set NODE_ENV=production)'."
+        },
+        {
+          "text": "The updated CLAUDE.md mentions `NODE_ENV=production` and/or `npm run build:prod` in the context of the `build` entry",
+          "passed": true,
+          "evidence": "Commands section mentions both NODE_ENV=production and npm run build:prod adjacent to the build entry."
+        },
+        {
+          "text": "CLAUDE.md does not contain the original `build the app` description alongside a separately appended production-build entry \u2014 the old description is not left stale next to new content",
+          "passed": true,
+          "evidence": "'build the app' removed entirely; old description was not left alongside new entry."
+        },
+        {
+          "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
+          "passed": true,
+          "evidence": "No skill files created; only CLAUDE.md edited."
+        },
+        {
+          "text": "Agent summary explicitly states that an existing entry was updated rather than new content being appended",
+          "passed": true,
+          "evidence": "Summary: 'modified the existing npm run build entry in-place rather than appending a separate note'; 'original entry was replaced to avoid a stale duplicate'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-in-place-existing-entry",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 46.15,
+        "tokens": 34503,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "CLAUDE.md was modified",
+          "passed": true,
+          "evidence": "Edit tool applied to CLAUDE.md \u2014 original build bullet replaced in place and new build:prod bullet added."
+        },
+        {
+          "text": "The original `- `npm run build` \u2014 build the app` bullet no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
+          "passed": true,
+          "evidence": "Final CLAUDE.md line reads '- `npm run build` \u2014 build a dev-mode bundle (does NOT set `NODE_ENV=production`)' \u2014 'build the app' is gone."
+        },
+        {
+          "text": "The updated CLAUDE.md mentions `NODE_ENV=production` and/or `npm run build:prod` in the context of the `build` entry",
+          "passed": true,
+          "evidence": "Both 'NODE_ENV=production' and 'npm run build:prod' appear on consecutive Commands bullets with the build entry."
+        },
+        {
+          "text": "CLAUDE.md does not contain the original `build the app` description alongside a separately appended production-build entry \u2014 the old description is not left stale next to new content",
+          "passed": true,
+          "evidence": "'build the app' does not appear anywhere in the final file; the old description was replaced, not duplicated."
+        },
+        {
+          "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
+          "passed": true,
+          "evidence": "Only CLAUDE.md was edited; no SKILL.md or new skill directory created."
+        },
+        {
+          "text": "Agent summary explicitly states that an existing entry was updated rather than new content being appended",
+          "passed": true,
+          "evidence": "Summary reads 'Commands section \u2014 updated in place (not appended)' and 'original build the app description was replaced, not kept alongside new content'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-in-place-existing-entry",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 28.81,
+        "tokens": 18002,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "CLAUDE.md was modified",
+          "passed": true,
+          "evidence": "CLAUDE.md edited via the Edit tool."
+        },
+        {
+          "text": "The original `- `npm run build` \u2014 build the app` bullet no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
+          "passed": true,
+          "evidence": "Original bullet replaced with '- `npm run build` \u2014 dev-mode bundle only (does NOT set NODE_ENV=production)'."
+        },
+        {
+          "text": "The updated CLAUDE.md mentions `NODE_ENV=production` and/or `npm run build:prod` in the context of the `build` entry",
+          "passed": true,
+          "evidence": "Commands section contains both NODE_ENV=production and npm run build:prod."
+        },
+        {
+          "text": "CLAUDE.md does not contain the original `build the app` description alongside a separately appended production-build entry \u2014 the old description is not left stale next to new content",
+          "passed": true,
+          "evidence": "Final file contains no 'build the app' description; only the updated entries exist."
+        },
+        {
+          "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
+          "passed": true,
+          "evidence": "No skill files created; fact-level update to CLAUDE.md only."
+        },
+        {
+          "text": "Agent summary explicitly states that an existing entry was updated rather than new content being appended",
+          "passed": true,
+          "evidence": "Response text: 'The old build the app description was updated in place so there's no stale entry floating around.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "update-in-place-existing-entry",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 29.49,
+        "tokens": 24861,
+        "tool_calls": 4,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "CLAUDE.md was modified",
+          "passed": true,
+          "evidence": "Edit tool applied to CLAUDE.md."
+        },
+        {
+          "text": "The original `- `npm run build` \u2014 build the app` bullet no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
+          "passed": true,
+          "evidence": "Original bullet replaced with '- `npm run build` \u2014 build a dev-mode bundle (does NOT set `NODE_ENV=production`)'."
+        },
+        {
+          "text": "The updated CLAUDE.md mentions `NODE_ENV=production` and/or `npm run build:prod` in the context of the `build` entry",
+          "passed": true,
+          "evidence": "Build entry mentions both 'NODE_ENV=production' and 'npm run build:prod' on adjacent bullets."
+        },
+        {
+          "text": "CLAUDE.md does not contain the original `build the app` description alongside a separately appended production-build entry \u2014 the old description is not left stale next to new content",
+          "passed": true,
+          "evidence": "'build the app' text removed entirely; old description was not left alongside new entry."
+        },
+        {
+          "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
+          "passed": true,
+          "evidence": "No skill files created; only CLAUDE.md was edited."
+        },
+        {
+          "text": "Agent summary explicitly states that an existing entry was updated rather than new content being appended",
+          "passed": true,
+          "evidence": "Response text: 'updated the `npm run build` entry in CLAUDE.md in place (rather than appending a new line)'."
+        }
+      ],
+      "notes": []
     }
   ],
   "run_summary": {
@@ -583,15 +786,15 @@
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 83.46,
-        "stddev": 17.2937,
-        "min": 66.58,
+        "mean": 74.14,
+        "stddev": 23.3977,
+        "min": 46.15,
         "max": 101.14
       },
       "tokens": {
-        "mean": 35567.0,
-        "stddev": 862.2836,
-        "min": 34848,
+        "mean": 35301.0,
+        "stddev": 882.447,
+        "min": 34503,
         "max": 36523
       }
     },
@@ -603,22 +806,22 @@
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 83.23,
-        "stddev": 38.1755,
-        "min": 39.88,
+        "mean": 69.8,
+        "stddev": 41.1531,
+        "min": 29.49,
         "max": 111.83
       },
       "tokens": {
-        "mean": 28032.0,
-        "stddev": 2442.0743,
-        "min": 25238,
+        "mean": 27239.25,
+        "stddev": 2547.4749,
+        "min": 24861,
         "max": 29759
       }
     },
     "delta": {
       "pass_rate": "+0.00",
-      "time_seconds": "+0.2",
-      "tokens": "+7535"
+      "time_seconds": "+4.3",
+      "tokens": "+8062"
     }
   },
   "run_summary_by_model": {
@@ -631,42 +834,42 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 71.9,
-          "stddev": 10.7893,
-          "min": 60.4,
+          "mean": 67.78,
+          "stddev": 12.0625,
+          "min": 55.42,
           "max": 81.8
         },
         "tokens": {
-          "mean": 16008.3333,
-          "stddev": 542.3074,
+          "mean": 18338.25,
+          "stddev": 4680.8238,
           "min": 15565,
-          "max": 16613
+          "max": 25328
         }
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.8667,
-          "stddev": 0.2309,
+          "mean": 0.9,
+          "stddev": 0.2,
           "min": 0.6,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 46.1,
-          "stddev": 18.7192,
-          "min": 34.6,
+          "mean": 41.78,
+          "stddev": 17.5597,
+          "min": 28.81,
           "max": 67.7
         },
         "tokens": {
-          "mean": 14106.3333,
-          "stddev": 3512.3485,
+          "mean": 15080.25,
+          "stddev": 3466.7636,
           "min": 11968,
           "max": 18160
         }
       },
       "delta": {
-        "pass_rate": "+0.13",
-        "time_seconds": "+25.8",
-        "tokens": "+1902"
+        "pass_rate": "+0.10",
+        "time_seconds": "+26.0",
+        "tokens": "+3258"
       }
     },
     "claude-opus-4-7": {
@@ -678,15 +881,15 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 83.46,
-          "stddev": 17.2937,
-          "min": 66.58,
+          "mean": 74.14,
+          "stddev": 23.3977,
+          "min": 46.15,
           "max": 101.14
         },
         "tokens": {
-          "mean": 35567.0,
-          "stddev": 862.2836,
-          "min": 34848,
+          "mean": 35301.0,
+          "stddev": 882.447,
+          "min": 34503,
           "max": 36523
         }
       },
@@ -698,22 +901,22 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 83.23,
-          "stddev": 38.1755,
-          "min": 39.88,
+          "mean": 69.8,
+          "stddev": 41.1531,
+          "min": 29.49,
           "max": 111.83
         },
         "tokens": {
-          "mean": 28032.0,
-          "stddev": 2442.0743,
-          "min": 25238,
+          "mean": 27239.25,
+          "stddev": 2547.4749,
+          "min": 24861,
           "max": 29759
         }
       },
       "delta": {
         "pass_rate": "+0.00",
-        "time_seconds": "+0.2",
-        "tokens": "+7535"
+        "time_seconds": "+4.3",
+        "tokens": "+8062"
       }
     }
   }
