@@ -255,7 +255,7 @@ trap 'rm -f "$PROMPT_FILE"' EXIT INT TERM
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 ```
 
-Quoting `"$(cat "$PROMPT_FILE")"` in the commands below prevents shell metacharacters in diff/PR content from being interpreted.
+In the commands below, prompt content is passed safely either as a single quoted argument (`"$(cat "$PROMPT_FILE")"` for Copilot/Gemini) or via stdin/piping (for Codex), so shell metacharacters in diff/PR content are not interpreted by the shell.
 
 **4c. Execute and capture output:**
 
