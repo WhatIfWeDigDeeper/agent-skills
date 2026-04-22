@@ -15,8 +15,6 @@ AUDIT_JSON=$($PM audit --json 2>/dev/null)
 
 Note: bun does not support audit. If using bun, skip audit and inform user.
 
-**Note:** Installation (SKILL.md step 6) is not required before running `$PM audit` — the audit reads from lock files and package.json, not `node_modules`.
-
 **Note for npm monorepos:** If the root `package.json` has a `workspaces` field, run `npm audit --workspaces` from the root instead of auditing member directories individually.
 
 Collect all audit results into a consolidated report.
