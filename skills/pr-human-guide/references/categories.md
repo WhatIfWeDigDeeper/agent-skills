@@ -206,7 +206,7 @@ When multiple items in the same file qualify for the same category:
 
 Flag an area only if a reasonable senior engineer would specifically want to
 review it beyond what automated tools would catch. When in doubt, flag only
-when there is a concrete reviewer-relevant risk.
+when there is a concrete reviewer-relevant risk or uncertainty.
 
 Exceptions — never flag these regardless of content:
 - Changes that only affect comments or documentation
