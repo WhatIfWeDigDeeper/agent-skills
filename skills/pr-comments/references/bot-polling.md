@@ -35,7 +35,7 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
      fi
    done
    ```
-   **HTTP 422 is non-fatal** — it can happen for multiple reasons (for example, the reviewer is already requested, cannot be requested, or is a GitHub App / bot account such as `copilot-pull-request-reviewer[bot]`). The bot may still self-trigger. Any other non-zero exit (auth, rate-limit, network) surfaces as a hard failure rather than silently letting polling proceed with no re-request actually sent.
+   **HTTP 422 is non-fatal** — the bot may still self-trigger. Other exits (auth, rate-limit, network) must surface rather than silently let polling proceed with no re-request actually sent.
 
 4. Proceed to the **Shared polling loop** below.
 
@@ -43,7 +43,7 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
 
 ## Entry from Step 6c (All-Skip Repoll Gate)
 
-This gate is executed from Step 6c when the plan is empty or every plan row's `Action` value is exactly `skip`. It must not be entered when at least one plan row has an actionable action (`fix`, `accept suggestion`, `reply`, `decline`, `consistency`).
+Entered from Step 6c only when the plan is empty or every plan row's `Action` value is exactly `skip`.
 
 **Setup:**
 

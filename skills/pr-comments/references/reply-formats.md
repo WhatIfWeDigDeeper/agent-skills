@@ -1,8 +1,6 @@
 # Reply Formats by Comment Type
 
-Use the correct endpoint and body format based on the comment type being replied to.
-
-**Shell quoting safety**: Always use single-quoted strings for `--field body='...'` — never double-quoted. Backticks inside double-quoted shell strings trigger command substitution (e.g. `` `git stash drop` `` executes, dropping a stash). If the reply body contains single quotes, escape them as `'\''` or write the body text to a temp file and pass it as `--field body=@/path/to/file`. If you use `--input`, the file must contain the full request payload (for these endpoints, typically JSON such as `{"body":"..."}`), not just the raw comment body string.
+**Shell quoting safety**: Always use single-quoted strings for `--field body='...'` — never double-quoted. Backticks inside double-quoted shell strings trigger command substitution (e.g. `` `git stash drop` `` executes, dropping a stash). If the reply body contains single quotes, escape them as `'\''` or write the body to a temp file and pass `--field body=@/path/to/file`. If you use `--input`, the file must contain the full JSON payload (e.g. `{"body":"..."}`), not just the raw body.
 
 ## Byline
 
