@@ -39,7 +39,7 @@ git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
 
 If `git worktree add` fails due to a sandbox permission error:
-> `git worktree` requires write access to the parent temp directory — the per-run `$WORKTREE_PATH` is nested under it. Grant that access in your assistant's settings (in Claude Code: add the resolved path — the value of `$TMPDIR`, or `/private/tmp` if `$TMPDIR` is unset — to the sandbox allowlist in `settings.json`) and retry.
+> `git worktree` requires write access to the parent temp directory — the per-run `$WORKTREE_PATH` is nested under it. Grant that access in your assistant's settings (in Claude Code: add the resolved path — the value of `$TMPDIR`, or `/private/tmp` if `$TMPDIR` is unset or empty — to the sandbox allowlist in `settings.json`) and retry.
 
 **All subsequent steps operate within `$WORKTREE_PATH`.** Discovery, syncs, edits, and commits all happen there. Code blocks in reference files that show `cd "$WORKTREE_PATH/<directory>"` must run that `cd` explicitly — the working directory does not carry over between blocks.
 
