@@ -150,8 +150,6 @@ if [ -n "$SELECTED_SEVERITIES" ]; then
 fi
 ```
 
-`SEVERITY_MAP` is built by the GHSA lookup above and is ready for use here.
-
 Capture the vulnerability count within the selected filter before making any fixes:
 ```bash
 # TARGET_COUNT: count of vulnerabilities matching the selected severity filter (not total audit count)
