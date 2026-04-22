@@ -34,7 +34,7 @@ Create an isolated git worktree so the main working directory is never modified:
 ```bash
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 BRANCH_NAME="py-uv-deps-$TIMESTAMP"
-WORKTREE_PATH="${TMPDIR:-/tmp}/$BRANCH_NAME"
+WORKTREE_PATH="${TMPDIR:-/private/tmp}/$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
 
