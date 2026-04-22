@@ -1,7 +1,7 @@
 # learn Benchmark Results
 
-**Models tested**: `claude-sonnet-4-6` (evals 0-2 dated 2026-03-14, eval 3 dated 2026-04-22), `claude-opus-4-7` (2026-04-22, evals 0-3)
-**Evals**: 4 × 2 configurations × 2 models = 16 runs total, 1 run each.
+**Models tested**: `claude-sonnet-4-6` (evals 0-2 dated 2026-03-14, evals 3-4 dated 2026-04-22), `claude-opus-4-7` (2026-04-22, evals 0-4)
+**Evals**: 5 × 2 configurations × 2 models = 20 runs total, 1 run each.
 
 ## Summary by model
 
@@ -9,21 +9,21 @@
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|--------------|-------|
-| Pass rate | **100.0%** ± 0.0% | 90.0% ± 20.0% | **+10%** |
-| Time | 67.8s ± 12.1s | 41.8s ± 17.6s | +26.0s |
-| Tokens | 18,338 ± 4,681 | 15,080 ± 3,467 | +3,258 |
+| Pass rate | **100.0%** ± 0.0% | 92.0% ± 17.9% | **+8%** |
+| Time | 72.1s ± 14.3s | 46.4s ± 18.4s | +25.7s |
+| Tokens | 20,143 ± 5,720 | 16,148 ± 3,835 | +3,995 |
 
-The skill's lift on Sonnet 4.6 is concentrated entirely in eval 2 (multi-target routing with plan-before-apply); evals 0, 1, and 3 all score 5/5 or 6/6 in both configurations. Adding the non-discriminating eval 3 diluted the prior 3-eval delta from +13% to +10% without changing what the skill actually fixes.
+The skill's lift on Sonnet 4.6 is concentrated entirely in eval 2 (multi-target routing with plan-before-apply); evals 0, 1, 3, and 4 all score 5/5 or 6/6 in both configurations. Adding non-discriminating evals 3 and 4 diluted the headline delta from +13% (3 evals) to +10% (4 evals) to +8% (5 evals) without changing what the skill actually fixes.
 
 ### `claude-opus-4-7`
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|--------------|-------|
 | Pass rate | **100.0%** ± 0.0% | 100.0% ± 0.0% | **+0%** |
-| Time | 74.1s ± 23.4s | 69.8s ± 41.2s | +4.3s |
-| Tokens | 35,301 ± 882 | 27,239 ± 2,547 | +8,062 |
+| Time | 73.2s ± 20.4s | 66.5s ± 36.4s | +6.7s |
+| Tokens | 35,409 ± 802 | 27,204 ± 2,208 | +8,206 |
 
-On Opus 4.7 the baseline reaches all 21 assertions per configuration on its own (5+5+5+6 across evals 0-3). Eval 2's multi-target routing and plan-before-apply — the sole Sonnet 4.6 differentiator — is handled by Opus without the skill. Eval 3's update-in-place behavior is also handled correctly. Lift is +0% across all four evals.
+On Opus 4.7 the baseline reaches all 27 assertions per configuration (5+5+5+6+6 across evals 0-4) on its own. Every behavior the skill is designed to enforce — multi-target routing, plan-before-apply, update-in-place, scope-guard disambiguation on multi-config fixtures — is handled by the Opus baseline without the skill. On eval 4 the baseline prompt was even more nuanced than the skill's, noting that one of the three configs was style-scoped and recommending it be skipped. Lift is +0% across all five evals.
 
 Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
@@ -35,8 +35,9 @@ Summary-table Delta values are computed from unrounded means, so they may differ
 | 1 | New skill creation | 5/5 (100%) | 5/5 (100%) | 5/5 (100%) | 5/5 (100%) |
 | 2 | Multi-target routing | 5/5 (100%) | **3/5 (60%)** | 5/5 (100%) | 5/5 (100%) |
 | 3 | Update-in-place existing entry | 6/6 (100%) | 6/6 (100%) | 6/6 (100%) | 6/6 (100%) |
+| 4 | Scope-guard multi-config disambiguation | 6/6 (100%) | 6/6 (100%) | 6/6 (100%) | 6/6 (100%) |
 
-**Only eval 2 on Sonnet 4.6 without-skill is discriminating.** Evals 0, 1, and 3 are non-discriminating on both models. Eval 2 is non-discriminating on Opus 4.7.
+**Only eval 2 on Sonnet 4.6 without-skill is discriminating.** The other 19 cells all pass 100%.
 
 ## What Each Eval Tests
 
@@ -60,9 +61,14 @@ Tests multi-target detection and routing: factual rules go to both config files,
 
 Tests Route A's "search existing content before appending" rule: the correct behavior is to update the existing `npm run build` bullet in place (clarifying it's dev-only) and add a companion `build:prod` entry — not to append a new section while leaving the stale `build the app` description. All four runs (both configurations on both models) passed 6/6: every baseline updated in place, removed the stale "build the app" description, and explicitly described the update-in-place choice in its summary. The skill adds no measurable lift on this fixture.
 
+### Eval 4 — Scope-guard multi-config disambiguation
+**Prompt**: Fixture with three AI configs (CLAUDE.md + `.github/copilot-instructions.md` + AGENTS.md); user shares a single git gotcha (`git reset --hard` + `git clean -fd`).
+
+Tests Route A's scope-guard behavior on multi-config fixtures: the skill's expected behavior is to detect all three configs, explicitly ask the user which to update, and only then write. All four runs (both configurations on both models) passed 6/6: every baseline detected all three configs, emitted a numbered-choice disambiguation prompt before writing, and wrote to the chosen subset. Notably, the Opus 4.7 baseline prompt was more nuanced than the skill's — it reasoned that the Copilot file was style-scoped and recommended skipping it, rather than just listing all three as equal options. The skill adds no measurable lift on this fixture.
+
 ## Known Eval Limitations
 
-- **Evals 0, 1, and 3 are non-discriminating on both models.** They test the basic write path, skill-creation routing, and update-in-place behavior — all three are handled correctly by baselines at both tiers.
-- **Eval 2 only discriminates on Sonnet 4.6.** On Opus 4.7 the baseline already does multi-target routing and plan-before-apply on its own, so the skill adds no measurable lift under the current assertions.
-- **Self-grading.** All runs were self-graded by the executor — no separate analyzer pass. Sonnet 4.6 evals 0-2 used the original narrated/simulated grading methodology from the prior benchmark; eval 3 (Sonnet and Opus) used live-workspace self-grading. A separate grader pass would strengthen the null results, though the transcripts are unambiguous.
-- **Next-step implication.** Update-in-place did not discriminate. Remaining candidates to pilot: timeless-rule stripping (user prompt includes session-specific details like "yesterday's PR #42"; skill should strip, baseline may preserve), and scope guard on multi-config broadcast (fixture with 3+ AI configs; skill should ask which to update, baseline may write to all without asking). If those also don't discriminate, the finding is that the current SKILL.md rules are largely internalized by Opus-tier baselines, and the skill's value on this model may be consistency across sessions rather than measurable single-shot lift.
+- **19 of 20 cells are non-discriminating.** Evals 0, 1, 3, and 4 are non-discriminating on both models. Eval 2 is non-discriminating on Opus 4.7. Only Sonnet 4.6 without-skill on eval 2 produces a fail verdict (3/5) — that single cell drives the entire measured lift.
+- **Discrimination attempts for Opus 4.7 failed.** Evals 3 (update-in-place) and 4 (scope-guard) were designed as targeted discrimination tests for Opus-tier baselines and did not discriminate. Both Sonnet and Opus baselines already internalize Route A's "search before appending" and "ask which configs" rules — they do the right thing without the skill's explicit instruction.
+- **Self-grading.** All runs were self-graded by the executor — no separate analyzer pass. Sonnet 4.6 evals 0-2 used the original narrated/simulated grading methodology from the prior benchmark; evals 3-4 used live-workspace self-grading. A separate grader pass would strengthen the null results, though the transcripts are unambiguous.
+- **Interpretation.** Opus-tier baselines now handle everything the skill is currently designed to enforce. The skill's measurable single-shot value on this model is effectively zero under the current assertion set. The skill may still provide value not captured here (consistency across sessions with different prompts; cross-agent uniformity when multiple coding assistants collaborate on the same repo; latency of reference-file reads preventing certain failure modes the evals don't simulate) — but that value is not visible in pass-rate deltas.

@@ -10,7 +10,8 @@
       0,
       1,
       2,
-      3
+      3,
+      4
     ],
     "runs_per_configuration": 1,
     "models_tested": [
@@ -19,7 +20,7 @@
         "analyzer_model": "claude-sonnet-4-6",
         "timestamp": "2026-03-14T16:38:27Z",
         "runs_per_configuration": 1,
-        "notes": "evals 0-2 dated 2026-03-14; eval 3 backfilled 2026-04-22"
+        "notes": "evals 0-2 dated 2026-03-14; evals 3-4 backfilled 2026-04-22"
       },
       {
         "executor_model": "claude-opus-4-7",
@@ -30,10 +31,10 @@
     ]
   },
   "notes": [
-    "Multi-model benchmark: all 4 evals ran on both claude-sonnet-4-6 and claude-opus-4-7 (1 run per eval per configuration; evals 0-2 on Sonnet dated 2026-03-14, eval 3 on Sonnet backfilled 2026-04-22 for symmetry; all Opus runs dated 2026-04-22). Per-model stats live in run_summary_by_model; the top-level run_summary mirrors the latest model (claude-opus-4-7) for compatibility with the single-model aggregate_benchmark.py script.",
-    "On claude-sonnet-4-6 the skill produces +10% pass-rate lift across 4 evals (was +13% with 3 evals \u2014 diluted by adding non-discriminating eval 3). The lift is still concentrated entirely in eval 2, where the baseline scored 3/5 vs. with-skill 5/5 on multi-target routing and plan-before-apply. On claude-opus-4-7 the baseline reaches all 21 assertions per configuration (5+5+5+6 across evals 0-3) on its own \u2014 lift is +0% across all four evals.",
-    "Eval 3 (update-in-place-existing-entry) was designed to test Route A's 'search existing content before appending' rule. Both models handled it correctly in both configurations (6/6 across all four cells) \u2014 the eval did not discriminate on either model.",
-    "Self-graded by executor for all runs \u2014 no separate analyzer pass. Earlier Sonnet 4.6 runs on evals 0-2 used the original narrated/simulated grading methodology; eval 3 Sonnet runs used the same live-workspace self-grading as Opus."
+    "Multi-model benchmark: all 5 evals ran on both claude-sonnet-4-6 and claude-opus-4-7 (1 run per eval per configuration; evals 0-2 on Sonnet dated 2026-03-14, evals 3-4 on Sonnet backfilled 2026-04-22; all Opus runs dated 2026-04-22). Per-model stats live in run_summary_by_model; the top-level run_summary mirrors the latest model (claude-opus-4-7) for compatibility with the single-model aggregate_benchmark.py script.",
+    "On claude-sonnet-4-6 the skill produces +8% pass-rate lift across 5 evals (was +13% with 3 evals; +10% with 4 evals \u2014 diluted each time a non-discriminating eval was added). The lift is still concentrated entirely in eval 2, where the baseline scored 3/5 vs. with-skill 5/5 on multi-target routing and plan-before-apply. On claude-opus-4-7 the baseline reaches all 27 assertions per configuration (5+5+5+6+6 across evals 0-4) on its own \u2014 lift is +0% across all five evals.",
+    "Evals 3 and 4 were targeted discrimination attempts for Opus-tier baselines. Eval 3 tests Route A's 'search existing content before appending' rule (update-in-place vs. duplicate). Eval 4 tests Route A's scope-guard behavior when multiple AI configs are present (asks which to update vs. silent broadcast). Neither discriminated on either model: both Sonnet and Opus baselines update in place correctly and ask disambiguation questions unprompted when multiple configs are detected. On Opus 4.7 the baseline prompt in eval 4 was even more nuanced than the skill's \u2014 it noticed the Copilot file was style-scoped and recommended skipping it.",
+    "Self-graded by executor for all runs \u2014 no separate analyzer pass. Earlier Sonnet 4.6 runs on evals 0-2 used the original narrated/simulated grading methodology; evals 3-4 Sonnet runs used the same live-workspace self-grading as Opus."
   ],
   "runs": [
     {
@@ -775,6 +776,206 @@
         }
       ],
       "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "scope-guard-multi-config-disambiguation",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 89.59,
+        "tokens": 27362,
+        "tool_calls": 12,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript shows all three configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) were detected before any file was modified",
+          "passed": true,
+          "evidence": "Step 6 Bash scan found CLAUDE.md (9), AGENTS.md (3), .github/copilot-instructions.md (3) before any Edit."
+        },
+        {
+          "text": "Before any file was written, the agent emitted a prompt or question explicitly asking the user to choose which of the detected config files to update (a generic 'does this plan look right?' confirmation does not count \u2014 the prompt must specifically offer a choice of configs)",
+          "passed": true,
+          "evidence": "Step 7 prompt: 'Found multiple config files: 1. CLAUDE.md \u2026 2. AGENTS.md \u2026 3. .github/copilot-instructions.md \u2026 Which should I update? (enter number, or \"all\")'"
+        },
+        {
+          "text": "Chronological action log shows no file modifications occurred before the disambiguation prompt and a simulated user response",
+          "passed": true,
+          "evidence": "Disambiguation prompt (step 7) + 'all' response (step 8) + plan-confirm (step 10) + 'y' (step 11) all precede Edit calls at steps 14-16."
+        },
+        {
+          "text": "The final content of at least one modified config mentions both `git reset --hard` and `git clean -fd` (or equivalent phrasing) so the gotcha is captured end-to-end",
+          "passed": true,
+          "evidence": "All three files contain 'git reset --hard' and 'git clean -fd' in the added Git section rule."
+        },
+        {
+          "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
+          "passed": true,
+          "evidence": "Classified as Route A; no SKILL.md created."
+        },
+        {
+          "text": "User-facing summary explicitly names which config files were modified (and which were left alone, if any)",
+          "passed": true,
+          "evidence": "Summary table names all three files with before/after line counts."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "scope-guard-multi-config-disambiguation",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 69.57,
+        "tokens": 35842,
+        "tool_calls": 10,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript shows all three configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) were detected before any file was modified",
+          "passed": true,
+          "evidence": "Step 6 detection Bash found CLAUDE.md (9 lines), AGENTS.md (3), .github/copilot-instructions.md (3) before any Edit."
+        },
+        {
+          "text": "Before any file was written, the agent emitted a prompt or question explicitly asking the user to choose which of the detected config files to update (a generic 'does this plan look right?' confirmation does not count \u2014 the prompt must specifically offer a choice of configs)",
+          "passed": true,
+          "evidence": "Step 7 prompt: 'Found multiple config files: 1. CLAUDE.md \u2026 2. AGENTS.md \u2026 3. .github/copilot-instructions.md \u2026 Which should I update? (enter number, or \"all\")'"
+        },
+        {
+          "text": "Chronological action log shows no file modifications occurred before the disambiguation prompt and a simulated user response",
+          "passed": true,
+          "evidence": "Disambiguation prompt (step 7) and response 'all' (step 8) preceded all three Edit calls (steps 11-13)."
+        },
+        {
+          "text": "The final content of at least one modified config mentions both `git reset --hard` and `git clean -fd` (or equivalent phrasing) so the gotcha is captured end-to-end",
+          "passed": true,
+          "evidence": "All three final files contain 'git reset --hard' and 'git clean -fd' in the same sentence in the Git Gotchas section."
+        },
+        {
+          "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
+          "passed": true,
+          "evidence": "No SKILL.md or skills/* path written; only Edit calls against the three existing configs."
+        },
+        {
+          "text": "User-facing summary explicitly names which config files were modified (and which were left alone, if any)",
+          "passed": true,
+          "evidence": "Summary lists CLAUDE.md, AGENTS.md, and .github/copilot-instructions.md each with before/after line counts."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "scope-guard-multi-config-disambiguation",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 65.08,
+        "tokens": 20417,
+        "tool_calls": 12,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript shows all three configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) were detected before any file was modified",
+          "passed": true,
+          "evidence": "Step 6 find output lists all three before any config Edit."
+        },
+        {
+          "text": "Before any file was written, the agent emitted a prompt or question explicitly asking the user to choose which of the detected config files to update (a generic 'does this plan look right?' confirmation does not count \u2014 the prompt must specifically offer a choice of configs)",
+          "passed": true,
+          "evidence": "Step 7 prompt: 'I see three in this project: 1. CLAUDE.md \u2026 2. .github/copilot-instructions.md \u2026 3. AGENTS.md \u2026 Which would you like me to update? (e.g. \"all\", \"1 and 3\", \"just CLAUDE.md\")'"
+        },
+        {
+          "text": "Chronological action log shows no file modifications occurred before the disambiguation prompt and a simulated user response",
+          "passed": true,
+          "evidence": "Disambiguation (step 7) + 'all' (step 8) precede Edit calls at steps 12-14."
+        },
+        {
+          "text": "The final content of at least one modified config mentions both `git reset --hard` and `git clean -fd` (or equivalent phrasing) so the gotcha is captured end-to-end",
+          "passed": true,
+          "evidence": "All three files contain 'git reset --hard' and 'git clean -fd' in the appended Git Gotchas section."
+        },
+        {
+          "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
+          "passed": true,
+          "evidence": "No skill file created; only existing config files edited."
+        },
+        {
+          "text": "User-facing summary explicitly names which config files were modified (and which were left alone, if any)",
+          "passed": true,
+          "evidence": "Summary text names 'all three config files' and response body listed each by name."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "scope-guard-multi-config-disambiguation",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 53.24,
+        "tokens": 27061,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Transcript shows all three configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) were detected before any file was modified",
+          "passed": true,
+          "evidence": "Step 5 ls output listed all three before any learning-target write."
+        },
+        {
+          "text": "Before any file was written, the agent emitted a prompt or question explicitly asking the user to choose which of the detected config files to update (a generic 'does this plan look right?' confirmation does not count \u2014 the prompt must specifically offer a choice of configs)",
+          "passed": true,
+          "evidence": "Step 6 prompt offered four named options (all / CLAUDE+AGENTS recommended / CLAUDE only / AGENTS only), explicitly reasoning that Copilot file is style-scoped."
+        },
+        {
+          "text": "Chronological action log shows no file modifications occurred before the disambiguation prompt and a simulated user response",
+          "passed": true,
+          "evidence": "Disambiguation (step 6) and response 'all' (step 7) preceded all three learning Edit calls (steps 8-10); fixture Writes in steps 2-4 are setup artifacts."
+        },
+        {
+          "text": "The final content of at least one modified config mentions both `git reset --hard` and `git clean -fd` (or equivalent phrasing) so the gotcha is captured end-to-end",
+          "passed": true,
+          "evidence": "All three updated files contain both 'git reset --hard' and 'git clean -fd' in the same bullet."
+        },
+        {
+          "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
+          "passed": true,
+          "evidence": "No SKILL.md or skill directory created."
+        },
+        {
+          "text": "User-facing summary explicitly names which config files were modified (and which were left alone, if any)",
+          "passed": true,
+          "evidence": "Summary names all three updated files."
+        }
+      ],
+      "notes": []
     }
   ],
   "run_summary": {
@@ -786,14 +987,14 @@
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 74.14,
-        "stddev": 23.3977,
+        "mean": 73.22,
+        "stddev": 20.3656,
         "min": 46.15,
         "max": 101.14
       },
       "tokens": {
-        "mean": 35301.0,
-        "stddev": 882.447,
+        "mean": 35409.2,
+        "stddev": 801.6051,
         "min": 34503,
         "max": 36523
       }
@@ -806,22 +1007,22 @@
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 69.8,
-        "stddev": 41.1531,
+        "mean": 66.48,
+        "stddev": 36.4005,
         "min": 29.49,
         "max": 111.83
       },
       "tokens": {
-        "mean": 27239.25,
-        "stddev": 2547.4749,
+        "mean": 27203.6,
+        "stddev": 2207.6177,
         "min": 24861,
         "max": 29759
       }
     },
     "delta": {
       "pass_rate": "+0.00",
-      "time_seconds": "+4.3",
-      "tokens": "+8062"
+      "time_seconds": "+6.7",
+      "tokens": "+8206"
     }
   },
   "run_summary_by_model": {
@@ -834,42 +1035,42 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 67.78,
-          "stddev": 12.0625,
+          "mean": 72.14,
+          "stddev": 14.2921,
           "min": 55.42,
-          "max": 81.8
+          "max": 89.59
         },
         "tokens": {
-          "mean": 18338.25,
-          "stddev": 4680.8238,
+          "mean": 20143.0,
+          "stddev": 5719.9822,
           "min": 15565,
-          "max": 25328
+          "max": 27362
         }
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.9,
-          "stddev": 0.2,
+          "mean": 0.92,
+          "stddev": 0.1789,
           "min": 0.6,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 41.78,
-          "stddev": 17.5597,
+          "mean": 46.44,
+          "stddev": 18.4352,
           "min": 28.81,
           "max": 67.7
         },
         "tokens": {
-          "mean": 15080.25,
-          "stddev": 3466.7636,
+          "mean": 16147.6,
+          "stddev": 3835.364,
           "min": 11968,
-          "max": 18160
+          "max": 20417
         }
       },
       "delta": {
-        "pass_rate": "+0.10",
-        "time_seconds": "+26.0",
-        "tokens": "+3258"
+        "pass_rate": "+0.08",
+        "time_seconds": "+25.7",
+        "tokens": "+3995"
       }
     },
     "claude-opus-4-7": {
@@ -881,14 +1082,14 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 74.14,
-          "stddev": 23.3977,
+          "mean": 73.22,
+          "stddev": 20.3656,
           "min": 46.15,
           "max": 101.14
         },
         "tokens": {
-          "mean": 35301.0,
-          "stddev": 882.447,
+          "mean": 35409.2,
+          "stddev": 801.6051,
           "min": 34503,
           "max": 36523
         }
@@ -901,22 +1102,22 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 69.8,
-          "stddev": 41.1531,
+          "mean": 66.48,
+          "stddev": 36.4005,
           "min": 29.49,
           "max": 111.83
         },
         "tokens": {
-          "mean": 27239.25,
-          "stddev": 2547.4749,
+          "mean": 27203.6,
+          "stddev": 2207.6177,
           "min": 24861,
           "max": 29759
         }
       },
       "delta": {
         "pass_rate": "+0.00",
-        "time_seconds": "+4.3",
-        "tokens": "+8062"
+        "time_seconds": "+6.7",
+        "tokens": "+8206"
       }
     }
   }

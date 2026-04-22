@@ -140,6 +140,51 @@
           "text": "Agent summary explicitly states that an existing entry was updated rather than new content being appended"
         }
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Small thing — `git reset --hard` doesn't delete untracked files. If you want a truly clean state you need `git clean -fd` as well. Bit me just now.",
+      "expected_output": "Skill detects three AI assistant configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) and explicitly asks the user which of them to update — because three parallel configs for three different assistants is ambiguous whether the learning should land in one, some, or all. Does not silently broadcast to all three without asking. Single factual gotcha — no new skill created.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- Monorepo with Node.js backend + React frontend\n- Git + GitHub for version control\n\n## Commands\n- `pnpm build` — build everything\n- `pnpm test` — run all tests\n"
+        },
+        {
+          "path": ".github/copilot-instructions.md",
+          "content": "# Copilot Instructions\n\nFocus on idiomatic TypeScript and React. Prefer functional patterns, avoid class components.\n"
+        },
+        {
+          "path": "AGENTS.md",
+          "content": "# Agent Instructions\n\nThis repo is a pnpm monorepo. Tests live next to source files as `*.test.ts`. CI runs on push to any branch.\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "detects-all-three-configs",
+          "text": "Transcript shows all three configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) were detected before any file was modified"
+        },
+        {
+          "id": "asks-which-configs-before-writing",
+          "text": "Before any file was written, the agent emitted a prompt or question explicitly asking the user to choose which of the detected config files to update (a generic 'does this plan look right?' confirmation does not count — the prompt must specifically offer a choice of configs)"
+        },
+        {
+          "id": "no-writes-before-user-input",
+          "text": "Chronological action log shows no file modifications occurred before the disambiguation prompt and a simulated user response"
+        },
+        {
+          "id": "git-clean-learning-captured",
+          "text": "The final content of at least one modified config mentions both `git reset --hard` and `git clean -fd` (or equivalent phrasing) so the gotcha is captured end-to-end"
+        },
+        {
+          "id": "no-new-skill",
+          "text": "No new skill file was created — this is a single fact, not a multi-step workflow"
+        },
+        {
+          "id": "summary-states-which-configs-updated",
+          "text": "User-facing summary explicitly names which config files were modified (and which were left alone, if any)"
+        }
+      ]
     }
   ]
 }
