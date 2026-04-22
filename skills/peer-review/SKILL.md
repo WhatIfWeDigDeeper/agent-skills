@@ -15,7 +15,7 @@ compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.6"
+  version: "1.7"
 ---
 
 # Peer Review
@@ -73,7 +73,7 @@ The skill auto-detects the review mode from the target:
 
 ### 1. Parse Arguments
 
-Parse `$ARGUMENTS` per the Arguments section above. Set `model` to `self` if not overridden. A fresh reviewer instance avoids accumulated session assumptions.
+Parse `$ARGUMENTS` per the Arguments section above. Set `model` to `self` if not overridden.
 
 ### 2. Collect Content
 
@@ -214,11 +214,11 @@ Focus especially on [TOPIC]. Still report any critical findings outside this foc
 
 **If `model` is `self`:**
 
-Delegate to a fresh-context reviewer — pass the completed prompt (template + collected content). The reviewer has no prior session context — this is intentional. The assistant spawns a fresh instance of itself as the reviewer. In Claude Code, spawn a subagent with `mode: "auto"` to suppress approval prompts. Other assistants use their own subprocess mechanism.
+Pass the completed prompt (template + collected content) to a fresh instance of the assistant. In Claude Code, spawn a subagent with `mode: "auto"` to suppress approval prompts. Other assistants use their own subprocess mechanism.
 
 **If `model` starts with `claude-`:**
 
-The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. Each assistant selects the requested model natively; no external CLI is required. In Claude Code, spawn a subagent with the specified model. Other assistants use their own equivalent mechanism. **If the current assistant cannot select the requested `claude-*` model, treat it as unsupported and stop:** "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]."
+The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. In Claude Code, spawn a subagent with the specified model. Other assistants use their own equivalent mechanism. **If the current assistant cannot select the requested `claude-*` model, treat it as unsupported and stop:** "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]."
 
 The reviewer's only job is to return findings. It must not modify any files.
 
@@ -255,7 +255,7 @@ trap 'rm -f "$PROMPT_FILE"' EXIT INT TERM
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 ```
 
-Writing to a temp file preserves the exact multi-line prompt content and keeps prompt construction separate from the CLI invocation. In the commands below, correct quoting of `"$(cat "$PROMPT_FILE")"` is what prevents shell metacharacters in diff/PR content from being interpreted by the shell. The `trap` ensures the temp file is removed even if the CLI command fails or the process is interrupted.
+In the commands below, prompt content is passed safely either as a single quoted argument (`"$(cat "$PROMPT_FILE")"` for Copilot/Gemini) or via stdin/piping (for Codex), so shell metacharacters in diff/PR content are not interpreted by the shell.
 
 **4c. Execute and capture output:**
 
@@ -285,8 +285,6 @@ else
   REVIEW_OUTPUT=$(gemini --approval-mode plan -p "$(cat "$PROMPT_FILE")" 2>&1)
 fi
 ```
-
-The `trap` set in Step 4b will remove `$PROMPT_FILE` on completion or interruption.
 
 **4d. Parse output → normalized findings:**
 
@@ -430,12 +428,3 @@ Output this as your **final message and stop generating**. Do not supply an answ
 On `y`: collect the modified files' current content, build the **consistency mode** prompt (always consistency, regardless of the original review mode), and spawn a fresh reviewer using `self` semantics (a fresh instance of the current assistant; in Claude Code, a subagent). Feed findings into Step 5 using the self/Claude path (no triage section, standard apply prompt `[all/1,3,5/skip]`). If no new issues are found, output "No new issues found in re-scan." and stop. **Do not offer another re-scan** — after applying during a re-scan cycle, output "Applied N finding(s)." and stop.
 
 On `n`: apply the Step 6 PR URL terminal-output rule if the target is `--pr N`, then stop.
-
-## Notes
-
-- **Fresh-context guarantee**: the reviewer has no history from the current session. It sees only the content you pass it. This is the primary value of the skill — the reviewer cannot rationalize away issues the author has normalized.
-- **`--focus` does not suppress critical findings**: narrowing focus changes emphasis, not the severity threshold. A `critical` finding outside the focus topic will still be reported.
-- **Multi-LLM routing**: `--model copilot[:submodel]`, `--model codex`, and `--model gemini` route the review prompt to the respective external CLI rather than using the self path (spawning a fresh reviewer instance). This allows getting a non-Claude perspective (e.g. `--model copilot:gpt-4o-mini`). The binary must be installed and on `PATH`; if absent the skill errors with an install hint. Each CLI's output is normalized to the same severity-grouped findings format before Step 5.
-- **Triage layer** (external CLI path only): after normalizing findings from an external CLI, a fresh internal reviewer instance (in Claude Code: a subagent) classifies each finding as `recommend` or `skip`. Recommended findings are numbered `1, 2, 3...` in the apply prompt; skipped findings are listed below the separator with `S`-prefix numbering. Users can include a skipped finding by referencing its S-number (e.g. `1,S1`). If triage output cannot be parsed, all findings are treated as recommended. The triage layer does not activate on the internal `self/claude-*` path.
-- **Post-apply re-scan**: after applying at least one finding, the skill offers to re-scan the modified files for new issues. The re-scan always uses consistency mode and always spawns a fresh reviewer using `self` semantics (regardless of the original `--model`). The re-scan is offered at most once — a second apply during a re-scan cycle does not trigger another offer.
-- **PR URL output**: when the target is `--pr N`, the PR URL is output as the last line at whichever terminal state is reached — the single rule at the top of Step 6 governs all cases.
