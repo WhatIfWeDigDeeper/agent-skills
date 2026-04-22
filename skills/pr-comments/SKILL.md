@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.33"
+  version: "1.34"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -269,11 +269,9 @@ Before touching anything, show the user a clear summary as a table:
 | 4 | path/old.ts:5 | One-line description | `skip` | outdated thread |
 | 5 | *(review body)* | One-line description of top-level review feedback | `skip` | bot PR summary, no action needed |
 | 6 | *(timeline)* | One-line description of timeline comment | `reply` | question from @reviewer |
-
-Proceed? [y/N/auto]
 ```
 
-**Confirmation prompt template.** When this prompt is required, emit `Proceed? [y/N/auto]` as your final message and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
+**Confirmation prompt template.** When this prompt is required, emit `Proceed? [y/N/auto]` on its own line after the closing code fence — and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
 
 Responses:
 - `y` — proceed normally
@@ -462,10 +460,16 @@ Use the **bot subset of the deduplicated reviewer list produced in Step 13** (ex
 
 **Before the POST call**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
 
-Then use the REST API directly for each bot:
+Then use the REST API directly for each bot. Capture the response and only swallow HTTP 422 (see `references/bot-polling.md`) — surface anything else:
+
 ```bash
-gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-  --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]'
+if ! resp=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
+    --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]' 2>&1); then
+  case "$resp" in
+    *"HTTP 422"*) : ;;  # non-fatal: already requested / GitHub App / etc.
+    *) echo "Re-request failed: $resp" >&2; exit 1 ;;
+  esac
+fi
 ```
 Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed.
 

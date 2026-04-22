@@ -22,14 +22,20 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
 
 2. Take a **fresh** snapshot of the current unresolved thread node IDs — see **Shared Setup** above.
 
-3. POST the bot re-request for each bot reviewer:
+3. POST the bot re-request for each bot reviewer. Capture the response and only swallow HTTP 422 — surface anything else:
    ```bash
    bot_reviewers=("BOT_LOGIN_1" "BOT_LOGIN_2")
    for bot_reviewer in "${bot_reviewers[@]}"; do
-     gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-       --method POST --field "reviewers[]=${bot_reviewer}"
+     if ! resp=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
+         --method POST --field "reviewers[]=${bot_reviewer}" 2>&1); then
+       case "$resp" in
+         *"HTTP 422"*) : ;;  # non-fatal: already requested / GitHub App / etc.
+         *) echo "Re-request failed for ${bot_reviewer}: $resp" >&2; exit 1 ;;
+       esac
+     fi
    done
    ```
+   **HTTP 422 is non-fatal** — it can happen for multiple reasons (for example, the reviewer is already requested, cannot be requested, or is a GitHub App / bot account such as `copilot-pull-request-reviewer[bot]`). The bot may still self-trigger. Any other non-zero exit (auth, rate-limit, network) surfaces as a hard failure rather than silently letting polling proceed with no re-request actually sent.
 
 4. Proceed to the **Shared polling loop** below.
 
@@ -142,7 +148,7 @@ Only offer when at least one bot reviewer was re-requested (Step 13b). Do not of
 
 ### Signals
 
-Poll every 60 seconds using three signals:
+Poll every 60 seconds using three signals. Use `for i in $(seq 1 N); do` with `N=10` to match the 10-minute timeout below; prefer this bounded-loop form over arithmetic-counter variants.
 
 **Signal 1 — New unresolved threads:**
 ```bash
@@ -202,6 +208,8 @@ Loop back to Step 2 within the same skill invocation — do not require the user
   ```
   ## Auto-loop iteration N/MAX — @<bot> responded with K new threads
   ```
+
+  **CI gate**: before evaluating exit conditions, run `gh pr checks {pr_number}`. Failing → treat as reviewer feedback, loop back to Step 2. Pending → wait.
 
   **Auto-loop exit conditions** (checked before starting each new iteration). **These are the ONLY valid reasons to exit the auto-loop. Do not exit for subjective reasons** such as "diminishing returns", "feedback is minor", or "PR has been substantially refined" — those are not exit conditions. If none of the conditions below are met, continue polling.
   1. No new unresolved bot threads after poll AND all polled bots have submitted a review (per Signal 2 tracking) → exit loop. Do not use `requested_reviewers` as a completion signal here — instead, track which bots have a `submitted_at >= snapshot_timestamp` review via Signal 2; once every polled bot has responded, consider the poll complete.
