@@ -89,7 +89,8 @@ Rules:
   a line range rather than listing every hunk
 - Flag an area only when human judgment is likely to materially affect
   review, risk assessment, or rollout decisions. Routine business logic, test
-  updates, and documentation changes normally do not qualify.
+  updates, and documentation changes normally do not qualify; include a
+  borderline case only when it has a concrete reviewer-relevant risk.
 
 ### 4. Generate the review guide
 
