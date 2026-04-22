@@ -39,7 +39,7 @@ git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 ```
 
 If `git worktree add` fails due to a sandbox permission error:
-> `git worktree` requires write access to the parent temp directory (`$TMPDIR`, or `${TMPDIR:-/private/tmp}` if unset) — the per-run `$WORKTREE_PATH` is nested under it. Grant that access in your assistant's settings (in Claude Code: add `$TMPDIR` to the sandbox allowlist in `settings.json`) and retry.
+> `git worktree` requires write access to the parent temp directory — the per-run `$WORKTREE_PATH` is nested under it. Grant that access in your assistant's settings (in Claude Code: add the resolved path — the value of `$TMPDIR`, or `/private/tmp` if `$TMPDIR` is unset — to the sandbox allowlist in `settings.json`) and retry.
 
 **All subsequent steps operate within `$WORKTREE_PATH`.** Discovery, syncs, edits, and commits all happen there. Code blocks in reference files that show `cd "$WORKTREE_PATH/<directory>"` must run that `cd` explicitly — the working directory does not carry over between blocks.
 
@@ -151,5 +151,5 @@ fi
 
 - **Resolver conflicts after major upgrades**: When upgrading causes dependency conflicts (e.g., package A requires `foo<2.0` but package B needs `foo>=2.0`), document the conflict, offer to skip or add a version constraint, and continue with remaining packages
 - **Push failure**: If `git push -u origin "$BRANCH_NAME"` fails, report the branch name and latest commit hash so the user can push manually. Do not delete the worktree branch — preserve it for the user.
-- **Worktree isolation**: limits blast radius for the untrusted-data concerns in Step 3 — all changes happen on a disposable branch.
+- **Worktree isolation**: Limits blast radius for the untrusted-data concerns in Step 3 — all changes happen on a disposable branch.
 - **Non-semver versions**: If a package uses CalVer (`2024.1.0`), pre-releases (`3.0a1`), or post-releases (`1.0.post1`), version tuple comparisons will not work reliably. Skip version-scope filtering for these packages and include them as-is if they appear outdated.
