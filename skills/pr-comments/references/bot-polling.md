@@ -209,7 +209,7 @@ Loop back to Step 2 within the same skill invocation — do not require the user
   ## Auto-loop iteration N/MAX — @<bot> responded with K new threads
   ```
 
-  **CI gate**: before evaluating exit conditions, run `gh pr checks {pr_number}`. Failing → treat as reviewer feedback, loop back to Step 2. Pending → wait.
+  **CI gate**: before evaluating exit conditions, run `gh pr checks {pr_number}`. Failing → treat as reviewer feedback, loop back to Step 2. Pending → wait. No-checks-reported counts as pass.
 
   **Auto-loop exit conditions** (checked before starting each new iteration). **These are the ONLY valid reasons to exit the auto-loop. Do not exit for subjective reasons** such as "diminishing returns", "feedback is minor", or "PR has been substantially refined" — those are not exit conditions. If none of the conditions below are met, continue polling.
   1. No new unresolved bot threads after poll AND all polled bots have submitted a review (per Signal 2 tracking) → exit loop. Do not use `requested_reviewers` as a completion signal here — instead, track which bots have a `submitted_at >= snapshot_timestamp` review via Signal 2; once every polled bot has responded, consider the poll complete.
