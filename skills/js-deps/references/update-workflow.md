@@ -40,20 +40,7 @@ When consolidating results:
 
 ### Check and Update Versions
 
-Use the appropriate commands for your package manager (see [package-managers.md](package-managers.md)):
-
-```bash
-# Check latest version — command differs by package manager (see package-managers.md View table)
-npm view <package> version           # npm
-yarn info <package> version          # yarn 1.x (use 'yarn info <pkg> --json' for yarn 2+)
-pnpm view <package> version          # pnpm
-bunx npm-view <package> version      # bun
-
-# Prefer LTS when available (dist-tags not supported by bun natively)
-npm view <package> dist-tags         # npm
-yarn info <package> dist-tags        # yarn 1.x
-pnpm view <package> dist-tags        # pnpm
-```
+Use the **View Package Info** table in [package-managers.md](package-managers.md) to check latest versions and dist-tags per manager. Prefer an LTS dist-tag when available (bun does not support dist-tags natively).
 
 Use the install command from the **Install/Update** table in [package-managers.md](package-managers.md) — the command verb differs by manager (`npm install` vs `yarn/pnpm/bun add`).
 
