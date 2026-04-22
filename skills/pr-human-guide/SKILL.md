@@ -13,18 +13,10 @@ compatibility: Requires git, gh, jq; sha256sum (Linux) or shasum (macOS)
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.6"
+  version: "0.7"
 ---
 
 # PR Human Guide
-
-Analyzes a pull request and appends a categorized guide to the PR description
-identifying areas that specifically need human judgment — security implications,
-config changes, new dependencies, data model changes, novel patterns, and
-concurrency/state changes.
-
-This skill does **not** perform a code review. It identifies *where* a human
-reviewer's attention is most needed, not *what* is right or wrong.
 
 ## Arguments
 
@@ -95,15 +87,11 @@ Rules:
   with a combined line range (or omit the range if changes are scattered)
 - If a file is large and changes are spread throughout, note the file without
   a line range rather than listing every hunk
-- Use a single threshold policy: flag an area only when human judgment is
-  likely to materially affect review, risk assessment, or rollout decisions.
-  Routine business logic, test updates, and documentation changes normally do
-  not qualify; if a borderline change still has a concrete reviewer-relevant
-  risk or judgment call, include it, otherwise leave it out.
+- Flag an area only when human judgment is likely to materially affect
+  review, risk assessment, or rollout decisions. Routine business logic, test
+  updates, and documentation changes normally do not qualify.
 
 ### 4. Generate the review guide
-
-If any items were flagged, format them into a categorized markdown section.
 
 Generate a GitHub diff anchor for each file:
 
@@ -215,16 +203,4 @@ MANDATORY — output the PR URL as the last line. Never omit it, even if the URL
 
 ## Notes
 
-- **Scope**: This skill identifies areas for human attention, not code defects.
-  It is complementary to peer-review (automated code review) and pr-comments
-  (addressing reviewer feedback).
-- **Novel pattern detection**: Requires reading sibling files — the quality of
-  the "novel patterns" category depends on how representative the sampled files
-  are. For large codebases, sample the most closely related modules.
-- **Idempotency**: The HTML comment markers make re-runs safe. Running the
-  skill again after new commits replaces the previous guide rather than
-  appending a second one. Note: any `- [x]` items checked by reviewers are
-  reset to `- [ ]` on re-run — checked state is not preserved.
-- **False negatives vs. false positives**: Apply the same threshold as Step 3 — flag when human judgment is likely to materially affect review, risk, or rollout. The guide is framed as "where to focus" not "the only things to check," so under-flagging routine changes is correct behavior, not a gap.
-- **No blocking**: This skill does not enforce review requirements or block
-  merging. It is purely informational.
+- **Idempotency**: Any `- [x]` items checked by reviewers are reset to `- [ ]` on re-run — checked state is not preserved.

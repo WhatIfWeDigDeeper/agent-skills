@@ -1,10 +1,5 @@
 # Review Categories
 
-This file defines the six review categories used by pr-human-guide, their
-detection signals, and guidance on what qualifies vs. what does not.
-
----
-
 ## 1. Security
 
 **Why human review is needed**: Security requires threat modeling and
@@ -210,9 +205,7 @@ When multiple items in the same file qualify for the same category:
 ## Selectivity Threshold
 
 Flag an area only if a reasonable senior engineer would specifically want to
-review it beyond what automated tools would catch. When in doubt about a
-borderline case, flag it only when there is a concrete reviewer-relevant risk or
-uncertainty that merits human attention; otherwise, leave it out.
+review it beyond what automated tools would catch.
 
 Exceptions — never flag these regardless of content:
 - Changes that only affect comments or documentation
