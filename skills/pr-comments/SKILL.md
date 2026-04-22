@@ -483,7 +483,7 @@ After the POST:
 
 > **Entry gate:** Reach Step 14 via one of: Step 13 found no reviewers (empty list); the user declined the Step 13 push/re-request prompt (manual mode); the shared polling loop in `references/bot-polling.md` reached one of its documented exit conditions; or the user declined the manual-mode poll offer in `references/bot-polling.md`. If you just completed Step 13b with bot reviewers re-requested and the user has **not** declined polling, you are **not here yet** — return to Step 13b item 3 and resume the shared polling flow's signal-checking/exit logic first.
 
-**You MUST read `references/report-templates.md` before writing a single word of the final report.** No prior step's output, no ad-hoc summary, and no condensed version may substitute for this. Do not skip to the report without reading it first.
+**You MUST read `references/report-templates.md` before writing a single word of any skill-closing summary — including auto-loop iteration summaries, zero-change iterations, and messages framed as status updates.** No ad-hoc summary or condensed version may substitute. The closing `<PR URL>` line is never optional.
 
 Use the templates in that file to structure your output. Omit lines that don't apply. In auto-loop mode, use the auto-loop summary table instead of the standard report; include the deferred follow-up-issue offer if there were out-of-scope declines.
 
