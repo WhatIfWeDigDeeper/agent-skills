@@ -93,7 +93,7 @@ The cleanest signal: **if it takes more than one command to execute, it probably
 
 ### 4. Preserve Cross-Config Sync Rules
 
-**Scope: Markdown-based configs only** — `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `.github/copilot-instructions.md`. Out of scope: `.cursor/rules/*.mdc` and `.continuerc.json` (non-Markdown formats; mirror-rule detection there is a follow-up).
+**Scope: Markdown-based configs only** — `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `.github/copilot-instructions.md`, `.cursorrules`, `.windsurf/rules/rules.md`. Out of scope: `.cursor/rules/*.mdc` and `.continuerc.json` (non-Markdown formats; mirror-rule detection there is a follow-up).
 
 Within the Markdown scope, when multiple configs are present:
 

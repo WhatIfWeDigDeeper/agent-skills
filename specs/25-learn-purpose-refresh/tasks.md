@@ -98,8 +98,8 @@ Phase 4 produces runs in two groups on both models: (a) `with_skill` for each ke
 
 ## Phase 8: Ship
 
-- [ ] **8.1** Commit on branch `evals/learn-purpose-refresh`
-- [ ] **8.2** Push, open PR; run `/pr-comments {pr_number}` immediately after PR creation
+- [x] **8.1** Commit on branch `evals/learn-purpose-refresh`
+- [x] **8.2** Push, open PR; run `/pr-comments {pr_number}` immediately after PR creation
 - [ ] **8.3** Loop `/pr-comments` until no new bot feedback (skill's 10-iteration cap applies)
 - [ ] **8.4** Run `/pr-human-guide` to annotate the PR for human reviewers
 - [ ] **8.5** Wait for human review. After human approval: squash-merge, delete branch, sync local main

@@ -315,7 +315,7 @@
         },
         {
           "id": "turn2-affirmation-or-bounded-rewrite",
-          "text": "Turn-2 response matches regex /^\\s*already\\s+minimal\\.?\\s*$/i on its first non-whitespace line, OR the turn-2 rule rewrite is within 20% of turn-1's char count (i.e., |turn2_chars - turn1_chars| / turn1_chars ≤ 0.20). Fail if neither condition holds"
+          "text": "Turn-2 response in its entirety matches regex /^\\s*already\\s+minimal\\.?\\s*$/i (no additional content before or after), OR the turn-2 rule rewrite is within 20% of turn-1's char count (i.e., |turn2_chars - turn1_chars| / turn1_chars ≤ 0.20). Fail if neither condition holds"
         },
         {
           "id": "turn2-preserves-load-bearing-clauses",
