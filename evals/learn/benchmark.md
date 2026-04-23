@@ -27,6 +27,8 @@ On Opus 4.7 the baseline reaches all 27 assertions per configuration (5+5+5+6+6 
 
 Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
+**Note on evidence paths.** The `evidence` strings in `benchmark.json` preserve each baseline's actual path choice during its run and are not normalized across runs. Readers will see three path shapes referring to the same kind of artifact — a newly created skill file — depending on which directory the agent chose at write time: `skills/<name>/SKILL.md` (repo-canonical), `.claude/skills/<name>/SKILL.md` (Claude Code's symlink to `skills/`), and `outputs/skills/<name>/SKILL.md` (eval-workspace output). Divergence reflects real agent behavior across executors, not benchmark inconsistency.
+
 ## Per-Eval Results
 
 | # | Eval | Sonnet 4.6 with | Sonnet 4.6 without | Opus 4.7 with | Opus 4.7 without |
@@ -49,7 +51,7 @@ Tests the basic write path: learning is detected from the conversation, written 
 ### Eval 1 — New skill creation
 **Prompt**: User describes a 4-step production deploy workflow (build, migrate, deploy, health check) with a 503 troubleshooting branch and asks to save it.
 
-Tests the skill-creation route: the workflow is too procedural for a config file, so the agent should create a new `skills/deploy-prod/SKILL.md` with valid frontmatter and numbered steps. All four runs correctly chose to create a skill file rather than writing the full workflow to CLAUDE.md.
+Tests the skill-creation route: the workflow is too procedural for a config file, so the agent should create a new `skills/<name>/SKILL.md` with valid frontmatter and numbered steps. Observed names across runs vary (`deploy`, `deploy-prod`); the assertion requires a new skill file, not a specific name. All four runs correctly chose to create a skill file rather than writing the full workflow to CLAUDE.md.
 
 ### Eval 2 — Multi-target routing
 **Prompt**: Three learnings at once — a conftest.py discovery rule, a docker compose prerequisite, and a 5-step add-endpoint workflow — with both CLAUDE.md and `.github/copilot-instructions.md` present.
