@@ -36,12 +36,12 @@ Current evals all test the happy paths: a clear, well-formed learning arrives; t
 
 - Route A/B/C taxonomy works and matches how baselines already think. No change.
 - Multi-config disambiguation prompt pattern — preserved. **User choice binds**: whichever configs the user picks are the only ones modified, even when mirror-rules in one config name another. The cross-sync step (new Step 4) operates only within the user's chosen subset. The prompt text may be augmented to surface detected mirror-rules as informational context, but the user's choice remains authoritative.
-- Plan-before-apply step works on both models. No change.
+- Plan-before-apply step — structure preserved (kept here for that reason), with one added pre-present min-char audit sub-step (see the "Inject the min-char audit into the Plan step" bullet above). Not an unchanged step — listed here because the surrounding behavior stays.
 - Size thresholds and refactoring reference. No change.
 
 ## New evals
 
-Four new evals, each targeting one failure mode above. Goal: each has at least one assertion that fails without-skill on Opus 4.7.
+Five new evals. Evals 5–8 each target one failure mode from the numbered list above. Eval 9 is different in kind — it validates the Plan-step min-char audit sub-step (task 3.3) rather than adding a new failure-mode category. Goal for all five: at least one assertion fails without-skill on Opus 4.7.
 
 ### Eval 5 — noise rejection
 **Prompt:** Session transcript containing 4 "learnings" — 3 obvious ("run `npm install` before `npm start`", "commit before pushing", "read errors carefully"), 1 real (project-specific flag). Correct behavior: save only the real one and state which were rejected and why.
@@ -62,6 +62,20 @@ Four new evals, each targeting one failure mode above. Goal: each has at least o
 **Prompt:** CLAUDE.md already contains a rule ("After merging a PR, always `git pull` to sync main"). User shares new learning: "just found out `git pull` can leave local main divergent after squash merge — need `git reset --hard origin/main` instead". User does not flag the existing rule.
 
 **Discriminating assertion:** Agent detects the conflict and proposes updating the existing rule in place rather than appending a contradicting entry; summary explicitly names the contradiction and which version was kept.
+
+### Eval 9 — min-char audit (workflow injection)
+
+Validates task 3.3 — that the Plan-step audit sub-step fires on first pass, not only when prompted. Different in kind from evals 5–8: tests whether a principle has been successfully injected into the numbered workflow, not a new failure-mode category. Held to the same Phase 2 discrimination bar as evals 5–8 — a uniform gate keeps the drop rule simple (every new eval must discriminate or drop), even though eval 9 validates a workflow change rather than a failure mode.
+
+**Prompt (turn 1):** A learning whose surrounding context invites verbose rule text — incident narrative, multi-clause consequences, or explanatory rationale that could all be packed into the rule body. User asks to update CLAUDE.md per the learn skill.
+
+**Prompt (turn 2, follow-up):** `"Is this the min, load-bearing chars needed? If yes, reply only 'already minimal.' If no, rewrite with the fewest chars that preserve specificity."`
+
+**Discriminating assertion:** Primary signal — turn-1 rule text is ≤ 200 chars (direct measure that the audit fired). Corroboration — turn-2 is either an affirmation matching `/^\s*already\s+minimal\.?\s*$/i`, OR a rewrite within 20% of turn-1's char count that drops no load-bearing clause. Fail if turn-1 > 200 chars, OR turn-2 drops a load-bearing clause, OR turn-2 trims > 20%. Known false-negative: a well-audited turn-1 paired with an over-trimming turn-2 may flag — turn-1's direct measurement is the primary signal, so this noise is acceptable; document observed false-negatives in `benchmark.md` per-eval notes rather than loosening the rule.
+
+**Grader:** Mechanical — (1) char-count turn-1 rule text against the 200 threshold; (2) regex `/^\s*already\s+minimal\.?\s*$/i` against turn-2's first non-whitespace line; (3) if not an affirmation, extract turn-2 rule text and compute char-count delta and clause-count delta. No LLM-as-judge, no "or equivalent" synonym matching — the turn-2 prompt pins the exact affirmation string.
+
+**Harness note (resolve in Phase 1):** This is the first two-turn eval in the learn suite. Existing evals use a single `prompt` string. Option (b) — embedding the follow-up inside the initial prompt with delimited output sections — is rejected upfront because it contaminates the first draft (the model sees the audit request before writing), defeating the test of whether the audit fires unprompted. Task 1.5 decides between the two live options: (a) extend the runner to support a `followup_prompt` field and a two-turn transcript, or (c) fall back to a single-turn threshold assertion ("rule text ≤ 2 sentences AND ≤ 200 chars").
 
 ## Skill changes
 
@@ -129,9 +143,9 @@ Replace the NEVER + Guidelines blocks with a single `## Principles` section:
 
 | File | Change |
 |---|---|
-| `evals/learn/evals.json` | Add evals 5–8 with full assertion sets |
-| `evals/learn/benchmark.json` | Append entries for each kept eval in 5–8 × 2 configs × 2 models (new `with_skill` runs from tasks 4.1/4.2; `without_skill` runs reused from Phase 2 tasks 2.1/2.3, not re-run in Phase 4); replace the v0.9 `with_skill` entries for evals 0–4 on both models at v1.0; update `evals_run`, `skill_version`, `run_summary`, `run_summary_by_model` |
-| `evals/learn/benchmark.md` | Update `**Models tested**` header line (v1.0 re-run dates), update `**Evals**` total-count line, update `## Per-Eval Results` table (new rows for kept evals, updated rows for 0–4 at v1.0), add per-eval sections for each kept eval in 5–8, update Summary tables, reconcile the token-denominator note (M = 5 → 5 + K, combined = 10 → 10 + 2K — add only if the final run set is partially populated), update `## Known Eval Limitations` section (replace the 19-of-20 framing with the new discrimination picture) |
+| `evals/learn/evals.json` | Add evals 5–9 with full assertion sets |
+| `evals/learn/benchmark.json` | Append entries for each kept eval in 5–9 × 2 configs × 2 models (new `with_skill` runs from tasks 4.1/4.2; `without_skill` runs reused from Phase 2 tasks 2.1/2.3, not re-run in Phase 4); replace the v0.9 `with_skill` entries for evals 0–4 on both models at v1.0; update `evals_run`, `skill_version`, `run_summary`, `run_summary_by_model` |
+| `evals/learn/benchmark.md` | Update `**Models tested**` header line (v1.0 re-run dates), update `**Evals**` total-count line, update `## Per-Eval Results` table (new rows for kept evals, updated rows for 0–4 at v1.0), add per-eval sections for each kept eval in 5–9, update Summary tables, reconcile the token-denominator note (M = 5 → 5 + K, combined = 10 → 10 + 2K — add only if the final run set is partially populated), update `## Known Eval Limitations` section (replace the 19-of-20 framing with the new discrimination picture) |
 | `skills/learn/SKILL.md` | Rewrite Step 2; add cross-sync step; consolidate NEVER/Guidelines into Principles; bump version |
 | `README.md` | Update Eval Δ column and learn Skill Notes `Eval cost` bullet |
 | `cspell.config.yaml` | Add any new unknown words |
@@ -142,17 +156,19 @@ Replace the NEVER + Guidelines blocks with a single `## Principles` section:
 
 ## Verification
 
+Assumes K ≥ 1 per the Phase 2 gate — if K = 0 (every new eval dropped), the spec aborts with no PR and these items do not apply.
+
 1. Every kept new eval discriminates on Opus 4.7: at least one assertion fails without-skill on Opus 4.7. Non-discriminating evals were dropped in Phase 2 per the gate, not carried forward.
 2. `metadata.skill_version` in `benchmark.json` matches `metadata.version` in `SKILL.md` ("1.0").
 3. All v0.9 `with_skill` run entries for evals 0–4 were replaced per task 4.3; `metadata.skill_version` is `"1.0"`. (Per-run `skill_version` is not recorded in the current schema, so this is a process check plus the count-based verification in 6.14.)
-4. `evals_run` lists the final post-gate eval ID set (baseline 0–4 plus the kept subset of 5–8).
+4. `evals_run` lists the final post-gate eval ID set (baseline 0–4 plus the kept subset of 5–9).
 5. `uv run --with pytest pytest tests/` — no regressions.
 6. `npx cspell README.md skills/learn/SKILL.md evals/learn/benchmark.md specs/25-learn-purpose-refresh/*.md` — clean.
 7. README.md `Eval Δ` for learn matches per-model deltas from `run_summary_by_model[<model>].delta.pass_rate` (rounded) — the README shows per-model values, not the top-level `run_summary.delta.pass_rate` (which mirrors only the latest model).
 8. `benchmark.md` Summary-table `±` values mirror `run_summary` / `run_summary_by_model` exactly.
 9. `benchmark.md` `**Models tested**` header includes v1.0 re-run dates for both models.
 10. `benchmark.md` `**Evals**` total-count line reflects 5 + K evals and 4·(5+K) runs total.
-11. `benchmark.md` `## Per-Eval Results` table has a row for every kept eval in 5–8 and updated v1.0 rows for evals 0–4.
+11. `benchmark.md` `## Per-Eval Results` table has a row for every kept eval in 5–9 and updated v1.0 rows for evals 0–4.
 12. `benchmark.md` `## Known Eval Limitations` no longer uses the 19-of-20 non-discriminating framing.
 
 ## Shipping
@@ -166,4 +182,6 @@ Replace the NEVER + Guidelines blocks with a single `## Principles` section:
 - **New evals may not discriminate as expected.** Opus 4.7 baseline is strong; it may handle noise rejection, scope labeling, and contradiction detection on its own. Phase 2 of the task list is a validation gate — if a new eval doesn't discriminate, either strengthen the prompt (bury the real signal deeper; make the contradiction subtler) or drop the eval rather than carry a non-discriminating test.
 - **Cross-sync behavior is meta.** The skill is being asked to honor a rule *written in the config it is editing*. If the rule text varies across projects, the detection may miss. Keep the check tolerant: look for the word pairs `keep ... in sync` or `mirror ... to` near another config's filename.
 - **Principle rewrite may lose enforcement strength.** Consolidating NEVERs into principles is the riskiest change. Mitigation: keep the current Sonnet 4.6 eval 2 lift (+40 pp on that cell) after the rewrite — it's our sentinel for "did the skill still teach the thing."
-- **Scope creep.** This spec touches evals, the skill, and README/benchmark.md. Hold the line at the four failure modes above; do not also rewrite the reference files (`assistant-configs.md`, `refactoring.md`) in the same PR.
+- **Eval 9 harness pattern is new.** Two-turn evals are not currently supported by the single-`prompt` schema. The Phase 1 harness-decision task (1.5) must resolve this before task 1.6 can draft the eval JSON. Fallback: single-turn threshold assertion ("rule text ≤ 2 sentences AND ≤ 200 chars") — weaker signal but unblocks ship.
+- **Eval 9 may not discriminate on Opus 4.7.** The baseline may audit brevity naturally without the skill. Phase 2 gate drops it if so. Would still be useful as a Sonnet 4.6 sentinel; plan for that outcome.
+- **Scope creep.** This spec touches evals, the skill, and README/benchmark.md. Hold the line at the four failure modes above plus the eval 9 workflow-injection validation; do not also rewrite the reference files (`assistant-configs.md`, `refactoring.md`) in the same PR.
