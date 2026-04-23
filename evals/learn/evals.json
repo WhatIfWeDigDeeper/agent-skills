@@ -170,7 +170,7 @@
         },
         {
           "id": "no-writes-before-user-input",
-          "text": "Chronological action log shows no file modifications occurred before the disambiguation prompt and a simulated user response"
+          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response — fixture setup writes are excluded from this check"
         },
         {
           "id": "git-clean-learning-captured",
