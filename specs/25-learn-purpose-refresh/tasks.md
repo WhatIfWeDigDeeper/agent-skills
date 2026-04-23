@@ -82,8 +82,24 @@ Phase 4 produces runs in two groups on both models: (a) `with_skill` for each ke
 
 ---
 
-## Phase 7: Ship
+## Phase 7: Peer Review
 
-- [ ] **7.1** Commit on branch `evals/learn-purpose-refresh`
-- [ ] **7.2** Push, open PR; run `/pr-comments` immediately after PR creation per project convention
-- [ ] **7.3** Address review comments; squash-merge, delete branch, sync local main
+*Fresh-context consistency pass before ship, to catch cross-file drift Phase 6's mechanical checks miss (stale step references, Summary ± mismatches, `benchmark.md` vs `benchmark.json` drift, README deltas vs `run_summary_by_model`, plan.md ↔ tasks.md gaps, mirror-rule omissions). Exit condition: a pass produces zero valid findings. Iteration cap: 4.*
+
+- [ ] **7.1** Stage all spec-25 changes if not already staged (`git add` the modified paths)
+- [ ] **7.2** Loop, up to 4 iterations:
+  - [ ] Run `/peer-review --staged --model copilot:gpt-5.3-codex`
+  - [ ] Triage findings: implement valid items as local edits; reply to or decline invalid items with a one-line rationale
+  - [ ] Re-stage the implementation edits. If peer-review prompts to run a follow-up consistency pass over the updated diff, answer yes
+  - [ ] If the iteration produced any valid findings, return to the top of 7.2. If it produced zero valid findings, exit the loop and proceed to Phase 8
+- [ ] **7.3** If the 4-iteration cap is hit with findings still open, record the remaining items as explicit follow-ups in the PR description — do not silently drop them
+
+---
+
+## Phase 8: Ship
+
+- [ ] **8.1** Commit on branch `evals/learn-purpose-refresh`
+- [ ] **8.2** Push, open PR; run `/pr-comments {pr_number}` immediately after PR creation
+- [ ] **8.3** Loop `/pr-comments` until no new bot feedback (skill's 10-iteration cap applies)
+- [ ] **8.4** Run `/pr-human-guide` to annotate the PR for human reviewers
+- [ ] **8.5** Wait for human review. After human approval: squash-merge, delete branch, sync local main
