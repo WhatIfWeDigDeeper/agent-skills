@@ -18,9 +18,9 @@
       {
         "executor_model": "claude-sonnet-4-6",
         "analyzer_model": "claude-sonnet-4-6",
-        "timestamp": "2026-03-14T16:38:27Z",
+        "timestamp": "2026-04-22T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "evals 0-2 dated 2026-03-14; evals 3-4 backfilled 2026-04-22"
+        "notes": "evals 0-2 dated 2026-03-14 (initial narrated/simulated runs); evals 3-4 backfilled 2026-04-22 with live-workspace grading — top-level timestamp reflects the most recent Sonnet run"
       },
       {
         "executor_model": "claude-opus-4-7",
