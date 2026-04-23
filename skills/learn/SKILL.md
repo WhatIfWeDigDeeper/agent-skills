@@ -16,7 +16,7 @@ compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.9"
+  version: "1.0"
 ---
 
 # Learn from Conversation
@@ -55,6 +55,7 @@ find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
 
   Which should I update? (enter number, or "all")
   ```
+  If one config contains a mirror-rule naming another (see Step 4), surface that in the prompt as informational context — but the user's choice still binds.
 - No configs found → **MANDATORY: read [`references/assistant-configs.md`](references/assistant-configs.md) in full** to show init commands, then exit. Do NOT load `refactoring.md` or `options.md` at this step.
 
 **Size thresholds** for any config file:
@@ -64,19 +65,20 @@ find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
 
 ### 2. Analyze Conversation
 
-Before scanning, ask yourself:
-- **Would I forget this?** If the lesson is obvious to any developer, skip it.
-- **Is this already covered?** Check existing config entries — maybe the wording just needs tightening, not a new rule.
-- **Is this universal or local?** Environment-specific workarounds must be labeled, not globalized.
+Default is **reject**. Each candidate learning must earn inclusion by passing three filters in order:
 
-Scan for learnings the user would want to carry forward:
+1. **Would I forget this?** If any developer already knows it (`npm install` before `npm start`, commit before switching branches, read errors carefully), skip it. Baseline knowledge dilutes the config and trains agents to skim.
+2. **Is this already covered?** Search existing config entries for the topic — if found, tightening the wording beats adding a second rule.
+3. **Is this universal or local?** Environment-specific workarounds (broken keyring, one repo's tooling quirk) must carry a scope qualifier, not be globalized.
+
+Only candidates that survive all three get scanned for shape:
 - **Corrections**: commands retried with a flag or env change, wrong assumptions corrected
 - **Discoveries**: undocumented behavior, integration quirks, environment requirements
 - **Workflows**: multi-step patterns invented during the session that should be repeatable
-- **Instruction violations**: if the user had to remind you of something already in the config, note it — the wording may need strengthening, not a new rule
-- **Contradictions**: does this learning conflict with or supersede something already in the config? If so, flag for replacement, not addition
+- **Instruction violations**: if the user had to remind you of something already in the config, the wording may need strengthening, not a new rule
+- **Contradictions**: does this learning conflict with or supersede existing content? Flag for replacement, not addition — even if the user didn't call out the conflict
 
-If no learnings pass the "Would I forget this?" filter, tell the user nothing non-obvious was found and exit — do not fabricate learnings to justify the invocation.
+If nothing passes the filters, tell the user nothing non-obvious was found and exit — do not fabricate learnings to justify the invocation.
 
 ### 3. Route Each Learning
 
@@ -89,14 +91,29 @@ For each learning, ask: **would someone invoke this by name?** If you can imagin
 
 The cleanest signal: **if it takes more than one command to execute, it probably belongs in a skill; if it's a single fact to remember, it belongs in the config.**
 
-### 4. Present Plan and Wait for Confirmation
+### 4. Preserve Cross-Config Sync Rules
 
-Show everything you plan to do before touching any files:
+**Scope: Markdown-based configs only** — `CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `.github/copilot-instructions.md`. Out of scope: `.cursor/rules/*.mdc` and `.continuerc.json` (non-Markdown formats; mirror-rule detection there is a follow-up).
+
+Within the Markdown scope, when multiple configs are present:
+
+1. **Detect** mirror-rule text in each detected config — patterns like `keep ... in sync`, `mirror ... to`, `apply the equivalent change to`, near another config's filename.
+2. **Respect the Step 1 choice.** Operate only on the configs the user chose. A mirror-rule in an *unchosen* config does **not** trigger fan-out — the user may have deliberately scoped this learning narrowly (e.g., the Copilot file is style-scoped).
+3. **Preserve** mirror-rule text during every edit. Do not clobber it with a section rewrite.
+4. **Reciprocate.** For any chosen config that lacks a mirror-rule referencing the other chosen configs, add one (e.g., add `Keep CLAUDE.md in sync: mirror rule changes back to CLAUDE.md` to the top of `.github/copilot-instructions.md` if it had no reciprocal rule).
+
+**Why:** The mirror-rule is load-bearing — it is how future sessions know to keep configs in sync. Silently updating one config without the other, or deleting the mirror-rule during a rewrite, lets the configs drift and the rule die. User choice still binds because narrower scoping is often legitimate.
+
+### 5. Present Plan and Wait for Confirmation
+
+Before showing the plan, **audit each drafted rule body against the Principles' "Minimum viable rule text" check** — apply "is this the min chars necessary?" to every clause and cut any clause you can't defend (incident narratives, multi-clause rationales, explanatory prose beyond a concrete example). First-draft text routinely needs trimming; the audit is not optional.
+
+Then show everything you plan to do:
 
 ```
 **[Category]**: [Brief description]
 - Source: [what triggered this learning]
-- Proposed change: [exact text to add]
+- Proposed change: [exact text to add, post-audit]
 - Destination: [file] ([current lines] → [projected lines])
 ```
 
@@ -107,9 +124,9 @@ Ready to apply. Approve all, or review each one?
 
 **Do not modify any files until the user responds to this step.**
 
-### 5. Apply Changes
+### 6. Apply Changes
 
-**Route A — Config file** (CLAUDE.md, GEMINI.md, etc.): **MANDATORY: read [`references/assistant-configs.md`](references/assistant-configs.md) in full** for format and section conventions before writing. Do NOT load `refactoring.md` for this route unless the file is also over 500 lines. Before appending, search the existing config for related content — if found, propose an update-in-place rather than a duplicate entry. Then find the appropriate section, preserve existing structure, append or create a section.
+**Route A — Config file** (CLAUDE.md, GEMINI.md, etc.): **MANDATORY: read [`references/assistant-configs.md`](references/assistant-configs.md) in full** for format and section conventions before writing. Do NOT load `refactoring.md` for this route unless the file is also over 500 lines. Before appending, search the existing config for related content — if found, propose an update-in-place rather than a duplicate entry, and if the new rule contradicts an existing one, name the conflict explicitly in the summary (Principle 4). Then find the appropriate section, preserve existing structure, append or create a section. Apply Step 4's sync-rule preservation during every write.
 
 **Route B — Existing skill**: read `skills/[name]/SKILL.md`, append to the relevant section, maintain existing structure.
 
@@ -129,22 +146,16 @@ description: [WHAT it does + WHEN to use it + trigger keywords]
 [Details]
 ```
 
-### 6. Summarize
+### 7. Summarize
 
-List files modified with before/after line counts, sections updated or created, and any skills created with their names. If a contradiction was resolved, note which version was kept and why.
+List files modified with before/after line counts, sections updated or created, and any skills created with their names. If a contradiction was resolved, name it explicitly — which rule conflicted with which, and which version was kept. If cross-config sync rules were honored (preserved or reciprocated), mention that too.
 
-## NEVER
+## Principles
 
-- **NEVER extract basics** — "npm install before running" or "save your work" are noise that dilutes the config; skip anything any developer already knows, because a bloated config trains agents to skim it
-- **NEVER treat one-off emergency fixes as universal rules** — a workaround scoped to one repo's broken state will actively mislead future sessions where the state differs; always annotate environment-specific workarounds with the project or condition that triggered them
-- **NEVER add a new config rule when an existing rule just needs stronger wording** — two entries covering the same topic create ambiguity; the agent will follow whichever it reads first, which may be the weaker version; re-read the existing entry and tighten it instead
-- **NEVER create a skill just to keep the config file short** — skill fragmentation is harder to maintain than a 450-line CLAUDE.md; use the size thresholds in Step 1 to decide
-- **NEVER create a skill for a 2-step workflow with no branching** — if it fits in 2 config lines, it belongs in the config; a skill requires a reason to invoke, which a 2-step note doesn't earn
-- **NEVER silently duplicate a learning that contradicts existing content** — always surface the conflict to the user and propose which version to keep; silent contradictions cause agents to behave inconsistently depending on which rule they encounter first
-- **NEVER write vague learnings** — "be careful with deployments" teaches nothing; "run smoke tests against staging before promoting to prod because the CDN cache masks broken assets" is actionable and explains why
+1. **Reject noise; include only non-obvious lessons.** A bloated config trains agents to skim. If any developer already knows it ("npm install before npm start", "commit before switching branches"), skip it — and say which items you rejected so the user can override.
+2. **Annotate scope; never globalize a one-off fix.** A workaround that worked today may harm tomorrow's session if the environment differs. Label the condition that triggered the fix (broken keyring, specific macOS version, this repo's build quirk) so future agents can decide whether it applies. Use qualifiers like "when X fails" or "as a fallback after Y", not unconditional "always use Z" phrasing.
+3. **One topic, one location.** If a rule already exists anywhere in the config or a skill, update that entry. Two entries on the same topic create ambiguity — the agent follows whichever it reads first, which may be the weaker version. Tightening the existing wording beats appending a parallel bullet.
+4. **Surface contradictions; never silently duplicate or replace.** If a learning conflicts with existing content, propose replacement with the conflict named explicitly in the plan and summary ("this supersedes the existing X rule because Y"). A silent replace leaves the user unaware the rule changed; silent duplicates cause inconsistent agent behavior depending on which one is read first.
+5. **Minimum viable rule text.** Every clause must be load-bearing — the rule, the fix, a non-obvious "why", or a concrete example. Draft, then audit with **"is this the min chars necessary?"** Cut any clause you can't defend. `` `cd dir && cmd` (skips cmd if cd fails) `` beats a paragraph on shell exit semantics; incident narratives and multi-clause consequences belong in commit messages, not the rule body.
 
-## Guidelines
-
-- **Prefer specificity**: `Run npm run dev before e2e tests` beats `ensure services are running` — vague rules train agents to interpret rather than follow
-- **One learning, one location**: if it already exists anywhere in the config or a skill, update that entry rather than creating a second one
-- **Minimum viable rule text**: every clause must be load-bearing — the rule, the fix, a non-obvious "why," or a concrete example. Draft, then audit with **"is this the min chars necessary?"** Cut any clause you can't defend. `cd dir && cmd` (skips cmd if cd fails), not `cd dir; cmd`, beats a paragraph on shell exit semantics.
+**NEVER write vague learnings** — "be careful with deployments" teaches nothing; "run smoke tests against staging before promoting to prod because the CDN cache masks broken assets" is actionable and explains why. This one hard prohibition remains NEVER because specificity is the single non-negotiable input to every other principle.

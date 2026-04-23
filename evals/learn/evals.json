@@ -185,6 +185,147 @@
           "text": "User-facing summary explicitly names which config files were modified (and which were left alone, if any)"
         }
       ]
+    },
+    {
+      "id": 5,
+      "name": "noise-rejection",
+      "prompt": "Quick brain-dump from today before I forget anything:\n\n- Make sure to `npm install` before running `npm start` or nothing works\n- Our staging deploy needs the `--region us-west-2` flag on `deploy.sh` — the default `us-east-1` targets the old cluster that's being decommissioned next quarter and writes to the wrong DB\n- Always commit your work before switching branches so you don't lose stuff\n- Read errors carefully instead of skimming them\n\nCan you persist whatever's worth remembering to CLAUDE.md?",
+      "expected_output": "Saves only the staging-deploy `--region us-west-2` gotcha (the non-obvious, project-specific one). Rejects the three generic tips (npm install / commit before switching / read errors carefully) and explicitly names at least one of them as rejected in the summary, with a reason.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- Node.js backend\n- AWS ECS staging + prod clusters\n\n## Commands\n- `npm install` — install dependencies\n- `npm start` — start the local server\n- `./deploy.sh` — deploy to staging\n- `./deploy.sh --env prod` — deploy to production\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "captures-region-flag-learning",
+          "text": "Final CLAUDE.md mentions the `--region us-west-2` flag (or equivalent) in connection with `deploy.sh` so the project-specific gotcha is preserved"
+        },
+        {
+          "id": "rejects-npm-install-noise",
+          "text": "Final CLAUDE.md does NOT contain a rule about running `npm install` before `npm start` — that is baseline developer knowledge and should be rejected as noise"
+        },
+        {
+          "id": "rejects-commit-before-switch-noise",
+          "text": "Final CLAUDE.md does NOT contain a rule about committing before switching branches — that is baseline git hygiene and should be rejected as noise"
+        },
+        {
+          "id": "rejects-read-errors-noise",
+          "text": "Final CLAUDE.md does NOT contain a rule about reading errors carefully — that is generic advice and should be rejected as noise"
+        },
+        {
+          "id": "summary-names-rejected-item",
+          "text": "Agent summary explicitly identifies at least one of the three obvious/generic items as rejected, with a reason framed around obviousness or being baseline developer knowledge (not merely omitted without explanation)"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "cross-assistant-sync",
+      "prompt": "Small thing to add to our assistant config: we standardized on `pnpm test --filter @app/api --run` for backend-only unit tests (the `--run` is required — without it, vitest opens watch mode and CI hangs). Please add this. Update all our assistant config files.",
+      "expected_output": "Detects both CLAUDE.md and .github/copilot-instructions.md. When the user chooses 'all', the learning lands in both files. The existing mirror/sync rule in CLAUDE.md is preserved (not clobbered by a replace-section edit). The copilot-instructions.md gains a reciprocal sync rule if it lacks one. Summary explicitly mentions the mirror/sync rule was honored.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n**Keep `.github/copilot-instructions.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `.github/copilot-instructions.md`.\n\n## Tech Stack\n- pnpm monorepo\n- vitest for unit tests\n\n## Testing\n- `pnpm test` — run all tests\n- Always use `--run` flag to avoid watch mode in CI\n"
+        },
+        {
+          "path": ".github/copilot-instructions.md",
+          "content": "# Copilot Instructions\n\nThis is a pnpm monorepo using vitest. Prefer functional TypeScript patterns. Write tests for every new function.\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "learning-in-claude-md",
+          "text": "Final CLAUDE.md contains the `pnpm test --filter @app/api --run` rule (or its substance — the `--filter` and `--run` flags are both mentioned for the backend-only test command)"
+        },
+        {
+          "id": "learning-in-copilot-md",
+          "text": "Final .github/copilot-instructions.md contains the same backend-only test command with `--filter` and `--run` flags"
+        },
+        {
+          "id": "sync-rule-preserved",
+          "text": "The existing sync-mirror rule in CLAUDE.md (the sentence beginning 'Keep `.github/copilot-instructions.md` in sync') is still present in the final file — it was not clobbered, removed, or overwritten during the edit"
+        },
+        {
+          "id": "reciprocal-sync-rule-added",
+          "text": "Final .github/copilot-instructions.md contains a reciprocal sync rule naming CLAUDE.md (e.g., 'keep CLAUDE.md in sync' or equivalent phrasing instructing mirror-changes back to CLAUDE.md), since it lacked one in the fixture"
+        },
+        {
+          "id": "summary-mentions-sync",
+          "text": "Agent summary explicitly mentions that the mirror/sync rule between CLAUDE.md and .github/copilot-instructions.md was honored — either by naming the sync rule, by noting the reciprocal rule was added, or by stating both files were kept consistent per the existing project convention"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "silent-contradiction",
+      "prompt": "Heads up — just found out that `git pull` can leave local `main` divergent after a squash merge on GitHub (the squash commit has a different SHA than the sum of the feature-branch commits, so `git pull` merges them as if they were separate histories). You actually need `git reset --hard origin/main` after a squash merge to sync cleanly. Can you save this to CLAUDE.md?",
+      "expected_output": "Agent reads CLAUDE.md, notices the existing rule 'After merging a PR, always `git pull` to sync local main' contradicts the new learning, and proposes updating the existing rule in place rather than appending a second, contradicting entry. Summary explicitly names the contradiction and says which version was kept.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- GitHub repo with squash-merge-only PR policy\n- Feature branches merged via GitHub UI\n\n## Git Workflow\n- Always create a feature branch and open a PR for review — never commit to `main`\n- After merging a PR, always `git pull` to sync local main with origin\n- Delete the feature branch after merge\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "detects-existing-rule",
+          "text": "Agent transcript or summary shows that the pre-existing rule ('After merging a PR, always `git pull` to sync local main') was detected before any write, e.g., via reading CLAUDE.md and calling out the conflict"
+        },
+        {
+          "id": "updates-in-place-not-appends",
+          "text": "Final CLAUDE.md replaces or rewrites the existing `git pull` bullet rather than leaving it alongside a new contradictory entry — the original 'After merging a PR, always `git pull`' phrasing does not survive as a standalone rule next to the new `git reset --hard` guidance"
+        },
+        {
+          "id": "mentions-reset-hard-origin-main",
+          "text": "Final CLAUDE.md mentions `git reset --hard origin/main` (or equivalent) as the recommended sync step after a squash merge"
+        },
+        {
+          "id": "no-contradicting-duplicate",
+          "text": "Final CLAUDE.md does not contain two conflicting rules on how to sync local main after a PR merge — there is a single, coherent recommendation, not both 'always `git pull`' and 'use `git reset --hard`' as standalone rules"
+        },
+        {
+          "id": "summary-names-contradiction",
+          "text": "Agent summary explicitly calls out the contradiction (that the new learning conflicts with the existing rule) and states which version was kept and why — not a silent replace"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "min-char-audit",
+      "prompt": "OK so we had a nasty incident last Thursday. The nightly cron job that rebuilds our search index started failing silently — it was writing a partial index, not erroring out, because one of the shard directories on the EFS mount had gone read-only due to an EFS throttling event earlier in the day. The cron kept running, the partial index got promoted to production, and search relevance tanked for about 14 hours before anyone noticed. We traced it back and the fix was: before the indexer writes anything, it now calls `test -w $SHARD_DIR && touch $SHARD_DIR/.probe && rm $SHARD_DIR/.probe` on every shard directory, and if any probe fails, the indexer aborts with a loud error instead of writing a partial index. This needs to go in CLAUDE.md under the ops section so whoever touches the indexer in the future knows to preserve the probe step. Please add a rule capturing this.",
+      "followup_prompt": "Is this the min, load-bearing chars needed? If yes, reply only 'already minimal.' If no, rewrite with the fewest chars that preserve specificity.",
+      "expected_output": "Turn 1: rule text written to CLAUDE.md is ≤ 200 chars (the skill's min-char audit fires on first pass — incident narrative is context, not rule body). Turn 2: agent replies either exactly 'already minimal.' or a rewrite within 20% of the turn-1 char count that preserves every load-bearing clause (the write probe before indexing, abort on fail).",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- Python search indexer (nightly cron)\n- EFS mount at /mnt/search for shard storage\n\n## Ops\n- Cron schedule: `0 2 * * *` (2am UTC, after nightly ETL)\n- Alerts go to #ops Slack channel\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "turn1-rule-under-200-chars",
+          "text": "Turn-1 rule text appended to CLAUDE.md is ≤ 200 characters — count only the new rule body the agent wrote, not pre-existing lines or section headers. Fail if the rule body exceeds 200 chars (indicates the min-char audit did not fire on first pass)"
+        },
+        {
+          "id": "turn1-preserves-probe-clause",
+          "text": "Turn-1 rule mentions the pre-write probe behavior (e.g., 'test -w', 'touch .probe', 'write-probe', or equivalent shorthand) AND that the indexer must abort on probe failure — both clauses are load-bearing and must survive the audit"
+        },
+        {
+          "id": "turn2-affirmation-or-bounded-rewrite",
+          "text": "Turn-2 response matches regex /^\\s*already\\s+minimal\\.?\\s*$/i on its first non-whitespace line, OR the turn-2 rule rewrite is within 20% of turn-1's char count (i.e., |turn2_chars - turn1_chars| / turn1_chars ≤ 0.20). Fail if neither condition holds"
+        },
+        {
+          "id": "turn2-preserves-load-bearing-clauses",
+          "text": "If turn-2 is a rewrite (not an 'already minimal' affirmation), the rewrite preserves both load-bearing clauses from turn 1: the pre-write probe and the abort-on-failure behavior. Fail if either clause is dropped"
+        },
+        {
+          "id": "no-incident-narrative-in-rule",
+          "text": "Turn-1 rule text does not embed the incident narrative (no mention of 'Thursday', '14 hours', 'search relevance', 'EFS throttling event', 'silently', or similar story-context phrasing) — the incident is context, not rule body"
+        }
+      ]
     }
   ]
 }
