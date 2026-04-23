@@ -83,12 +83,12 @@ Tests Principle 1 (reject noise). On Sonnet 4.6 without-skill the baseline captu
 Tests the new Step 4 (Preserve Cross-Config Sync Rules). Both baselines without-skill preserved the existing sync rule in CLAUDE.md and applied the learning to both files — but neither added a reciprocal mirror-rule to copilot-instructions.md (4/5 on both models). With v1.0, Step 4 detects the missing reciprocal and adds it, and the summary names that Step 4 was applied (5/5 on both).
 
 ### Eval 8 — Silent contradiction
-**Prompt**: CLAUDE.md already contains `After merging a PR, always `git pull` to sync local main`. New learning: `git pull` leaves main divergent after a squash merge; use `git reset --hard origin/main` instead. User does not flag the existing rule.
+**Prompt**: CLAUDE.md already contains "After merging a PR, always `git pull` to sync local main". New learning: `git pull` leaves main divergent after a squash merge; use `git reset --hard origin/main` instead. User does not flag the existing rule.
 
 Tests Principle 4 (surface contradictions explicitly). Both baselines without-skill replaced the rule in place and described the change transparently, but neither explicitly framed the replacement as a contradiction resolution (4/5 on both). With v1.0, the summary names the conflict ("supersedes the existing `git pull` rule because…") and identifies which version was kept and why (5/5 on both).
 
 ### Eval 9 — Min-char audit (two-turn)
-**Prompt (turn 1)**: Verbose incident narrative (Thursday outage, 14hr impact) followed by a small concrete fix (a `test -w && touch && rm` write-probe + abort on failure). Turn 2: a pinned follow-up asking whether the rule is minimum-chars and either to affirm with the exact string `already minimal.` or rewrite within 20%.
+**Prompt (turn 1)**: Verbose incident narrative (Thursday outage, 14hr impact) followed by a small concrete fix (a `test -w && touch && rm` write-probe + abort on failure). Turn 2: a pinned follow-up asking whether the rule is minimum-chars and either to affirm with `already minimal` (optional trailing period) or rewrite within 20%.
 
 Tests whether the Plan-step min-char audit (task 3.3) fires on first pass. Primary signal: turn-1 rule body ≤ 200 chars. Corroboration: turn-2 is the pinned affirmation or a bounded rewrite that preserves both load-bearing clauses (the probe command and the abort behavior).
 
