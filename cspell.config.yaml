@@ -37,6 +37,7 @@ words:
   - goroutines
   - healthz
   - heredocs
+  - informationally
   - lockfiles
   - metacharacter
   - metacharacters
