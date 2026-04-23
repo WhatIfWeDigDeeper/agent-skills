@@ -50,8 +50,8 @@
         "total": 5,
         "time_seconds": 60.4,
         "tokens": 15565,
-        "tool_calls": 0,
-        "errors": 0
+        "tool_calls": null,
+        "errors": null
       },
       "expectations": [
         {
@@ -140,8 +140,8 @@
         "total": 5,
         "time_seconds": 34.6,
         "tokens": 11968,
-        "tool_calls": 0,
-        "errors": 0
+        "tool_calls": null,
+        "errors": null
       },
       "expectations": [
         {
@@ -230,8 +230,8 @@
         "total": 5,
         "time_seconds": 73.5,
         "tokens": 15847,
-        "tool_calls": 0,
-        "errors": 0
+        "tool_calls": null,
+        "errors": null
       },
       "expectations": [
         {
@@ -320,8 +320,8 @@
         "total": 5,
         "time_seconds": 67.7,
         "tokens": 18160,
-        "tool_calls": 0,
-        "errors": 0
+        "tool_calls": null,
+        "errors": null
       },
       "expectations": [
         {
@@ -410,8 +410,8 @@
         "total": 5,
         "time_seconds": 81.8,
         "tokens": 16613,
-        "tool_calls": 0,
-        "errors": 0
+        "tool_calls": null,
+        "errors": null
       },
       "expectations": [
         {
@@ -500,8 +500,8 @@
         "total": 5,
         "time_seconds": 36.0,
         "tokens": 12191,
-        "tool_calls": 0,
-        "errors": 0
+        "tool_calls": null,
+        "errors": null
       },
       "expectations": [
         {
