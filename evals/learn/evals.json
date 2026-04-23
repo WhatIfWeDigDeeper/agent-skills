@@ -103,6 +103,88 @@
           "text": "Transcript shows a plan or summary of proposed changes (what will be added, where) before any file write operations occur"
         }
       ]
+    },
+    {
+      "id": 3,
+      "prompt": "Heads up — `npm run build` doesn't set `NODE_ENV=production`. You need `npm run build:prod` for production bundles; plain `npm run build` produces a dev-mode bundle.",
+      "expected_output": "Skill notices the existing `npm run build` bullet in the CLAUDE.md Commands section and updates it in place (clarifies it's dev-only) rather than appending a parallel entry that leaves the stale `build the app` description alongside new production-build content. One fact, not a workflow — no skill created.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- Node.js backend\n- Docker for local dev\n\n## Commands\n- `npm run build` — build the app\n- `npm test` — run tests\n- `npm run dev` — start dev server\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "claude-md-modified",
+          "text": "CLAUDE.md was modified"
+        },
+        {
+          "id": "original-build-entry-updated-in-place",
+          "text": "The original `npm run build` bullet (previously described as \"build the app\") no longer appears verbatim — it was modified in place to reflect its dev-only scope or replaced with a clearer entry"
+        },
+        {
+          "id": "mentions-node-env-or-build-prod",
+          "text": "The updated CLAUDE.md mentions `NODE_ENV=production` and/or `npm run build:prod` in the context of the `build` entry"
+        },
+        {
+          "id": "no-stale-duplicate-entry",
+          "text": "CLAUDE.md does not contain the original `build the app` description alongside a separately appended production-build entry — the old description is not left stale next to new content"
+        },
+        {
+          "id": "no-new-skill",
+          "text": "No new skill file was created — this is a single fact, not a multi-step workflow"
+        },
+        {
+          "id": "summary-mentions-update-in-place",
+          "text": "Agent summary explicitly states that an existing entry was updated rather than new content being appended"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Small thing — `git reset --hard` doesn't delete untracked files. If you want a truly clean state you need `git clean -fd` as well. Bit me just now.",
+      "expected_output": "Skill detects three AI assistant configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) and explicitly asks the user which of them to update — because three parallel configs for three different assistants is ambiguous whether the learning should land in one, some, or all. Does not silently broadcast to all three without asking. Single factual gotcha — no new skill created.",
+      "files": [
+        {
+          "path": "CLAUDE.md",
+          "content": "# Project Instructions\n\n## Tech Stack\n- Monorepo with Node.js backend + React frontend\n- Git + GitHub for version control\n\n## Commands\n- `pnpm build` — build everything\n- `pnpm test` — run all tests\n"
+        },
+        {
+          "path": ".github/copilot-instructions.md",
+          "content": "# Copilot Instructions\n\nFocus on idiomatic TypeScript and React. Prefer functional patterns, avoid class components.\n"
+        },
+        {
+          "path": "AGENTS.md",
+          "content": "# Agent Instructions\n\nThis repo is a pnpm monorepo. Tests live next to source files as `*.test.ts`. CI runs on push to any branch.\n"
+        }
+      ],
+      "assertions": [
+        {
+          "id": "detects-all-three-configs",
+          "text": "Transcript shows all three configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) were detected before any file was modified"
+        },
+        {
+          "id": "asks-which-configs-before-writing",
+          "text": "Before any file was written, the agent emitted a prompt or question explicitly asking the user to choose which of the detected config files to update (a generic 'does this plan look right?' confirmation does not count — the prompt must specifically offer a choice of configs)"
+        },
+        {
+          "id": "no-writes-before-user-input",
+          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response — fixture setup writes are excluded from this check"
+        },
+        {
+          "id": "git-clean-learning-captured",
+          "text": "The final content of at least one modified config mentions both `git reset --hard` and `git clean -fd` (or equivalent phrasing) so the gotcha is captured end-to-end"
+        },
+        {
+          "id": "no-new-skill",
+          "text": "No new skill file was created — this is a single fact, not a multi-step workflow"
+        },
+        {
+          "id": "summary-states-which-configs-updated",
+          "text": "User-facing summary explicitly names which config files were modified (and which were left alone, if any)"
+        }
+      ]
     }
   ]
 }

@@ -35,7 +35,9 @@ words:
   - GHSA
   - githubcopilot
   - goroutines
+  - healthz
   - heredocs
+  - informationally
   - lockfiles
   - metacharacter
   - metacharacters
