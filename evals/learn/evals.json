@@ -296,8 +296,8 @@
       "id": 9,
       "name": "min-char-audit",
       "prompt": "OK so we had a nasty incident last Thursday. The nightly cron job that rebuilds our search index started failing silently — it was writing a partial index, not erroring out, because one of the shard directories on the EFS mount had gone read-only due to an EFS throttling event earlier in the day. The cron kept running, the partial index got promoted to production, and search relevance tanked for about 14 hours before anyone noticed. We traced it back and the fix was: before the indexer writes anything, it now calls `test -w $SHARD_DIR && touch $SHARD_DIR/.probe && rm $SHARD_DIR/.probe` on every shard directory, and if any probe fails, the indexer aborts with a loud error instead of writing a partial index. This needs to go in CLAUDE.md under the ops section so whoever touches the indexer in the future knows to preserve the probe step. Please add a rule capturing this.",
-      "followup_prompt": "Is this the min, load-bearing chars needed? If yes, reply only 'already minimal.' If no, rewrite with the fewest chars that preserve specificity.",
-      "expected_output": "Turn 1: rule text written to CLAUDE.md is ≤ 200 chars (the skill's min-char audit fires on first pass — incident narrative is context, not rule body). Turn 2: agent replies either exactly 'already minimal.' or a rewrite within 20% of the turn-1 char count that preserves every load-bearing clause (the write probe before indexing, abort on fail).",
+      "followup_prompt": "Is this the min, load-bearing chars needed? If yes, reply only 'already minimal' (period optional). If no, rewrite with the fewest chars that preserve specificity.",
+      "expected_output": "Turn 1: rule text written to CLAUDE.md is ≤ 200 chars (the skill's min-char audit fires on first pass — incident narrative is context, not rule body). Turn 2: agent replies only 'already minimal' with an optional trailing period, or provides a rewrite within 20% of the turn-1 char count that preserves every load-bearing clause (the write probe before indexing, abort on fail).",
       "files": [
         {
           "path": "CLAUDE.md",
