@@ -3,7 +3,7 @@
 ## Phase 1: Draft new evals
 
 - [x] **1.1** Add eval 5 (noise rejection) to `evals/learn/evals.json` with full assertion set — see plan.md "Eval 5" section for prompt shape and discriminating assertion
-- [x] **1.2** Add eval 6 (environment-scope labeling) to `evals/learn/evals.json`
+- [x] **1.2** Draft eval 6 (environment-scope labeling) for `evals/learn/evals.json`, then drop it at the Phase 2 discrimination gate
 - [x] **1.3** Add eval 7 (cross-assistant-sync rule) to `evals/learn/evals.json` — fixture must include both CLAUDE.md (with sync rule text) and `.github/copilot-instructions.md`
 - [x] **1.4** Add eval 8 (silent contradiction) to `evals/learn/evals.json` — fixture CLAUDE.md must contain a rule the new learning will contradict
 - [x] **1.5** Resolve eval 9 harness pattern. Existing `evals.json` schema has a single `prompt` string per eval; eval 9 needs a follow-up turn. Option (b) from plan.md — embedding the follow-up inside the initial prompt — is rejected upfront because it contaminates the first draft. Decide between the remaining options: (a) extend the runner to support a `followup_prompt` field and a two-turn transcript, or (c) fall back to a single-turn threshold assertion ("rule text ≤ 2 sentences AND ≤ 200 chars"). Record the decision here before 1.6. **Decision: option (a).** The evals in this repo are executed by subagents reading `evals.json`, not a formal typed runner — adding an optional `followup_prompt` field is a documentation change (executor subagent is told: if present, issue a second turn after the first draft). This preserves the primary signal (did the audit fire unprompted on turn 1) that option (c) dilutes.
