@@ -121,7 +121,7 @@
         },
         {
           "id": "original-build-entry-updated-in-place",
-          "text": "The original `- `npm run build` — build the app` bullet no longer appears verbatim — it was modified in place to reflect its dev-only scope or replaced with a clearer entry"
+          "text": "The original `npm run build` bullet (previously described as \"build the app\") no longer appears verbatim — it was modified in place to reflect its dev-only scope or replaced with a clearer entry"
         },
         {
           "id": "mentions-node-env-or-build-prod",

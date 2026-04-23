@@ -20,7 +20,7 @@
         "analyzer_model": "claude-sonnet-4-6",
         "timestamp": "2026-04-22T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "evals 0-2 dated 2026-03-14 (initial narrated/simulated runs); evals 3-4 backfilled 2026-04-22 with live-workspace grading — top-level timestamp reflects the most recent Sonnet run"
+        "notes": "evals 0-2 dated 2026-03-14 (initial narrated/simulated runs); evals 3-4 backfilled 2026-04-22 with live-workspace grading \u2014 this entry's `timestamp` reflects the most recent Sonnet run"
       },
       {
         "executor_model": "claude-opus-4-7",
@@ -600,7 +600,7 @@
           "evidence": "CLAUDE.md edited from 10 to 12 lines; Commands section updated."
         },
         {
-          "text": "The original `- `npm run build` \u2014 build the app` bullet no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
+          "text": "The original `npm run build` bullet (previously described as \"build the app\") no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
           "passed": true,
           "evidence": "Original bullet replaced with '- `npm run build` \u2014 dev-mode bundle only (does NOT set NODE_ENV=production)'."
         },
@@ -650,7 +650,7 @@
           "evidence": "Edit tool applied to CLAUDE.md \u2014 original build bullet replaced in place and new build:prod bullet added."
         },
         {
-          "text": "The original `- `npm run build` \u2014 build the app` bullet no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
+          "text": "The original `npm run build` bullet (previously described as \"build the app\") no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
           "passed": true,
           "evidence": "Final CLAUDE.md line reads '- `npm run build` \u2014 build a dev-mode bundle (does NOT set `NODE_ENV=production`)' \u2014 'build the app' is gone."
         },
@@ -700,7 +700,7 @@
           "evidence": "CLAUDE.md edited via the Edit tool."
         },
         {
-          "text": "The original `- `npm run build` \u2014 build the app` bullet no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
+          "text": "The original `npm run build` bullet (previously described as \"build the app\") no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
           "passed": true,
           "evidence": "Original bullet replaced with '- `npm run build` \u2014 dev-mode bundle only (does NOT set NODE_ENV=production)'."
         },
@@ -750,7 +750,7 @@
           "evidence": "Edit tool applied to CLAUDE.md."
         },
         {
-          "text": "The original `- `npm run build` \u2014 build the app` bullet no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
+          "text": "The original `npm run build` bullet (previously described as \"build the app\") no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
           "passed": true,
           "evidence": "Original bullet replaced with '- `npm run build` \u2014 build a dev-mode bundle (does NOT set `NODE_ENV=production`)'."
         },
