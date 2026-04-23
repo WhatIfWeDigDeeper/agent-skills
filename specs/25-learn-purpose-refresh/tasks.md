@@ -74,7 +74,7 @@ Phase 4 produces runs in two groups on both models: (a) `with_skill` for each ke
 - [ ] **6.11** `benchmark.md` `**Evals**` total-count line reflects 5 + K evals and 4·(5+K) runs total
 - [ ] **6.12** `benchmark.md` `## Per-Eval Results` table has a row for every kept eval in 5–8 and updated v1.0 rows for evals 0–4
 - [ ] **6.13** `benchmark.md` `## Known Eval Limitations` no longer uses the 19-of-20 non-discriminating framing
-- [ ] **6.14** Confirm v0.9 `with_skill` rows for evals 0–4 were fully replaced. Run entries in `benchmark.json` do not carry per-run `skill_version` in the current schema, so the mechanical check is count-based: `jq '[.runs[] | select(.configuration=="with_skill")] | group_by(.eval_id) | map({eval_id: .[0].eval_id, count: length})' evals/learn/benchmark.json` — expect each eval_id in the final set to have exactly 2 `with_skill` entries (one per model). Combined with task 4.3 + 4.5 execution discipline, this confirms no v0.9 `with_skill` rows survived.
+- [ ] **6.14** Confirm v0.9 `with_skill` rows for evals 0–4 were fully replaced. Run entries in `benchmark.json` do not carry per-run `skill_version` in the current schema, so the mechanical check is count-based: `jq '[.runs[] | select(.configuration=="with_skill")] | sort_by(.eval_id) | group_by(.eval_id) | map({eval_id: .[0].eval_id, count: length})' evals/learn/benchmark.json` — expect each eval_id in the final set to have exactly 2 `with_skill` entries (one per model). Combined with task 4.3 + 4.5 execution discipline, this confirms no v0.9 `with_skill` rows survived.
 - [ ] **6.15** `metadata.evals_run` in `benchmark.json` matches `[0,1,2,3,4]` plus the kept subset recorded in task 2.2
 
 ---
