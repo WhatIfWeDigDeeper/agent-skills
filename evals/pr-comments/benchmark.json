@@ -4,6 +4,15 @@
     "skill_path": "skills/pr-comments",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
+    "models_tested": [
+      {
+        "executor_model": "claude-sonnet-4-6",
+        "analyzer_model": "claude-sonnet-4-6",
+        "timestamp": "2026-04-03T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "All 38 evals \u00d7 2 configurations run on Sonnet 4.6 plus 6 regression runs (evals 12, 14, 20, 22, 23, 24 with run_number > 1). Primary suite dated 2026-03-29 through 2026-04-12; eval 10 re-run at v1.24 on 2026-04-07; evals 37-38 run at v1.28 on 2026-04-12."
+      }
+    ],
     "timestamp": "2026-04-03T00:00:00Z",
     "evals_run": [
       1,
@@ -62,6 +71,7 @@
     {
       "eval_id": 1,
       "eval_name": "basic-address-comments",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -118,6 +128,7 @@
     {
       "eval_id": 1,
       "eval_name": "basic-address-comments",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -172,6 +183,7 @@
     {
       "eval_id": 2,
       "eval_name": "explicit-pr-with-suggestions",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -226,6 +238,7 @@
     {
       "eval_id": 2,
       "eval_name": "explicit-pr-with-suggestions",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -282,6 +295,7 @@
     {
       "eval_id": 3,
       "eval_name": "decline-out-of-scope",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -343,6 +357,7 @@
     {
       "eval_id": 3,
       "eval_name": "decline-out-of-scope",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -402,6 +417,7 @@
     {
       "eval_id": 4,
       "eval_name": "mixed-four-categories",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -463,6 +479,7 @@
     {
       "eval_id": 4,
       "eval_name": "mixed-four-categories",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -524,6 +541,7 @@
     {
       "eval_id": 5,
       "eval_name": "outdated-threads",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -573,6 +591,7 @@
     {
       "eval_id": 5,
       "eval_name": "outdated-threads",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -624,6 +643,7 @@
     {
       "eval_id": 6,
       "eval_name": "duplicate-coauthors",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -668,6 +688,7 @@
     {
       "eval_id": 6,
       "eval_name": "duplicate-coauthors",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -714,6 +735,7 @@
     {
       "eval_id": 7,
       "eval_name": "push-rerequest",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -758,6 +780,7 @@
     {
       "eval_id": 7,
       "eval_name": "push-rerequest",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -804,6 +827,7 @@
     {
       "eval_id": 8,
       "eval_name": "push-declined",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -843,6 +867,7 @@
     {
       "eval_id": 8,
       "eval_name": "push-declined",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -884,6 +909,7 @@
     {
       "eval_id": 9,
       "eval_name": "bot-reviewer-handling",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -928,6 +954,7 @@
     {
       "eval_id": 9,
       "eval_name": "bot-reviewer-handling",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -974,6 +1001,7 @@
     {
       "eval_id": 10,
       "eval_name": "empty-reviewer-list",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1020,6 +1048,7 @@
     {
       "eval_id": 10,
       "eval_name": "empty-reviewer-list",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1066,6 +1095,7 @@
     {
       "eval_id": 11,
       "eval_name": "reply-only-no-commit",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1110,6 +1140,7 @@
     {
       "eval_id": 11,
       "eval_name": "reply-only-no-commit",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1156,6 +1187,7 @@
     {
       "eval_id": 12,
       "eval_name": "bot-poll-confirms",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1205,6 +1237,7 @@
     {
       "eval_id": 12,
       "eval_name": "bot-poll-confirms",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1254,6 +1287,7 @@
     {
       "eval_id": 13,
       "eval_name": "bot-poll-declined",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1313,6 +1347,7 @@
     {
       "eval_id": 13,
       "eval_name": "bot-poll-declined",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1375,6 +1410,7 @@
     {
       "eval_id": 14,
       "eval_name": "bot-poll-timeout",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1414,6 +1450,7 @@
     {
       "eval_id": 14,
       "eval_name": "bot-poll-timeout",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1453,6 +1490,7 @@
     {
       "eval_id": 15,
       "eval_name": "security-screening",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1492,6 +1530,7 @@
     {
       "eval_id": 15,
       "eval_name": "security-screening",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1531,6 +1570,7 @@
     {
       "eval_id": 16,
       "eval_name": "reinvocation-skip-prior-reply",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1575,6 +1615,7 @@
     {
       "eval_id": 16,
       "eval_name": "reinvocation-skip-prior-reply",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1621,6 +1662,7 @@
     {
       "eval_id": 12,
       "eval_name": "bot-poll-confirms",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 2,
       "result": {
@@ -1672,6 +1714,7 @@
     {
       "eval_id": 14,
       "eval_name": "bot-poll-timeout",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 2,
       "result": {
@@ -1713,6 +1756,7 @@
     {
       "eval_id": 12,
       "eval_name": "bot-poll-confirms",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 3,
       "result": {
@@ -1769,6 +1813,7 @@
     {
       "eval_id": 14,
       "eval_name": "bot-poll-timeout",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 3,
       "result": {
@@ -1810,6 +1855,7 @@
     {
       "eval_id": 17,
       "eval_name": "review-body-skip-decline",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1864,6 +1910,7 @@
     {
       "eval_id": 17,
       "eval_name": "review-body-skip-decline",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1920,6 +1967,7 @@
     {
       "eval_id": 18,
       "eval_name": "review-body-reply-question",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1969,6 +2017,7 @@
     {
       "eval_id": 18,
       "eval_name": "review-body-reply-question",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2021,6 +2070,7 @@
     {
       "eval_id": 19,
       "eval_name": "diff-validation-declines-out-of-scope-suggestion",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2060,6 +2110,7 @@
     {
       "eval_id": 19,
       "eval_name": "diff-validation-declines-out-of-scope-suggestion",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2101,6 +2152,7 @@
     {
       "eval_id": 20,
       "eval_name": "cross-file-consistency-matching-rename",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2140,6 +2192,7 @@
     {
       "eval_id": 20,
       "eval_name": "cross-file-consistency-matching-rename",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2181,6 +2234,7 @@
     {
       "eval_id": 21,
       "eval_name": "cross-file-consistency-no-false-positive",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2215,6 +2269,7 @@
     {
       "eval_id": 21,
       "eval_name": "cross-file-consistency-no-false-positive",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2251,6 +2306,7 @@
     {
       "eval_id": 22,
       "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2290,6 +2346,7 @@
     {
       "eval_id": 22,
       "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2331,6 +2388,7 @@
     {
       "eval_id": 23,
       "eval_name": "all-skip-repoll-pending-bot",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2375,6 +2433,7 @@
     {
       "eval_id": 23,
       "eval_name": "all-skip-repoll-pending-bot",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2421,6 +2480,7 @@
     {
       "eval_id": 24,
       "eval_name": "bot-timeline-comment",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2464,6 +2524,7 @@
     {
       "eval_id": 24,
       "eval_name": "bot-timeline-comment",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2507,6 +2568,7 @@
     {
       "eval_id": 25,
       "eval_name": "timeline-dedup-and-already-addressed",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2545,6 +2607,7 @@
     {
       "eval_id": 25,
       "eval_name": "timeline-dedup-and-already-addressed",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2583,6 +2646,7 @@
     {
       "eval_id": 26,
       "eval_name": "outdated-thread-concern-persists",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2621,6 +2685,7 @@
     {
       "eval_id": 26,
       "eval_name": "outdated-thread-concern-persists",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2659,6 +2724,7 @@
     {
       "eval_id": 27,
       "eval_name": "outdated-thread-concern-addressed",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2692,6 +2758,7 @@
     {
       "eval_id": 27,
       "eval_name": "outdated-thread-concern-addressed",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2725,6 +2792,7 @@
     {
       "eval_id": 22,
       "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 2,
       "result": {
@@ -2766,6 +2834,7 @@
     {
       "eval_id": 23,
       "eval_name": "all-skip-repoll-pending-bot",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 2,
       "result": {
@@ -2812,6 +2881,7 @@
     {
       "eval_id": 24,
       "eval_name": "bot-timeline-comment",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 2,
       "result": {
@@ -2858,6 +2928,7 @@
     {
       "eval_id": 20,
       "eval_name": "cross-file-consistency-matching-rename",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 2,
       "result": {
@@ -2899,6 +2970,7 @@
     {
       "eval_id": 20,
       "eval_name": "cross-file-consistency-matching-rename",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 2,
       "result": {
@@ -2940,6 +3012,7 @@
     {
       "eval_id": 22,
       "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 3,
       "result": {
@@ -2981,6 +3054,7 @@
     {
       "eval_id": 22,
       "eval_name": "early-poll-bots-pending-no-comments-yet",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 2,
       "result": {
@@ -3022,6 +3096,7 @@
     {
       "eval_id": 23,
       "eval_name": "all-skip-repoll-pending-bot",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 3,
       "result": {
@@ -3068,6 +3143,7 @@
     {
       "eval_id": 23,
       "eval_name": "all-skip-repoll-pending-bot",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 2,
       "result": {
@@ -3114,6 +3190,7 @@
     {
       "eval_id": 28,
       "eval_name": "auto-mode-skips-confirmation",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3153,6 +3230,7 @@
     {
       "eval_id": 28,
       "eval_name": "auto-mode-skips-confirmation",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3194,6 +3272,7 @@
     {
       "eval_id": 29,
       "eval_name": "auto-iteration-cap",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3233,6 +3312,7 @@
     {
       "eval_id": 29,
       "eval_name": "auto-iteration-cap",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3274,6 +3354,7 @@
     {
       "eval_id": 30,
       "eval_name": "manual-to-auto-switch",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3308,6 +3389,7 @@
     {
       "eval_id": 30,
       "eval_name": "manual-to-auto-switch",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3344,6 +3426,7 @@
     {
       "eval_id": 31,
       "eval_name": "hidden-text-injection",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3378,6 +3461,7 @@
     {
       "eval_id": 31,
       "eval_name": "hidden-text-injection",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3414,6 +3498,7 @@
     {
       "eval_id": 32,
       "eval_name": "url-injection",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3448,6 +3533,7 @@
     {
       "eval_id": 32,
       "eval_name": "url-injection",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3484,6 +3570,7 @@
     {
       "eval_id": 33,
       "eval_name": "homoglyph-injection",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3518,6 +3605,7 @@
     {
       "eval_id": 33,
       "eval_name": "homoglyph-injection",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3554,6 +3642,7 @@
     {
       "eval_id": 34,
       "eval_name": "oversized-comment-pauses-auto-mode",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3593,6 +3682,7 @@
     {
       "eval_id": 34,
       "eval_name": "oversized-comment-pauses-auto-mode",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3634,6 +3724,7 @@
     {
       "eval_id": 35,
       "eval_name": "timeline-reply-format",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3673,6 +3764,7 @@
     {
       "eval_id": 35,
       "eval_name": "timeline-reply-format",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3714,6 +3806,7 @@
     {
       "eval_id": 36,
       "eval_name": "follow-up-issue-filing",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3755,6 +3848,7 @@
     {
       "eval_id": 36,
       "eval_name": "follow-up-issue-filing",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3796,6 +3890,7 @@
     {
       "eval_id": 37,
       "eval_name": "post-edit-drift-scan",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3834,6 +3929,7 @@
     {
       "eval_id": 37,
       "eval_name": "post-edit-drift-scan",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3872,6 +3968,7 @@
     {
       "eval_id": 38,
       "eval_name": "convention-sanity-check",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -3910,6 +4007,7 @@
     {
       "eval_id": 38,
       "eval_name": "convention-sanity-check",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -3991,6 +4089,55 @@
       "pass_rate": "+0.66",
       "time_seconds": null,
       "tokens": null
+    }
+  },
+  "run_summary_by_model": {
+    "claude-sonnet-4-6": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 1.0,
+          "stddev": 0.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": null,
+          "stddev": null,
+          "min": null,
+          "max": null
+        },
+        "tokens": {
+          "mean": null,
+          "stddev": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.3419,
+          "stddev": 0.2216,
+          "min": 0.0,
+          "max": 0.8
+        },
+        "time_seconds": {
+          "mean": null,
+          "stddev": null,
+          "min": null,
+          "max": null
+        },
+        "tokens": {
+          "mean": null,
+          "stddev": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.66",
+        "time_seconds": null,
+        "tokens": null
+      }
     }
   },
   "notes": [
