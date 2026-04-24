@@ -39,8 +39,8 @@
     "Spec 25 v1.0 benchmark: 9 evals \u00d7 2 configurations \u00d7 2 models = 36 runs. K=4 new evals kept (5 noise-rejection, 7 cross-assistant-sync, 8 silent-contradiction, 9 min-char-audit); eval 6 environment-scope-labeling was dropped during the Phase 2 discrimination gate because both Opus 4.7 and Sonnet 4.6 baselines scored 5/5 without_skill. Without_skill entries for the kept new evals reuse the Phase 2 gate runs (not re-run in Phase 4) to avoid drift between gate and published benchmark. Without_skill entries for evals 0-4 carry over from the prior v0.9 benchmark \u2014 they don't depend on skill version. With_skill entries for all 9 evals on both models are fresh v1.0 runs dated 2026-04-23.",
     "Evals 0, 1, 3, and 4 are non-discriminating on both models at v1.0 (pass_rate 1.0 on both with_skill and without_skill across both executors). They establish a correctness baseline for the simplest learning paths \u2014 basic write, skill-creation route, update-in-place, multi-config disambiguation \u2014 but do not contribute to the pass-rate delta. They are retained as regression sentinels.",
     "On claude-opus-4-7 the v1.0 skill produces +11 pp pass-rate lift across 9 evals (was +0 at v0.9). Discriminating cells on Opus without_skill: eval 5 noise-rejection (4/5 \u2014 included npm-install noise), eval 7 cross-assistant-sync (4/5 \u2014 no reciprocal mirror rule), eval 8 silent-contradiction (4/5 \u2014 transparent replace without naming the conflict), eval 9 min-char-audit (2/5 \u2014 494-char rule body + 45% trim in turn-2 + embedded incident narrative).",
-    "On claude-sonnet-4-6 the v1.0 skill produces +20 pp pass-rate lift across 9 evals (was +8 at v0.9). Discriminating cells on Sonnet without_skill: eval 2 multi-target-routing (3/5 \u2014 appended workflow to both configs instead of routing to a skill, skipped plan step), eval 5 noise-rejection (1/5 \u2014 captured all 3 obvious items), eval 7 (4/5), eval 8 (4/5), eval 9 (2/5).",
-    "Eval 9 (min-char-audit) is a two-turn eval \u2014 the first in this suite. Turn 1 tests whether the Plan-step audit fires unprompted (primary signal: rule text \u2264 200 chars); turn 2 follow-up asks the agent to evaluate its own rule with a pinned affirmation regex or bounded rewrite. Known false-negative: the v1.0 skill can still leave turn-1 rule text above 200 chars even after the audit step, so the primary signal fails despite the audit being attempted. The turn-2 affirmation assertion was tightened during PR review to require the entire response to be the pinned affirmation (not just the first non-whitespace line); Sonnet with_skill eval 9 was re-graded 4/5 \u2192 3/5 under the tightened criterion.",
+    "On claude-sonnet-4-6 the v1.0 skill produces +22 pp pass-rate lift across 9 evals (was +8 at v0.9). Discriminating cells on Sonnet without_skill: eval 2 multi-target-routing (3/5 \u2014 appended workflow to both configs instead of routing to a skill, skipped plan step), eval 5 noise-rejection (1/5 \u2014 captured all 3 obvious items), eval 7 (4/5), eval 8 (4/5), eval 9 (2/5).",
+    "Eval 9 (min-char-audit) is a two-turn eval \u2014 the first in this suite. Turn 1 tests whether the Plan-step audit fires unprompted (primary signal: rule text \u2264 200 chars); turn 2 follow-up asks the agent to evaluate its own rule with a pinned affirmation regex or bounded rewrite. Known false-negative at v1.0: the skill can still leave turn-1 rule text above 200 chars even after the audit step (Opus 308, Sonnet 209), so the primary signal fails despite the audit being attempted. The turn-2 affirmation assertion was tightened during PR review from 'first non-whitespace line' to 'entire response'; Sonnet with_skill eval 9 was re-run under the tightened criterion (per the evals/CLAUDE.md re-run-don't-re-grade rule) and lands 4/5 \u2014 turn-2 produced `already minimal` as the entire response.",
     "Self-graded by executor for all runs \u2014 no separate analyzer pass. All v1.0 runs used live-workspace grading in isolated temp dirs with no access to skills/learn/SKILL.md for without_skill runs; with_skill runs read the v1.0 SKILL.md and any references its Process steps mark MANDATORY."
   ],
   "runs": [
@@ -1531,43 +1531,45 @@
       "run_number": 1,
       "executor_model": "claude-sonnet-4-6",
       "result": {
-        "pass_rate": 0.6,
-        "passed": 3,
-        "failed": 2,
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
         "total": 5,
-        "time_seconds": 61.44,
-        "tokens": 26576,
+        "time_seconds": 70.02,
+        "tokens": 29345,
         "tool_calls": 8,
-        "errors": 0
+        "errors": 1
       },
       "expectations": [
         {
           "text": "Turn-1 rule text appended to CLAUDE.md is \u2264 200 characters \u2014 count only the new rule body the agent wrote, not pre-existing lines or section headers. Fail if the rule body exceeds 200 chars (indicates the min-char audit did not fire on first pass)",
           "passed": false,
-          "evidence": "Turn-1 rule body is 253 chars \u2014 under the without-skill baseline (370 chars) but still exceeds the 200-char threshold."
+          "evidence": "Turn-1 rule body is 209 chars \u2014 under the original 253-char run and well under the without-skill baseline (370 chars), but still exceeds the 200-char threshold."
         },
         {
           "text": "Turn-1 rule mentions the pre-write probe behavior (e.g., 'test -w', 'touch .probe', 'write-probe', or equivalent shorthand) AND that the indexer must abort on probe failure \u2014 both clauses are load-bearing and must survive the audit",
           "passed": true,
-          "evidence": "Turn-1 names the probe command AND `abort with a non-zero exit` behavior."
+          "evidence": "Turn-1 names the probe command (`test -w $SHARD_DIR && touch $SHARD_DIR/.probe && rm $SHARD_DIR/.probe`) AND the 'Abort with a loud error on any failure' behavior."
         },
         {
           "text": "Turn-2 response in its entirety matches regex /^\\s*already\\s+minimal\\.?\\s*$/i (no additional content before or after), OR the turn-2 rule rewrite is within 20% of turn-1's char count (i.e., |turn2_chars - turn1_chars| / turn1_chars \u2264 0.20). Fail if neither condition holds",
-          "passed": false,
-          "evidence": "Turn-2 response contains multi-paragraph clause-by-clause analysis before ending with `**already minimal.**` \u2014 does not match the tightened assertion (entire response must be the pinned affirmation, no prose before/after). And turn-2 did not produce a rewrite, so the bounded-rewrite branch does not apply either. (Grading corrected during PR review iteration: the original `PASS` verdict relied on matching just a trailing line rather than the entire response.)"
+          "passed": true,
+          "evidence": "Turn-2 response is exactly `already minimal` with no prose before or after; matches the tightened affirmation regex `/^\\s*already\\s+minimal\\.?\\s*$/i`."
         },
         {
           "text": "If turn-2 is a rewrite (not an 'already minimal' affirmation), the rewrite preserves both load-bearing clauses from turn 1: the pre-write probe and the abort-on-failure behavior. Fail if either clause is dropped",
           "passed": true,
-          "evidence": "Turn-2 was an affirmation-intent (no rewrite applied); turn-1 clauses (probe + abort) remain in the file unchanged."
+          "evidence": "Turn-2 was a pure affirmation; turn-1 clauses (probe + abort) remain in the file unchanged."
         },
         {
           "text": "Turn-1 rule text does not embed the incident narrative (no mention of 'Thursday', '14 hours', 'search relevance', 'EFS throttling event', 'silently', or similar story-context phrasing) \u2014 the incident is context, not rule body",
           "passed": true,
-          "evidence": "Turn-1 rule contains no `Thursday`, `14 hours`, `search relevance`, or incident-story phrasing."
+          "evidence": "Turn-1 rule contains no mention of `Thursday`, `14 hours`, `search relevance`, `EFS throttling event`, `silently`, or similar post-incident narrative phrasing \u2014 it stays focused on the probe and abort-on-failure requirement."
         }
       ],
-      "notes": []
+      "notes": [
+        "Re-run dated 2026-04-23 after the turn-2 affirmation assertion was tightened from 'first non-whitespace line' to 'entire response' \u2014 per evals/CLAUDE.md 'when changing pass/fail verdicts on existing benchmark expectations, re-run the eval rather than re-grading'. Prior (pre-tightening) run's transcript ended with `**already minimal.**` preceded by a multi-paragraph clause analysis; this fresh run produced `already minimal` as the entire turn-2 response."
+      ]
     },
     {
       "eval_id": 9,
@@ -1609,7 +1611,7 @@
         {
           "text": "Turn-1 rule text does not embed the incident narrative (no mention of 'Thursday', '14 hours', 'search relevance', 'EFS throttling event', 'silently', or similar story-context phrasing) \u2014 the incident is context, not rule body",
           "passed": true,
-          "evidence": "Turn-1 rule contains no mention of `Thursday`, `14 hours`, `search relevance`, `EFS throttling event`, `silently`, or similar post-incident narrative phrasing \u2014 it stays focused on the probe and abort-on-failure requirement."
+          "evidence": "Turn-1 rule contains no mention of `Thursday`, `14 hours`, `search relevance`, or post-incident narrative \u2014 only the probe, abort, EFS throttling cause, and silent-partial-index consequence."
         }
       ],
       "notes": []
@@ -1756,22 +1758,22 @@
     "claude-sonnet-4-6": {
       "with_skill": {
         "pass_rate": {
-          "mean": 0.9556,
-          "stddev": 0.1333,
-          "min": 0.6,
+          "mean": 0.9778,
+          "stddev": 0.0667,
+          "min": 0.8,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 59.58,
-          "stddev": 15.5642,
+          "mean": 60.53,
+          "stddev": 15.9505,
           "min": 43.73,
           "max": 89.51
         },
         "tokens": {
-          "mean": 26825,
-          "stddev": 1141.2944,
+          "mean": 27132.7,
+          "stddev": 1407.8749,
           "min": 25722,
-          "max": 28964
+          "max": 29345
         }
       },
       "without_skill": {
@@ -1795,9 +1797,9 @@
         }
       },
       "delta": {
-        "pass_rate": "+0.20",
-        "time_seconds": "+22.0",
-        "tokens": "+9846"
+        "pass_rate": "+0.22",
+        "time_seconds": "+23.0",
+        "tokens": "+10154"
       }
     },
     "claude-opus-4-7": {
