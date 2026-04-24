@@ -2,11 +2,11 @@
 
 ## Phase 1: Schema upgrade (annotative, no new runs)
 
-- [ ] **1.1** In `evals/pr-comments/benchmark.json`, add `metadata.models_tested[]` with a single Sonnet 4.6 block: `executor_model: "claude-sonnet-4-6"`, `analyzer_model: "claude-sonnet-4-6"`, `timestamp` matching existing top-level `timestamp`, `runs_per_configuration: 1`, and a `notes` string describing the Sonnet coverage (all 38 evals × 2 configs + 6 regression runs dated 2026-03-29 → 2026-04-12).
-- [ ] **1.2** Stamp `executor_model: "claude-sonnet-4-6"` on every entry in `runs[]`. Verify via `jq '.runs | map(select(.executor_model != "claude-sonnet-4-6")) | length' evals/pr-comments/benchmark.json` returns `0`.
-- [ ] **1.3** Move the existing top-level `run_summary` into `run_summary_by_model["claude-sonnet-4-6"]` (keep the same mean/stddev/min/max/delta values — purely a key rename). Leave top-level `run_summary` in place, mirroring Sonnet for now; it flips to Opus in Phase 4.
-- [ ] **1.4** JSON-validate: `python3 -c 'import json; json.load(open("evals/pr-comments/benchmark.json"))'`.
-- [ ] **1.5** Commit the schema upgrade as its own commit so Phase 4 runs append cleanly on top.
+- [x] **1.1** In `evals/pr-comments/benchmark.json`, add `metadata.models_tested[]` with a single Sonnet 4.6 block: `executor_model: "claude-sonnet-4-6"`, `analyzer_model: "claude-sonnet-4-6"`, `timestamp` matching existing top-level `timestamp`, `runs_per_configuration: 1`, and a `notes` string describing the Sonnet coverage (all 38 evals × 2 configs + 6 regression runs dated 2026-03-29 → 2026-04-12).
+- [x] **1.2** Stamp `executor_model: "claude-sonnet-4-6"` on every entry in `runs[]`. Verify via `jq '.runs | map(select(.executor_model != "claude-sonnet-4-6")) | length' evals/pr-comments/benchmark.json` returns `0`.
+- [x] **1.3** Move the existing top-level `run_summary` into `run_summary_by_model["claude-sonnet-4-6"]` (keep the same mean/stddev/min/max/delta values — purely a key rename). Leave top-level `run_summary` in place, mirroring Sonnet for now; it flips to Opus in Phase 4.
+- [x] **1.4** JSON-validate: `python3 -c 'import json; json.load(open("evals/pr-comments/benchmark.json"))'`.
+- [x] **1.5** Commit the schema upgrade as its own commit so Phase 4 runs append cleanly on top.
 
 ---
 
