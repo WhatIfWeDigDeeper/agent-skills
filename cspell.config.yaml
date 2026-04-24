@@ -21,6 +21,7 @@ words:
   - Dockerfiles
   - dogfood
   - DOXYZ
+  - duplicative
   - EBADPLATFORM
   - elif
   - endswith

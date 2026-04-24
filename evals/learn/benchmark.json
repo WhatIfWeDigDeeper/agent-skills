@@ -2,39 +2,46 @@
   "metadata": {
     "skill_name": "learn",
     "skill_path": "skills/learn",
-    "skill_version": "0.9",
+    "skill_version": "1.0",
     "executor_model": "claude-opus-4-7",
     "analyzer_model": "claude-opus-4-7",
-    "timestamp": "2026-04-22T00:00:00Z",
+    "timestamp": "2026-04-23T00:00:00Z",
     "evals_run": [
       0,
       1,
       2,
       3,
-      4
+      4,
+      5,
+      7,
+      8,
+      9
     ],
     "runs_per_configuration": 1,
     "models_tested": [
       {
         "executor_model": "claude-sonnet-4-6",
         "analyzer_model": "claude-sonnet-4-6",
-        "timestamp": "2026-04-22T00:00:00Z",
+        "timestamp": "2026-04-23T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "evals 0-2 dated 2026-03-14 (initial narrated/simulated runs); evals 3-4 backfilled 2026-04-22 with live-workspace grading \u2014 this entry's `timestamp` reflects the most recent Sonnet run"
+        "notes": "v0.9 Sonnet 4.6 runs (evals 0-4 without_skill dated 2026-03-14 / 2026-04-22) carried over for without_skill 0-4; with_skill 0-4 re-run at v1.0 on 2026-04-23; new evals 5/7/8/9 both configurations dated 2026-04-23."
       },
       {
         "executor_model": "claude-opus-4-7",
         "analyzer_model": "claude-opus-4-7",
-        "timestamp": "2026-04-22T00:00:00Z",
-        "runs_per_configuration": 1
+        "timestamp": "2026-04-23T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "v0.9 Opus 4.7 without_skill runs (evals 0-4 dated 2026-04-22) carried over; with_skill 0-4 re-run at v1.0 on 2026-04-23; new evals 5/7/8/9 both configurations dated 2026-04-23."
       }
     ]
   },
   "notes": [
-    "Multi-model benchmark: all 5 evals ran on both claude-sonnet-4-6 and claude-opus-4-7 (1 run per eval per configuration; evals 0-2 on Sonnet dated 2026-03-14, evals 3-4 on Sonnet backfilled 2026-04-22; all Opus runs dated 2026-04-22). Per-model stats live in run_summary_by_model; the top-level run_summary mirrors the latest model (claude-opus-4-7) for compatibility with the single-model aggregate_benchmark.py script.",
-    "On claude-sonnet-4-6 the skill produces +8% pass-rate lift across 5 evals (was +13% with 3 evals; +10% with 4 evals \u2014 diluted each time a non-discriminating eval was added). The lift is still concentrated entirely in eval 2, where the baseline scored 3/5 vs. with-skill 5/5 on multi-target routing and plan-before-apply. On claude-opus-4-7 the baseline reaches all 27 assertions per configuration (5+5+5+6+6 across evals 0-4) on its own \u2014 lift is +0% across all five evals.",
-    "Evals 3 and 4 were targeted discrimination attempts for Opus-tier baselines. Eval 3 tests Route A's 'search existing content before appending' rule (update-in-place vs. duplicate). Eval 4 tests Route A's scope-guard behavior when multiple AI configs are present (asks which to update vs. silent broadcast). Neither discriminated on either model: both Sonnet and Opus baselines update in place correctly and ask disambiguation questions unprompted when multiple configs are detected. On Opus 4.7 the baseline prompt in eval 4 was even more nuanced than the skill's \u2014 it noticed the Copilot file was style-scoped and recommended skipping it.",
-    "Self-graded by executor for all runs \u2014 no separate analyzer pass. Earlier Sonnet 4.6 runs on evals 0-2 used the original narrated/simulated grading methodology; evals 3-4 Sonnet runs used the same live-workspace self-grading as Opus."
+    "Spec 25 v1.0 benchmark: 9 evals \u00d7 2 configurations \u00d7 2 models = 36 runs. K=4 new evals kept (5 noise-rejection, 7 cross-assistant-sync, 8 silent-contradiction, 9 min-char-audit); eval 6 environment-scope-labeling was dropped during the Phase 2 discrimination gate because both Opus 4.7 and Sonnet 4.6 baselines scored 5/5 without_skill. Without_skill entries for the kept new evals reuse the Phase 2 gate runs (not re-run in Phase 4) to avoid drift between gate and published benchmark. Without_skill entries for evals 0-4 carry over from the prior v0.9 benchmark \u2014 they don't depend on skill version. With_skill entries for all 9 evals on both models are fresh v1.0 runs dated 2026-04-23.",
+    "Evals 0, 1, 3, and 4 are non-discriminating on both models at v1.0 (pass_rate 1.0 on both with_skill and without_skill across both executors). They establish a correctness baseline for the simplest learning paths \u2014 basic write, skill-creation route, update-in-place, multi-config disambiguation \u2014 but do not contribute to the pass-rate delta. They are retained as regression sentinels.",
+    "On claude-opus-4-7 the v1.0 skill produces +11 pp pass-rate lift across 9 evals (was +0 at v0.9). Discriminating cells on Opus without_skill: eval 5 noise-rejection (4/5 \u2014 included npm-install noise), eval 7 cross-assistant-sync (4/5 \u2014 no reciprocal mirror rule), eval 8 silent-contradiction (4/5 \u2014 transparent replace without naming the conflict), eval 9 min-char-audit (2/5 \u2014 494-char rule body + 45% trim in turn-2 + embedded incident narrative).",
+    "On claude-sonnet-4-6 the v1.0 skill produces +22 pp pass-rate lift across 9 evals (was +8 at v0.9). Discriminating cells on Sonnet without_skill: eval 2 multi-target-routing (3/5 \u2014 appended workflow to both configs instead of routing to a skill, skipped plan step), eval 5 noise-rejection (1/5 \u2014 captured all 3 obvious items), eval 7 (4/5), eval 8 (4/5), eval 9 (2/5).",
+    "Eval 9 (min-char-audit) is a two-turn eval \u2014 the first in this suite. Turn 1 tests whether the Plan-step audit fires unprompted (primary signal: rule text \u2264 200 chars); turn 2 follow-up asks the agent to evaluate its own rule with a pinned affirmation regex or bounded rewrite. Known false-negative at v1.0: the skill can still leave turn-1 rule text above 200 chars even after the audit step (Opus 308, Sonnet 209), so the primary signal fails despite the audit being attempted. The turn-2 affirmation assertion was tightened during PR review from 'first non-whitespace line' to 'entire response'; Sonnet with_skill eval 9 was re-run under the tightened criterion (per the evals/CLAUDE.md re-run-don't-re-grade rule) and lands 4/5 \u2014 turn-2 produced `already minimal` as the entire response.",
+    "Self-graded by executor for all runs \u2014 no separate analyzer pass. All v1.0 runs used live-workspace grading in isolated temp dirs with no access to skills/learn/SKILL.md for without_skill runs; with_skill runs read the v1.0 SKILL.md and any references its Process steps mark MANDATORY."
   ],
   "runs": [
     {
@@ -48,36 +55,36 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 60.4,
-        "tokens": 15565,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 52.04,
+        "tokens": 26337,
+        "tool_calls": 9,
+        "errors": 0
       },
       "expectations": [
         {
           "text": "CLAUDE.md was modified",
           "passed": true,
-          "evidence": "outputs/CLAUDE.md contains new ## Docker section not in the original (17 \u2192 22 lines per transcript Step 6)."
+          "evidence": "CLAUDE.md modified 17 \u2192 20 lines via Edit tool."
         },
         {
           "text": "The added content mentions 'host.docker.internal'",
           "passed": true,
-          "evidence": "outputs/CLAUDE.md line: 'use host.docker.internal instead to reach the host machine (e.g. curl host.docker.internal:3000)'"
+          "evidence": "Added rule names `host.docker.internal` as the replacement for `localhost`."
         },
         {
           "text": "The added content captures that localhost doesn't work inside containers",
           "passed": true,
-          "evidence": "outputs/CLAUDE.md: 'curl localhost:<port> always fails from inside a container'"
+          "evidence": "Added rule captures `curl localhost:3000` failure mode from inside container."
         },
         {
           "text": "Learning is placed in a relevant section rather than appended randomly",
           "passed": true,
-          "evidence": "New ## Docker section created \u2014 purpose-specific heading appropriate for a Docker Compose project."
+          "evidence": "New `## Docker` section created (scoped to macOS)."
         },
         {
           "text": "Skill summarizes what was added and where",
           "passed": true,
-          "evidence": "Transcript Step 6 shows summary table: 'Updated | CLAUDE.md | Added ## Docker section (17 \u2192 22 lines)'"
+          "evidence": "Summary names the new Docker section and line-count delta."
         }
       ],
       "notes": []
@@ -93,36 +100,36 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 66.58,
-        "tokens": 35330,
-        "tool_calls": 8,
+        "time_seconds": 52.27,
+        "tokens": 35352,
+        "tool_calls": 6,
         "errors": 0
       },
       "expectations": [
         {
           "text": "CLAUDE.md was modified",
           "passed": true,
-          "evidence": "CLAUDE.md grew from 17 to 19 lines; Edit tool appended Docker-on-macOS bullet under ## Development."
+          "evidence": "Edit tool added new `## Docker` section to CLAUDE.md (17 \u2192 20 lines)."
         },
         {
           "text": "The added content mentions 'host.docker.internal'",
           "passed": true,
-          "evidence": "Appended bullet contains 'host.docker.internal' twice (narrative + 'curl host.docker.internal:3000' example)."
+          "evidence": "New `## Docker` section names `host.docker.internal` with `curl host.docker.internal:3000` example."
         },
         {
           "text": "The added content captures that localhost doesn't work inside containers",
           "passed": true,
-          "evidence": "Bullet: 'from inside a container, localhost does not reach the host machine \u2014 curl localhost:3000 will always fail'."
+          "evidence": "Section states `localhost` from inside a container does not reach the host."
         },
         {
           "text": "Learning is placed in a relevant section rather than appended randomly",
           "passed": true,
-          "evidence": "Placed under ## Development (dev-environment gotcha); ## Conventions below it untouched."
+          "evidence": "Dedicated `## Docker` section added adjacent to existing Docker Compose reference in Tech Stack."
         },
         {
           "text": "Skill summarizes what was added and where",
           "passed": true,
-          "evidence": "Summary lists file, 17 \u2192 19 line-count delta, section updated, and content appended; notes no new skill created because it's a single fact not a workflow."
+          "evidence": "Summary reports 17 \u2192 20 line delta and names the new section."
         }
       ],
       "notes": []
@@ -228,36 +235,36 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 73.5,
-        "tokens": 15847,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 56.77,
+        "tokens": 25949,
+        "tool_calls": 7,
+        "errors": 0
       },
       "expectations": [
         {
           "text": "A new skill file is created rather than just appending the full workflow to CLAUDE.md",
           "passed": true,
-          "evidence": "outputs/skills/deploy/SKILL.md created. Transcript Step 3: 'Route C \u2014 new skill'. outputs/CLAUDE.md is unchanged from input."
+          "evidence": "Created `skills/deploy/SKILL.md` (28 lines); CLAUDE.md unchanged \u2014 deployment procedure routed to skill."
         },
         {
           "text": "Created skill includes the key workflow steps",
           "passed": true,
-          "evidence": "SKILL.md has 5 numbered steps: 1. Production Build, 2. Database Migration, 3. Deploy, 4. Health Check, 5. Troubleshooting."
+          "evidence": "SKILL.md has 4 numbered Process steps covering build, migrate, deploy, verify health."
         },
         {
           "text": "Created skill has valid YAML frontmatter with name and description fields",
           "passed": true,
-          "evidence": "SKILL.md frontmatter: name: deploy, description: multi-line block scalar with WHAT/WHEN/keywords. Both fields present and valid."
+          "evidence": "YAML frontmatter with `name: deploy` and description naming trigger keywords (\"deploy\", \"deploy to prod\", \"production release\")."
         },
         {
           "text": "build:prod, db:migrate:prod, and /healthz check all appear in the created skill",
           "passed": true,
-          "evidence": "SKILL.md Step 1: npm run build:prod. Step 2: npm run db:migrate:prod. Step 4: /healthz in curl command."
+          "evidence": "Step 1 `npm run build:prod`, Step 2 `npm run db:migrate:prod`, Step 4 `/healthz` 200 check \u2014 all present."
         },
         {
           "text": "CloudWatch log group /app/prod troubleshooting tip is included",
           "passed": true,
-          "evidence": "SKILL.md Step 5: 'check CloudWatch logs at /app/prod for errors'"
+          "evidence": "Step 4: on 503 \u2192 check CloudWatch logs at `/app/prod`."
         }
       ],
       "notes": []
@@ -273,36 +280,36 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 82.67,
-        "tokens": 34848,
-        "tool_calls": 7,
-        "errors": 0
+        "time_seconds": 69.65,
+        "tokens": 38702,
+        "tool_calls": 10,
+        "errors": 1
       },
       "expectations": [
         {
           "text": "A new skill file is created rather than just appending the full workflow to CLAUDE.md",
           "passed": true,
-          "evidence": "Created skills/deploy-prod/SKILL.md with 5-step Process; CLAUDE.md fixture was not modified."
+          "evidence": "Created `skills/deploy/SKILL.md` (31 lines) with the 4-step workflow; CLAUDE.md only received a tightened Commands entry, not the procedure."
         },
         {
           "text": "Created skill includes the key workflow steps",
           "passed": true,
-          "evidence": "SKILL.md has 5 numbered ### N. Process steps (build, migrate, deploy, health check, CloudWatch troubleshoot) plus a summary checklist."
+          "evidence": "SKILL.md has 4 numbered Process steps: Production Build, Run Prod DB Migrations, Deploy, Verify /healthz."
         },
         {
           "text": "Created skill has valid YAML frontmatter with name and description fields",
           "passed": true,
-          "evidence": "Frontmatter delimited by --- with name: deploy-prod and multi-line description containing WHAT/WHEN/keywords."
+          "evidence": "YAML frontmatter with `name: deploy` and multi-line description including trigger keywords."
         },
         {
           "text": "build:prod, db:migrate:prod, and /healthz check all appear in the created skill",
           "passed": true,
-          "evidence": "Step 1 runs npm run build:prod; Step 2 runs npm run db:migrate:prod; Step 4 curls /healthz; all three also appear in checklist."
+          "evidence": "Step 1: `npm run build:prod`; Step 2: `npm run db:migrate:prod`; Step 4: `/healthz` check \u2014 all present."
         },
         {
           "text": "CloudWatch log group /app/prod troubleshooting tip is included",
           "passed": true,
-          "evidence": "Step 5 names CloudWatch log group /app/prod with aws logs tail /app/prod example; also in description and checklist."
+          "evidence": "Step 4 names CloudWatch `/app/prod` explicitly as the 503 fallback."
         }
       ],
       "notes": []
@@ -408,36 +415,36 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 81.8,
-        "tokens": 16613,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 89.51,
+        "tokens": 28964,
+        "tool_calls": 16,
+        "errors": 0
       },
       "expectations": [
         {
           "text": "Transcript shows both CLAUDE.md and copilot-instructions.md were detected before any files were modified",
           "passed": true,
-          "evidence": "Transcript Step 1 lists 'CLAUDE.md \u2014 10 lines' and '.github/copilot-instructions.md \u2014 4 lines'. File modifications happen in Step 5. Detection clearly precedes all writes."
+          "evidence": "Step 1 detection found 2 configs before any write (CLAUDE.md 10, copilot-instructions.md 4)."
         },
         {
           "text": "The 5-step 'add endpoint' workflow is routed to a new skill, not appended to a config file",
           "passed": true,
-          "evidence": "Transcript Step 3: 'Route C (new skill)' for learning 3. outputs/skills/add-api-endpoint/SKILL.md created with 5-step workflow. Neither CLAUDE.md nor copilot-instructions.md contain the endpoint workflow."
+          "evidence": "Created `skills/add-endpoint/SKILL.md` (36 lines) for the 5-step endpoint workflow; neither config holds the procedure."
         },
         {
           "text": "The conftest.py discovery rule is captured somewhere",
           "passed": true,
-          "evidence": "outputs/CLAUDE.md Testing section: 'pytest fixtures must be defined in conftest.py at the project root'. Also in copilot-instructions.md."
+          "evidence": "Testing section in both configs names `conftest.py at repo root`."
         },
         {
           "text": "The 'run docker compose up db before tests' prerequisite is captured",
           "passed": true,
-          "evidence": "outputs/CLAUDE.md Commands section: 'docker compose up db \u2014 start only the database (required before running tests; without it tests fail with connection refused)'"
+          "evidence": "Both configs note `docker compose up db` before pytest or connection-refused."
         },
         {
-          "text": "Transcript shows a plan or summary of proposed changes before any file write operations occur",
+          "text": "Transcript shows a plan or summary of proposed changes (what will be added, where) before any file write operations occur",
           "passed": true,
-          "evidence": "Transcript Step 4 shows a table of all 3 planned changes (category, description, destination) before Step 5 applies them."
+          "evidence": "Plan shown in Step 5 with category/destination/line counts before apply; user confirmation preceded writes."
         }
       ],
       "notes": []
@@ -453,36 +460,36 @@
         "passed": 5,
         "failed": 0,
         "total": 5,
-        "time_seconds": 101.14,
-        "tokens": 36523,
-        "tool_calls": 10,
+        "time_seconds": 82.32,
+        "tokens": 37737,
+        "tool_calls": 11,
         "errors": 0
       },
       "expectations": [
         {
           "text": "Transcript shows both CLAUDE.md and copilot-instructions.md were detected before any files were modified",
           "passed": true,
-          "evidence": "Step 1 detection block found CLAUDE.md (10 lines) and .github/copilot-instructions.md (4 lines) at action 5; first content-modifying write was action 11."
+          "evidence": "Step 1 detection listed both CLAUDE.md (10 lines) and .github/copilot-instructions.md (4 lines) before any write."
         },
         {
           "text": "The 5-step 'add endpoint' workflow is routed to a new skill, not appended to a config file",
           "passed": true,
-          "evidence": "Created skills/add-endpoint/SKILL.md (41 lines) with YAML frontmatter and 5-step Process; both config files only contain pointers to the skill."
+          "evidence": "5-step add-endpoint workflow routed to new `skills/add-endpoint/SKILL.md` (23 lines); configs received only the gotchas."
         },
         {
           "text": "The conftest.py discovery rule is captured somewhere",
           "passed": true,
-          "evidence": "Root-conftest.py rule appears in CLAUDE.md Testing section, copilot-instructions.md Testing prerequisites, and SKILL.md Step 3."
+          "evidence": "Testing section in both CLAUDE.md and copilot-instructions.md contains `conftest.py at root` rule."
         },
         {
           "text": "The 'run docker compose up db before tests' prerequisite is captured",
           "passed": true,
-          "evidence": "Prerequisite appears in CLAUDE.md Commands section, copilot-instructions.md Testing prerequisites, and SKILL.md Step 4."
+          "evidence": "`docker compose up db` prerequisite captured in Commands/Testing of both configs."
         },
         {
-          "text": "Transcript shows a plan or summary of proposed changes before any file write operations occur",
+          "text": "Transcript shows a plan or summary of proposed changes (what will be added, where) before any file write operations occur",
           "passed": true,
-          "evidence": "Action 9 presents plan with source/proposed text/destination/projected line counts and asks 'Approve all, or review each one?' before action 11 (first content write)."
+          "evidence": "Plan presented in Step 5 with learnings, destinations, and line-count deltas before any content-modifying write."
         }
       ],
       "notes": []
@@ -588,8 +595,8 @@
         "passed": 6,
         "failed": 0,
         "total": 6,
-        "time_seconds": 55.42,
-        "tokens": 25328,
+        "time_seconds": 43.73,
+        "tokens": 25722,
         "tool_calls": 8,
         "errors": 0
       },
@@ -597,32 +604,32 @@
         {
           "text": "CLAUDE.md was modified",
           "passed": true,
-          "evidence": "CLAUDE.md edited from 10 to 12 lines; Commands section updated."
+          "evidence": "CLAUDE.md edited in place 10 \u2192 12 lines."
         },
         {
           "text": "The original `npm run build` bullet (previously described as \"build the app\") no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
           "passed": true,
-          "evidence": "Original bullet replaced with '- `npm run build` \u2014 dev-mode bundle only (does NOT set NODE_ENV=production)'."
+          "evidence": "`build the app` replaced with `dev-mode bundle (not for production)` entry."
         },
         {
           "text": "The updated CLAUDE.md mentions `NODE_ENV=production` and/or `npm run build:prod` in the context of the `build` entry",
           "passed": true,
-          "evidence": "Commands section mentions both NODE_ENV=production and npm run build:prod adjacent to the build entry."
+          "evidence": "Commands section has `npm run build:prod \u2014 production bundle (sets NODE_ENV=production)` adjacent to the dev build entry."
         },
         {
           "text": "CLAUDE.md does not contain the original `build the app` description alongside a separately appended production-build entry \u2014 the old description is not left stale next to new content",
           "passed": true,
-          "evidence": "'build the app' removed entirely; old description was not left alongside new entry."
+          "evidence": "No stale `build the app` description remains."
         },
         {
           "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
           "passed": true,
-          "evidence": "No skill files created; only CLAUDE.md edited."
+          "evidence": "No SKILL.md created."
         },
         {
           "text": "Agent summary explicitly states that an existing entry was updated rather than new content being appended",
           "passed": true,
-          "evidence": "Summary: 'modified the existing npm run build entry in-place rather than appending a separate note'; 'original entry was replaced to avoid a stale duplicate'."
+          "evidence": "Summary: 'Replaced the ambiguous `npm run build \u2014 build the app` entry... corrected in-place per Principle 3 (one topic, one location)'."
         }
       ],
       "notes": []
@@ -638,41 +645,41 @@
         "passed": 6,
         "failed": 0,
         "total": 6,
-        "time_seconds": 46.15,
-        "tokens": 34503,
-        "tool_calls": 7,
+        "time_seconds": 44.72,
+        "tokens": 35137,
+        "tool_calls": 6,
         "errors": 0
       },
       "expectations": [
         {
           "text": "CLAUDE.md was modified",
           "passed": true,
-          "evidence": "Edit tool applied to CLAUDE.md \u2014 original build bullet replaced in place and new build:prod bullet added."
+          "evidence": "Edit tool updated the Commands section in CLAUDE.md (10 \u2192 11 lines)."
         },
         {
           "text": "The original `npm run build` bullet (previously described as \"build the app\") no longer appears verbatim \u2014 it was modified in place to reflect its dev-only scope or replaced with a clearer entry",
           "passed": true,
-          "evidence": "Final CLAUDE.md line reads '- `npm run build` \u2014 build a dev-mode bundle (does NOT set `NODE_ENV=production`)' \u2014 'build the app' is gone."
+          "evidence": "`build the app` description gone; replaced in place with `build a dev-mode bundle (does not set NODE_ENV=production)`."
         },
         {
           "text": "The updated CLAUDE.md mentions `NODE_ENV=production` and/or `npm run build:prod` in the context of the `build` entry",
           "passed": true,
-          "evidence": "Both 'NODE_ENV=production' and 'npm run build:prod' appear on consecutive Commands bullets with the build entry."
+          "evidence": "Commands section includes both `NODE_ENV=production` and new `npm run build:prod` bullet."
         },
         {
           "text": "CLAUDE.md does not contain the original `build the app` description alongside a separately appended production-build entry \u2014 the old description is not left stale next to new content",
           "passed": true,
-          "evidence": "'build the app' does not appear anywhere in the final file; the old description was replaced, not duplicated."
+          "evidence": "Stale `build the app` description removed \u2014 not kept alongside new entry."
         },
         {
           "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
           "passed": true,
-          "evidence": "Only CLAUDE.md was edited; no SKILL.md or new skill directory created."
+          "evidence": "No SKILL.md written; single-fact update."
         },
         {
           "text": "Agent summary explicitly states that an existing entry was updated rather than new content being appended",
           "passed": true,
-          "evidence": "Summary reads 'Commands section \u2014 updated in place (not appended)' and 'original build the app description was replaced, not kept alongside new content'."
+          "evidence": "Summary: 'Contradiction resolved: existing `npm run build` entry implied it was the production build; replaced with clarified entry'."
         }
       ],
       "notes": []
@@ -788,41 +795,41 @@
         "passed": 6,
         "failed": 0,
         "total": 6,
-        "time_seconds": 89.59,
-        "tokens": 27362,
-        "tool_calls": 12,
+        "time_seconds": 77.38,
+        "tokens": 28057,
+        "tool_calls": 17,
         "errors": 0
       },
       "expectations": [
         {
           "text": "Transcript shows all three configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) were detected before any file was modified",
           "passed": true,
-          "evidence": "Step 6 Bash scan found CLAUDE.md (9), AGENTS.md (3), .github/copilot-instructions.md (3) before any Edit."
+          "evidence": "Step 1 detection found all three configs before any write."
         },
         {
           "text": "Before any file was written, the agent emitted a prompt or question explicitly asking the user to choose which of the detected config files to update (a generic 'does this plan look right?' confirmation does not count \u2014 the prompt must specifically offer a choice of configs)",
           "passed": true,
-          "evidence": "Step 7 prompt: 'Found multiple config files: 1. CLAUDE.md \u2026 2. AGENTS.md \u2026 3. .github/copilot-instructions.md \u2026 Which should I update? (enter number, or \"all\")'"
+          "evidence": "Multi-config disambiguation prompt issued before writes."
         },
         {
-          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response — fixture setup writes are excluded from this check",
+          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response \u2014 fixture setup writes are excluded from this check",
           "passed": true,
-          "evidence": "Disambiguation prompt (step 7) + 'all' response (step 8) + plan-confirm (step 10) + 'y' (step 11) all precede Edit calls at steps 14-16."
+          "evidence": "'all' response preceded the three Write calls."
         },
         {
           "text": "The final content of at least one modified config mentions both `git reset --hard` and `git clean -fd` (or equivalent phrasing) so the gotcha is captured end-to-end",
           "passed": true,
-          "evidence": "All three files contain 'git reset --hard' and 'git clean -fd' in the added Git section rule."
+          "evidence": "Each final file contains the git reset + git clean -fd rule in a new `## Git` section."
         },
         {
           "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
           "passed": true,
-          "evidence": "Classified as Route A; no SKILL.md created."
+          "evidence": "No SKILL.md created."
         },
         {
           "text": "User-facing summary explicitly names which config files were modified (and which were left alone, if any)",
           "passed": true,
-          "evidence": "Summary table names all three files with before/after line counts."
+          "evidence": "Summary names all three files with line-count deltas."
         }
       ],
       "notes": []
@@ -838,41 +845,41 @@
         "passed": 6,
         "failed": 0,
         "total": 6,
-        "time_seconds": 69.57,
-        "tokens": 35842,
-        "tool_calls": 10,
+        "time_seconds": 64.66,
+        "tokens": 39013,
+        "tool_calls": 14,
         "errors": 0
       },
       "expectations": [
         {
           "text": "Transcript shows all three configs (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) were detected before any file was modified",
           "passed": true,
-          "evidence": "Step 6 detection Bash found CLAUDE.md (9 lines), AGENTS.md (3), .github/copilot-instructions.md (3) before any Edit."
+          "evidence": "Step 1 detection found CLAUDE.md (9), AGENTS.md (3), copilot-instructions.md (3) before any Edit."
         },
         {
           "text": "Before any file was written, the agent emitted a prompt or question explicitly asking the user to choose which of the detected config files to update (a generic 'does this plan look right?' confirmation does not count \u2014 the prompt must specifically offer a choice of configs)",
           "passed": true,
-          "evidence": "Step 7 prompt: 'Found multiple config files: 1. CLAUDE.md \u2026 2. AGENTS.md \u2026 3. .github/copilot-instructions.md \u2026 Which should I update? (enter number, or \"all\")'"
+          "evidence": "Step 1 prompt: 'Found multiple config files: 1. CLAUDE.md ... 2. AGENTS.md ... 3. .github/copilot-instructions.md ... Which should I update? (enter number, or \"all\")'."
         },
         {
-          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response — fixture setup writes are excluded from this check",
+          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response \u2014 fixture setup writes are excluded from this check",
           "passed": true,
-          "evidence": "Disambiguation prompt (step 7) and response 'all' (step 8) preceded all three Edit calls (steps 11-13)."
+          "evidence": "Disambiguation and 'all' response preceded all 3 Write calls; fixture setup writes are excluded."
         },
         {
           "text": "The final content of at least one modified config mentions both `git reset --hard` and `git clean -fd` (or equivalent phrasing) so the gotcha is captured end-to-end",
           "passed": true,
-          "evidence": "All three final files contain 'git reset --hard' and 'git clean -fd' in the same sentence in the Git Gotchas section."
+          "evidence": "Each of the three final files contains `git reset --hard does not delete untracked files` plus `git clean -fd`."
         },
         {
           "text": "No new skill file was created \u2014 this is a single fact, not a multi-step workflow",
           "passed": true,
-          "evidence": "No SKILL.md or skills/* path written; only Edit calls against the three existing configs."
+          "evidence": "No SKILL.md written."
         },
         {
           "text": "User-facing summary explicitly names which config files were modified (and which were left alone, if any)",
           "passed": true,
-          "evidence": "Summary lists CLAUDE.md, AGENTS.md, and .github/copilot-instructions.md each with before/after line counts."
+          "evidence": "Summary names all three files with before/after line counts (CLAUDE.md 9\u219214; AGENTS.md 3\u21928; copilot-instructions.md 3\u21928)."
         }
       ],
       "notes": []
@@ -905,7 +912,7 @@
           "evidence": "Step 7 prompt: 'I see three in this project: 1. CLAUDE.md \u2026 2. .github/copilot-instructions.md \u2026 3. AGENTS.md \u2026 Which would you like me to update? (e.g. \"all\", \"1 and 3\", \"just CLAUDE.md\")'"
         },
         {
-          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response — fixture setup writes are excluded from this check",
+          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response \u2014 fixture setup writes are excluded from this check",
           "passed": true,
           "evidence": "Disambiguation (step 7) + 'all' (step 8) precede Edit calls at steps 12-14."
         },
@@ -955,7 +962,7 @@
           "evidence": "Step 6 prompt offered four named options (all / CLAUDE+AGENTS recommended / CLAUDE only / AGENTS only), explicitly reasoning that Copilot file is style-scoped."
         },
         {
-          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response — fixture setup writes are excluded from this check",
+          "text": "Chronological action log shows no agent-initiated edits to the target config files (CLAUDE.md, .github/copilot-instructions.md, AGENTS.md) occurred before the disambiguation prompt and a simulated user response \u2014 fixture setup writes are excluded from this check",
           "passed": true,
           "evidence": "Disambiguation (step 6) and response 'all' (step 7) preceded all three learning Edit calls (steps 8-10); fixture Writes in steps 2-4 are setup artifacts."
         },
@@ -976,148 +983,870 @@
         }
       ],
       "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "noise-rejection",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 44.36,
+        "tokens": 26211,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Final CLAUDE.md mentions the `--region us-west-2` flag (or equivalent) in connection with `deploy.sh` so the project-specific gotcha is preserved",
+          "passed": true,
+          "evidence": "Staging deploy Commands bullet updated to include `--region us-west-2` and the rationale about the decommissioned cluster."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about running `npm install` before `npm start` \u2014 that is baseline developer knowledge and should be rejected as noise",
+          "passed": true,
+          "evidence": "No npm install before start rule added."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about committing before switching branches \u2014 that is baseline git hygiene and should be rejected as noise",
+          "passed": true,
+          "evidence": "No commit-before-switch rule added."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about reading errors carefully \u2014 that is generic advice and should be rejected as noise",
+          "passed": true,
+          "evidence": "No 'read errors carefully' rule added."
+        },
+        {
+          "text": "Agent summary explicitly identifies at least one of the three obvious/generic items as rejected, with a reason framed around obviousness or being baseline developer knowledge (not merely omitted without explanation)",
+          "passed": true,
+          "evidence": "Summary: 'Rejected (baseline knowledge \u2014 would dilute the config): npm install before npm start \u2014 standard Node.js workflow every developer knows; Commit before switching branches \u2014 universal git practice; Read errors carefully \u2014 generic advice'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "noise-rejection",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 53.41,
+        "tokens": 36939,
+        "tool_calls": 8,
+        "errors": 1
+      },
+      "expectations": [
+        {
+          "text": "Final CLAUDE.md mentions the `--region us-west-2` flag (or equivalent) in connection with `deploy.sh` so the project-specific gotcha is preserved",
+          "passed": true,
+          "evidence": "Updated `./deploy.sh` Commands bullet to `./deploy.sh --region us-west-2 \u2014 deploy to staging; the default us-east-1 targets a decommissioned cluster and writes to the wrong DB`."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about running `npm install` before `npm start` \u2014 that is baseline developer knowledge and should be rejected as noise",
+          "passed": true,
+          "evidence": "Final CLAUDE.md `npm install` bullet unchanged from fixture; no new rule about running `npm install` before `npm start`."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about committing before switching branches \u2014 that is baseline git hygiene and should be rejected as noise",
+          "passed": true,
+          "evidence": "No commit-before-switch rule appears in the final file."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about reading errors carefully \u2014 that is generic advice and should be rejected as noise",
+          "passed": true,
+          "evidence": "No 'read errors carefully' rule appears."
+        },
+        {
+          "text": "Agent summary explicitly identifies at least one of the three obvious/generic items as rejected, with a reason framed around obviousness or being baseline developer knowledge (not merely omitted without explanation)",
+          "passed": true,
+          "evidence": "Summary: 'Rejected (3): npm install before npm start \u2014 baseline knowledge (skill cites this exact example); Commit before switching branches \u2014 baseline knowledge; \"Read errors carefully\" \u2014 vague, non-actionable; fails Principle 1 and the NEVER-vague rule.'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "noise-rejection",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": 18.68,
+        "tokens": 17354,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Final CLAUDE.md mentions the `--region us-west-2` flag (or equivalent) in connection with `deploy.sh` so the project-specific gotcha is preserved",
+          "passed": true,
+          "evidence": "New Deployment section notes `--region us-west-2` required for staging."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about running `npm install` before `npm start` \u2014 that is baseline developer knowledge and should be rejected as noise",
+          "passed": false,
+          "evidence": "Added Development Workflow section: 'Always run `npm install` before `npm start`'."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about committing before switching branches \u2014 that is baseline git hygiene and should be rejected as noise",
+          "passed": false,
+          "evidence": "Development Workflow includes 'Always commit your work before switching branches'."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about reading errors carefully \u2014 that is generic advice and should be rejected as noise",
+          "passed": false,
+          "evidence": "Added Debugging section with 'Read error messages carefully and in full'."
+        },
+        {
+          "text": "Agent summary explicitly identifies at least one of the three obvious/generic items as rejected, with a reason framed around obviousness or being baseline developer knowledge (not merely omitted without explanation)",
+          "passed": false,
+          "evidence": "Summary claims to skip 'read errors carefully' but the rule was actually written; no rejection-with-reason pattern for the obvious items."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "noise-rejection",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 35.39,
+        "tokens": 26350,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Final CLAUDE.md mentions the `--region us-west-2` flag (or equivalent) in connection with `deploy.sh` so the project-specific gotcha is preserved",
+          "passed": true,
+          "evidence": "`./deploy.sh --region us-west-2` Commands bullet includes `--region us-west-2 flag is required`: default us-east-1 targets decommissioned cluster, wrong DB."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about running `npm install` before `npm start` \u2014 that is baseline developer knowledge and should be rejected as noise",
+          "passed": false,
+          "evidence": "Final CLAUDE.md kept **Must be run before `npm start`** annotation \u2014 the npm-install-before-start rule the eval treats as baseline noise."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about committing before switching branches \u2014 that is baseline git hygiene and should be rejected as noise",
+          "passed": true,
+          "evidence": "No commit-before-switch rule appears in the final file."
+        },
+        {
+          "text": "Final CLAUDE.md does NOT contain a rule about reading errors carefully \u2014 that is generic advice and should be rejected as noise",
+          "passed": true,
+          "evidence": "No 'read errors carefully' rule appears."
+        },
+        {
+          "text": "Agent summary explicitly identifies at least one of the three obvious/generic items as rejected, with a reason framed around obviousness or being baseline developer knowledge (not merely omitted without explanation)",
+          "passed": true,
+          "evidence": "Summary: 'I skipped the other two: Commit before switching branches \u2014 generic git hygiene; Read errors carefully \u2014 general advice'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "cross-assistant-sync",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 63.88,
+        "tokens": 27717,
+        "tool_calls": 11,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Final CLAUDE.md contains the `pnpm test --filter @app/api --run` rule (or its substance \u2014 the `--filter` and `--run` flags are both mentioned for the backend-only test command)",
+          "passed": true,
+          "evidence": "CLAUDE.md Testing section contains `pnpm test --filter @app/api --run` bullet."
+        },
+        {
+          "text": "Final .github/copilot-instructions.md contains the same backend-only test command with `--filter` and `--run` flags",
+          "passed": true,
+          "evidence": "copilot-instructions.md Testing section contains the backend-only command with `--run` rationale."
+        },
+        {
+          "text": "The existing sync-mirror rule in CLAUDE.md (the sentence beginning 'Keep `.github/copilot-instructions.md` in sync') is still present in the final file \u2014 it was not clobbered, removed, or overwritten during the edit",
+          "passed": true,
+          "evidence": "Original `Keep `.github/copilot-instructions.md` in sync` sentence still present in CLAUDE.md."
+        },
+        {
+          "text": "Final .github/copilot-instructions.md contains a reciprocal sync rule naming CLAUDE.md (e.g., 'keep CLAUDE.md in sync' or equivalent phrasing instructing mirror-changes back to CLAUDE.md), since it lacked one in the fixture",
+          "passed": true,
+          "evidence": "copilot-instructions.md gained `**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `CLAUDE.md`.`"
+        },
+        {
+          "text": "Agent summary explicitly mentions that the mirror/sync rule between CLAUDE.md and .github/copilot-instructions.md was honored \u2014 either by naming the sync rule, by noting the reciprocal rule was added, or by stating both files were kept consistent per the existing project convention",
+          "passed": true,
+          "evidence": "Summary: 'added a reciprocal mirror-rule to `.github/copilot-instructions.md` since it lacked one while CLAUDE.md already referenced it \u2014 preserving cross-config sync as required by Step 4'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "cross-assistant-sync",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 47.62,
+        "tokens": 35888,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Final CLAUDE.md contains the `pnpm test --filter @app/api --run` rule (or its substance \u2014 the `--filter` and `--run` flags are both mentioned for the backend-only test command)",
+          "passed": true,
+          "evidence": "CLAUDE.md Testing section contains `pnpm test --filter @app/api --run \u2014 backend-only unit tests`."
+        },
+        {
+          "text": "Final .github/copilot-instructions.md contains the same backend-only test command with `--filter` and `--run` flags",
+          "passed": true,
+          "evidence": "copilot-instructions.md Testing section contains the backend-only command with `--filter` and `--run` explained."
+        },
+        {
+          "text": "The existing sync-mirror rule in CLAUDE.md (the sentence beginning 'Keep `.github/copilot-instructions.md` in sync') is still present in the final file \u2014 it was not clobbered, removed, or overwritten during the edit",
+          "passed": true,
+          "evidence": "CLAUDE.md still opens with the `Keep `.github/copilot-instructions.md` in sync` sentence unchanged."
+        },
+        {
+          "text": "Final .github/copilot-instructions.md contains a reciprocal sync rule naming CLAUDE.md (e.g., 'keep CLAUDE.md in sync' or equivalent phrasing instructing mirror-changes back to CLAUDE.md), since it lacked one in the fixture",
+          "passed": true,
+          "evidence": "copilot-instructions.md now opens with `**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `CLAUDE.md`.` \u2014 reciprocal rule added."
+        },
+        {
+          "text": "Agent summary explicitly mentions that the mirror/sync rule between CLAUDE.md and .github/copilot-instructions.md was honored \u2014 either by naming the sync rule, by noting the reciprocal rule was added, or by stating both files were kept consistent per the existing project convention",
+          "passed": true,
+          "evidence": "Summary: 'Added a reciprocal `Keep CLAUDE.md in sync` mirror-rule that was missing (Step 4)'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "cross-assistant-sync",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 23.52,
+        "tokens": 17666,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Final CLAUDE.md contains the `pnpm test --filter @app/api --run` rule (or its substance \u2014 the `--filter` and `--run` flags are both mentioned for the backend-only test command)",
+          "passed": true,
+          "evidence": "Testing section of CLAUDE.md gained the backend-only command bullet."
+        },
+        {
+          "text": "Final .github/copilot-instructions.md contains the same backend-only test command with `--filter` and `--run` flags",
+          "passed": true,
+          "evidence": "copilot-instructions.md gained a Testing section with the same command."
+        },
+        {
+          "text": "The existing sync-mirror rule in CLAUDE.md (the sentence beginning 'Keep `.github/copilot-instructions.md` in sync') is still present in the final file \u2014 it was not clobbered, removed, or overwritten during the edit",
+          "passed": true,
+          "evidence": "Sync-mirror sentence at top of CLAUDE.md preserved verbatim."
+        },
+        {
+          "text": "Final .github/copilot-instructions.md contains a reciprocal sync rule naming CLAUDE.md (e.g., 'keep CLAUDE.md in sync' or equivalent phrasing instructing mirror-changes back to CLAUDE.md), since it lacked one in the fixture",
+          "passed": false,
+          "evidence": "copilot-instructions.md gained no reciprocal mirror rule."
+        },
+        {
+          "text": "Agent summary explicitly mentions that the mirror/sync rule between CLAUDE.md and .github/copilot-instructions.md was honored \u2014 either by naming the sync rule, by noting the reciprocal rule was added, or by stating both files were kept consistent per the existing project convention",
+          "passed": true,
+          "evidence": "Summary: 'Both files are now in sync per the project's sync rule'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "cross-assistant-sync",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 26.58,
+        "tokens": 26235,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Final CLAUDE.md contains the `pnpm test --filter @app/api --run` rule (or its substance \u2014 the `--filter` and `--run` flags are both mentioned for the backend-only test command)",
+          "passed": true,
+          "evidence": "CLAUDE.md Testing bullet: `pnpm test --filter @app/api --run \u2014 run backend-only unit tests (the `--run` flag is required...)`."
+        },
+        {
+          "text": "Final .github/copilot-instructions.md contains the same backend-only test command with `--filter` and `--run` flags",
+          "passed": true,
+          "evidence": "copilot-instructions.md Testing section contains the backend-only command and `--run` explanation."
+        },
+        {
+          "text": "The existing sync-mirror rule in CLAUDE.md (the sentence beginning 'Keep `.github/copilot-instructions.md` in sync') is still present in the final file \u2014 it was not clobbered, removed, or overwritten during the edit",
+          "passed": true,
+          "evidence": "Existing `Keep `.github/copilot-instructions.md` in sync` sentence still present in CLAUDE.md."
+        },
+        {
+          "text": "Final .github/copilot-instructions.md contains a reciprocal sync rule naming CLAUDE.md (e.g., 'keep CLAUDE.md in sync' or equivalent phrasing instructing mirror-changes back to CLAUDE.md), since it lacked one in the fixture",
+          "passed": false,
+          "evidence": "copilot-instructions.md gained a Testing section but NO reciprocal `Keep CLAUDE.md in sync` mirror rule was added."
+        },
+        {
+          "text": "Agent summary explicitly mentions that the mirror/sync rule between CLAUDE.md and .github/copilot-instructions.md was honored \u2014 either by naming the sync rule, by noting the reciprocal rule was added, or by stating both files were kept consistent per the existing project convention",
+          "passed": true,
+          "evidence": "Summary: 'Both files now describe the command identically, in keeping with the existing `keep in sync` rule in `CLAUDE.md`'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "silent-contradiction",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 47.1,
+        "tokens": 25892,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Agent transcript or summary shows that the pre-existing rule ('After merging a PR, always `git pull` to sync local main') was detected before any write, e.g., via reading CLAUDE.md and calling out the conflict",
+          "passed": true,
+          "evidence": "Agent actions log: 'Detected contradiction with existing rule: the CLAUDE.md said \"always git pull to sync local main with origin\"'."
+        },
+        {
+          "text": "Final CLAUDE.md replaces or rewrites the existing `git pull` bullet rather than leaving it alongside a new contradictory entry \u2014 the original 'After merging a PR, always `git pull`' phrasing does not survive as a standalone rule next to the new `git reset --hard` guidance",
+          "passed": true,
+          "evidence": "`git pull` bullet replaced in place with `git reset --hard origin/main` bullet."
+        },
+        {
+          "text": "Final CLAUDE.md mentions `git reset --hard origin/main` (or equivalent) as the recommended sync step after a squash merge",
+          "passed": true,
+          "evidence": "Final CLAUDE.md: `After merging a PR, sync local main with `git reset --hard origin/main`, not `git pull``."
+        },
+        {
+          "text": "Final CLAUDE.md does not contain two conflicting rules on how to sync local main after a PR merge \u2014 there is a single, coherent recommendation, not both 'always `git pull`' and 'use `git reset --hard`' as standalone rules",
+          "passed": true,
+          "evidence": "Only one sync-after-merge rule remains."
+        },
+        {
+          "text": "Agent summary explicitly calls out the contradiction (that the new learning conflicts with the existing rule) and states which version was kept and why \u2014 not a silent replace",
+          "passed": true,
+          "evidence": "Summary: 'Contradiction resolved: \"always `git pull` to sync local main\" superseded by `git reset --hard origin/main` because squash merges produce a different commit SHA than the constituent feature-branch commits'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "silent-contradiction",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 40.14,
+        "tokens": 35343,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Agent transcript or summary shows that the pre-existing rule ('After merging a PR, always `git pull` to sync local main') was detected before any write, e.g., via reading CLAUDE.md and calling out the conflict",
+          "passed": true,
+          "evidence": "Agent noted `identified direct contradiction with existing `git pull` rule` in actions log and replaced it."
+        },
+        {
+          "text": "Final CLAUDE.md replaces or rewrites the existing `git pull` bullet rather than leaving it alongside a new contradictory entry \u2014 the original 'After merging a PR, always `git pull`' phrasing does not survive as a standalone rule next to the new `git reset --hard` guidance",
+          "passed": true,
+          "evidence": "Existing `git pull` bullet replaced in place; no parallel contradictory bullet remains."
+        },
+        {
+          "text": "Final CLAUDE.md mentions `git reset --hard origin/main` (or equivalent) as the recommended sync step after a squash merge",
+          "passed": true,
+          "evidence": "New bullet: `After a squash merge, sync local main with `git reset --hard origin/main` \u2014 `git pull` leaves history divergent because the squash commit SHA differs from the feature branch's`."
+        },
+        {
+          "text": "Final CLAUDE.md does not contain two conflicting rules on how to sync local main after a PR merge \u2014 there is a single, coherent recommendation, not both 'always `git pull`' and 'use `git reset --hard`' as standalone rules",
+          "passed": true,
+          "evidence": "Only one git-sync rule in the file; the `git pull` one is gone."
+        },
+        {
+          "text": "Agent summary explicitly calls out the contradiction (that the new learning conflicts with the existing rule) and states which version was kept and why \u2014 not a silent replace",
+          "passed": true,
+          "evidence": "Summary: 'Contradiction resolved: the new rule `git reset --hard origin/main` after squash merge supersedes the existing `git pull` to sync local main with origin rule, because `git pull` merges the squash commit as a separate history...'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "silent-contradiction",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 25.62,
+        "tokens": 17813,
+        "tool_calls": 4,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Agent transcript or summary shows that the pre-existing rule ('After merging a PR, always `git pull` to sync local main') was detected before any write, e.g., via reading CLAUDE.md and calling out the conflict",
+          "passed": true,
+          "evidence": "Replacement bullet explicitly references the superseded rule."
+        },
+        {
+          "text": "Final CLAUDE.md replaces or rewrites the existing `git pull` bullet rather than leaving it alongside a new contradictory entry \u2014 the original 'After merging a PR, always `git pull`' phrasing does not survive as a standalone rule next to the new `git reset --hard` guidance",
+          "passed": true,
+          "evidence": "`git pull` bullet replaced in place; no duplicate."
+        },
+        {
+          "text": "Final CLAUDE.md mentions `git reset --hard origin/main` (or equivalent) as the recommended sync step after a squash merge",
+          "passed": true,
+          "evidence": "`git reset --hard origin/main` present in the new bullet with explanation."
+        },
+        {
+          "text": "Final CLAUDE.md does not contain two conflicting rules on how to sync local main after a PR merge \u2014 there is a single, coherent recommendation, not both 'always `git pull`' and 'use `git reset --hard`' as standalone rules",
+          "passed": true,
+          "evidence": "Single sync-after-merge rule remains."
+        },
+        {
+          "text": "Agent summary explicitly calls out the contradiction (that the new learning conflicts with the existing rule) and states which version was kept and why \u2014 not a silent replace",
+          "passed": false,
+          "evidence": "Summary describes the change transparently but does not label it a conflict/contradiction; no 'supersede' or 'conflict' language."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "silent-contradiction",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 19.31,
+        "tokens": 24917,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Agent transcript or summary shows that the pre-existing rule ('After merging a PR, always `git pull` to sync local main') was detected before any write, e.g., via reading CLAUDE.md and calling out the conflict",
+          "passed": true,
+          "evidence": "Agent's replacement text references the prior `git pull` rule by name, demonstrating detection."
+        },
+        {
+          "text": "Final CLAUDE.md replaces or rewrites the existing `git pull` bullet rather than leaving it alongside a new contradictory entry \u2014 the original 'After merging a PR, always `git pull`' phrasing does not survive as a standalone rule next to the new `git reset --hard` guidance",
+          "passed": true,
+          "evidence": "The fixture's `git pull` bullet was replaced in place with the `git reset --hard origin/main` bullet."
+        },
+        {
+          "text": "Final CLAUDE.md mentions `git reset --hard origin/main` (or equivalent) as the recommended sync step after a squash merge",
+          "passed": true,
+          "evidence": "New bullet contains `git reset --hard origin/main` with rationale."
+        },
+        {
+          "text": "Final CLAUDE.md does not contain two conflicting rules on how to sync local main after a PR merge \u2014 there is a single, coherent recommendation, not both 'always `git pull`' and 'use `git reset --hard`' as standalone rules",
+          "passed": true,
+          "evidence": "Only the new rule remains; old rule gone."
+        },
+        {
+          "text": "Agent summary explicitly calls out the contradiction (that the new learning conflicts with the existing rule) and states which version was kept and why \u2014 not a silent replace",
+          "passed": false,
+          "evidence": "Summary describes the replacement transparently ('replaced the \"always git pull to sync local main\" rule with guidance to use git reset --hard origin/main') but does not explicitly frame it as a contradiction or conflict \u2014 no `conflict` / `contradiction` / `supersede` language."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "min-char-audit",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 70.02,
+        "tokens": 29345,
+        "tool_calls": 8,
+        "errors": 1
+      },
+      "expectations": [
+        {
+          "text": "Turn-1 rule text appended to CLAUDE.md is \u2264 200 characters \u2014 count only the new rule body the agent wrote, not pre-existing lines or section headers. Fail if the rule body exceeds 200 chars (indicates the min-char audit did not fire on first pass)",
+          "passed": false,
+          "evidence": "Turn-1 rule body is 209 chars \u2014 under the original 253-char run and well under the without-skill baseline (370 chars), but still exceeds the 200-char threshold."
+        },
+        {
+          "text": "Turn-1 rule mentions the pre-write probe behavior (e.g., 'test -w', 'touch .probe', 'write-probe', or equivalent shorthand) AND that the indexer must abort on probe failure \u2014 both clauses are load-bearing and must survive the audit",
+          "passed": true,
+          "evidence": "Turn-1 names the probe command (`test -w $SHARD_DIR && touch $SHARD_DIR/.probe && rm $SHARD_DIR/.probe`) AND the 'Abort with a loud error on any failure' behavior."
+        },
+        {
+          "text": "Turn-2 response in its entirety matches regex /^\\s*already\\s+minimal\\.?\\s*$/i (no additional content before or after), OR the turn-2 rule rewrite is within 20% of turn-1's char count (i.e., |turn2_chars - turn1_chars| / turn1_chars \u2264 0.20). Fail if neither condition holds",
+          "passed": true,
+          "evidence": "Turn-2 response is exactly `already minimal` with no prose before or after; matches the tightened affirmation regex `/^\\s*already\\s+minimal\\.?\\s*$/i`."
+        },
+        {
+          "text": "If turn-2 is a rewrite (not an 'already minimal' affirmation), the rewrite preserves both load-bearing clauses from turn 1: the pre-write probe and the abort-on-failure behavior. Fail if either clause is dropped",
+          "passed": true,
+          "evidence": "Turn-2 was a pure affirmation; turn-1 clauses (probe + abort) remain in the file unchanged."
+        },
+        {
+          "text": "Turn-1 rule text does not embed the incident narrative (no mention of 'Thursday', '14 hours', 'search relevance', 'EFS throttling event', 'silently', or similar story-context phrasing) \u2014 the incident is context, not rule body",
+          "passed": true,
+          "evidence": "Turn-1 rule contains no mention of `Thursday`, `14 hours`, `search relevance`, `EFS throttling event`, `silently`, or similar post-incident narrative phrasing \u2014 it stays focused on the probe and abort-on-failure requirement."
+        }
+      ],
+      "notes": [
+        "Re-run dated 2026-04-23 after the turn-2 affirmation assertion was tightened from 'first non-whitespace line' to 'entire response' \u2014 per evals/CLAUDE.md 'when changing pass/fail verdicts on existing benchmark expectations, re-run the eval rather than re-grading'. Prior (pre-tightening) run's transcript ended with `**already minimal.**` preceded by a multi-paragraph clause analysis; this fresh run produced `already minimal` as the entire turn-2 response."
+      ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "min-char-audit",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 66.84,
+        "tokens": 37292,
+        "tool_calls": 9,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Turn-1 rule text appended to CLAUDE.md is \u2264 200 characters \u2014 count only the new rule body the agent wrote, not pre-existing lines or section headers. Fail if the rule body exceeds 200 chars (indicates the min-char audit did not fire on first pass)",
+          "passed": false,
+          "evidence": "Turn-1 rule body is 308 chars \u2014 under the without-skill baseline (494 chars) and stripped of incident narrative, but still exceeds the 200-char threshold."
+        },
+        {
+          "text": "Turn-1 rule mentions the pre-write probe behavior (e.g., 'test -w', 'touch .probe', 'write-probe', or equivalent shorthand) AND that the indexer must abort on probe failure \u2014 both clauses are load-bearing and must survive the audit",
+          "passed": true,
+          "evidence": "Turn-1 rule names the `test -w && touch .probe && rm .probe` probe AND the `abort on failure` behavior."
+        },
+        {
+          "text": "Turn-2 response in its entirety matches regex /^\\s*already\\s+minimal\\.?\\s*$/i (no additional content before or after), OR the turn-2 rule rewrite is within 20% of turn-1's char count (i.e., |turn2_chars - turn1_chars| / turn1_chars \u2264 0.20). Fail if neither condition holds",
+          "passed": true,
+          "evidence": "Turn-2 rewrote from 308 \u2192 276 chars \u2014 10.4% trim, within the 20% bound."
+        },
+        {
+          "text": "If turn-2 is a rewrite (not an 'already minimal' affirmation), the rewrite preserves both load-bearing clauses from turn 1: the pre-write probe and the abort-on-failure behavior. Fail if either clause is dropped",
+          "passed": true,
+          "evidence": "Turn-2 preserved the probe command verbatim and the abort behavior; trimmed `is` before `writable`, `loudly`, `mid-day`, and redundant `writes a partial index and`."
+        },
+        {
+          "text": "Turn-1 rule text does not embed the incident narrative (no mention of 'Thursday', '14 hours', 'search relevance', 'EFS throttling event', 'silently', or similar story-context phrasing) \u2014 the incident is context, not rule body",
+          "passed": true,
+          "evidence": "Turn-1 rule mentions none of the forbidden incident-story phrases (`Thursday`, `14 hours`, `search relevance`, `EFS throttling event`, `silently`, or similar); it keeps only the operational probe-and-abort requirement."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "min-char-audit",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-sonnet-4-6",
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 38.2,
+        "tokens": 19238,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Turn-1 rule text appended to CLAUDE.md is \u2264 200 characters \u2014 count only the new rule body the agent wrote, not pre-existing lines or section headers. Fail if the rule body exceeds 200 chars (indicates the min-char audit did not fire on first pass)",
+          "passed": false,
+          "evidence": "Turn-1 rule body is 370 chars \u2014 exceeds the 200-char threshold."
+        },
+        {
+          "text": "Turn-1 rule mentions the pre-write probe behavior (e.g., 'test -w', 'touch .probe', 'write-probe', or equivalent shorthand) AND that the indexer must abort on probe failure \u2014 both clauses are load-bearing and must survive the audit",
+          "passed": true,
+          "evidence": "Turn-1 includes the probe command and `abort with a loud error` behavior."
+        },
+        {
+          "text": "Turn-2 response in its entirety matches regex /^\\s*already\\s+minimal\\.?\\s*$/i (no additional content before or after), OR the turn-2 rule rewrite is within 20% of turn-1's char count (i.e., |turn2_chars - turn1_chars| / turn1_chars \u2264 0.20). Fail if neither condition holds",
+          "passed": false,
+          "evidence": "Turn-2 trimmed to 228 chars \u2014 38% reduction, exceeds the 20% bound."
+        },
+        {
+          "text": "If turn-2 is a rewrite (not an 'already minimal' affirmation), the rewrite preserves both load-bearing clauses from turn 1: the pre-write probe and the abort-on-failure behavior. Fail if either clause is dropped",
+          "passed": true,
+          "evidence": "Turn-2 preserved the probe command and abort behavior."
+        },
+        {
+          "text": "Turn-1 rule text does not embed the incident narrative (no mention of 'Thursday', '14 hours', 'search relevance', 'EFS throttling event', 'silently', or similar story-context phrasing) \u2014 the incident is context, not rule body",
+          "passed": false,
+          "evidence": "Turn-1 rule text includes '(incident: 14h search relevance degradation)' \u2014 incident narrative embedded."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "min-char-audit",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "executor_model": "claude-opus-4-7",
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 40.74,
+        "tokens": 27132,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Turn-1 rule text appended to CLAUDE.md is \u2264 200 characters \u2014 count only the new rule body the agent wrote, not pre-existing lines or section headers. Fail if the rule body exceeds 200 chars (indicates the min-char audit did not fire on first pass)",
+          "passed": false,
+          "evidence": "Turn-1 rule body is 494 chars \u2014 well over the 200-char threshold; no audit fired on first pass."
+        },
+        {
+          "text": "Turn-1 rule mentions the pre-write probe behavior (e.g., 'test -w', 'touch .probe', 'write-probe', or equivalent shorthand) AND that the indexer must abort on probe failure \u2014 both clauses are load-bearing and must survive the audit",
+          "passed": true,
+          "evidence": "Turn-1 rule includes the probe command and `abort loudly` behavior."
+        },
+        {
+          "text": "Turn-2 response in its entirety matches regex /^\\s*already\\s+minimal\\.?\\s*$/i (no additional content before or after), OR the turn-2 rule rewrite is within 20% of turn-1's char count (i.e., |turn2_chars - turn1_chars| / turn1_chars \u2264 0.20). Fail if neither condition holds",
+          "passed": false,
+          "evidence": "Turn-2 trimmed to 269 chars \u2014 45.5% reduction, exceeds the 20% bound."
+        },
+        {
+          "text": "If turn-2 is a rewrite (not an 'already minimal' affirmation), the rewrite preserves both load-bearing clauses from turn 1: the pre-write probe and the abort-on-failure behavior. Fail if either clause is dropped",
+          "passed": true,
+          "evidence": "Turn-2 kept the probe command verbatim, the abort behavior, and the EFS-throttling cause."
+        },
+        {
+          "text": "Turn-1 rule text does not embed the incident narrative (no mention of 'Thursday', '14 hours', 'search relevance', 'EFS throttling event', 'silently', or similar story-context phrasing) \u2014 the incident is context, not rule body",
+          "passed": false,
+          "evidence": "Turn-1 rule text embeds incident narrative: '(14hr relevance outage, post-incident fix). Preserve the probe step in any indexer refactor.'"
+        }
+      ],
+      "notes": []
     }
   ],
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 1.0,
-        "stddev": 0.0,
-        "min": 1.0,
+        "mean": 0.9778,
+        "stddev": 0.0667,
+        "min": 0.8,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 73.22,
-        "stddev": 20.3656,
-        "min": 46.15,
-        "max": 101.14
+        "mean": 57.96,
+        "stddev": 13.7234,
+        "min": 40.14,
+        "max": 82.32
       },
       "tokens": {
-        "mean": 35409.2,
-        "stddev": 801.6051,
-        "min": 34503,
-        "max": 36523
+        "mean": 36822.6,
+        "stddev": 1477.6085,
+        "min": 35137,
+        "max": 39013
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 1.0,
-        "stddev": 0.0,
-        "min": 1.0,
+        "mean": 0.8667,
+        "stddev": 0.2,
+        "min": 0.4,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 66.48,
-        "stddev": 36.4005,
-        "min": 29.49,
+        "mean": 50.49,
+        "stddev": 32.4923,
+        "min": 19.31,
         "max": 111.83
       },
       "tokens": {
-        "mean": 27203.6,
-        "stddev": 2207.6177,
+        "mean": 26739.1,
+        "stddev": 1748.322,
         "min": 24861,
         "max": 29759
       }
     },
     "delta": {
-      "pass_rate": "+0.00",
-      "time_seconds": "+6.7",
-      "tokens": "+8206"
+      "pass_rate": "+0.11",
+      "time_seconds": "+7.5",
+      "tokens": "+10083"
     }
   },
   "run_summary_by_model": {
     "claude-sonnet-4-6": {
       "with_skill": {
         "pass_rate": {
-          "mean": 1.0,
-          "stddev": 0.0,
-          "min": 1.0,
+          "mean": 0.9778,
+          "stddev": 0.0667,
+          "min": 0.8,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 72.14,
-          "stddev": 14.2921,
-          "min": 55.42,
-          "max": 89.59
+          "mean": 60.53,
+          "stddev": 15.9505,
+          "min": 43.73,
+          "max": 89.51
         },
         "tokens": {
-          "mean": 20143.0,
-          "stddev": 5719.9822,
-          "min": 15565,
-          "max": 27362
+          "mean": 27132.7,
+          "stddev": 1407.8749,
+          "min": 25722,
+          "max": 29345
         }
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.92,
-          "stddev": 0.1789,
-          "min": 0.6,
+          "mean": 0.7556,
+          "stddev": 0.2963,
+          "min": 0.2,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 46.44,
-          "stddev": 18.4352,
-          "min": 28.81,
+          "mean": 37.58,
+          "stddev": 17.5003,
+          "min": 18.68,
           "max": 67.7
         },
         "tokens": {
-          "mean": 16147.6,
-          "stddev": 3835.364,
+          "mean": 16978.8,
+          "stddev": 2930.6021,
           "min": 11968,
           "max": 20417
         }
       },
       "delta": {
-        "pass_rate": "+0.08",
-        "time_seconds": "+25.7",
-        "tokens": "+3995"
+        "pass_rate": "+0.22",
+        "time_seconds": "+23.0",
+        "tokens": "+10154"
       }
     },
     "claude-opus-4-7": {
       "with_skill": {
         "pass_rate": {
-          "mean": 1.0,
-          "stddev": 0.0,
-          "min": 1.0,
+          "mean": 0.9778,
+          "stddev": 0.0667,
+          "min": 0.8,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 73.22,
-          "stddev": 20.3656,
-          "min": 46.15,
-          "max": 101.14
+          "mean": 57.96,
+          "stddev": 13.7234,
+          "min": 40.14,
+          "max": 82.32
         },
         "tokens": {
-          "mean": 35409.2,
-          "stddev": 801.6051,
-          "min": 34503,
-          "max": 36523
+          "mean": 36822.6,
+          "stddev": 1477.6085,
+          "min": 35137,
+          "max": 39013
         }
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 1.0,
-          "stddev": 0.0,
-          "min": 1.0,
+          "mean": 0.8667,
+          "stddev": 0.2,
+          "min": 0.4,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 66.48,
-          "stddev": 36.4005,
-          "min": 29.49,
+          "mean": 50.49,
+          "stddev": 32.4923,
+          "min": 19.31,
           "max": 111.83
         },
         "tokens": {
-          "mean": 27203.6,
-          "stddev": 2207.6177,
+          "mean": 26739.1,
+          "stddev": 1748.322,
           "min": 24861,
           "max": 29759
         }
       },
       "delta": {
-        "pass_rate": "+0.00",
-        "time_seconds": "+6.7",
-        "tokens": "+8206"
+        "pass_rate": "+0.11",
+        "time_seconds": "+7.5",
+        "tokens": "+10083"
       }
     }
   }
