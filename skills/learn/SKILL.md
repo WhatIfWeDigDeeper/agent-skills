@@ -55,7 +55,7 @@ find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
 
   Which should I update? (enter number, or "all")
   ```
-  If one config contains a mirror-rule naming another (see Step 4), surface that in the prompt as informational context — but the user's choice still binds.
+  Before showing the prompt, `rg` each detected config for the Step 4 mirror-rule patterns (`keep .* in sync`, `mirror .* to`, `apply the equivalent change`). If one config contains a mirror-rule naming another, surface that in the prompt as informational context — but the user's choice still binds.
 - No configs found → **MANDATORY: read [`references/assistant-configs.md`](references/assistant-configs.md) in full** to show init commands, then exit. Do NOT load `refactoring.md` or `options.md` at this step.
 
 **Size thresholds** for any config file:
