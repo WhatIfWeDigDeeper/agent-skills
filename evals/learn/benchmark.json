@@ -1611,7 +1611,7 @@
         {
           "text": "Turn-1 rule text does not embed the incident narrative (no mention of 'Thursday', '14 hours', 'search relevance', 'EFS throttling event', 'silently', or similar story-context phrasing) \u2014 the incident is context, not rule body",
           "passed": true,
-          "evidence": "Turn-1 rule contains no mention of `Thursday`, `14 hours`, `search relevance`, or post-incident narrative \u2014 only the probe, abort, EFS throttling cause, and silent-partial-index consequence."
+          "evidence": "Turn-1 rule mentions none of the forbidden incident-story phrases (`Thursday`, `14 hours`, `search relevance`, `EFS throttling event`, `silently`, or similar); it keeps only the operational probe-and-abort requirement."
         }
       ],
       "notes": []
