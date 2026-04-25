@@ -18,7 +18,7 @@
 | Time | 71.8s ± 10.0s | 45.9s ± 5.6s | +25.9s |
 | Tokens | 19975 ± 228 | 13683 ± 271 | +6291 |
 
-Sonnet time and token statistics are computed only over primary runs (`run_number = 1`) that have recorded, non-null values. Coverage differs: time has 11 of 76 runs measured (5 with-skill, 6 without-skill); tokens has 8 of 76 (3 with-skill, 5 without-skill). Runs with `null` instrumentation (including simulated transcripts) and all regression runs are excluded. Summary-table Delta values are computed from unrounded means.
+Sonnet time and token statistics are computed only over primary runs (`run_number = 1`) that have recorded, non-null values. Coverage differs: time has 11 of 76 runs measured (5 with-skill, 6 without-skill); tokens has 8 of 76 (3 with-skill, 5 without-skill). Runs with `null` instrumentation (including simulated transcripts) and all regression runs are excluded. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
 ### `claude-opus-4-7`
 
