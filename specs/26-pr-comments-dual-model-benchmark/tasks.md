@@ -100,6 +100,6 @@
 
 - [x] **8.1** Commit all changes on branch `evals/pr-comments-opus-4-7-multi-model`.
 - [x] **8.2** Push and open PR; run `/pr-comments {pr_number}` immediately per CLAUDE.md post-push convention.
-- [ ] **8.3** Loop `/pr-comments` until no new bot feedback.
-- [ ] **8.4** Run `/pr-human-guide` to annotate the PR for human reviewers (per CLAUDE.md pre-merge rule).
+- [x] **8.3** Loop `/pr-comments` until no new bot feedback. **Done — 7 iterations applied 17 findings; copilot returned "no new comments" and claude workflow posted nothing in iteration 7, satisfying auto-loop exit condition #1 (no new threads + all polled bots responded).**
+- [x] **8.4** Run `/pr-human-guide` to annotate the PR for human reviewers (per CLAUDE.md pre-merge rule). **Done — review guide appended to PR body; "No areas requiring special human review attention" identified (changed files: README skill row, cspell wordlist, eval data files, two new spec docs — none of which touch security/infra/deps/production-data-models/concurrent-code).**
 - [ ] **8.5** Wait for human review. After approval: squash-merge via `gh pr merge --squash --delete-branch`, sync local main, remove the worktree directory.
