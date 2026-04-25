@@ -5,6 +5,15 @@
     "skill_version": "1.6",
     "executor_model": "claude-sonnet-4-6",
     "analyzer_model": "claude-sonnet-4-6",
+    "models_tested": [
+      {
+        "executor_model": "claude-sonnet-4-6",
+        "analyzer_model": "claude-sonnet-4-6",
+        "timestamp": "2026-04-09T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "28 evals \u00d7 2 configurations = 56 runs, all run_number == 1. Eval 26 (unsupported-model-error) result fields nulled on both with_skill and without_skill sides due to without_skill contamination (executor read SKILL.md from filesystem); excluded from run_summary aggregates. Sonnet pass-rate delta computed over 27 paired evals (eval 26 excluded). Time/token coverage is sparse: 7 of 27 paired primary runs measured (evals 1, 3, 4, 11, 12, 13, 14); the remaining evals use simulated transcripts or have measurements excluded as stale pre-v1.3 data."
+      }
+    ],
     "timestamp": "2026-04-09T00:00:00Z",
     "evals_run": [
       1,
@@ -50,7 +59,7 @@
     "Evals 11-14 have real time and token measurements (subagent executor ran the full workflow, not pure transcript simulation).",
     "Evals 15-20 added in v1.2 for triage layer and post-apply re-scan. All use simulated fixtures; time_seconds and tokens are null.",
     "Evals 15 (triage-skips-false-positive) and 16 (triage-all-skipped) and 19 (rescan-offered-after-apply) are discriminating. Evals 17, 18, 20 are non-discriminating: triage-not-on-self-path and rescan-not-offered-after-skip are natural baseline behaviors; triage-user-includes-skipped passes because 'S1' literal selection is intuitive.",
-    "Evals 2, 21, 22, 23 added/re-run in v1.4. Eval 2 (consistency-mode-plan-tasks-mismatch) re-run with v1.3-compatible assertions — discriminating (+0.40 delta). Eval 21 (both-staged-and-unstaged-prompt) discriminates (+0.67 delta): disambiguation prompt is entirely skill-defined. Evals 22 (unstaged-only-auto-review) and 23 (staged-explicit-bypasses-detection) are non-discriminating: these behaviors are intuitive enough that the baseline handles them correctly. Adding evals 22 and 23 diluted the headline delta from +0.30 to +0.29.",
+    "Evals 2, 21, 22, 23 added/re-run in v1.4. Eval 2 (consistency-mode-plan-tasks-mismatch) re-run with v1.3-compatible assertions \u2014 discriminating (+0.40 delta). Eval 21 (both-staged-and-unstaged-prompt) discriminates (+0.67 delta): disambiguation prompt is entirely skill-defined. Evals 22 (unstaged-only-auto-review) and 23 (staged-explicit-bypasses-detection) are non-discriminating: these behaviors are intuitive enough that the baseline handles them correctly. Adding evals 22 and 23 diluted the headline delta from +0.30 to +0.29.",
     "Summary-table delta values are computed from unrounded means over 27 paired evals (eval 26 excluded from both sides due to contamination; with_skill=0.97778, without_skill=0.71481), so they may differ slightly from subtracting the displayed rounded means. Time/token statistics are computed only over the 7 primary runs with non-null measurements (evals 1, 3, 4, 11, 12, 13, 14); the other 21 evals have null measurements, including the eval 2 re-run and the simulated-transcript/fixture groups (evals 5-10, 15-28). Both eval 26 result entries are nulled and excluded from all aggregates so paired summary calculations stay aligned after the contaminated run.",
     "Evals 12 and 25 updated in v1.6 review pass: added header-model-not-literal-self assertion to both. Both evals remain non-discriminating (1.0/1.0) \u2014 general assistants naturally substitute their own model identifier and never print literal 'self' since they have no knowledge of the keyword. Eval 12 now has 5 assertions; eval 25 now has 4 assertions.",
     "Evals 24-28 added in v1.5 review pass. Eval 28 (submodel-splitting) discriminates at +0.33: severity normalization (medium \u2192 major) fails without_skill, matching the pattern of evals 5, 7, 8, 9, 10. Evals 24 (rescan-y-response), 25 (pr-url-output), and 27 (branch-not-found-error) are non-discriminating: these behaviors are intuitive enough for a capable baseline to handle correctly. Eval 26 (unsupported-model-error) was contaminated and excluded in this run: the without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message format, so the specific phrasing may still be discriminating but that cannot be determined from this run. Adding evals 24-28 (1 discriminating, 3 non-discriminating, 1 contaminated/excluded) diluted the headline delta from +0.29 to +0.26."
@@ -59,6 +68,7 @@
     {
       "eval_id": 1,
       "eval_name": "consistency-mode-stale-step-ref",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -105,6 +115,7 @@
     {
       "eval_id": 1,
       "eval_name": "consistency-mode-stale-step-ref",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -151,6 +162,7 @@
     {
       "eval_id": 2,
       "eval_name": "consistency-mode-plan-tasks-mismatch",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -197,6 +209,7 @@
     {
       "eval_id": 2,
       "eval_name": "consistency-mode-plan-tasks-mismatch",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -243,6 +256,7 @@
     {
       "eval_id": 3,
       "eval_name": "argument-conflict-error",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -279,6 +293,7 @@
     {
       "eval_id": 3,
       "eval_name": "argument-conflict-error",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -315,6 +330,7 @@
     {
       "eval_id": 4,
       "eval_name": "diff-mode-branch-review",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -361,6 +377,7 @@
     {
       "eval_id": 4,
       "eval_name": "diff-mode-branch-review",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -407,6 +424,7 @@
     {
       "eval_id": 5,
       "eval_name": "copilot-json-parse",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -443,6 +461,7 @@
     {
       "eval_id": 5,
       "eval_name": "copilot-json-parse",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -479,6 +498,7 @@
     {
       "eval_id": 6,
       "eval_name": "copilot-empty-findings",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -510,6 +530,7 @@
     {
       "eval_id": 6,
       "eval_name": "copilot-empty-findings",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -541,6 +562,7 @@
     {
       "eval_id": 7,
       "eval_name": "copilot-malformed-json",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -572,6 +594,7 @@
     {
       "eval_id": 7,
       "eval_name": "copilot-malformed-json",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -603,6 +626,7 @@
     {
       "eval_id": 8,
       "eval_name": "codex-not-found",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -639,6 +663,7 @@
     {
       "eval_id": 8,
       "eval_name": "codex-not-found",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -675,6 +700,7 @@
     {
       "eval_id": 9,
       "eval_name": "gemini-not-found",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -711,6 +737,7 @@
     {
       "eval_id": 9,
       "eval_name": "gemini-not-found",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -747,6 +774,7 @@
     {
       "eval_id": 10,
       "eval_name": "gemini-no-findings",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -783,6 +811,7 @@
     {
       "eval_id": 10,
       "eval_name": "gemini-no-findings",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -819,6 +848,7 @@
     {
       "eval_id": 11,
       "eval_name": "staged-empty-warning",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -855,6 +885,7 @@
     {
       "eval_id": 11,
       "eval_name": "staged-empty-warning",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -891,6 +922,7 @@
     {
       "eval_id": 12,
       "eval_name": "pr-target-context",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -937,6 +969,7 @@
     {
       "eval_id": 12,
       "eval_name": "pr-target-context",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -973,7 +1006,7 @@
         {
           "text": "The header's model token is NOT the literal string 'self' \u2014 the assistant substitutes its own model identifier (e.g. a claude-* name) in the header",
           "passed": true,
-          "evidence": "Observed output header: '## Peer Review — PR #42 (reviewed by claude-sonnet-4-6)' — the baseline used its own model identifier 'claude-sonnet-4-6', not the literal string 'self'."
+          "evidence": "Observed output header: '## Peer Review \u2014 PR #42 (reviewed by claude-sonnet-4-6)' \u2014 the baseline used its own model identifier 'claude-sonnet-4-6', not the literal string 'self'."
         }
       ],
       "notes": [
@@ -983,6 +1016,7 @@
     {
       "eval_id": 13,
       "eval_name": "focus-option",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1019,6 +1053,7 @@
     {
       "eval_id": 13,
       "eval_name": "focus-option",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1055,6 +1090,7 @@
     {
       "eval_id": 14,
       "eval_name": "apply-skip",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1086,6 +1122,7 @@
     {
       "eval_id": 14,
       "eval_name": "apply-skip",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1117,6 +1154,7 @@
     {
       "eval_id": 15,
       "eval_name": "triage-skips-false-positive",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1153,6 +1191,7 @@
     {
       "eval_id": 15,
       "eval_name": "triage-skips-false-positive",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1189,6 +1228,7 @@
     {
       "eval_id": 16,
       "eval_name": "triage-all-skipped",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1225,6 +1265,7 @@
     {
       "eval_id": 16,
       "eval_name": "triage-all-skipped",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1261,6 +1302,7 @@
     {
       "eval_id": 17,
       "eval_name": "triage-not-on-self-path",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1297,6 +1339,7 @@
     {
       "eval_id": 17,
       "eval_name": "triage-not-on-self-path",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1333,6 +1376,7 @@
     {
       "eval_id": 18,
       "eval_name": "triage-user-includes-skipped",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1364,6 +1408,7 @@
     {
       "eval_id": 18,
       "eval_name": "triage-user-includes-skipped",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1395,6 +1440,7 @@
     {
       "eval_id": 19,
       "eval_name": "rescan-offered-after-apply",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1431,6 +1477,7 @@
     {
       "eval_id": 19,
       "eval_name": "rescan-offered-after-apply",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1467,6 +1514,7 @@
     {
       "eval_id": 20,
       "eval_name": "rescan-not-offered-after-skip",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1503,6 +1551,7 @@
     {
       "eval_id": 20,
       "eval_name": "rescan-not-offered-after-skip",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1539,6 +1588,7 @@
     {
       "eval_id": 21,
       "eval_name": "both-staged-and-unstaged-prompt",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1575,6 +1625,7 @@
     {
       "eval_id": 21,
       "eval_name": "both-staged-and-unstaged-prompt",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1611,6 +1662,7 @@
     {
       "eval_id": 22,
       "eval_name": "unstaged-only-auto-review",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1647,6 +1699,7 @@
     {
       "eval_id": 22,
       "eval_name": "unstaged-only-auto-review",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1683,6 +1736,7 @@
     {
       "eval_id": 23,
       "eval_name": "staged-explicit-bypasses-detection",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1719,6 +1773,7 @@
     {
       "eval_id": 23,
       "eval_name": "staged-explicit-bypasses-detection",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1755,6 +1810,7 @@
     {
       "eval_id": 24,
       "eval_name": "rescan-y-response",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1796,6 +1852,7 @@
     {
       "eval_id": 24,
       "eval_name": "rescan-y-response",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1837,6 +1894,7 @@
     {
       "eval_id": 25,
       "eval_name": "pr-url-output",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1878,6 +1936,7 @@
     {
       "eval_id": 25,
       "eval_name": "pr-url-output",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1909,7 +1968,7 @@
         {
           "text": "The header's model token is NOT the literal string 'self' \u2014 the assistant substitutes its own model identifier in the header",
           "passed": true,
-          "evidence": "Observed output header line: '**Reviewer model**: claude-sonnet-4-6' — the baseline used its own model identifier, not the literal string 'self'. Baseline has no concept of the `self` keyword."
+          "evidence": "Observed output header line: '**Reviewer model**: claude-sonnet-4-6' \u2014 the baseline used its own model identifier, not the literal string 'self'. Baseline has no concept of the `self` keyword."
         }
       ],
       "notes": [
@@ -1919,6 +1978,7 @@
     {
       "eval_id": 26,
       "eval_name": "unsupported-model-error",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -1949,12 +2009,13 @@
         }
       ],
       "notes": [
-        "Excluded from aggregates (contaminated run): without_skill agent read SKILL.md from the filesystem and reproduced the skill-defined error message. Both sides nulled to keep paired-eval computation consistent — run_summary is computed over 27 paired evals excluding this eval entirely."
+        "Excluded from aggregates (contaminated run): without_skill agent read SKILL.md from the filesystem and reproduced the skill-defined error message. Both sides nulled to keep paired-eval computation consistent \u2014 run_summary is computed over 27 paired evals excluding this eval entirely."
       ]
     },
     {
       "eval_id": 26,
       "eval_name": "unsupported-model-error",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -1991,6 +2052,7 @@
     {
       "eval_id": 27,
       "eval_name": "branch-not-found-error",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2027,6 +2089,7 @@
     {
       "eval_id": 27,
       "eval_name": "branch-not-found-error",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2063,6 +2126,7 @@
     {
       "eval_id": 28,
       "eval_name": "submodel-splitting",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -2099,6 +2163,7 @@
     {
       "eval_id": 28,
       "eval_name": "submodel-splitting",
+      "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -2178,6 +2243,55 @@
       "pass_rate": "+0.26",
       "time_seconds": "-5.0",
       "tokens": "+688"
+    }
+  },
+  "run_summary_by_model": {
+    "claude-sonnet-4-6": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 0.98,
+          "stddev": 0.06,
+          "min": 0.8,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 39.7,
+          "stddev": 36.3,
+          "min": 8.1,
+          "max": 105.5
+        },
+        "tokens": {
+          "mean": 27045.7,
+          "stddev": 7953.8,
+          "min": 22326,
+          "max": 44948
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.71,
+          "stddev": 0.33,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 44.7,
+          "stddev": 66.4,
+          "min": 4.8,
+          "max": 191.9
+        },
+        "tokens": {
+          "mean": 26357.3,
+          "stddev": 14885.4,
+          "min": 17663,
+          "max": 59648
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.26",
+        "time_seconds": "-5.0",
+        "tokens": "+688"
+      }
     }
   }
 }
