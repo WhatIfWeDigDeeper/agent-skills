@@ -2,8 +2,8 @@
   "metadata": {
     "skill_name": "peer-review",
     "skill_path": "skills/peer-review",
-    "skill_version": "1.6",
-    "executor_model": "claude-sonnet-4-6",
+    "skill_version": "1.7",
+    "executor_model": "claude-opus-4-7",
     "analyzer_model": "claude-sonnet-4-6",
     "models_tested": [
       {
@@ -12,9 +12,16 @@
         "timestamp": "2026-04-09T00:00:00Z",
         "runs_per_configuration": 1,
         "notes": "28 evals \u00d7 2 configurations = 56 runs, all run_number == 1. Eval 26 (unsupported-model-error) result fields nulled on both with_skill and without_skill sides due to without_skill contamination (executor read SKILL.md from filesystem); excluded from run_summary aggregates. Sonnet pass-rate delta computed over 27 paired evals (eval 26 excluded). Time/token coverage is sparse: 7 of 27 paired primary runs measured (evals 1, 3, 4, 11, 12, 13, 14); the remaining evals use simulated transcripts or have measurements excluded as stale pre-v1.3 data."
+      },
+      {
+        "executor_model": "claude-opus-4-7",
+        "analyzer_model": "claude-sonnet-4-6",
+        "timestamp": "2026-04-25T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "Full 28-eval suite \u00d7 2 configurations on 2026-04-25, all run_number == 1 (56 Opus 4.7 runs total). Eval 26 (unsupported-model-error) ran cleanly on Opus \u2014 without_skill executor correctly resisted reading SKILL.md when prompted, so Opus paired-eval count is 28 (vs Sonnet's 27, where the without_skill agent contaminated). Analyzer model is claude-sonnet-4-6 (not Opus) for analyzer-uniformity following the spec 26 precedent. Executor time_seconds, tokens, and tool_calls are not preserved at the parent level (subagent usage data visible only in transient task-completion notifications); recorded as null per the evals/CLAUDE.md null-for-unknown rule. Eight evals are non-discriminating on Opus (3, 11, 13, 14, 17, 20, 21, 27); evals 13 and 21 collapsed from discriminating on Sonnet \u2014 base model has internalized those behaviors. Ten evals are newly discriminating or strengthened on Opus (1, 2, 6, 10, 12, 18, 22, 23, 24, 25, 26) where Sonnet baseline either coincidentally hit skill phrasing or was harness-masked."
       }
     ],
-    "timestamp": "2026-04-09T00:00:00Z",
+    "timestamp": "2026-04-25T00:00:00Z",
     "evals_run": [
       1,
       2,
@@ -2196,53 +2203,2015 @@
       "notes": [
         "Severity normalization (medium \u2192 major) is skill-defined; without_skill presented 'medium' as-is."
       ]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "consistency-mode-stale-step-ref",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md",
+          "passed": true,
+          "evidence": "Transcript header shows 'Peer Review \u2014 evals/peer-review/fixtures/consistency/' with no spec mode or diff mode indicators; findings cover cross-file consistency (SKILL.md vs reference.md)."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "Transcript explicitly states: 'harness constraint \u2014 sub-subagents are unavailable in this run, so the fresh-context reviewer pass was performed inline within this response rather than via a spawned subagent.'"
+        },
+        {
+          "text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)",
+          "passed": true,
+          "evidence": "Critical finding 1: 'SKILL.md directs reader to Step 3 of reference.md for the field mapping table, but reference.md has no Step 3 \u2014 it jumps from Step 2 directly to Step 4. Field mapping lives under Step 4.'"
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
+          "passed": true,
+          "evidence": "Transcript shows '### Critical' and '### Major' headings grouping the two findings."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Final line: 'Apply all, select by number, or skip? [all/1,3,5/skip]'"
+        }
+      ]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "consistency-mode-stale-step-ref",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent enters consistency mode (not spec mode or diff mode) because the path does not contain plan.md + tasks.md",
+          "passed": false,
+          "evidence": "Transcript jumps directly into review with no mention of any mode selection (consistency, spec, or diff)."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "The entire review is performed inline in a single response with no delegation or subagent spawning mentioned."
+        },
+        {
+          "text": "The findings include the stale step reference: SKILL.md says 'Step 3 of reference.md' but the field mapping table is at Step 4 (reference.md has no Step 3)",
+          "passed": true,
+          "evidence": "Issue 1: 'SKILL.md Step 3 says...See Step 3 of reference.md...But in reference.md, the field mapping table is under Step 4. Field Mapping, not Step 3.'"
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
+          "passed": false,
+          "evidence": "Findings use headings 'Issue 1', 'Issue 2', 'Recommended fixes', 'Minor / stylistic notes' \u2014 no critical/major/minor severity labels."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": false,
+          "evidence": "Transcript ends with a Summary section. No apply prompt or selection mechanism is offered."
+        }
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "consistency-mode-plan-tasks-mismatch",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent enters consistency mode (not spec mode) because spec mode was removed in v1.3; plan.md+tasks.md directories now use consistency mode like any other path target",
+          "passed": true,
+          "evidence": "Line 3: 'Mode auto-detected as **consistency** because target is a directory path containing plan.md + tasks.md.'"
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "Line 3: 'Reviewed inline as a fresh-context consistency pass (no sub-subagent spawned, per eval harness constraint).'"
+        },
+        {
+          "text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md",
+          "passed": true,
+          "evidence": "Finding #1: '`--verbose` flag defined in plan but has no implementation task \u2014 `tasks.md`' with detailed explanation."
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
+          "passed": true,
+          "evidence": "Transcript uses '### Critical', '### Major', '### Minor' headings to group findings."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Line 33: 'Apply all, select by number, or skip? [all/1,3,5/skip]'"
+        }
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "consistency-mode-plan-tasks-mismatch",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2,
+        "passed": 1,
+        "failed": 4,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent enters consistency mode (not spec mode) because spec mode was removed in v1.3; plan.md+tasks.md directories now use consistency mode like any other path target",
+          "passed": false,
+          "evidence": "Agent proceeds directly to reviewing with no mode selection or mention of 'consistency mode' anywhere in the transcript."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "Review is performed inline in a single response with no delegation or subagent spawn."
+        },
+        {
+          "text": "The findings identify that --verbose is documented in plan.md but has no corresponding task in tasks.md",
+          "passed": true,
+          "evidence": "Item 1: '--verbose flag is in the plan but missing from the tasks. plan.md lists --verbose... tasks.md Phase 1 only mentions parsing --target ENV and --dry-run.'"
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor)",
+          "passed": false,
+          "evidence": "Headings used: 'Inconsistencies between plan.md and tasks.md', 'Issues internal to plan.md', 'Smaller nits'. No critical/major/minor severity headings."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": false,
+          "evidence": "Transcript ends with 'Happy to draft the updated plan.md / tasks.md if you want.' No apply prompt with all/N/skip options."
+        }
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "argument-conflict-error",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent detects that both --staged and a file path target are provided simultaneously",
+          "passed": true,
+          "evidence": "\"You provided both `--staged` and a path target (`skills/peer-review/SKILL.md`). These select different review modes\""
+        },
+        {
+          "text": "The agent outputs an error indicating targets are mutually exclusive (e.g. 'specify one target at a time')",
+          "passed": true,
+          "evidence": "\"Error: specify one target at a time \u2014 targets are mutually exclusive.\""
+        },
+        {
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Transcript contains only the error message and a usage hint \u2014 no reviewer spawn, no diff output, no findings."
+        }
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "argument-conflict-error",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent detects that both --staged and a file path target are provided simultaneously",
+          "passed": true,
+          "evidence": "\"You've passed both `--staged` and an explicit file path (`skills/peer-review/SKILL.md`), but those are mutually exclusive targets\""
+        },
+        {
+          "text": "The agent outputs an error indicating targets are mutually exclusive (e.g. 'specify one target at a time')",
+          "passed": true,
+          "evidence": "\"those are mutually exclusive targets \u2014 I can review either the staged diff or a specific file, not both at once\""
+        },
+        {
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Agent halts to ask clarification; no subagent spawned, no review findings presented"
+        }
+      ]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "diff-mode-branch-review",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch",
+          "passed": false,
+          "evidence": "Transcript has no mention of 'diff mode', 'spec mode', or 'consistency mode'. No mode-selection step is shown; output jumps directly to findings."
+        },
+        {
+          "text": "The agent runs a git diff command to collect the branch diff against the default branch",
+          "passed": false,
+          "evidence": "No git diff command, tool call, or reference to running one appears anywhere in the transcript. Findings are presented without documented data-collection."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "All 10 findings are presented inline in a single response with no mention of a subagent, delegate, or fresh-context reviewer being spawned."
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs 'No issues found.' with no apply prompt if there are no findings",
+          "passed": true,
+          "evidence": "Transcript uses ### Critical, ### Major, and ### Minor headings. 10 findings grouped accordingly across the three severity levels."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Final line: 'Apply all, select by number, or skip? [all/1,3,5/skip]' \u2014 exact format matches requirement."
+        }
+      ]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "diff-mode-branch-review",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent enters diff mode (not spec or consistency mode) because the target is --branch",
+          "passed": false,
+          "evidence": "Agent never names a mode. It reviews branch changes inline with no mode declaration or routing label."
+        },
+        {
+          "text": "The agent runs a git diff command to collect the branch diff against the default branch",
+          "passed": false,
+          "evidence": "No git diff command shown. Agent describes branch contents narratively without showing any shell command execution."
+        },
+        {
+          "text": "The agent spawns a subagent or delegates to a fresh reviewer rather than reviewing inline in the same response",
+          "passed": false,
+          "evidence": "Agent produces the full review inline in one response. No subagent spawn, delegation, or fresh-context handoff is mentioned."
+        },
+        {
+          "text": "Findings are presented grouped under severity headings (critical, major, or minor), or the agent outputs 'No issues found.' with no apply prompt if there are no findings",
+          "passed": true,
+          "evidence": "Findings grouped under '### Major' and '### Minor' headings covering 8 numbered items."
+        },
+        {
+          "text": "The agent presents an apply prompt ('Apply all, select by number, or skip?') after displaying findings",
+          "passed": true,
+          "evidence": "Last line: 'Apply all, select by number, or skip? [all/1,3,5/skip]'"
+        }
+      ]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "copilot-json-parse",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The finding with severity 'high' from the copilot JSON is presented to the user as 'critical' (not 'high')",
+          "passed": true,
+          "evidence": "Transcript shows '### Critical' heading with '1. **Unchecked null dereference**' listed beneath it."
+        },
+        {
+          "text": "The finding with severity 'low' from the copilot JSON is presented to the user as 'minor' (not 'low')",
+          "passed": true,
+          "evidence": "Transcript shows '### Minor' heading with '2. **Unused import**' listed beneath it."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": true,
+          "evidence": "Transcript ends with: 'Apply all recommended, include skipped by S-number, or skip? [all/1,2/1,S1/skip]'"
+        }
+      ]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "copilot-json-parse",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The finding with severity 'high' from the copilot JSON is presented to the user as 'critical' (not 'high')",
+          "passed": false,
+          "evidence": "Finding 1 shown as '**Severity:** High' \u2014 not remapped to Critical"
+        },
+        {
+          "text": "The finding with severity 'low' from the copilot JSON is presented to the user as 'minor' (not 'low')",
+          "passed": false,
+          "evidence": "Finding 2 shown as '**Severity:** Low' \u2014 not remapped to Minor"
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": false,
+          "evidence": "Transcript ends with a natural-language Recommendation section; no apply prompt present"
+        }
+      ]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "copilot-empty-findings",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": true,
+          "evidence": "Line 3 of transcript: 'No issues found.'"
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
+          "passed": true,
+          "evidence": "Transcript contains only a header and 'No issues found.' \u2014 no apply prompt present."
+        }
+      ]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "copilot-empty-findings",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": false,
+          "evidence": "Output says 'reported no issues' but exact phrase 'No issues found.' is absent."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
+          "passed": true,
+          "evidence": "No apply prompt present in the transcript."
+        }
+      ]
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "copilot-malformed-json",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Could not parse structured findings; showing raw output.' (the malformed JSON fallback message)",
+          "passed": true,
+          "evidence": "Line 3: 'Could not parse structured findings; showing raw output.' appears verbatim."
+        },
+        {
+          "text": "The raw error text from the copilot output is shown to the user",
+          "passed": true,
+          "evidence": "Lines 5-7: code block contains 'Error: API rate limit exceeded. Try again in 60 seconds.' verbatim."
+        }
+      ]
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "copilot-malformed-json",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Could not parse structured findings; showing raw output.' (the malformed JSON fallback message)",
+          "passed": false,
+          "evidence": "Phrase 'Could not parse structured findings; showing raw output.' does not appear anywhere in the transcript."
+        },
+        {
+          "text": "The raw error text from the copilot output is shown to the user",
+          "passed": true,
+          "evidence": "'Error: API rate limit exceeded. Try again in 60 seconds.' appears verbatim on line 4 of the transcript."
+        }
+      ]
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "codex-not-found",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the codex CLI was not found (error message about missing binary)",
+          "passed": true,
+          "evidence": "\"codex CLI not found. Install with: npm install -g @openai/codex\""
+        },
+        {
+          "text": "The error message includes the install hint 'npm install -g @openai/codex'",
+          "passed": true,
+          "evidence": "Literal string 'npm install -g @openai/codex' present in output line 1."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Transcript is a single error line; no findings list or apply prompt appear."
+        }
+      ]
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "codex-not-found",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the codex CLI was not found (error message about missing binary)",
+          "passed": true,
+          "evidence": "\"the `codex` binary isn't installed on this system (`command -v codex` returns nothing)\""
+        },
+        {
+          "text": "The error message includes the install hint 'npm install -g @openai/codex'",
+          "passed": false,
+          "evidence": "Transcript mentions installing codex separately but never includes the literal string 'npm install -g @openai/codex'."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Response offers 3 navigation options (use different reviewer, install, self-review) \u2014 no findings list or apply prompt."
+        }
+      ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "gemini-not-found",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the gemini CLI was not found (error message about missing binary)",
+          "passed": true,
+          "evidence": "Line 1: 'gemini CLI not found. Install with: npm install -g @google/gemini-cli'"
+        },
+        {
+          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'",
+          "passed": true,
+          "evidence": "Line 1 contains literal string: 'npm install -g @google/gemini-cli'"
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Transcript is a single error line only; no findings list or apply prompt present."
+        }
+      ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "gemini-not-found",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the gemini CLI was not found (error message about missing binary)",
+          "passed": true,
+          "evidence": "\"the `gemini` CLI isn't installed on this system, so there's no binary to invoke against your staged changes\""
+        },
+        {
+          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'",
+          "passed": false,
+          "evidence": "Transcript mentions installing the gemini CLI but never includes the literal string 'npm install -g @google/gemini-cli'"
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "No findings or apply prompt appear; response only offers three alternative options (switch models, install later, skip)"
+        }
+      ]
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "gemini-no-findings",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes the '## Peer Review \u2014' header line",
+          "passed": true,
+          "evidence": "Line 1: '## Peer Review \u2014 staged (gemini)' contains the required header prefix."
+        },
+        {
+          "text": "The output includes 'No issues found.' after the header",
+          "passed": true,
+          "evidence": "Line 3: 'No issues found.' appears immediately after the header line."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
+          "passed": true,
+          "evidence": "Transcript is 3 lines; no apply prompt or [all/N/skip] format appears anywhere."
+        }
+      ]
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "gemini-no-findings",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes the '## Peer Review \u2014' header line",
+          "passed": false,
+          "evidence": "Output uses bold labels (**Reviewer:**, **Scope:**, **Result:**) but no '## Peer Review \u2014' header appears anywhere in the transcript."
+        },
+        {
+          "text": "The output includes 'No issues found.' after the header",
+          "passed": false,
+          "evidence": "Output says 'No findings \u2014 Gemini reported no issues with the staged diff.' but the exact string 'No issues found.' is absent."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
+          "passed": true,
+          "evidence": "No apply prompt or [all/N/skip] pattern appears anywhere in the transcript."
+        }
+      ]
+    },
+    {
+      "eval_id": 11,
+      "eval_name": "staged-empty-warning",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent detects that there are no staged changes (git diff --staged returned empty output)",
+          "passed": true,
+          "evidence": "Transcript output 'No staged changes found. Stage files with `git add` first.' implies detection of empty staged diff."
+        },
+        {
+          "text": "The agent outputs a warning that no staged changes were found (e.g. 'No staged changes found', 'No staged changes', 'Stage files with `git add` first')",
+          "passed": true,
+          "evidence": "Transcript contains verbatim: 'No staged changes found. Stage files with `git add` first.'"
+        },
+        {
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Transcript is a single warning line with no findings, reviewer output, or further content."
+        }
+      ]
+    },
+    {
+      "eval_id": 11,
+      "eval_name": "staged-empty-warning",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent detects that there are no staged changes (git diff --staged returned empty output)",
+          "passed": true,
+          "evidence": "\"git diff --staged came back empty, so there are no staged changes for me to look at.\""
+        },
+        {
+          "text": "The agent outputs a warning that no staged changes were found (e.g. 'No staged changes found')",
+          "passed": true,
+          "evidence": "\"There's nothing to peer-review \u2014 git diff --staged came back empty, so there are no staged changes for me to look at.\""
+        },
+        {
+          "text": "The agent exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Transcript ends with \"Stopping here rather than guessing\" \u2014 no findings presented, no reviewer spawned."
+        }
+      ]
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "pr-target-context",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent collects or uses the PR title and body (not just the diff) as context for the reviewer",
+          "passed": false,
+          "evidence": "Transcript shows only header and 'No issues found.' \u2014 no mention of PR title 'Add retry logic to API client' or any PR body content."
+        },
+        {
+          "text": "The output header includes the PR number (e.g. 'PR #42')",
+          "passed": true,
+          "evidence": "Header line: '## Peer Review \u2014 PR #42 (claude-opus-4-7)'"
+        },
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": true,
+          "evidence": "Line 3: 'No issues found.'"
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings",
+          "passed": true,
+          "evidence": "No apply prompt appears anywhere in the transcript."
+        },
+        {
+          "text": "The header's model token is NOT the literal string 'self' \u2014 the assistant substitutes its own model identifier (e.g. a claude-* name) in the header",
+          "passed": true,
+          "evidence": "Header token is 'claude-opus-4-7', not literal 'self'."
+        }
+      ]
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "pr-target-context",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6,
+        "passed": 3,
+        "failed": 2,
+        "total": 5,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent collects or uses the PR title and body (not just the diff) as context for the reviewer",
+          "passed": true,
+          "evidence": "PR Context section lists Title: 'Add retry logic to API client' and Body: 'This PR adds exponential backoff...'"
+        },
+        {
+          "text": "The output header includes the PR number (e.g. 'PR #42')",
+          "passed": true,
+          "evidence": "Line 1: '# Peer Review: PR #42 \u2014 Add retry logic to API client'"
+        },
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": false,
+          "evidence": "Transcript says 'NO FINDINGS.' and 'no findings' but never the exact literal string 'No issues found.'"
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown when there are no findings",
+          "passed": true,
+          "evidence": "No apply prompt or [all/N/skip] text appears anywhere in the transcript."
+        },
+        {
+          "text": "The header's model token is NOT the literal string 'self' \u2014 the assistant substitutes its own model identifier (e.g. a claude-* name) in the header",
+          "passed": false,
+          "evidence": "No model token appears in the header at all \u2014 the heading is just 'Peer Review: PR #42 \u2014 Add retry logic to API client' with no model identifier."
+        }
+      ]
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "focus-option",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review prompt includes a focus line mentioning 'security' (e.g. 'Focus especially on security')",
+          "passed": false,
+          "evidence": "Transcript shows only the review output (Critical/Minor findings). No reviewer prompt or focus line mentioning 'security' is visible anywhere in the transcript."
+        },
+        {
+          "text": "Both findings are shown in the output \u2014 focus does not suppress findings outside the focus topic",
+          "passed": true,
+          "evidence": "Finding 1: 'SQL injection via unsanitized environment token' (Critical); Finding 2: 'Missing JSDoc comment on new exported function' (Minor). Both present."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": true,
+          "evidence": "Transcript line 13: 'Apply all, select by number, or skip? [all/1,3,5/skip]' appears after both findings."
+        }
+      ]
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "focus-option",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review prompt includes a focus line mentioning 'security' (e.g. 'Focus especially on security')",
+          "passed": true,
+          "evidence": "Summary states: 'Reviewing with extra attention to security.' \u2014 natural acknowledgement of the --focus security flag."
+        },
+        {
+          "text": "Both findings are shown in the output \u2014 focus does not suppress findings outside the focus topic",
+          "passed": true,
+          "evidence": "Finding 1: SQL Injection vulnerability (Critical/High); Finding 2: Missing JSDoc comment (Minor/style) \u2014 both present."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": false,
+          "evidence": "Transcript ends with 'Request changes. The SQL injection issue must be fixed before merge...' \u2014 no apply prompt offered."
+        }
+      ]
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "apply-skip",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (or equivalent skip summary)",
+          "passed": true,
+          "evidence": "Transcript line 1: 'Skipped 2 findings. No changes made.'"
+        },
+        {
+          "text": "No files are edited or modified by the agent",
+          "passed": true,
+          "evidence": "Transcript contains no Edit tool calls or file modification mentions."
+        }
+      ]
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "apply-skip",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (or equivalent skip summary)",
+          "passed": true,
+          "evidence": "'skipping both findings. No edits were made to src/utils.js' with each finding listed as 'skipped, no changes applied'"
+        },
+        {
+          "text": "No files are edited or modified by the agent",
+          "passed": true,
+          "evidence": "Transcript states 'The file is unchanged from its current state on disk' and no edits are mentioned"
+        }
+      ]
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "triage-skips-false-positive",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Finding 2 ('Install hint is legacy') appears in the 'Triage filtered' section (not in the main numbered findings list)",
+          "passed": true,
+          "evidence": "Line 9-10: 'Triage filtered 1 of 2 findings:\\nS1. **Install hint is legacy**' \u2014 appears under triage section, not in numbered list."
+        },
+        {
+          "text": "Finding 1 ('Missing null check') appears in the numbered apply list as a recommended finding",
+          "passed": true,
+          "evidence": "Lines 4-6: '1. **Missing null check** \u2014 src/auth.js' appears as numbered finding in the main recommended list."
+        },
+        {
+          "text": "The apply prompt uses the triage form mentioning S-number (e.g. 'Apply all recommended, include skipped by S-number, or skip?')",
+          "passed": true,
+          "evidence": "Line 12: 'Apply all recommended, include skipped by S-number, or skip? [all/1,2/1,S1/skip]' \u2014 S-number explicitly present."
+        }
+      ]
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "triage-skips-false-positive",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Finding 2 ('Install hint is legacy') appears in the 'Triage filtered' section (not in the main numbered findings list)",
+          "passed": false,
+          "evidence": "Finding 2 appears under '## Finding 2 \u2014 Skip (false positive, agreed)' \u2014 no 'Triage filtered' section exists in the transcript."
+        },
+        {
+          "text": "Finding 1 ('Missing null check') appears in the numbered apply list as a recommended finding",
+          "passed": false,
+          "evidence": "Finding 1 appears as a section header '## Finding 1 \u2014 Apply', not as a numbered item in a recommended/apply list."
+        },
+        {
+          "text": "The apply prompt uses the triage form mentioning S-number (e.g. 'Apply all recommended, include skipped by S-number, or skip?')",
+          "passed": false,
+          "evidence": "No apply prompt with S-prefix triage form exists. Transcript ends with 'Want me to draft the patch for finding 1?'"
+        }
+      ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "triage-all-skipped",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues recommended.' (the all-skipped message)",
+          "passed": true,
+          "evidence": "Line 3: 'No issues recommended.' appears verbatim."
+        },
+        {
+          "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
+          "passed": true,
+          "evidence": "No apply prompt of any form appears in the 8-line transcript."
+        },
+        {
+          "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
+          "passed": true,
+          "evidence": "Lines 5-7: triage block lists 'Consider using const instead of let' and 'Arrow function could use implicit return' with reasons."
+        }
+      ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "triage-all-skipped",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues recommended.' (the all-skipped message)",
+          "passed": false,
+          "evidence": "Transcript says 'nothing here that needs a code change' but the literal string 'No issues recommended.' does not appear anywhere in the output."
+        },
+        {
+          "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
+          "passed": true,
+          "evidence": "No apply prompt, 'Apply all recommended', 'Apply all, select by number', or [all/N/skip] appears anywhere in the transcript."
+        },
+        {
+          "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
+          "passed": true,
+          "evidence": "Finding 1 (let vs const) and Finding 2 (Implicit arrow return) both appear with skip reasons: 'stylistic preference, not a correctness problem' and 'purely a brevity/style opinion'."
+        }
+      ]
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "triage-not-on-self-path",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output does NOT contain a 'Triage filtered' section \u2014 triage does not run on the self/Claude path",
+          "passed": true,
+          "evidence": "Transcript contains no 'Triage filtered' text anywhere."
+        },
+        {
+          "text": "The apply prompt is the standard form ('Apply all, select by number, or skip?') \u2014 not the triage form mentioning S-numbers",
+          "passed": true,
+          "evidence": "Line 13: 'Apply all, select by number, or skip? [all/1,3,5/skip]' \u2014 no S-numbers or 'include skipped by' text."
+        },
+        {
+          "text": "Both findings (Missing return type annotation and Inconsistent spacing) appear in the output",
+          "passed": true,
+          "evidence": "Line 4: '**Missing return type annotation**'; line 9: '**Inconsistent spacing**' \u2014 both present."
+        }
+      ]
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "triage-not-on-self-path",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output does NOT contain a 'Triage filtered' section \u2014 triage does not run on the self/Claude path",
+          "passed": true,
+          "evidence": "No 'Triage filtered' section found anywhere in the transcript output."
+        },
+        {
+          "text": "The apply prompt is the standard form ('Apply all, select by number, or skip?') \u2014 not the triage form mentioning S-numbers",
+          "passed": true,
+          "evidence": "No apply prompt of any kind appears; no S-prefix triage prompt present. Counts as pass per grading rules."
+        },
+        {
+          "text": "Both findings (Missing return type annotation and Inconsistent spacing) appear in the output",
+          "passed": true,
+          "evidence": "Finding 1: 'Missing return type annotation'; Finding 2: 'Inconsistent spacing' \u2014 both present in transcript."
+        }
+      ]
+    },
+    {
+      "eval_id": 18,
+      "eval_name": "triage-user-includes-skipped",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skipped finding S1 ('Install hint is legacy') is applied \u2014 the skill reports applying it",
+          "passed": true,
+          "evidence": "\"S1. Install hint is legacy \u2014 applied to the file referenced by the skipped finding using its phrase anchor. Applied 1 finding(s).\""
+        },
+        {
+          "text": "The recommended finding 1 ('Missing null check') is NOT applied (only S1 was selected by the user)",
+          "passed": true,
+          "evidence": "\"Recommended finding 1 \u2014 'Missing null check' in src/auth.js \u2014 was not selected and will not be applied.\""
+        }
+      ]
+    },
+    {
+      "eval_id": 18,
+      "eval_name": "triage-user-includes-skipped",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 1,
+        "failed": 1,
+        "total": 2,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skipped finding S1 ('Install hint is legacy') is applied \u2014 the skill reports applying it",
+          "passed": false,
+          "evidence": "Agent says 'Got it \u2014 applying only S1' and 'I'll override... apply it' but then asks for confirmation before proceeding, never definitively reporting S1 as applied."
+        },
+        {
+          "text": "The recommended finding 1 ('Missing null check') is NOT applied (only S1 was selected by the user)",
+          "passed": true,
+          "evidence": "Agent explicitly states: 'The recommended Major finding (1: \"Missing null check\") will be skipped since you didn't include it in your selection.'"
+        }
+      ]
+    },
+    {
+      "eval_id": 19,
+      "eval_name": "rescan-offered-after-apply",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Applied 1 finding(s).' (or equivalent applied summary)",
+          "passed": true,
+          "evidence": "Line 1: 'Applied 1 finding(s).'"
+        },
+        {
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') is shown after the applied summary",
+          "passed": true,
+          "evidence": "Line 3: 'Re-scan modified files for new issues? [y/n]' appears after the applied summary on line 1"
+        },
+        {
+          "text": "The skill stops generating after the re-scan offer \u2014 it does not proceed to re-scan without the user's reply",
+          "passed": true,
+          "evidence": "Transcript ends at line 3 with the re-scan prompt; no further content follows"
+        }
+      ]
+    },
+    {
+      "eval_id": 19,
+      "eval_name": "rescan-offered-after-apply",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Applied 1 finding(s).' (or equivalent applied summary)",
+          "passed": true,
+          "evidence": "Line 1: 'Done \u2014 applied finding 1 to `docs/SKILL.md`, updating the stale \"See Step 3 for details\" reference to point at Step 4.'"
+        },
+        {
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') is shown after the applied summary",
+          "passed": false,
+          "evidence": "No re-scan offer appears. After the applied summary, the output gives optional follow-up suggestions and offers to run rg, inspect Step 4, or stage a commit."
+        },
+        {
+          "text": "The skill stops generating after the re-scan offer \u2014 it does not proceed to re-scan without the user's reply",
+          "passed": false,
+          "evidence": "No re-scan offer was made; the skill continued with follow-up suggestions (lines 7-13) rather than stopping at a re-scan prompt."
+        }
+      ]
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "rescan-not-offered-after-skip",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (the skip summary)",
+          "passed": true,
+          "evidence": "Line 1 of transcript: 'Skipped 2 findings. No changes made.' \u2014 exact match."
+        },
+        {
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') does NOT appear in the output",
+          "passed": true,
+          "evidence": "grep found 0 occurrences of 'Re-scan modified files' in the transcript."
+        },
+        {
+          "text": "No files are edited or modified by the agent",
+          "passed": true,
+          "evidence": "Transcript contains only the skip summary line; no Edit/Write tool calls or file modifications recorded."
+        }
+      ]
+    },
+    {
+      "eval_id": 20,
+      "eval_name": "rescan-not-offered-after-skip",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'Skipped 2 findings. No changes made.' (the skip summary)",
+          "passed": true,
+          "evidence": "Output says 'skipping both findings' with a list of 2 skipped items \u2014 equivalent skip summary present."
+        },
+        {
+          "text": "The re-scan offer ('Re-scan modified files for new issues?') does NOT appear in the output",
+          "passed": true,
+          "evidence": "No re-scan offer of any kind appears in the transcript."
+        },
+        {
+          "text": "No files are edited or modified by the agent",
+          "passed": true,
+          "evidence": "Transcript contains no file edits; agent only narrates that no changes will be applied."
+        }
+      ]
+    },
+    {
+      "eval_id": 21,
+      "eval_name": "both-staged-and-unstaged-prompt",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output indicates that both staged and unstaged changes are present (for example, 'You have both staged and unstaged changes')",
+          "passed": true,
+          "evidence": "Transcript line 1: 'You have both staged and unstaged changes. Review which? [staged/unstaged/all]'"
+        },
+        {
+          "text": "The agent outputs a prompt asking the user which changes to review (staged/unstaged/all)",
+          "passed": true,
+          "evidence": "Transcript line 1: 'Review which? [staged/unstaged/all]'"
+        },
+        {
+          "text": "The agent stops generating after the prompt \u2014 it does not spawn a reviewer or show findings without the user's reply",
+          "passed": true,
+          "evidence": "Transcript contains only one line; no reviewer output or findings follow the disambiguation prompt."
+        }
+      ]
+    },
+    {
+      "eval_id": 21,
+      "eval_name": "both-staged-and-unstaged-prompt",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output indicates that both staged and unstaged changes are present (for example, 'You have both staged and unstaged changes')",
+          "passed": true,
+          "evidence": "Line 1: 'You have changes in two places'; lines 3-4 list '- **Staged**: a one-line change in src/auth.js' and '- **Unstaged**: a one-line change in src/utils.js'"
+        },
+        {
+          "text": "The agent outputs a prompt asking the user which changes to review (staged/unstaged/all)",
+          "passed": true,
+          "evidence": "Lines 6-11 offer 4 options: staged only, unstaged only, both together, each separately \u2014 covering staged/unstaged/all variants"
+        },
+        {
+          "text": "The agent stops generating after the prompt \u2014 it does not spawn a reviewer or show findings without the user's reply",
+          "passed": true,
+          "evidence": "Transcript ends at line 15 with 'Let me know which you'd like...' \u2014 no review findings or reviewer output present"
+        }
+      ]
+    },
+    {
+      "eval_id": 22,
+      "eval_name": "unstaged-only-auto-review",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent automatically reviews the unstaged changes without prompting the user to choose",
+          "passed": true,
+          "evidence": "Transcript goes directly to review output with no disambiguation prompt shown."
+        },
+        {
+          "text": "The output includes a note that unstaged changes are being reviewed (e.g. 'No staged changes' or 'reviewing unstaged changes')",
+          "passed": true,
+          "evidence": "Line 3: \"Note: No staged changes \u2014 reviewing unstaged changes.\""
+        },
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output from the reviewer)",
+          "passed": true,
+          "evidence": "Line 5: \"No issues found.\""
+        }
+      ]
+    },
+    {
+      "eval_id": 22,
+      "eval_name": "unstaged-only-auto-review",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent automatically reviews the unstaged changes without prompting the user to choose",
+          "passed": true,
+          "evidence": "\"I went ahead and ran the peer review against the unstaged diff (since that's the only thing there is to review)\" \u2014 no disambiguation prompt shown."
+        },
+        {
+          "text": "The output includes a note that unstaged changes are being reviewed (e.g. 'No staged changes' or 'reviewing unstaged changes')",
+          "passed": true,
+          "evidence": "\"Nothing is staged, but you do have one unstaged change in `src/config.js`. I went ahead and ran the peer review against the unstaged diff\""
+        },
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output from the reviewer)",
+          "passed": false,
+          "evidence": "Output says \"the reviewer came back with no findings\" and \"the change looks clean\" \u2014 literal string 'No issues found.' does not appear."
+        }
+      ]
+    },
+    {
+      "eval_id": 23,
+      "eval_name": "staged-explicit-bypasses-detection",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent does NOT output a prompt asking the user which changes to review \u2014 it proceeds directly with the staged review",
+          "passed": true,
+          "evidence": "Transcript contains only the review header and result with no disambiguation prompt."
+        },
+        {
+          "text": "The agent reviews the staged changes (from git diff --staged), not the unstaged changes",
+          "passed": true,
+          "evidence": "Heading reads '## Peer Review \u2014 staged (claude-opus-4-7)' indicating staged scope."
+        },
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output from the reviewer)",
+          "passed": true,
+          "evidence": "Line 3: 'No issues found.'"
+        }
+      ]
+    },
+    {
+      "eval_id": 23,
+      "eval_name": "staged-explicit-bypasses-detection",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The agent does NOT output a prompt asking the user which changes to review \u2014 it proceeds directly with the staged review",
+          "passed": true,
+          "evidence": "Agent opens with 'You passed --staged, so I'm scoping the review to staged changes only' \u2014 no disambiguation prompt."
+        },
+        {
+          "text": "The agent reviews the staged changes (from git diff --staged), not the unstaged changes",
+          "passed": true,
+          "evidence": "'Reviewed (staged): src/auth.js' and 'Excluded (unstaged): src/utils.js \u2014 not reviewed; outside --staged scope'"
+        },
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output from the reviewer)",
+          "passed": false,
+          "evidence": "Output says 'No findings.' and 'returned no issues' but the literal string 'No issues found.' does not appear anywhere."
+        }
+      ]
+    },
+    {
+      "eval_id": 24,
+      "eval_name": "rescan-y-response",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The re-scan uses consistency mode (not diff mode) \u2014 the re-scan reviewer is given the current file contents rather than a diff",
+          "passed": false,
+          "evidence": "Transcript shows re-scan label and finding but no mention of consistency mode or current file contents vs diff; mode is unverifiable."
+        },
+        {
+          "text": "The re-scan finding ('Missing period at end of sentence') is presented grouped under a severity heading",
+          "passed": true,
+          "evidence": "'Missing period at end of sentence' appears under '### Minor' heading on line 3-4."
+        },
+        {
+          "text": "The apply prompt after the re-scan is the standard Claude-path form ('Apply all, select by number, or skip?') \u2014 not the triage form with S-numbers",
+          "passed": true,
+          "evidence": "Prompt reads 'Apply all, select by number, or skip? [all/1,3,5/skip]' \u2014 no S-numbers present."
+        },
+        {
+          "text": "After the re-scan apply step, no second re-scan offer is shown \u2014 the re-scan is offered at most once",
+          "passed": true,
+          "evidence": "Transcript ends after the apply prompt with no second 'Re-scan modified files for new issues?' offer."
+        }
+      ]
+    },
+    {
+      "eval_id": 24,
+      "eval_name": "rescan-y-response",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The re-scan uses consistency mode (not diff mode) \u2014 the re-scan reviewer is given the current file contents rather than a diff",
+          "passed": false,
+          "evidence": "Transcript shows no indication of what was passed to the reviewer; mode is unobservable from the output."
+        },
+        {
+          "text": "The re-scan finding ('Missing period at end of sentence') is presented grouped under a severity heading",
+          "passed": false,
+          "evidence": "Finding shown as '**Finding 1: Missing period at end of sentence** (minor)' \u2014 severity is inline, not a grouped heading like '### Minor'."
+        },
+        {
+          "text": "The apply prompt after the re-scan is the standard Claude-path form ('Apply all, select by number, or skip?') \u2014 not the triage form with S-numbers",
+          "passed": true,
+          "evidence": "Prompt uses options 1/2/3 (Apply/Skip/Show diff) with no S-numbers present."
+        },
+        {
+          "text": "After the re-scan apply step, no second re-scan offer is shown \u2014 the re-scan is offered at most once",
+          "passed": true,
+          "evidence": "Transcript ends after the apply prompt with no second re-scan offer."
+        }
+      ]
+    },
+    {
+      "eval_id": 25,
+      "eval_name": "pr-url-output",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": true,
+          "evidence": "Line 3 of transcript: 'No issues found.'"
+        },
+        {
+          "text": "The PR URL ('https://github.com/example/repo/pull/55') appears as the last line of the output",
+          "passed": true,
+          "evidence": "Line 5 (last non-empty line): 'https://github.com/example/repo/pull/55'"
+        },
+        {
+          "text": "The apply prompt is NOT shown (no findings to apply)",
+          "passed": true,
+          "evidence": "No '[all/N/skip]' or apply prompt text appears anywhere in the transcript"
+        },
+        {
+          "text": "The header's model token is NOT the literal string 'self' \u2014 the assistant substitutes its own model identifier in the header",
+          "passed": true,
+          "evidence": "Header is '## Peer Review \u2014 PR #55 (claude-opus-4-7)'; model token is 'claude-opus-4-7', not 'self'"
+        }
+      ]
+    },
+    {
+      "eval_id": 25,
+      "eval_name": "pr-url-output",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues found.' (the no-findings output)",
+          "passed": false,
+          "evidence": "Output says 'no findings' and 'no findings; the change looks clean as-is' but never the literal string 'No issues found.'"
+        },
+        {
+          "text": "The PR URL ('https://github.com/example/repo/pull/55') appears as the last line of the output",
+          "passed": false,
+          "evidence": "Last line is 'Nothing further required from my side. Let me know if...' \u2014 URL appears in line 1 and line 8 but not as the last line."
+        },
+        {
+          "text": "The apply prompt is NOT shown (no findings to apply)",
+          "passed": true,
+          "evidence": "No apply prompt appears anywhere in the output."
+        },
+        {
+          "text": "The header's model token is NOT the literal string 'self' \u2014 the assistant substitutes its own model identifier in the header",
+          "passed": true,
+          "evidence": "No header present in the output; the literal string 'self' does not appear anywhere."
+        }
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "unsupported-model-error",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
+          "passed": true,
+          "evidence": "Output line: 'Unsupported --model value: gpt-4o. Supported values: self (default), claude-*...'"
+        },
+        {
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)",
+          "passed": true,
+          "evidence": "Lists: 'self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel], gemini[:submodel]'"
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Transcript contains only the single error line \u2014 no findings, diff output, or apply/yes/no prompt present"
+        }
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "unsupported-model-error",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
+          "passed": true,
+          "evidence": "Response treats gpt-4o as unsupported: 'You've flagged gpt-4o as unsupported, and I'll take that at face value'"
+        },
+        {
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)",
+          "passed": false,
+          "evidence": "Explicitly refuses to list supported models: 'I won't invent a supported-models list'"
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "No findings or apply prompt presented; response only offers ways to get more info"
+        }
+      ]
+    },
+    {
+      "eval_id": 27,
+      "eval_name": "branch-not-found-error",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that branch 'feature/does-not-exist' was not found",
+          "passed": true,
+          "evidence": "Line 1: \"Branch `feature/does-not-exist` not found.\""
+        },
+        {
+          "text": "The error output includes a list of available branches (from git branch -a or equivalent)",
+          "passed": true,
+          "evidence": "Lines 3-143: a fenced code block listing all local and remote branches from git branch -a output."
+        },
+        {
+          "text": "The skill exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Output ends with a re-run suggestion. No reviewer spawn, no findings section anywhere in the transcript."
+        }
+      ]
+    },
+    {
+      "eval_id": 27,
+      "eval_name": "branch-not-found-error",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that branch 'feature/does-not-exist' was not found",
+          "passed": true,
+          "evidence": "Line 1: 'The branch `feature/does-not-exist` doesn't exist in this repository'"
+        },
+        {
+          "text": "The error output includes a list of available branches (from git branch -a or equivalent)",
+          "passed": true,
+          "evidence": "Lines 4-6 list local branches (main, fix/ci-workflow-fixes, etc.) from git branch -a"
+        },
+        {
+          "text": "The skill exits without spawning a reviewer subagent or presenting findings",
+          "passed": true,
+          "evidence": "Output offers recovery options but presents no diff findings or reviewer output"
+        }
+      ]
+    },
+    {
+      "eval_id": 28,
+      "eval_name": "submodel-splitting",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill invokes (or simulates invoking) copilot with a sub-model argument referencing 'gpt-4o-mini'",
+          "passed": false,
+          "evidence": "Header shows 'copilot:gpt-4o-mini' as a label but no actual CLI invocation with '--model gpt-4o-mini' or equivalent sub-model arg is shown or described."
+        },
+        {
+          "text": "The finding with severity 'medium' from the copilot JSON is presented to the user as 'major' (not 'medium')",
+          "passed": true,
+          "evidence": "'Unhandled promise rejection' appears under '### Major' heading \u2014 severity was remapped from medium to major."
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": true,
+          "evidence": "'Apply all recommended, include skipped by S-number, or skip? [all/1,2/1,S1/skip]' appears after the findings list."
+        }
+      ]
+    },
+    {
+      "eval_id": 28,
+      "eval_name": "submodel-splitting",
+      "executor_model": "claude-opus-4-7",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.33,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill invokes (or simulates invoking) copilot with a sub-model argument referencing 'gpt-4o-mini'",
+          "passed": true,
+          "evidence": "Title: 'Peer Review Results (copilot:gpt-4o-mini, --staged)'; body: \"copilot's `gpt-4o-mini` model\""
+        },
+        {
+          "text": "The finding with severity 'medium' from the copilot JSON is presented to the user as 'major' (not 'medium')",
+          "passed": false,
+          "evidence": "Finding shown as '(medium severity)' inline, not under a 'Major' heading"
+        },
+        {
+          "text": "The apply prompt ('Apply all, select by number, or skip?') is shown after the findings",
+          "passed": false,
+          "evidence": "Closing line: 'Want me to apply the suggested fix, or leave it for you to handle?' \u2014 no all/N/skip prompt"
+        }
+      ]
     }
   ],
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.98,
-        "stddev": 0.06,
-        "min": 0.8,
+        "mean": 0.93,
+        "stddev": 0.13,
+        "min": 0.6,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 39.7,
-        "stddev": 36.3,
-        "min": 8.1,
-        "max": 105.5
+        "mean": null,
+        "stddev": null,
+        "min": null,
+        "max": null
       },
       "tokens": {
-        "mean": 27045.7,
-        "stddev": 7953.8,
-        "min": 22326,
-        "max": 44948
+        "mean": null,
+        "stddev": null,
+        "min": null,
+        "max": null
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.71,
-        "stddev": 0.33,
+        "mean": 0.59,
+        "stddev": 0.3,
         "min": 0.0,
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 44.7,
-        "stddev": 66.4,
-        "min": 4.8,
-        "max": 191.9
+        "mean": null,
+        "stddev": null,
+        "min": null,
+        "max": null
       },
       "tokens": {
-        "mean": 26357.3,
-        "stddev": 14885.4,
-        "min": 17663,
-        "max": 59648
+        "mean": null,
+        "stddev": null,
+        "min": null,
+        "max": null
       }
     },
     "delta": {
-      "pass_rate": "+0.26",
-      "time_seconds": "-5.0",
-      "tokens": "+688"
+      "pass_rate": "+0.34"
     }
   },
   "run_summary_by_model": {
@@ -2291,6 +4260,51 @@
         "pass_rate": "+0.26",
         "time_seconds": "-5.0",
         "tokens": "+688"
+      }
+    },
+    "claude-opus-4-7": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 0.93,
+          "stddev": 0.13,
+          "min": 0.6,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": null,
+          "stddev": null,
+          "min": null,
+          "max": null
+        },
+        "tokens": {
+          "mean": null,
+          "stddev": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.59,
+          "stddev": 0.3,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": null,
+          "stddev": null,
+          "min": null,
+          "max": null
+        },
+        "tokens": {
+          "mean": null,
+          "stddev": null,
+          "min": null,
+          "max": null
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.34"
       }
     }
   }
