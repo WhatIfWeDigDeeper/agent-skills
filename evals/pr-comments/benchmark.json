@@ -10,7 +10,7 @@
         "analyzer_model": "claude-sonnet-4-6",
         "timestamp": "2026-04-03T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "All 38 evals \u00d7 2 configurations run on Sonnet 4.6 plus 6 regression runs (evals 12, 14, 20, 22, 23, 24 with run_number > 1). Primary suite dated 2026-03-29 through 2026-04-12; eval 10 re-run at v1.24 on 2026-04-07; evals 37-38 run at v1.28 on 2026-04-12."
+        "notes": "All 38 evals \u00d7 2 configurations run on Sonnet 4.6 plus 13 regression runs across 6 evals (evals 12, 14, 20, 22, 23, 24 with run_number > 1). Primary suite dated 2026-03-29 through 2026-04-12; eval 10 re-run at v1.24 on 2026-04-07; evals 37-38 run at v1.28 on 2026-04-12."
       },
       {
         "executor_model": "claude-opus-4-7",
