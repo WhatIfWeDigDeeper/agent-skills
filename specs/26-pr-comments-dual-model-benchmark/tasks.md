@@ -98,8 +98,8 @@
 
 ## Phase 8: Ship
 
-- [ ] **8.1** Commit all changes on branch `evals/pr-comments-opus-4-7-multi-model`.
-- [ ] **8.2** Push and open PR; run `/pr-comments {pr_number}` immediately per CLAUDE.md post-push convention.
+- [x] **8.1** Commit all changes on branch `evals/pr-comments-opus-4-7-multi-model`.
+- [x] **8.2** Push and open PR; run `/pr-comments {pr_number}` immediately per CLAUDE.md post-push convention.
 - [ ] **8.3** Loop `/pr-comments` until no new bot feedback.
 - [ ] **8.4** Run `/pr-human-guide` to annotate the PR for human reviewers (per CLAUDE.md pre-merge rule).
 - [ ] **8.5** Wait for human review. After approval: squash-merge via `gh pr merge --squash --delete-branch`, sync local main, remove the worktree directory.
