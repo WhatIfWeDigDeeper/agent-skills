@@ -51,19 +51,19 @@
 
 ## Phase 6: Verify
 
-- [ ] **6.1** `python3 -c 'import json; json.load(open("evals/pr-comments/benchmark.json"))'` — valid JSON.
-- [ ] **6.2** `jq '.runs | map(select(.executor_model == null)) | length' evals/pr-comments/benchmark.json` — returns `0`.
-- [ ] **6.3** `jq '.runs | map(select(.eval_name == null)) | length' evals/pr-comments/benchmark.json` — returns `0`.
-- [ ] **6.4** `jq '.metadata.models_tested | length' evals/pr-comments/benchmark.json` — returns `2`.
-- [ ] **6.5** `jq '.metadata.skill_version' evals/pr-comments/benchmark.json` matches `metadata.version` in `skills/pr-comments/SKILL.md`.
-- [ ] **6.6** `jq '.run_summary_by_model | keys' evals/pr-comments/benchmark.json` — contains both `"claude-sonnet-4-6"` and `"claude-opus-4-7"`.
-- [ ] **6.7** `jq '.run_summary.pass_rate.with_skill.mean == .run_summary_by_model["claude-opus-4-7"].pass_rate.with_skill.mean' evals/pr-comments/benchmark.json` — returns `true` (top-level mirrors latest model).
-- [ ] **6.8** Spot-check one eval's Per-Eval Results row in `benchmark.md` against `jq '.runs[] | select(.eval_id == N and .executor_model == "claude-opus-4-7")'` output — values must match.
-- [ ] **6.9** README `Eval Δ` per-model values match `run_summary_by_model[<model>].delta.pass_rate` (rounded to nearest whole percent).
-- [ ] **6.10** `benchmark.md` "Models tested" header includes Opus 4.7 with the run date.
-- [ ] **6.11** `benchmark.md` Summary-table `±` values match `run_summary_by_model` exactly (visual spot-check).
-- [ ] **6.12** `uv run --with pytest pytest tests/` — no regressions.
-- [ ] **6.13** `npx cspell README.md evals/pr-comments/benchmark.md specs/26-pr-comments-dual-model-benchmark/*.md` — clean; add new words to `cspell.config.yaml` in sorted position if needed.
+- [x] **6.1** `python3 -c 'import json; json.load(open("evals/pr-comments/benchmark.json"))'` — valid JSON. **PASS.**
+- [x] **6.2** `jq '.runs | map(select(.executor_model == null)) | length' evals/pr-comments/benchmark.json` — returns `0`. **PASS.**
+- [x] **6.3** `jq '.runs | map(select(.eval_name == null)) | length' evals/pr-comments/benchmark.json` — returns `0`. **PASS.**
+- [x] **6.4** `jq '.metadata.models_tested | length' evals/pr-comments/benchmark.json` — returns `2`. **PASS.**
+- [x] **6.5** `jq '.metadata.skill_version' evals/pr-comments/benchmark.json` matches `metadata.version` in `skills/pr-comments/SKILL.md`. **PASS — both `"1.36"`.**
+- [x] **6.6** `jq '.run_summary_by_model | keys' evals/pr-comments/benchmark.json` — contains both `"claude-sonnet-4-6"` and `"claude-opus-4-7"`. **PASS.**
+- [x] **6.7** `jq '.run_summary.pass_rate.with_skill.mean == .run_summary_by_model["claude-opus-4-7"].pass_rate.with_skill.mean' evals/pr-comments/benchmark.json` — returns `true` (top-level mirrors latest model). **PASS — both 0.9887.**
+- [x] **6.8** Spot-check one eval's Per-Eval Results row in `benchmark.md` against `jq '.runs[] | select(.eval_id == N and .executor_model == "claude-opus-4-7")'` output — values must match. **PASS — eval 1 Opus with_skill: jq shows 7/7, table shows 7/7 (100%).**
+- [x] **6.9** README `Eval Δ` per-model values match `run_summary_by_model[<model>].delta.pass_rate` (rounded to nearest whole percent). **PASS — README shows `+63% Sonnet 4.6 / +39% Opus 4.7`; JSON has `"+0.63"` Sonnet, `"+0.39"` Opus.**
+- [x] **6.10** `benchmark.md` "Models tested" header includes Opus 4.7 with the run date. **PASS — `claude-opus-4-7 — full 38-eval suite × 2 configurations on 2026-04-24`.**
+- [x] **6.11** `benchmark.md` Summary-table `±` values match `run_summary_by_model` exactly (visual spot-check). **PASS — Sonnet 100% ± 0% / 37.0% ± 24.87% (rounded to 24.9% in display); Opus 98.87% ± 6.95% / 59.86% ± 34.22% (rounded for display).**
+- [x] **6.12** `uv run --with pytest pytest tests/` — no regressions. **PASS — 804 passed.**
+- [x] **6.13** `npx cspell README.md evals/pr-comments/benchmark.md specs/26-pr-comments-dual-model-benchmark/*.md` — clean; add new words to `cspell.config.yaml` in sorted position if needed. **PASS — 4 files checked, 0 issues.**
 
 ---
 
