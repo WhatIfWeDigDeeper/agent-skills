@@ -81,6 +81,11 @@
     - **Major 5**: Per-eval table truncation regressed `main`'s round-half-up convention on 6 cells — fixed by re-rendering with rounding (eval 5 17%, eval 13 63%, eval 18 67%, eval 21 — etc.; eval 12 Opus 29%; eval 17 Opus 86%; eval 30 Opus 67%; eval 38 100%).
     - **Minor 6**: "8 of 76" framing conflated time and tokens (time has 11 measured, tokens has 8) — separated counts in benchmark.md Summary, Known Eval Limitations, Notes, and README Eval cost.
     - **Minor 7**: Phase 7 unchecked — addressed by this iteration record.
+  - **Iteration 2** (`self` reviewer = Opus 4.7, ~290s, ~121k tokens): 4 findings, all valid.
+    - **Major 1**: Eval 21 prose claimed "Non-discriminating (both configurations 3/3)" — actually discriminating (Sonnet +67%, Opus +100%); fixed prose to match table.
+    - **Major 2**: Header line "6 Sonnet-only regression runs" undercounted actual entries (13 across 6 evals); 152 + 13 = 165 = `runs[].length`. Reworded.
+    - **Minor 3**: plan.md still cited "8 of 76 primary runs measured" — updated to "time: 11 of 76, tokens: 8 of 76" to align with iteration-1 split.
+    - **Minor 4**: Known Eval Limitations bullet for eval 29 used `--max N` while the eval prompt and prose use `--auto N` — clarified that `--auto N` is the legacy alias.
 
 ---
 
