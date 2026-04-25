@@ -72,7 +72,7 @@
 *Fresh-context consistency pass before ship, to catch cross-file drift Phase 6's mechanical checks miss (stale deltas, Summary ± mismatches, `benchmark.md` vs `benchmark.json` drift, README deltas vs `run_summary_by_model`, plan.md ↔ tasks.md gaps). Exit condition: a pass produces zero valid findings. Iteration cap: 4.*
 
 - [x] **7.1** Stage all spec-26 changes in the worktree. **Done — all spec-26 changes are committed on the branch (6 commits ahead of main); peer-review targets `--branch evals/pr-comments-opus-4-7-multi-model` rather than the staging area.**
-- [ ] **7.2** Run `/peer-review` (or `/peer-review --model <tool>`) and apply valid findings. Loop until zero valid findings or iteration cap 4. Record per-iteration summary inline in this task.
+- [x] **7.2** Run `/peer-review` (or `/peer-review --model <tool>`) and apply valid findings. Loop until zero valid findings or iteration cap 4. Record per-iteration summary inline in this task.
   - **Iteration 1** (`self` reviewer = Opus 4.7, ~270s, ~107k tokens): 7 findings, all valid.
     - **Critical 1**: Eval 13 row vs prose contradiction (table 62%, prose 63%) — fixed by reverting per-eval table to round-half-up convention.
     - **Major 2**: plan.md said `analyzer_model` flips to Opus, but it didn't — reworded to reflect actual analyzer = Sonnet on Opus row.
@@ -90,6 +90,9 @@
     - **Major 1**: Eval 22 prose said "this behavior is entirely skill-specific" but Opus baseline scores 3/4 — added per-model qualifiers.
     - **Major 2**: Notes section claimed measurement is "concentrated in evals 1–6 and eval 16" but eval 16 has zero measured runs — removed the "and eval 16" clause.
     - **Minor 3**: tasks.md task 5.4 still cited "(~8 of 76 primary runs measured)" — updated to time/tokens split.
+  - **Iteration 4** (`self` reviewer = Opus 4.7, ~190s, ~113k tokens): 1 finding, valid (covers 8 evals).
+    - **Major 1**: Per-eval prose for evals 24, 27, 29, 30, 32, 33, 35, 36 still used Sonnet-only framing where the Opus baseline materially differs — six entries (24, 27, 29, 32, 33, 35) directly contradicted their Known Eval Limitations notes (prose claimed "baseline lacks X" while Limitations says Opus baseline has X). Added per-model qualifiers to each block (mirroring the eval 21/22 pattern), citing both Sonnet without_skill and Opus without_skill scores with non-discriminating callouts where applicable.
+  - Iteration cap (4) reached. Phase 7 complete.
 
 ---
 
