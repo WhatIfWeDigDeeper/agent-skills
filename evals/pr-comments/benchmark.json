@@ -4052,7 +4052,7 @@
     },
     {
       "eval_id": 1,
-      "eval_name": "eval-1",
+      "eval_name": "basic-address-comments",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4106,7 +4106,7 @@
     },
     {
       "eval_id": 1,
-      "eval_name": "eval-1",
+      "eval_name": "basic-address-comments",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -4160,7 +4160,7 @@
     },
     {
       "eval_id": 2,
-      "eval_name": "eval-2",
+      "eval_name": "explicit-pr-with-suggestions",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4214,7 +4214,7 @@
     },
     {
       "eval_id": 2,
-      "eval_name": "eval-2",
+      "eval_name": "explicit-pr-with-suggestions",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -4268,7 +4268,7 @@
     },
     {
       "eval_id": 3,
-      "eval_name": "eval-3",
+      "eval_name": "decline-out-of-scope",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4327,7 +4327,7 @@
     },
     {
       "eval_id": 3,
-      "eval_name": "eval-3",
+      "eval_name": "decline-out-of-scope",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -4386,7 +4386,7 @@
     },
     {
       "eval_id": 4,
-      "eval_name": "eval-4",
+      "eval_name": "mixed-four-categories",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4445,7 +4445,7 @@
     },
     {
       "eval_id": 4,
-      "eval_name": "eval-4",
+      "eval_name": "mixed-four-categories",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -4504,7 +4504,7 @@
     },
     {
       "eval_id": 5,
-      "eval_name": "eval-5",
+      "eval_name": "outdated-threads",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4553,7 +4553,7 @@
     },
     {
       "eval_id": 5,
-      "eval_name": "eval-5",
+      "eval_name": "outdated-threads",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -4602,7 +4602,7 @@
     },
     {
       "eval_id": 6,
-      "eval_name": "eval-6",
+      "eval_name": "duplicate-coauthors",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4646,7 +4646,7 @@
     },
     {
       "eval_id": 6,
-      "eval_name": "eval-6",
+      "eval_name": "duplicate-coauthors",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -4690,7 +4690,7 @@
     },
     {
       "eval_id": 7,
-      "eval_name": "eval-7",
+      "eval_name": "push-rerequest",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4734,7 +4734,7 @@
     },
     {
       "eval_id": 7,
-      "eval_name": "eval-7",
+      "eval_name": "push-rerequest",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -4778,7 +4778,7 @@
     },
     {
       "eval_id": 8,
-      "eval_name": "eval-8",
+      "eval_name": "push-declined",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4817,7 +4817,7 @@
     },
     {
       "eval_id": 8,
-      "eval_name": "eval-8",
+      "eval_name": "push-declined",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -4856,7 +4856,7 @@
     },
     {
       "eval_id": 9,
-      "eval_name": "eval-9",
+      "eval_name": "bot-reviewer-handling",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4900,7 +4900,7 @@
     },
     {
       "eval_id": 9,
-      "eval_name": "eval-9",
+      "eval_name": "bot-reviewer-handling",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -4944,7 +4944,7 @@
     },
     {
       "eval_id": 10,
-      "eval_name": "eval-10",
+      "eval_name": "empty-reviewer-list",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -4988,7 +4988,7 @@
     },
     {
       "eval_id": 10,
-      "eval_name": "eval-10",
+      "eval_name": "empty-reviewer-list",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -5032,7 +5032,7 @@
     },
     {
       "eval_id": 11,
-      "eval_name": "eval-11",
+      "eval_name": "reply-only-no-commit",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -5076,7 +5076,7 @@
     },
     {
       "eval_id": 11,
-      "eval_name": "eval-11",
+      "eval_name": "reply-only-no-commit",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -5120,7 +5120,7 @@
     },
     {
       "eval_id": 12,
-      "eval_name": "eval-12",
+      "eval_name": "bot-poll-confirms",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -5174,7 +5174,7 @@
     },
     {
       "eval_id": 12,
-      "eval_name": "eval-12",
+      "eval_name": "bot-poll-confirms",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -5228,7 +5228,7 @@
     },
     {
       "eval_id": 13,
-      "eval_name": "eval-13",
+      "eval_name": "bot-poll-declined",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -5287,7 +5287,7 @@
     },
     {
       "eval_id": 13,
-      "eval_name": "eval-13",
+      "eval_name": "bot-poll-declined",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -5346,7 +5346,7 @@
     },
     {
       "eval_id": 14,
-      "eval_name": "eval-14",
+      "eval_name": "bot-poll-timeout",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -5385,7 +5385,7 @@
     },
     {
       "eval_id": 14,
-      "eval_name": "eval-14",
+      "eval_name": "bot-poll-timeout",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -5424,7 +5424,7 @@
     },
     {
       "eval_id": 15,
-      "eval_name": "eval-15",
+      "eval_name": "security-screening",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -5463,7 +5463,7 @@
     },
     {
       "eval_id": 15,
-      "eval_name": "eval-15",
+      "eval_name": "security-screening",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -5502,7 +5502,7 @@
     },
     {
       "eval_id": 16,
-      "eval_name": "eval-16",
+      "eval_name": "reinvocation-skip-prior-reply",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -5546,7 +5546,7 @@
     },
     {
       "eval_id": 16,
-      "eval_name": "eval-16",
+      "eval_name": "reinvocation-skip-prior-reply",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -5590,7 +5590,7 @@
     },
     {
       "eval_id": 17,
-      "eval_name": "eval-17",
+      "eval_name": "review-body-skip-decline",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -5644,7 +5644,7 @@
     },
     {
       "eval_id": 17,
-      "eval_name": "eval-17",
+      "eval_name": "review-body-skip-decline",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
@@ -5698,7 +5698,7 @@
     },
     {
       "eval_id": 18,
-      "eval_name": "eval-18",
+      "eval_name": "review-body-reply-question",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
@@ -5747,7 +5747,7 @@
     },
     {
       "eval_id": 18,
-      "eval_name": "eval-18",
+      "eval_name": "review-body-reply-question",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
