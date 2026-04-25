@@ -7406,8 +7406,8 @@
       },
       "delta": {
         "pass_rate": "+0.63",
-        "time_seconds": 25.9,
-        "tokens": 6291.3
+        "time_seconds": "+25.9",
+        "tokens": "+6291"
       }
     },
     "claude-opus-4-7": {
