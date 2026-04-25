@@ -20,7 +20,7 @@ Mirror the learn benchmark's multi-model schema:
 - `metadata.models_tested[]`: array with one block per model. Each block carries that model's `executor_model`, `analyzer_model`, `timestamp`, `runs_per_configuration`, and `notes`.
 - Per-run `executor_model` field on every entry in `runs[]` — existing Sonnet runs get `"claude-sonnet-4-6"`; new Opus runs get `"claude-opus-4-7"`.
 - `run_summary_by_model` keyed by model name, each containing `pass_rate`, `time_seconds`, `tokens` with `mean`/`stddev`/`min`/`max`, plus a `delta` section comparing `with_skill` vs `without_skill` for that model.
-- Top-level `metadata.executor_model` / `analyzer_model` flip to the latest model (`claude-opus-4-7`) once Opus runs land — backward-compat convention from `learn`.
+- Top-level `metadata.executor_model` flips to the latest model (`claude-opus-4-7`) once Opus runs land — latest-model convention from `learn`. Top-level `analyzer_model` reflects the actual analyzer used by the latest-model row; in this spec that turned out to be `claude-sonnet-4-6` because Opus 4.7 hit its rate limit mid-grading and Sonnet was used to grade all 76 transcripts uniformly.
 - Top-level `run_summary` mirrors the latest-model stats (Opus), so single-model consumers still read correct values for the model the skill now targets.
 
 ### Run plan

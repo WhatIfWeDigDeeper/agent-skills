@@ -71,8 +71,16 @@
 
 *Fresh-context consistency pass before ship, to catch cross-file drift Phase 6's mechanical checks miss (stale deltas, Summary ± mismatches, `benchmark.md` vs `benchmark.json` drift, README deltas vs `run_summary_by_model`, plan.md ↔ tasks.md gaps). Exit condition: a pass produces zero valid findings. Iteration cap: 4.*
 
-- [ ] **7.1** Stage all spec-26 changes in the worktree.
+- [x] **7.1** Stage all spec-26 changes in the worktree. **Done — all spec-26 changes are committed on the branch (6 commits ahead of main); peer-review targets `--branch evals/pr-comments-opus-4-7-multi-model` rather than the staging area.**
 - [ ] **7.2** Run `/peer-review` (or `/peer-review --model <tool>`) and apply valid findings. Loop until zero valid findings or iteration cap 4. Record per-iteration summary inline in this task.
+  - **Iteration 1** (`self` reviewer = Opus 4.7, ~270s, ~107k tokens): 7 findings, all valid.
+    - **Critical 1**: Eval 13 row vs prose contradiction (table 62%, prose 63%) — fixed by reverting per-eval table to round-half-up convention.
+    - **Major 2**: plan.md said `analyzer_model` flips to Opus, but it didn't — reworded to reflect actual analyzer = Sonnet on Opus row.
+    - **Major 3**: "Analyzer model differs by row" header self-contradicted body (both rows actually use Sonnet) — reworded as "Analyzer-model deviation on the Opus row" with corrected body.
+    - **Major 4**: Unsupported ">95% pilot grading agreement" claim — removed.
+    - **Major 5**: Per-eval table truncation regressed `main`'s round-half-up convention on 6 cells — fixed by re-rendering with rounding (eval 5 17%, eval 13 63%, eval 18 67%, eval 21 — etc.; eval 12 Opus 29%; eval 17 Opus 86%; eval 30 Opus 67%; eval 38 100%).
+    - **Minor 6**: "8 of 76" framing conflated time and tokens (time has 11 measured, tokens has 8) — separated counts in benchmark.md Summary, Known Eval Limitations, Notes, and README Eval cost.
+    - **Minor 7**: Phase 7 unchecked — addressed by this iteration record.
 
 ---
 

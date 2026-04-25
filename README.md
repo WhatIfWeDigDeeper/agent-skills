@@ -143,7 +143,7 @@ cp -r skills/* ~/.claude/skills/
 - When no actionable items are found (plan is empty or all actions are `skip`), routes through the All-Skip Repoll Gate (Step 6c) which checks both `requested_reviewers` and reviews submitted after the fetch timestamp — handles the race condition where a bot submits a review seconds after the fetch and is already off the pending list.
 - Requires `gh` CLI with repo access. Runs with sandbox disabled for keyring access.
 - **Eval cost**:
-  - **Sonnet 4.6**: +25.9 seconds, +6,291 tokens over baseline; +63 pp pass rate (37 of 38 evals discriminate). Computed from 8 of 76 primary runs that have recorded metrics; the remaining 68 use simulated transcripts.
+  - **Sonnet 4.6**: +25.9 seconds, +6,291 tokens over baseline; +63 pp pass rate (37 of 38 evals discriminate). Time aggregate covers 11 of 76 primary runs (5 with-skill, 6 without-skill); token aggregate covers 8 of 76 (3 with-skill, 5 without-skill). The remaining runs use simulated transcripts with null instrumentation.
   - **Opus 4.7**: time/tokens not preserved at the parent level (subagent usage data only visible in transient task notifications); observed wall-clock was ~115s with-skill vs ~45s without-skill, and ~60–100k tokens with-skill vs ~28–68k tokens without-skill. +39 pp pass rate (29 of 38 evals discriminate; 9 are non-discriminating because the Opus baseline has internalized those behaviors). [Details](evals/pr-comments/benchmark.md).
 
 <details>
