@@ -401,7 +401,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 ## Notes
 
-- **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For evals 1 and 4, the "spawns subagent" assertion fails in both configurations for this reason. In production use, the skill correctly delegates to a fresh subagent.
+- **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For evals 1, 2, and 4, the "spawns subagent" assertion fails in both configurations for this reason. In production use, the skill correctly delegates to a fresh subagent.
 - **Evals 5–10 and 15–20 use simulated transcripts**: fixture CLI responses and triage outputs are embedded in the eval prompt rather than calling real external CLIs or spawning real triage subagents. Time and token measurements are null for these runs.
 - **Evals 11–14 have real measurements**: executor subagents ran the full skill workflow; time and token data recorded.
 - **Eval 6 non-discriminating**: both configurations naturally output "No issues found." for an empty findings array. This establishes baseline behavior for the empty-findings case.

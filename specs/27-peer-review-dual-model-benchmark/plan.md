@@ -82,7 +82,7 @@ No changes to `skills/peer-review/SKILL.md` (no skill rewrite), `evals/peer-revi
 7. Top-level `run_summary` mirrors `run_summary_by_model["claude-opus-4-7"]` (latest-model convention).
 8. `benchmark.md` Summary-table `±` values match `run_summary_by_model` exactly (spot-check via `jq`).
 9. `benchmark.md` "Models tested" header names both models with date ranges.
-10. `benchmark.md` Per-Eval Results table has 4 columns per eval row; discriminating cells bolded on the Opus side match Opus `run_summary_by_model.delta`.
+10. `benchmark.md` Per-Eval Results table has 4 columns per eval row, and displayed pass-rate values match the corresponding `benchmark.json` runs. (Bolding indicates 100% per the table caption — not discrimination.)
 11. `benchmark.md` "Notes" / "Known Eval Limitations" section documents (a) non-discriminating evals on Opus 4.7 surfaced by the run, (b) Sonnet sparse time/token coverage (7 of 27 paired primary runs measured), (c) Opus measurement gap (parent-level usage not captured), (d) the eval 26 contamination decision (clean Opus run vs. paired-null on contamination).
 12. `README.md` peer-review `Eval Δ` matches per-model deltas from `run_summary_by_model[<model>].delta.pass_rate` (rounded).
 13. `README.md` peer-review Skill Notes `Eval cost` bullet shows per-model time / tokens / pass-rate deltas.
