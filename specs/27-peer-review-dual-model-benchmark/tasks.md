@@ -58,7 +58,7 @@
 - [x] **6.4** `jq '.metadata.models_tested | length' evals/peer-review/benchmark.json` — returns `2`.
 - [x] **6.5** `jq -r '.metadata.skill_version' evals/peer-review/benchmark.json` matches `version` in `skills/peer-review/SKILL.md`.
 - [x] **6.6** `jq '.run_summary_by_model | keys' evals/peer-review/benchmark.json` — contains both `"claude-sonnet-4-6"` and `"claude-opus-4-7"`.
-- [x] **6.7** `jq '.run_summary.pass_rate.with_skill.mean == .run_summary_by_model["claude-opus-4-7"].pass_rate.with_skill.mean' evals/peer-review/benchmark.json` — returns `true` (top-level mirrors latest model).
+- [x] **6.7** `jq '.run_summary.with_skill.pass_rate.mean == .run_summary_by_model["claude-opus-4-7"].with_skill.pass_rate.mean' evals/peer-review/benchmark.json` — returns `true` (top-level mirrors latest model).
 - [x] **6.8** Spot-check one eval's Per-Eval Results row in `benchmark.md` against `jq '.runs[] | select(.eval_id == N and .executor_model == "claude-opus-4-7")'` output — values must match.
 - [x] **6.9** README `Eval Δ` per-model values match `run_summary_by_model[<model>].delta.pass_rate` (rounded to nearest whole percent).
 - [x] **6.10** `benchmark.md` "Models tested" header includes Opus 4.7 with the run date.

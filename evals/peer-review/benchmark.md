@@ -14,7 +14,7 @@
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | **98%** ± 6% | 71% ± 33% | **+26%** |
+| Pass rate | 98% ± 6% | 71% ± 33% | **+26%** |
 | Min / Max | 80% / 100% | 0% / 100% | |
 | Time (s) | ~39.7 ± 36.3 | ~44.7 ± 66.4 | -5.0 |
 | Tokens | ~27,046 ± 7,954 | ~26,357 ± 14,885 | +688 |
@@ -25,7 +25,7 @@ Sonnet pass-rate delta is computed over 27 paired evals (eval 26 excluded from b
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | **93.0%** ± 13.0% | 59.0% ± 30.0% | **+34%** |
+| Pass rate | 93.0% ± 13.0% | 59.0% ± 30.0% | **+34%** |
 | Min / Max | 60% / 100% | 0% / 100% | |
 | Time (s) | N/A | N/A | — |
 | Tokens | N/A | N/A | — |
