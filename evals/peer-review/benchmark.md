@@ -91,7 +91,7 @@ Non-discriminating on Opus 4.7:
 - Eval 13 (`focus-option`) — Sonnet Δ +67% → Opus Δ 0%
 - Eval 21 (`both-staged-and-unstaged-prompt`) — Sonnet Δ +67% → Opus Δ 0%
 
-These reflect Opus's stronger natural reasoning — the base model figured out the skill-defined behavior without needing the skill (eval 21: handling of both-staged-and-unstaged-changes; eval 13: focus-line surfacing was lost in inline-review harness flow).
+These reflect Opus's stronger natural reasoning — the base model figured out the skill-defined behavior without needing the skill (eval 21: handling of both-staged-and-unstaged-changes; eval 13: focus-line surfacing was lost in inline-review harness flow). Note that eval 13's collapse is bidirectional: Opus baseline rose to 67% (from Sonnet's 33% — base model surfaces both findings naturally) AND Opus with-skill dropped to 67% (from Sonnet's 100% — focus-line construction was not visible in the inlined transcript). Both directions converge at 67%.
 
 ### Harness constraint (sub-subagents unavailable)
 
@@ -173,7 +173,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **2/2 (100%)** | **2/2 (100%)** |
 | without-skill    | **2/2 (100%)** | 1/2 (50%) |
 
-**Non-discriminating**. Both configurations produce "No issues found." when the findings array is empty, and neither shows an apply prompt. The no-findings output is natural default behavior; the apply prompt is skill-defined but absent in both since there are no findings to act on.
+**On Sonnet 4.6: non-discriminating; on Opus 4.7: discriminating (+0.50)**. Both configurations produce "No issues found." when the findings array is empty, and neither shows an apply prompt. The no-findings output is natural default behavior on Sonnet; the apply prompt is skill-defined but absent in both since there are no findings to act on. On Opus 4.7, the without_skill agent paraphrased "no findings" rather than producing the literal "No issues found." — assertion 1 catches the difference, exposing discrimination on the stronger base model.
 
 ### Eval 7 — `copilot-malformed-json`
 **Scenario**: `/peer-review --staged --model copilot` with a fixture copilot response that is not valid JSON (a plain text error message).
@@ -233,7 +233,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **5/5 (100%)** | 4/5 (80%) |
 | without-skill    | **5/5 (100%)** | 3/5 (60%) |
 
-**Non-discriminating**. Both configurations included PR title/body as context and produced the same output. The without-skill agent even reproduced the skill-defined `## Peer Review — PR #42` header format. This is likely because the fixture data was explicit in the eval prompt, making the correct behavior obvious. The eval establishes that PR metadata handling works correctly. Updated in v1.6 to add `header-model-not-literal-self` assertion (5th assertion) — both configurations pass since general assistants naturally substitute their own model identifier and never print literal `self`.
+**On Sonnet 4.6: non-discriminating; on Opus 4.7: discriminating (+0.20)**. On Sonnet, both configurations included PR title/body as context and produced the same output. The Sonnet without-skill agent even reproduced the skill-defined `## Peer Review — PR #42` header format. On Opus 4.7, the without_skill agent did NOT use the PR title/body as explicit reviewer context (assertion 1 fails) and the header lacked a model-identifier token (assertion 5 fails) — Opus baseline is more parsimonious about reproducing skill-defined formatting. Updated in v1.6 to add `header-model-not-literal-self` assertion (5th assertion) — both configurations pass on Sonnet since general assistants naturally substitute their own model identifier and never print literal `self`; on Opus, the baseline omitted the model token entirely.
 
 ### Eval 13 — `focus-option`
 **Scenario**: `/peer-review --staged --focus security` with two findings (Critical SQL injection, Minor JSDoc).
@@ -243,7 +243,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **3/3 (100%)** | 2/3 (67%) |
 | without-skill    | 1/3 (33%) | 2/3 (67%) |
 
-**Discriminating** (+0.67 delta). Failing assertions for without-skill:
+**On Sonnet 4.6: discriminating (+0.67); on Opus 4.7: collapsed (0)**. On Sonnet, with-skill scored 100% and without-skill scored 33%. The collapse on Opus is bidirectional: with-skill dropped to 67% (focus-line construction not visible in inlined transcript — assertion 1 fails) AND baseline rose to 67% (Opus naturally surfaces both findings without skill guidance — assertion 2 passes). Both directions converge at 67%. Sonnet failing assertions for without-skill:
 - **Focus line not appended to reviewer prompt**: without-skill showed "**Focus:** security" as a presentation header but did not build a reviewer prompt at all — the focus line format ("Focus especially on security. Still report any critical findings outside this focus area.") is skill-defined.
 - **Apply prompt absent**: without-skill ended with a summary table and recommendation instead of the apply prompt.
 
@@ -295,7 +295,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **2/2 (100%)** | **2/2 (100%)** |
 | without-skill    | **2/2 (100%)** | 1/2 (50%) |
 
-**Non-discriminating**. The `S1` selection is literal enough that a general assistant interprets it correctly without skill guidance. Both configurations apply only S1 and leave finding 1 unapplied. Verifies S-prefix selection logic is working as designed.
+**On Sonnet 4.6: non-discriminating; on Opus 4.7: discriminating (+0.50)**. On Sonnet, the `S1` selection is literal enough that a general assistant interprets it correctly and applies only S1 without skill guidance. On Opus 4.7, the without_skill agent pivoted to asking for confirmation rather than reporting S1 as applied (assertion 1 fails) — Opus's stronger judgment second-guesses overriding the triage-filtered classification. Verifies S-prefix selection logic is working on both models, but the apply-without-confirmation behavior is skill-defined enough to discriminate on the more cautious base model.
 
 ### Eval 19 — `rescan-offered-after-apply`
 **Scenario**: User replies `all` to the apply prompt. One finding applied, modifying docs/SKILL.md. Post-apply re-scan offer expected.
@@ -325,7 +325,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **3/3 (100%)** | **3/3 (100%)** |
 | without-skill    | 1/3 (33%) | **3/3 (100%)** |
 
-**Discriminating** (+0.67 delta). The disambiguation prompt ("You have both staged and unstaged changes. Review which? [staged/unstaged/all]") is entirely skill-defined. without-skill silently reviewed both files (staged and unstaged) without asking — missing both the prompt and the stop-before-reviewer requirement.
+**On Sonnet 4.6: discriminating (+0.67); on Opus 4.7: collapsed (0)**. On Sonnet, the disambiguation prompt ("You have both staged and unstaged changes. Review which? [staged/unstaged/all]") is entirely skill-defined — Sonnet without-skill silently reviewed both files without asking, missing both the prompt and the stop-before-reviewer requirement. On Opus 4.7, the baseline naturally produced an equivalent disambiguation prompt and stopped before reviewing, fully matching skill behavior — Opus's stronger reasoning derived the same handling without the skill, collapsing the eval to 100%/100%.
 
 ### Eval 22 — `unstaged-only-auto-review`
 **Scenario**: `/peer-review` (no target) with no staged changes but unstaged changes present. Reviewer returns NO FINDINGS.
@@ -335,7 +335,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **3/3 (100%)** | **3/3 (100%)** |
 | without-skill    | **3/3 (100%)** | 2/3 (67%) |
 
-**Non-discriminating**. Auto-reviewing unstaged changes when nothing is staged, and noting that fact, is intuitive enough that both configurations handle it correctly. Baseline included a note ("No changes are currently staged — reviewing those instead.") without skill guidance. Establishes this behavior works correctly.
+**On Sonnet 4.6: non-discriminating; on Opus 4.7: discriminating (+0.33)**. On Sonnet, auto-reviewing unstaged changes when nothing is staged is intuitive enough that both configurations handle it correctly — Sonnet baseline included a note ("No changes are currently staged — reviewing those instead.") AND reproduced the literal "No issues found." phrase without skill guidance. On Opus 4.7, the without_skill agent paraphrased "no findings" rather than producing the literal "No issues found." (assertion 3 fails) — same pattern as eval 6 and eval 23.
 
 ### Eval 23 — `staged-explicit-bypasses-detection`
 **Scenario**: `/peer-review --staged` with both staged and unstaged changes present. Explicit --staged should skip auto-detection and review staged only.
@@ -345,7 +345,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **3/3 (100%)** | **3/3 (100%)** |
 | without-skill    | **3/3 (100%)** | 2/3 (67%) |
 
-**Non-discriminating**. Using `--staged` as a flag to scope review to staged changes only is intuitive; baseline correctly excluded the unstaged file and noted it was out of scope. The internal distinction (skipping auto-detect logic) is not observable in the output. Verifies explicit --staged behavior works correctly.
+**On Sonnet 4.6: non-discriminating; on Opus 4.7: discriminating (+0.33)**. Using `--staged` as a flag to scope review to staged changes only is intuitive — Sonnet baseline correctly excluded the unstaged file and noted it was out of scope, AND reproduced the literal "No issues found." phrase. On Opus 4.7, the without_skill agent paraphrased "no findings" rather than producing the literal phrase (assertion 3 fails) — same pattern as eval 6 and eval 22. The internal distinction (skipping auto-detect logic) is not observable in the output on either model. Verifies explicit --staged behavior works correctly.
 
 ### Eval 24 — `rescan-y-response`
 **Scenario**: Re-scan offer shown after applying one finding. User replies `y`. Re-scan reviewer returns one minor finding. Tests that re-scan uses consistency mode, no second offer is shown, and apply prompt is standard Claude-path form.
@@ -355,7 +355,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **4/4 (100%)** | 3/4 (75%) |
 | without-skill    | **4/4 (100%)** | 2/4 (50%) |
 
-**Non-discriminating**. Re-scan behavior with consistency mode, suppressed second offer, and standard apply prompt is intuitive enough for a capable baseline. Establishes re-scan flow works correctly end-to-end.
+**On Sonnet 4.6: non-discriminating; on Opus 4.7: discriminating (+0.25)**. On Sonnet, re-scan behavior with consistency mode, suppressed second offer, and standard apply prompt is intuitive enough for a capable baseline. On Opus 4.7, both configurations failed assertion 1 (consistency mode unobserved in transcript — both with-skill and without-skill omitted explicit mode declaration); without-skill additionally failed assertion 2 (severity heading group missing — finding labeled inline as "minor" rather than under a `### Minor` heading). The eval captures this as a +0.25 delta on Opus, but the harness-driven invisibility of mode selection masks part of the with-skill discrimination.
 
 ### Eval 25 — `pr-url-output`
 **Scenario**: `/peer-review --pr 55` with fixture PR data. Reviewer returns NO FINDINGS. Tests that the PR URL appears as the last line at the terminal state.
@@ -365,7 +365,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **4/4 (100%)** | **4/4 (100%)** |
 | without-skill    | **4/4 (100%)** | 2/4 (50%) |
 
-**Non-discriminating**. Baseline naturally appended the PR URL. Mirrors eval 12 — the URL behavior is intuitive enough to pass without skill guidance. The consolidated PR URL rule in Step 6 is correct but not a discriminating differentiator. Updated in v1.6 to add `header-model-not-literal-self` assertion (4th assertion) — both configurations pass for the same reason as eval 12.
+**On Sonnet 4.6: non-discriminating; on Opus 4.7: discriminating (+0.50)**. On Sonnet, baseline naturally appended the PR URL and reproduced the literal "No issues found." phrase. On Opus 4.7, the without_skill agent paraphrased "no findings" (assertion 1 fails) and did NOT place the PR URL as the last line — it ended with a conversational closing sentence (assertion 2 fails). The consolidated PR URL rule in Step 6 turns out to be a discriminating differentiator on the stronger base model. Updated in v1.6 to add `header-model-not-literal-self` assertion (4th assertion) — both configurations pass on Sonnet for the same reason as eval 12; Opus passes A4 because no model token appears in its baseline header.
 
 ### Eval 26 — `unsupported-model-error`
 **Scenario**: `/peer-review --staged --model gpt-4o` — unsupported model value. Tests that the skill errors with a specific message listing supported options.
@@ -375,7 +375,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | N/A | **3/3 (100%)** |
 | without-skill    | N/A | 2/3 (67%) |
 
-**Excluded from aggregates (contaminated run).** The without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message. Both sides are nulled in benchmark.json and excluded from the run_summary mean/stddev/delta calculations. The specific phrasing ("Unsupported --model value: …. Supported external CLIs: copilot, codex, gemini.") is skill-defined but cannot be confirmed as discriminating from this run. Re-run in a sandboxed environment to get a valid baseline.
+**On Sonnet 4.6: excluded from aggregates (contaminated run); on Opus 4.7: discriminating (+0.33)**. The Sonnet without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message. Both Sonnet sides are nulled in benchmark.json and excluded from Sonnet's run_summary mean/stddev/delta calculations. On Opus 4.7, the without_skill executor correctly resisted reading SKILL.md when given an explicit prohibition prompt — the eval ran cleanly and Opus discriminates at +0.33 (3/3 with-skill vs 2/3 without-skill). The specific phrasing ("Unsupported --model value: …. Supported external CLIs: copilot, codex, gemini.") is now confirmed skill-defined and discriminating on Opus: the Opus baseline declined to invent a specific list of supported model values without skill knowledge, failing assertion 2 (which requires self/claude-*/copilot/codex/gemini explicitly listed).
 
 ### Eval 27 — `branch-not-found-error`
 **Scenario**: `/peer-review --branch feature/does-not-exist` when the branch doesn't exist. Tests that the skill errors and lists available branches.
