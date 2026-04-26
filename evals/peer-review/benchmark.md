@@ -401,14 +401,23 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 ## Notes
 
+### General (both models)
+
 - **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For evals 1, 2, and 4, the "spawns subagent" assertion fails in both configurations for this reason. In production use, the skill correctly delegates to a fresh subagent.
-- **Evals 5–10 and 15–20 use simulated transcripts**: fixture CLI responses and triage outputs are embedded in the eval prompt rather than calling real external CLIs or spawning real triage subagents. Time and token measurements are null for these runs.
-- **Evals 11–14 have real measurements**: executor subagents ran the full skill workflow; time and token data recorded.
-- **Eval 6 non-discriminating**: both configurations naturally output "No issues found." for an empty findings array. This establishes baseline behavior for the empty-findings case.
-- **Eval 3 redesign note**: Previously tested "no staged changes → warn and exit" (non-discriminating). Redesigned to test argument conflict (`--staged` + path → error). Also non-discriminating — conflict detection is simple enough that a capable baseline handles it correctly.
+- **Eval 3 redesign note**: Previously tested "no staged changes → warn and exit" (non-discriminating). Redesigned to test argument conflict (`--staged` + path → error). Also non-discriminating on both models — conflict detection is simple enough that a capable baseline handles it correctly.
+- **Simulated-transcript fixtures**: evals 5–10 and 15–28 embed fixture CLI/triage/branch/reviewer outputs in the eval prompt rather than calling real external systems. The fixture design is the same on both models.
+
+### Sonnet 4.6
+
+- **Time/token measurements**: 7 of 27 paired evals (1, 3, 4, 11, 12, 13, 14) have non-null measurements (executor subagents ran the full skill workflow). All other evals are null — most for the simulated-transcript reason above; eval 2 measurements were excluded as stale pre-v1.3 data.
+- **Eval 6 (`copilot-empty-findings`)**: non-discriminating on Sonnet — both configurations naturally output "No issues found." for an empty findings array.
 - **Delta from adding evals 11–14**: adding 4 mostly non-discriminating evals (11, 12, 14) plus one discriminating eval (13) reduced the headline delta from +31% to +27%.
 - **Delta from adding evals 15–20**: adding 3 discriminating evals (15, 16, 19) and 3 non-discriminating evals (17, 18, 20) restores and exceeds the headline delta: +27% → +31%. Evals 17, 18, 20 are non-discriminating by design — they serve as regression guards or verify intuitive behaviors that pass without skill knowledge.
 - **Delta from v1.3 spec-mode removal (eval 2 re-scope)**: eval 2 renamed and criteria inverted; historical pass/fail data and measurements excluded from aggregates pending re-run. Headline delta shifts from +31% to +30% (pass rate means recomputed excluding eval 2; stale time/token measurements also excluded).
 - **Delta from v1.4 evals (evals 2, 21, 22, 23)**: eval 2 re-run confirms +0.40 delta. Eval 21 (both-staged-and-unstaged-prompt) adds +0.67 delta. Evals 22 and 23 are non-discriminating, diluting the headline delta from +30% to +29%.
 - **Delta from v1.5 evals (evals 24–28)**: eval 28 (submodel-splitting) discriminates at +0.33. Evals 24, 25, 27 are non-discriminating. Eval 26 is contaminated (without_skill run contaminated; both with_skill and without_skill results nulled and excluded from aggregates to keep paired-eval counts consistent). Delta computed over 27 paired evals, diluting headline from +29% to +26%.
-- **Evals 15–28 use simulated transcripts**: fixture CLI responses and triage/branch/reviewer outputs are embedded in eval prompts rather than calling real external systems. Time and token measurements are null for these runs.
+
+### Opus 4.7
+
+- **Time/token measurements**: null across **all** evals — the Opus runs were graded from preserved transcripts without re-capturing parent-level time/token usage. See the per-eval table for which evals have measurements on Sonnet.
+- **Eval 6 (`copilot-empty-findings`)**: discriminating on Opus 4.7 (+0.50). The without_skill agent paraphrases "no findings" rather than producing the literal "No issues found." — assertion 1 catches the difference. Discrimination appears on the stronger base model where Sonnet's baseline already matched the literal string.
