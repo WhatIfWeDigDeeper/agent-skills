@@ -19,7 +19,7 @@
 | Time (s) | ~39.7 ± 36.3 | ~44.7 ± 66.4 | -5.0 |
 | Tokens | ~27,046 ± 7,954 | ~26,357 ± 14,885 | +688 |
 
-Sonnet pass-rate delta is computed over 27 paired evals (eval 26 excluded from both sides due to contamination). Sonnet time/token statistics are computed over 7 of 27 primary runs per configuration (14 of 54 paired runs total) — evals 1, 3, 4, 11, 12, 13, 14 have real measurements; the other 21 evals have null measurements (simulated transcripts or excluded as stale pre-v1.3 data). Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
+Sonnet pass-rate delta is computed over 27 paired evals (eval 26 excluded from both sides due to contamination). Sonnet time/token statistics are computed over 7 of 27 primary runs per configuration (14 of 54 paired runs total) — evals 1, 3, 4, 11, 12, 13, 14 have real measurements; the other 20 evals have null measurements (simulated transcripts or excluded as stale pre-v1.3 data). Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
 ### `claude-opus-4-7`
 
@@ -103,7 +103,7 @@ Eval 26 (unsupported-model-error) was contaminated on Sonnet 4.6 — the without
 
 ### Sparse Sonnet 4.6 time/token coverage
 
-Sonnet primary-run time and token statistics are computed over 7 of 27 paired primary runs (evals 1, 3, 4, 11, 12, 13, 14 — real-execution evals). The other 21 paired evals use simulated transcripts or were excluded as stale pre-v1.3 data; their measurements are null.
+Sonnet primary-run time and token statistics are computed over 7 of 27 paired primary runs (evals 1, 3, 4, 11, 12, 13, 14 — real-execution evals). The other 20 paired evals use simulated transcripts or were excluded as stale pre-v1.3 data; their measurements are null.
 
 ### Opus 4.7 time/token measurement gap
 
