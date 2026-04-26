@@ -12,14 +12,14 @@
 
 ## Phase 2: Run Opus 4.7 `with_skill`
 
-- [x] **2.1** For each of the 28 evals in `evals/peer-review/evals.json`, spawn an executor subagent with `model: claude-opus-4-7` and configuration `with_skill`. Capture transcripts, tool_calls, errors, time_seconds, tokens per run. Preserve raw outputs locally (transcripts + per-run summaries) — they are the source for Phase 3 grading. Use the standard sandboxed-workspace pattern (`mktemp -d`, no reads outside).
+- [x] **2.1** For each of the 28 evals in `evals/peer-review/evals.json`, spawn an executor subagent with `model: claude-opus-4-7` and configuration `with_skill`. Capture transcripts for every run; record `tool_calls`, `errors`, `time_seconds`, and `tokens` when the executor exposes them, and leave them `null` in the final benchmark when parent-level usage is not preserved (the actual outcome on this run — subagent usage data was visible only in transient task-completion notifications and was not captured at the parent level). Preserve raw outputs locally (transcripts + per-run summaries) — they are the source for Phase 3 grading. Use the standard sandboxed-workspace pattern (`mktemp -d`, no reads outside).
 - [x] **2.2** Sanity-scan results before grading: any run that finished in unexpectedly short time or produced an obviously malformed transcript is re-run before Phase 4. Note that evals 5–10 and 15–28 use simulated transcripts (fixture CLI/triage responses embedded in the eval prompt) — short wall-clock time is expected for those, not anomalous.
 
 ---
 
 ## Phase 3: Run Opus 4.7 `without_skill`
 
-- [x] **3.1** Same 28 evals, configuration `without_skill`, model `claude-opus-4-7`. Capture the same instrumentation as Phase 2. The `without_skill` executor must be explicitly forbidden from reading `skills/peer-review/SKILL.md` (this is the contamination vector that nulled Sonnet eval 26).
+- [x] **3.1** Same 28 evals, configuration `without_skill`, model `claude-opus-4-7`. Capture the same instrumentation as Phase 2 (transcripts always; `tool_calls`, `errors`, `time_seconds`, `tokens` recorded when available, `null` when parent-level usage isn't preserved — same outcome as 2.1 on this run). The `without_skill` executor must be explicitly forbidden from reading `skills/peer-review/SKILL.md` (this is the contamination vector that nulled Sonnet eval 26).
 - [x] **3.2** Sanity-scan as in 2.2.
 - [x] **3.3** Eval 26 contamination check: read the `without_skill` transcript for eval 26 and confirm the agent did not read `skills/peer-review/SKILL.md` and did not reproduce skill-defined error phrasing it could not have inferred. If clean, record normally. If contaminated, mark for paired-null treatment in Phase 4.
 
@@ -83,8 +83,8 @@
 
 ## Phase 8: Ship
 
-- [ ] **8.1** Commit all changes on branch `evals/peer-review-opus-4-7-multi-model`.
-- [ ] **8.2** Push and open PR; run `/pr-comments {pr_number}` immediately per CLAUDE.md post-push convention.
+- [x] **8.1** Commit all changes on branch `evals/peer-review-opus-4-7-multi-model`.
+- [x] **8.2** Push and open PR; run `/pr-comments {pr_number}` immediately per CLAUDE.md post-push convention.
 - [ ] **8.3** Loop `/pr-comments` until no new bot feedback.
 - [ ] **8.4** Run `/pr-human-guide` to annotate the PR for human reviewers (per CLAUDE.md pre-merge rule).
 - [ ] **8.5** Wait for human review. After approval: squash-merge via `gh pr merge --squash --delete-branch`, sync local main, remove the worktree directory.
