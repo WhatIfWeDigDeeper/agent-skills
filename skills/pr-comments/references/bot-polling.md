@@ -192,7 +192,7 @@ Check Signals 2 and 3 after each poll cycle — but only act on them if Signal 1
 
 Poll every **60 seconds**. Stop after **10 minutes** if no signals fire.
 
-**When `sleep` is blocked** (e.g., in a sandboxed environment): use `ScheduleWakeup(delaySeconds=60, prompt=<same prompt used to invoke the skill>)` to resume the polling loop after each interval rather than a `Monitor` until-loop. `ScheduleWakeup` is appropriate here because the interval is ≥60 s; `Monitor` is designed for short-interval continuous polling and is not a substitute.
+**When `sleep` is blocked**: use `ScheduleWakeup(delaySeconds=60, prompt=<same prompt used to invoke the skill>)` to resume after each interval — not `Monitor` (designed for short-interval continuous polling, not ≥60 s waits).
 
 **On timeout:** print:
 
