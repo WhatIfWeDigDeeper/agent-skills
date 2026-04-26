@@ -12,7 +12,7 @@
         "analyzer_model": "claude-sonnet-4-6",
         "timestamp": "2026-04-09T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "28 evals \u00d7 2 configurations = 56 runs, all run_number == 1. Eval 26 (unsupported-model-error) result fields nulled on both with_skill and without_skill sides due to without_skill contamination (executor read SKILL.md from filesystem); excluded from run_summary aggregates. Sonnet pass-rate delta computed over 27 paired evals (eval 26 excluded). Time/token coverage is sparse: 7 of 27 paired primary runs measured (evals 1, 3, 4, 11, 12, 13, 14); the remaining evals use simulated transcripts or have measurements excluded as stale pre-v1.3 data."
+        "notes": "28 evals \u00d7 2 configurations = 56 runs, all run_number == 1. Eval 26 (unsupported-model-error) result fields nulled on both with_skill and without_skill sides due to without_skill contamination (executor read SKILL.md from filesystem); excluded from run_summary aggregates. Sonnet pass-rate delta computed over 27 paired evals (eval 26 excluded). Time/token coverage is sparse: 7 of 27 paired evals (14 runs across with_skill and without_skill) have non-null measurements (evals 1, 3, 4, 11, 12, 13, 14); the remaining evals use simulated transcripts or have measurements excluded as stale pre-v1.3 data."
       },
       {
         "executor_model": "claude-opus-4-7",
