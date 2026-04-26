@@ -192,6 +192,8 @@ Check Signals 2 and 3 after each poll cycle — but only act on them if Signal 1
 
 Poll every **60 seconds**. Stop after **10 minutes** if no signals fire.
 
+**When `sleep` is blocked**: schedule a delayed resume after each 60-second interval instead of a `Monitor` until-loop (`Monitor` is for short-interval polling, not ≥60 s waits). In Claude Code: `ScheduleWakeup(delaySeconds=60, prompt=<invocation text used to start this skill, e.g. "/pr-comments 130">)`.
+
 **On timeout:** print:
 
 > "@<bot-handle> hasn't responded yet. Re-invoke the pr-comments skill when the review is ready."
