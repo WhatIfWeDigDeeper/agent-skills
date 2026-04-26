@@ -55,7 +55,7 @@
     "runs_per_configuration": 1
   },
   "notes": [
-    "Sonnet-only top-level notes: the entries below describe per-eval discrimination and delta dilution observed during claude-sonnet-4-6 review passes (v1.0–v1.6). They do not always apply to claude-opus-4-7, whose top-level run_summary mirrors Opus values — see run_summary_by_model and benchmark.md per-model qualifiers for the Opus-specific picture (e.g. evals 1, 6, 12, 13, 21, 22, 23, 24, 25, 26 have different discrimination on Opus).",
+    "Multi-model framing: the entries below describe per-eval discrimination and delta dilution observed during claude-sonnet-4-6 review passes (v1.0–v1.6) unless a note explicitly names another model. The top-level run_summary mirrors claude-opus-4-7 values, so see run_summary_by_model and benchmark.md per-model qualifiers for the Opus-specific picture (e.g. evals 1, 6, 12, 13, 21, 22, 23, 24, 25, 26 have different discrimination on Opus).",
     "Assertion 'spawns subagent' fails in both configurations for evals 1 and 4 because the Agent tool is not available inside eval executor subagents. This is an eval harness constraint, not a skill defect.",
     "Eval 2 (consistency-mode-plan-tasks-mismatch) re-run in v1.4 with updated assertions (+0.40 delta): enters-consistency-mode, finds-missing-verbose-task, and apply-prompt-shown differentiate with_skill from without_skill. (Earlier version of this note referenced spec mode detection, which was removed in v1.3.)",
     "Eval 4 (diff mode) is the secondary discriminating eval (+0.20 delta): explicit diff mode declaration differentiates, subagent assertion fails in both due to harness constraint.",
