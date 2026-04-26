@@ -3,6 +3,7 @@
     "skill_name": "peer-review",
     "skill_path": "skills/peer-review",
     "skill_version": "1.7",
+    "skill_version_note": "Multi-version provenance: Sonnet 4.6 runs (timestamp 2026-04-09) were produced under peer-review skill v1.6; Opus 4.7 runs (timestamp 2026-04-25) were produced under v1.7. Top-level skill_version reflects the latest version (v1.7) per the latest-model convention.",
     "executor_model": "claude-opus-4-7",
     "analyzer_model": "claude-sonnet-4-6",
     "models_tested": [
