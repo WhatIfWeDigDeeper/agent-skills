@@ -119,7 +119,7 @@ Opus per-run time and token measurements are null because subagent usage data wa
 | with-skill    | 4/5 (80%) | 4/5 (80%) |
 | without-skill    | 4/5 (80%) | 1/5 (20%) |
 
-**Zero-delta (0.80/0.80) due to eval harness constraint**. Both configurations correctly identify consistency mode and find the stale step reference. The sole failing assertion in both — "spawns a subagent" — fails because the Agent tool is not available inside eval executor subagents. In production, with-skill delegates to a fresh subagent while the baseline reviews inline.
+**Sonnet 4.6: zero-delta (0.80/0.80) due to eval harness constraint; Opus 4.7: discriminating (0.80/0.20)**. On Sonnet, both configurations correctly identify consistency mode and find the stale step reference, so the sole failing assertion on each side is "spawns a subagent," which fails because the Agent tool is not available inside eval executor subagents. On Opus, the same harness constraint still caps the with-skill side at 4/5, but without-skill drops to 1/5, so the eval remains discriminating there. In production, with-skill delegates to a fresh subagent while the baseline reviews inline.
 
 ### Eval 2 — `consistency-mode-plan-tasks-mismatch`
 **Scenario**: plan.md + tasks.md fixture pair. plan.md defines --dry-run, --verbose, and --target ENV; tasks.md only covers --target and --dry-run — --verbose is missing entirely. In v1.3, spec mode was removed; plan.md+tasks.md directories now use consistency mode like any other path target.
@@ -129,7 +129,7 @@ Opus per-run time and token measurements are null because subagent usage data wa
 | with-skill    | 4/5 (80%) | 4/5 (80%) |
 | without-skill    | 2/5 (40%) | 1/5 (20%) |
 
-**Discriminating** (+0.40 delta). Re-run in v1.4 with updated v1.3 assertions. with-skill correctly enters consistency mode, finds the --verbose gap, groups findings by severity, and presents the standard apply prompt. without-skill finds the --verbose gap and groups findings, but fails to enter an explicitly named consistency mode and presents a prose "Apply Prompt" section rather than the standard numbered selection format. The "spawns subagent" assertion fails in both configurations due to eval harness constraint.
+**Discriminating** (Sonnet +0.40; Opus +0.60). Re-run in v1.4 with updated v1.3 assertions. with-skill correctly enters consistency mode, finds the --verbose gap, groups findings by severity, and presents the standard apply prompt. without-skill finds the --verbose gap and groups findings, but fails to enter an explicitly named consistency mode and presents a prose "Apply Prompt" section rather than the standard numbered selection format. The "spawns subagent" assertion fails in both configurations due to eval harness constraint.
 
 ### Eval 3 — `argument-conflict-error`
 **Scenario**: `/peer-review --staged skills/peer-review/SKILL.md` — both `--staged` and a file path provided simultaneously. These are mutually exclusive targets.
@@ -213,7 +213,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **3/3 (100%)** | **3/3 (100%)** |
 | without-skill    | 2/3 (67%) | 1/3 (33%) |
 
-**Discriminating** (+0.33 delta). The `## Peer Review —` header format is skill-defined and fails without-skill. Outputting "No issues found." and omitting the apply prompt pass in both configurations as natural behaviors.
+**Discriminating** (Sonnet +0.33; Opus +0.67). The `## Peer Review —` header format is skill-defined and fails without-skill. Outputting "No issues found." and omitting the apply prompt pass in both configurations as natural behaviors.
 
 ### Eval 11 — `staged-empty-warning`
 **Scenario**: `/peer-review --staged` when `git diff --staged` returns empty output.
@@ -275,7 +275,7 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **3/3 (100%)** | **3/3 (100%)** |
 | without-skill    | 1/3 (33%) | 2/3 (67%) |
 
-**Discriminating** (+0.67 delta). without-skill still offered an apply prompt ("Would you like me to apply either of these anyway?") and did not output "No issues recommended." — the all-skipped path and its specific phrasing are skill-defined. The triage summary content appeared in prose (satisfying assertion 3 loosely), but the required phrase and suppressed apply prompt both fail.
+**Discriminating** (Sonnet +0.67; Opus +0.33). without-skill still offered an apply prompt ("Would you like me to apply either of these anyway?") and did not output "No issues recommended." — the all-skipped path and its specific phrasing are skill-defined. The triage summary content appeared in prose (satisfying assertion 3 loosely), but the required phrase and suppressed apply prompt both fail.
 
 ### Eval 17 — `triage-not-on-self-path`
 **Scenario**: `/peer-review --staged` (default `self` model) with 2 findings from the internal reviewer instance.
@@ -395,8 +395,9 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 | with-skill    | **3/3 (100%)** | 2/3 (67%) |
 | without-skill    | 2/3 (67%) | 1/3 (33%) |
 
-**Discriminating** (+0.33 delta). Failing assertion for without_skill:
-- **Severity not normalized**: without_skill presented the finding with severity `medium` as-is — the normalization rule (`medium` → `major`) is skill-defined. Matches the pattern of evals 5, 7, 8, 9, 10 where CLI output normalization discriminates. Sub-model splitting itself passed in both configurations (the `:` split and `--model` flag are intuitive); severity normalization is the differentiator.
+**Discriminating** (+0.33 delta). Failing assertions differed by model/configuration:
+- **Severity not normalized in without_skill runs**: baseline output presented the finding with severity `medium` as-is rather than applying the skill-defined normalization (`medium` → `major`). This matches the pattern of evals 5, 7, 8, 9, 10 where CLI output normalization discriminates.
+- **Sub-model splitting was not uniformly correct across models**: Sonnet with-skill passed all 3 assertions, but Opus with-skill finished 2/3 because the submodel-flag/argument behavior still failed there. So the eval's delta is not attributable solely to severity normalization; it reflects both normalization differences and model-specific reliability on the `--model provider:model` handling.
 
 ## Notes
 
