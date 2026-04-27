@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.37"
+  version: "1.38"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -461,13 +461,13 @@ Use the **bot subset of the deduplicated reviewer list produced in Step 13** (ex
 Then use the REST API directly for each bot. Capture the response and only swallow HTTP 422 (see `references/bot-polling.md`) — surface anything else:
 
 ```bash
-if ! resp=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-    --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]' 2>&1); then
+resp=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
+    --method POST --field 'reviewers[]=copilot-pull-request-reviewer[bot]' 2>&1) || {
   case "$resp" in
     *"HTTP 422"*) : ;;  # non-fatal: already requested / GitHub App / etc.
     *) echo "Re-request failed: $resp" >&2; exit 1 ;;
   esac
-fi
+}
 ```
 Note: POST alone is sufficient to re-trigger the review — no prior DELETE is needed.
 

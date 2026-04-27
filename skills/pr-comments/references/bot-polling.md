@@ -26,13 +26,13 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
    ```bash
    bot_reviewers=("BOT_LOGIN_1" "BOT_LOGIN_2")
    for bot_reviewer in "${bot_reviewers[@]}"; do
-     if ! resp=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
-         --method POST --field "reviewers[]=${bot_reviewer}" 2>&1); then
+     resp=$(gh api repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers \
+         --method POST --field "reviewers[]=${bot_reviewer}" 2>&1) || {
        case "$resp" in
          *"HTTP 422"*) : ;;  # non-fatal: already requested / GitHub App / etc.
          *) echo "Re-request failed for ${bot_reviewer}: $resp" >&2; exit 1 ;;
        esac
-     fi
+     }
    done
    ```
    **HTTP 422 is non-fatal** — the bot may still self-trigger. Other exits (auth, rate-limit, network) must surface rather than silently let polling proceed with no re-request actually sent.
