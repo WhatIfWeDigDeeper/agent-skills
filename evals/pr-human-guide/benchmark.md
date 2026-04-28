@@ -68,7 +68,7 @@ Spec-28 baseline for Sonnet differs from the prior v0.1 baseline (which had eval
 
 The previous Sonnet 4.6 baseline at v0.1 (recorded in `runs[]` until spec 28) was removed at the start of spec 28 so the two model rows share the same skill version. The current Sonnet results at v0.7 (+31% delta) are not directly comparable to the prior v0.1 results (+39% delta) — the skill changed between those two runs (notably the PR #112 checkbox change in review-guide items and several reference-file edits through PR #120), and the comparison would conflate skill-version effect with model effect. Git history retains the v0.1 entries; this benchmark file records only v0.7 runs.
 
-### Without_skill skill-tool contamination on Sonnet evals 5 and 8
+### `without_skill` skill-tool contamination on Sonnet evals 5 and 8
 
 Two Sonnet `without_skill` runs (evals 5 and 8) initially invoked the `pr-human-guide` skill via the Skill tool despite being explicitly forbidden from reading `skills/pr-human-guide/SKILL.md` and `skills/pr-human-guide/references/`. The contamination produced output indistinguishable from `with_skill` on those evals. Both runs were re-spawned with explicit Skill-tool prohibition added to the executor prompt; only the clean re-runs are recorded in `runs[]`. Future eval harnesses for skill-bearing repos should default to forbidding the Skill tool on baseline runs.
 
