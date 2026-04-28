@@ -2,16 +2,11 @@
 EVAL: 2 config-changes
 CONFIG: with_skill (sonnet)
 
-TOOLS_USED:
-- Read: 2
-- Bash: 4
-- Write: 2
-- Other: (none)
+TOOLS_USED: Read: 3, Bash: 4, Write: 1, Other: none
 
-GH_EDIT_COMMAND:
-gh pr edit 55 --body-file /tmp/claude-501/exec-sonnet-with-eval-2-lvTHvC/updated_body.md
+GH_EDIT_COMMAND: gh pr edit 55 --body-file "${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX"
 
-FINAL_PR_BODY (verbatim, including HTML markers if any):
+FINAL_PR_BODY (verbatim):
 <<<BODY
 Updates deployment pipeline and IAM permissions for production.
 
@@ -22,18 +17,14 @@ Updates deployment pipeline and IAM permissions for production.
 > This is not a complete review checklist — it highlights where your attention matters most.
 
 ### Security
-- [ ] [`deploy/terraform/main.tf` (L5-11)](https://github.com/owner/repo/pull/55/files#diff-f030c75bedffbdedd8007a125a549e54319df781c3f8c06849577ea1e9a65fa4) — IAM policy widened from `s3:GetObject` only to also include `s3:PutObject` and `s3:DeleteObject`; `DeleteObject` in particular is destructive and irreversible — confirm this app actually needs write/delete on `my-app-bucket/*` and that no broader bucket scoping is required
+- [ ] [`deploy/terraform/main.tf` (L8-10)](https://github.com/owner/repo/pull/55/files#diff-f030c75bedffbdedd8007a125a549e54319df781c3f8c06849577ea1e9a65fa4) — IAM permissions widened from read-only (`s3:GetObject`) to read-write-delete (`s3:PutObject`, `s3:DeleteObject`); verify this is the minimum required privilege
 
 ### Config / Infrastructure
-- [ ] [`.github/workflows/deploy.yml` (L12-18)](https://github.com/owner/repo/pull/55/files#diff-28802fbf11c83a2eee09623fb192785e7ca92a3f40602a517c011b947a1822d3) — Deploy step retargeted from staging to production and new env vars (`AWS_REGION=us-east-1`, `DEPLOY_ENV=production`) introduced; verify this workflow's trigger conditions are appropriate for a production target and that no staging path remains
-- [ ] [`deploy/terraform/main.tf` (L5-11)](https://github.com/owner/repo/pull/55/files#diff-f030c75bedffbdedd8007a125a549e54319df781c3f8c06849577ea1e9a65fa4) — Terraform IAM role policy change; confirm the bucket ARN scope (`my-app-bucket/*`) is intentional and that least-privilege is preserved given the added write/delete actions
+- [ ] [`.github/workflows/deploy.yml` (L14-17)](https://github.com/owner/repo/pull/55/files#diff-28802fbf11c83a2eee09623fb192785e7ca92a3f40602a517c011b947a1822d3) — Deployment target changed from staging to production; confirm rollout strategy, rollback plan, and that no staging gate was removed
+- [ ] [`deploy/terraform/main.tf` (L8-10)](https://github.com/owner/repo/pull/55/files#diff-f030c75bedffbdedd8007a125a549e54319df781c3f8c06849577ea1e9a65fa4) — IAM role policy expanded; confirm blast radius if credentials are compromised
 
 <!-- /pr-human-guide -->
 BODY>>>
 
-NOTES:
-- PR is simulated; no actual gh commands executed.
-- 3 items across 2 categories: Security (1), Config / Infrastructure (2).
-- `deploy/terraform/main.tf` appears in both Security and Config / Infrastructure per categories.md rule that distinct concerns get separate entries across categories.
-- Anchors computed via `printf '%s' "<path>" | shasum -a 256`.
+NOTES: Two files changed. Both qualify for Config/Infrastructure (CI pipeline staging→production shift, terraform IAM policy expansion). The terraform IAM change also qualifies for Security because s3:PutObject and s3:DeleteObject were added to a previously read-only policy — a privilege escalation that a reasonable senior engineer would want to scrutinize. The deploy.yml env: block under actions/checkout@v3 is unusual placement but without codebase context was not flagged as Novel Pattern. Total: 3 items across 2 categories (Security, Config/Infrastructure).
 === END SUMMARY ===

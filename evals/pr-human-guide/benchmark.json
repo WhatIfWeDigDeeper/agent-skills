@@ -12,7 +12,7 @@
         "skill_version": "0.7",
         "timestamp": "2026-04-28T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Replaces the previous v0.1 Sonnet run set (removed in Phase 1 of spec 28). Analyzer is claude-sonnet-4-6 (sole grader for all 32 transcripts) per analyzer-uniformity. Executor time_seconds, tokens, and tool_calls are not preserved at the parent level (subagent usage data visible only in transient task-completion notifications); recorded as null per the evals/CLAUDE.md null-for-unknown rule. Two without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool and were re-run with explicit Skill-tool prohibition; only the clean re-runs are recorded. Non-discriminating Sonnet evals at v0.7: 2 (config-changes), 6 (idempotent-rerun) \u2014 6 of 8 evals discriminate."
+        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Replaces the previous v0.1 Sonnet run set (removed in spec 28 Phase 1). Analyzer is claude-sonnet-4-6 (sole grader for all 32 transcripts) per analyzer-uniformity. Per-run time_seconds, tokens, tool_calls, and errors are extracted from the executor subagent JSONL transcripts (parent-side aggregation of input + output + cache tokens). Two without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool and were re-spawned with explicit Skill-tool prohibition; only the clean re-runs are recorded. All eight with_skill runs were also re-spawned: the first batch hit transient 529 errors and was resumed via SendMessage, but the resume path silently inherited the parent's claude-opus-4-7 model rather than the original claude-sonnet-4-6 setting. The recorded runs are the second-pass spawns, verified to have actually executed on claude-sonnet-4-6 by inspecting the JSONL message.model field."
       },
       {
         "executor_model": "claude-opus-4-7",
@@ -20,7 +20,7 @@
         "skill_version": "0.7",
         "timestamp": "2026-04-28T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Analyzer is claude-sonnet-4-6 (chosen up front for analyzer-uniformity, avoiding the spec 26 mid-grading Opus \u2192 Sonnet fallback). Executor time_seconds, tokens, and tool_calls are not preserved at the parent level (same gap as Sonnet); recorded as null. All 8 evals discriminate on Opus 4.7 \u2014 the +0.42 delta is larger than Sonnet's +0.31 because the Opus baseline more often produces detailed but skill-unaware output (no exact <!-- pr-human-guide --> markers, no diff-anchor links, no exact 'Review guide updated on PR #' phrasing) where Sonnet baseline coincidentally hits the skill format on a couple of evals."
+        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Analyzer is claude-sonnet-4-6 for analyzer-uniformity. Per-run time_seconds, tokens, tool_calls, and errors are extracted from the executor subagent JSONL transcripts."
       }
     ],
     "timestamp": "2026-04-28T00:00:00Z",
@@ -38,10 +38,9 @@
   },
   "notes": [
     "Multi-model framing: Sonnet 4.6 and Opus 4.7 both ran the full 8-eval suite at SKILL.md v0.7. The previous v0.1 Sonnet runs were removed (git history retains the prior shape) so both models share an apples-to-apples skill version.",
-    "Per-eval discrimination differs by model. On Sonnet 4.6, evals 2 (config-changes) and 6 (idempotent-rerun) are non-discriminating: the Sonnet baseline naturally produced the structured Config/Infrastructure section (eval 2) and the exact 'Review guide updated on PR #' phrase (eval 6). On Opus 4.7, all 8 evals discriminate; the Opus baseline more often paraphrased required output (e.g. 'Refreshed the review guide on PR #42' instead of 'Review guide updated on PR #42').",
-    "with_skill discrimination signals are concentrated on three skill-defined behaviors: exact <!-- pr-human-guide --> / <!-- /pr-human-guide --> HTML comment markers (assertion across evals 1, 3, 4, 5, 7, 8), SHA-256 GitHub diff-anchor links (eval 1), and the exact 'Review guide updated on PR #' terminal phrase (eval 6). without_skill runs reliably produce category-correct content but use ad-hoc delimiter formats and omit the literal terminal phrase.",
-    "Time/token measurements are null for all 32 runs \u2014 parent-level usage data was not captured during eval execution (subagent usage was visible only in transient task-completion notifications, same gap as spec 26 Opus runs and spec 27 Opus runs). The pass-rate aggregates are fully reliable.",
-    "Two Sonnet without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool despite a prohibition on reading SKILL.md/references/ \u2014 those runs were re-spawned with explicit Skill-tool prohibition, and only the clean re-runs are recorded in runs[]."
+    "Per-run time_seconds and tokens are aggregated from the per-agent JSONL transcripts: time = max-minus-min event timestamp; tokens = input + output + cache-creation + cache-read tokens summed across all assistant turns. Cache reads dominate the token count because the prompt is large and re-read each turn.",
+    "Sonnet with_skill runs were re-spawned to correct an executor-model mismatch: the first batch hit transient 529 errors at spawn time, was resumed via SendMessage, and the resume path inherited the parent's claude-opus-4-7 instead of the original claude-sonnet-4-6 model. The re-spawns ran cleanly on Sonnet 4.6, verified by inspecting message.model in each agent's JSONL.",
+    "Two Sonnet without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool despite the SKILL.md/references read prohibition; those runs were re-spawned with explicit Skill-tool prohibition added to the executor prompt, and only the clean re-runs are recorded."
   ],
   "runs": [
     {
@@ -56,35 +55,35 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 67.62,
+        "tokens": 435052,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
         {
           "text": "The review guide includes a Security section flagging the auth middleware changes",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Security' with entry for 'src/auth/middleware.ts' covering 'JWT token verification' and 'requireRole authorization middleware' (.spec28-transcripts/sonnet-with-eval-1-security-changes.md)"
+          "evidence": "FINAL_PR_BODY contains '### Security' with entry for src/auth/middleware.ts: 'JWT token extraction, validation, and role-based access checks; verify token algorithm is restricted (e.g. no `alg: none`), error messages don't leak details' \u2014 .spec28-transcripts/sonnet-with-eval-1-security-changes.md"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "FINAL_PR_BODY shows literal '<!-- pr-human-guide -->' on line 18 and '<!-- /pr-human-guide -->' on line 27 (.spec28-transcripts/sonnet-with-eval-1-security-changes.md)"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-1-security-changes.md"
         },
         {
           "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts",
           "passed": true,
-          "evidence": "Entry contains 'https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82' pointing at src/auth/middleware.ts (.spec28-transcripts/sonnet-with-eval-1-security-changes.md)"
+          "evidence": "Entry contains 'https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82R41' linking to src/auth/middleware.ts \u2014 .spec28-transcripts/sonnet-with-eval-1-security-changes.md"
         },
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file [redacted-temp-path]' (.spec28-transcripts/sonnet-with-eval-1-security-changes.md)"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file \"${TMPDIR:-/private/tmp}/pr-human-guide-body.txt\"' \u2014 .spec28-transcripts/sonnet-with-eval-1-security-changes.md"
         }
       ],
       "notes": [
-        "All 4 assertions passed: Security section present, correct HTML markers, GitHub diff link to src/auth/middleware.ts, and gh pr edit called."
+        "All 4 assertions pass. Security section flags JWT validation and RBAC in src/auth/middleware.ts with GitHub diff link and SHA anchor. Markers present verbatim. gh pr edit invoked with --body-file."
       ]
     },
     {
@@ -99,10 +98,10 @@
         "passed": 2,
         "failed": 2,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 51.87,
+        "tokens": 134290,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -142,35 +141,35 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 66.11,
+        "tokens": 418234,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
         {
           "text": "The review guide includes a Config / Infrastructure section",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Config / Infrastructure' as a structured heading"
+          "evidence": "FINAL_PR_BODY contains '### Config / Infrastructure' with entries for .github/workflows/deploy.yml and deploy/terraform/main.tf \u2014 .spec28-transcripts/sonnet-with-eval-2-config-changes.md"
         },
         {
           "text": "The review guide flags the IAM permissions widening in deploy/terraform/main.tf",
           "passed": true,
-          "evidence": "Security section: '[`deploy/terraform/main.tf` (L5-11)] \u2014 IAM policy widened from `s3:GetObject` only to also include `s3:PutObject` and `s3:DeleteObject`; `DeleteObject` in particular is destructive and irreversible'"
+          "evidence": "Security section: '[`deploy/terraform/main.tf` (L8-10)] \u2014 IAM permissions widened from read-only (`s3:GetObject`) to read-write-delete (`s3:PutObject`, `s3:DeleteObject`); verify this is the minimum required privilege'; also appears in Config/Infrastructure \u2014 .spec28-transcripts/sonnet-with-eval-2-config-changes.md"
         },
         {
           "text": "The review guide flags the GitHub Actions workflow change from staging to production",
           "passed": true,
-          "evidence": "Config / Infrastructure section: '[`.github/workflows/deploy.yml` (L12-18)] \u2014 Deploy step retargeted from staging to production and new env vars (`AWS_REGION=us-east-1`, `DEPLOY_ENV=production`) introduced'"
+          "evidence": "Config / Infrastructure section: '[`.github/workflows/deploy.yml` (L14-17)] \u2014 Deployment target changed from staging to production; confirm rollout strategy, rollback plan, and that no staging gate was removed' \u2014 .spec28-transcripts/sonnet-with-eval-2-config-changes.md"
         },
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file [redacted-temp-path]'"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file \"${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX\"' \u2014 .spec28-transcripts/sonnet-with-eval-2-config-changes.md"
         }
       ],
       "notes": [
-        "Full 4/4 pass. IAM widening flagged in both Security and Config/Infrastructure sections per the multi-category rule. Staging\u2192production change explicitly called out with new env vars. gh pr edit used with --body-file."
+        "All 4 assertions pass. IAM widening flagged under both Security and Config/Infrastructure. Staging-to-production workflow change flagged with rollback concern. gh pr edit invoked."
       ]
     },
     {
@@ -185,10 +184,10 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 35.03,
+        "tokens": 94689,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -228,35 +227,35 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 59.83,
+        "tokens": 432237,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
         {
           "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
           "passed": true,
-          "evidence": "### New Dependencies section contains checklist items for both node-forge (crypto library) and aws-sdk v2 (^2.1450.0)"
+          "evidence": "FINAL_PR_BODY contains '### New Dependencies' with entry: 'Adds `node-forge` (crypto library \u2014 elevated concern) and `aws-sdk` (makes network requests \u2014 elevated concern)' \u2014 .spec28-transcripts/sonnet-with-eval-3-new-dependency.md"
         },
         {
           "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
           "passed": true,
-          "evidence": "node-forge described as '(crypto library) \u2014 supply-chain and correctness risk for security-critical code; confirm this is the right choice over Node's built-in crypto module'"
+          "evidence": "New Dependencies entry labels node-forge as 'crypto library \u2014 elevated concern' and the Security entry for src/encryption.ts specifies 'RSA public key encryption using node-forge; verify cipher mode (PKCS#1v1.5 vs OAEP)' \u2014 .spec28-transcripts/sonnet-with-eval-3-new-dependency.md"
         },
         {
           "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
           "passed": true,
-          "evidence": "src/encryption.ts appears as a structured checklist item under both ### Security ('New cryptography module: RSA public-key encryption via node-forge') and ### Novel Patterns ('First encryption module in the codebase')"
+          "evidence": "src/encryption.ts appears under both '### Security' ('RSA public key encryption using node-forge; verify cipher mode') and '### Novel Patterns' ('First use of client-side cryptography in this codebase') \u2014 .spec28-transcripts/sonnet-with-eval-3-new-dependency.md"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "Body contains literal '<!-- pr-human-guide -->' opening and '<!-- /pr-human-guide -->' closing markers"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-3-new-dependency.md"
         }
       ],
       "notes": [
-        "Full 4/4 pass. Skill produced a well-structured guide with Security, New Dependencies, and Novel Patterns sections. Both new deps flagged with specific concerns, encryption.ts flagged in two sections."
+        "All 4 assertions pass. Three categories flagged (Security, New Dependencies, Novel Patterns). node-forge explicitly labeled as crypto with elevated concern. encryption.ts appears in both Security and Novel Patterns. Markers present verbatim."
       ]
     },
     {
@@ -271,10 +270,10 @@
         "passed": 3,
         "failed": 1,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 39.49,
+        "tokens": 92266,
+        "tool_calls": 2,
+        "errors": 0
       },
       "expectations": [
         {
@@ -314,30 +313,30 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 68.29,
+        "tokens": 504336,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
         {
           "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
           "passed": true,
-          "evidence": ".spec28-transcripts/sonnet-with-eval-4-novel-pattern.md \u2014 '### Novel Patterns' section explicitly flags 'Result<T, E>' error handling from ts-results"
+          "evidence": "FINAL_PR_BODY contains '### Novel Patterns' with entry: 'First use of Result types (`Ok`/`Err` from `ts-results`) in this codebase' \u2014 .spec28-transcripts/sonnet-with-eval-4-novel-pattern.md"
         },
         {
           "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
           "passed": true,
-          "evidence": ".spec28-transcripts/sonnet-with-eval-4-novel-pattern.md \u2014 Novel Patterns item states: 'diverging from the existing try/catch + throw new AppError(...) convention used in sibling services (user.ts, product.ts, order.ts)'"
+          "evidence": "Novel Patterns entry: 'all sibling services (user.ts, product.ts, order.ts) use try/catch with `throw new AppError(...)` \u2014 assess whether this pattern should become the new standard or be aligned with existing convention' \u2014 .spec28-transcripts/sonnet-with-eval-4-novel-pattern.md"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": ".spec28-transcripts/sonnet-with-eval-4-novel-pattern.md \u2014 FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' on line 14 and '<!-- /pr-human-guide -->' on line 29"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-4-novel-pattern.md"
         }
       ],
       "notes": [
-        "All three assertions pass. The skill correctly produced a structured Novel Patterns section with an explicit contrast between ts-results Result<T,E> and the try/catch + AppError pattern used in user.ts/product.ts/order.ts, wrapped in the required HTML comment markers."
+        "All 3 assertions pass. Novel Patterns section flags ts-results Result type with explicit contrast against try/catch+AppError pattern in user.ts/product.ts/order.ts. Markers present verbatim. Also flagged ts-results as New Dependency."
       ]
     },
     {
@@ -352,10 +351,10 @@
         "passed": 2,
         "failed": 1,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 38.23,
+        "tokens": 111079,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -390,30 +389,30 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 50.3,
+        "tokens": 359814,
+        "tool_calls": 8,
+        "errors": 1
       },
       "expectations": [
         {
           "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains only a '## Review Guide' header with no category sections (Security, Config, Infrastructure, New Dependencies, Data Model, Novel Patterns, Concurrency)"
+          "evidence": "FINAL_PR_BODY contains only '## Review Guide' header followed directly by the no-areas message \u2014 no '### Security', '### Config', '### New Dependencies', '### Data Model', '### Novel Patterns', or '### Concurrency' sections present \u2014 .spec28-transcripts/sonnet-with-eval-5-no-special-areas.md"
         },
         {
           "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains exact phrase: 'No areas requiring special human review attention were identified.'"
+          "evidence": "FINAL_PR_BODY contains exact phrase: 'No areas requiring special human review attention were identified.' \u2014 .spec28-transcripts/sonnet-with-eval-5-no-special-areas.md"
         },
         {
-          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats like <!-- REVIEW-GUIDE:START --> or similar)",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains both '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-5-no-special-areas.md"
         }
       ],
       "notes": [
-        "sonnet/with correctly identified no flaggable areas, emitted the empty-guide variant with exact markers and the required no-areas phrase."
+        "All 3 assertions pass. Skill correctly identified no flaggable areas for a pure presentational JSX change with routine tests. Emitted minimal empty-guide body with exact markers and the required no-areas phrase."
       ]
     },
     {
@@ -428,10 +427,10 @@
         "passed": 1,
         "failed": 2,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 57.43,
+        "tokens": 176161,
+        "tool_calls": 6,
+        "errors": 1
       },
       "expectations": [
         {
@@ -466,30 +465,30 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 65.45,
+        "tokens": 471419,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
         {
           "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains exactly one opening '<!-- pr-human-guide -->' marker and one closing '<!-- /pr-human-guide -->' marker"
+          "evidence": "FINAL_PR_BODY shows exactly one '<!-- pr-human-guide -->' opening marker and one '<!-- /pr-human-guide -->' closing marker; NOTES confirm 'Existing pr-human-guide block detected in PR body \u2014 replaced contents between markers (idempotent re-run) rather than appending' \u2014 .spec28-transcripts/sonnet-with-eval-6-idempotent-rerun.md"
         },
         {
           "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
           "passed": true,
-          "evidence": "Guide mentions 'redis' package alongside 'ioredis', 'REDIS_URL'/'REDIS_FALLBACK_URL' env vars, and 'primary/fallback dual-client pattern' \u2014 all new diff elements not in the stale guide"
+          "evidence": "Updated guide includes Security (REDIS_URL/REDIS_FALLBACK_URL env vars), Novel Patterns (dual-client fallback with ioredis+redis), and Concurrency/State (two module-level shared clients with silent fallback) \u2014 all new diff elements beyond the stale original \u2014 .spec28-transcripts/sonnet-with-eval-6-idempotent-rerun.md"
         },
         {
-          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
+          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #' (not just general prose like 'the guide has been updated')",
           "passed": true,
-          "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42: Adds caching layer using Redis'"
+          "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42: Adds caching layer using Redis' \u2014 .spec28-transcripts/sonnet-with-eval-6-idempotent-rerun.md"
         }
       ],
       "notes": [
-        "Perfect score. The skill correctly detected the existing guide block and replaced it in-place (idempotent re-run). The new guide surfaces the dual Redis client libraries, REDIS_URL/REDIS_FALLBACK_URL env vars, and the primary/fallback pattern. Terminal output uses the exact required phrase."
+        "All 3 assertions pass. Idempotent re-run correctly detected existing guide block, replaced it in-place with a richer guide covering Security/Novel Patterns/Concurrency. Terminal output contains exact required phrase 'Review guide updated on PR #'."
       ]
     },
     {
@@ -504,10 +503,10 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 32.22,
+        "tokens": 110274,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -542,35 +541,35 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 61.65,
+        "tokens": 423576,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
         {
           "text": "The review guide includes a Data Model Changes section",
           "passed": true,
-          "evidence": "Literal '### Data Model Changes' header present in FINAL_PR_BODY"
+          "evidence": "FINAL_PR_BODY contains '### Data Model Changes' with two checklist entries for migrations/20240312_user_profile_v2.sql and schema.graphql \u2014 .spec28-transcripts/sonnet-with-eval-7-data-model-changes.md"
         },
         {
           "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
           "passed": true,
-          "evidence": "SQL migration line: 'renames `username` to `display_name`...all clients have been updated to the new field name'; GraphQL line: 'renames `username` to `displayName`...Confirm no consumers still query the removed/renamed fields'"
+          "evidence": "SQL entry: 'column rename (`username` \u2192 `display_name`) with no backward-compatibility alias'; GraphQL entry: '`username` field removed and replaced with `displayName` (existing clients will break)' \u2014 .spec28-transcripts/sonnet-with-eval-7-data-model-changes.md"
         },
         {
           "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
           "passed": true,
-          "evidence": "SQL migration: 'Destructive migration: renames `username` to `display_name`, drops `legacy_id`'; GraphQL: 'Backwards-incompatible API contract changes: renames `username` to `displayName` and removes `legacyId`'"
+          "evidence": "SQL entry: 'irreversible `DROP COLUMN legacy_id`'; GraphQL entry: '`legacyId` field removed from response schema' \u2014 .spec28-transcripts/sonnet-with-eval-7-data-model-changes.md"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "Both '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' appear literally in FINAL_PR_BODY"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-7-data-model-changes.md"
         }
       ],
       "notes": [
-        "Perfect score. Skill correctly categorized both the SQL migration and GraphQL schema change under Data Model Changes, flagged the rename and drop as breaking/destructive, and wrapped the guide in the required HTML markers."
+        "All 4 assertions pass. Data Model Changes section covers both the SQL migration (column rename + DROP COLUMN) and GraphQL schema (field rename breaking existing clients + field removal). Markers present verbatim."
       ]
     },
     {
@@ -585,10 +584,10 @@
         "passed": 3,
         "failed": 1,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 30.05,
+        "tokens": 109254,
+        "tool_calls": 3,
+        "errors": 1
       },
       "expectations": [
         {
@@ -628,35 +627,35 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 47.76,
+        "tokens": 391023,
+        "tool_calls": 8,
+        "errors": 1
       },
       "expectations": [
         {
           "text": "The review guide includes a Concurrency / State section",
           "passed": true,
-          "evidence": "### Concurrency / State header present in FINAL_PR_BODY"
+          "evidence": "FINAL_PR_BODY contains '### Concurrency / State' section with checklist entry for src/workers/job-processor.ts \u2014 .spec28-transcripts/sonnet-with-eval-8-concurrency-state.md"
         },
         {
           "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
           "passed": true,
-          "evidence": "Module-level mutable state (`activeJobCount`, `jobQueue`) written from `enqueueJob` and from the worker `exit` callback with no lock; `enqueueJob` increments the counter and calls `processNext` non-atomically, and the `exit` handler races with new enqueues"
+          "evidence": "Concurrency/State entry: 'Module-level mutable state (`activeJobCount`, `jobQueue`) written from `enqueueJob` and from the worker `exit` callback with no lock; `enqueueJob` increments the counter and calls `processNext` non-atomically, and the `exit` handler races with new enqueues against the shared queue' \u2014 .spec28-transcripts/sonnet-with-eval-8-concurrency-state.md"
         },
         {
           "text": "The review guide flags the new use of worker threads",
           "passed": true,
-          "evidence": "Novel Patterns section: First use of `worker_threads` in this codebase; new `src/workers/` directory has no sibling files"
+          "evidence": "Novel Patterns section: 'First use of `worker_threads` in this codebase; new `src/workers/` directory has no sibling files to compare conventions against, so the queue + worker pattern is novel by default' \u2014 .spec28-transcripts/sonnet-with-eval-8-concurrency-state.md"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "Both <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers present in FINAL_PR_BODY"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-8-concurrency-state.md"
         }
       ],
       "notes": [
-        "Full marks. Skill produced a structured guide with Concurrency/State and Novel Patterns sections, both markers present, and both key signals (shared mutable state race + first worker_threads use) explicitly called out."
+        "All 4 assertions pass. Concurrency/State section explicitly names both activeJobCount and jobQueue as shared mutable state with no lock. Worker threads flagged under Novel Patterns. Markers present verbatim."
       ]
     },
     {
@@ -671,10 +670,10 @@
         "passed": 2,
         "failed": 2,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 63.52,
+        "tokens": 205941,
+        "tool_calls": 6,
+        "errors": 1
       },
       "expectations": [
         {
@@ -714,10 +713,10 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 49.46,
+        "tokens": 397032,
+        "tool_calls": 6,
+        "errors": 0
       },
       "expectations": [
         {
@@ -757,10 +756,10 @@
         "passed": 2,
         "failed": 2,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 51.96,
+        "tokens": 176471,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -800,10 +799,10 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 53.74,
+        "tokens": 579398,
+        "tool_calls": 8,
+        "errors": 0
       },
       "expectations": [
         {
@@ -843,10 +842,10 @@
         "passed": 3,
         "failed": 1,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 50.0,
+        "tokens": 177762,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -886,10 +885,10 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 59.33,
+        "tokens": 532075,
+        "tool_calls": 8,
+        "errors": 0
       },
       "expectations": [
         {
@@ -929,10 +928,10 @@
         "passed": 3,
         "failed": 1,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 43.44,
+        "tokens": 148174,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -972,10 +971,10 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 60.49,
+        "tokens": 507571,
+        "tool_calls": 7,
+        "errors": 0
       },
       "expectations": [
         {
@@ -1010,10 +1009,10 @@
         "passed": 2,
         "failed": 1,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 51.22,
+        "tokens": 176574,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -1048,10 +1047,10 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 40.79,
+        "tokens": 376179,
+        "tool_calls": 5,
+        "errors": 0
       },
       "expectations": [
         {
@@ -1086,10 +1085,10 @@
         "passed": 1,
         "failed": 2,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 35.16,
+        "tokens": 150224,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -1124,10 +1123,10 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 66.56,
+        "tokens": 628119,
+        "tool_calls": 9,
+        "errors": 0
       },
       "expectations": [
         {
@@ -1162,10 +1161,10 @@
         "passed": 2,
         "failed": 1,
         "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 37.69,
+        "tokens": 149301,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -1200,10 +1199,10 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 78.77,
+        "tokens": 681696,
+        "tool_calls": 10,
+        "errors": 2
       },
       "expectations": [
         {
@@ -1243,10 +1242,10 @@
         "passed": 2,
         "failed": 2,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 51.12,
+        "tokens": 153122,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -1286,10 +1285,10 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 52.06,
+        "tokens": 504598,
+        "tool_calls": 7,
+        "errors": 0
       },
       "expectations": [
         {
@@ -1329,10 +1328,10 @@
         "passed": 2,
         "failed": 2,
         "total": 4,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": null
+        "time_seconds": 48.19,
+        "tokens": 152138,
+        "tool_calls": 3,
+        "errors": 0
       },
       "expectations": [
         {
@@ -1371,42 +1370,42 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": null,
-          "stddev": null,
-          "min": null,
-          "max": null
+          "mean": 60.8762,
+          "stddev": 7.8771,
+          "min": 47.76,
+          "max": 68.29
         },
         "tokens": {
-          "mean": null,
-          "stddev": null,
-          "min": null,
-          "max": null
+          "mean": 429461.375,
+          "stddev": 44552.6463,
+          "min": 359814,
+          "max": 504336
         }
       },
       "without_skill": {
         "pass_rate": {
           "mean": 0.6875,
           "stddev": 0.2388,
-          "min": 0.3333,
+          "min": 0.33,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": null,
-          "stddev": null,
-          "min": null,
-          "max": null
+          "mean": 43.48,
+          "stddev": 12.4707,
+          "min": 30.05,
+          "max": 63.52
         },
         "tokens": {
-          "mean": null,
-          "stddev": null,
-          "min": null,
-          "max": null
+          "mean": 129244.25,
+          "stddev": 40987.7082,
+          "min": 92266,
+          "max": 205941
         }
       },
       "delta": {
         "pass_rate": "+0.31",
-        "time_seconds": null,
-        "tokens": null
+        "time_seconds": 17.4,
+        "tokens": 300217
       }
     },
     "claude-opus-4-7": {
@@ -1418,42 +1417,42 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": null,
-          "stddev": null,
-          "min": null,
-          "max": null
+          "mean": 57.65,
+          "stddev": 11.5524,
+          "min": 40.79,
+          "max": 78.77
         },
         "tokens": {
-          "mean": null,
-          "stddev": null,
-          "min": null,
-          "max": null
+          "mean": 525833.5,
+          "stddev": 105176.2572,
+          "min": 376179,
+          "max": 681696
         }
       },
       "without_skill": {
         "pass_rate": {
           "mean": 0.5833,
           "stddev": 0.1477,
-          "min": 0.3333,
+          "min": 0.33,
           "max": 0.75
         },
         "time_seconds": {
-          "mean": null,
-          "stddev": null,
-          "min": null,
-          "max": null
+          "mean": 46.0975,
+          "stddev": 6.5772,
+          "min": 35.16,
+          "max": 51.96
         },
         "tokens": {
-          "mean": null,
-          "stddev": null,
-          "min": null,
-          "max": null
+          "mean": 160470.75,
+          "stddev": 13725.4617,
+          "min": 148174,
+          "max": 177762
         }
       },
       "delta": {
         "pass_rate": "+0.42",
-        "time_seconds": null,
-        "tokens": null
+        "time_seconds": 11.55,
+        "tokens": 365363
       }
     }
   },
@@ -1466,42 +1465,42 @@
         "max": 1.0
       },
       "time_seconds": {
-        "mean": null,
-        "stddev": null,
-        "min": null,
-        "max": null
+        "mean": 57.65,
+        "stddev": 11.5524,
+        "min": 40.79,
+        "max": 78.77
       },
       "tokens": {
-        "mean": null,
-        "stddev": null,
-        "min": null,
-        "max": null
+        "mean": 525833.5,
+        "stddev": 105176.2572,
+        "min": 376179,
+        "max": 681696
       }
     },
     "without_skill": {
       "pass_rate": {
         "mean": 0.5833,
         "stddev": 0.1477,
-        "min": 0.3333,
+        "min": 0.33,
         "max": 0.75
       },
       "time_seconds": {
-        "mean": null,
-        "stddev": null,
-        "min": null,
-        "max": null
+        "mean": 46.0975,
+        "stddev": 6.5772,
+        "min": 35.16,
+        "max": 51.96
       },
       "tokens": {
-        "mean": null,
-        "stddev": null,
-        "min": null,
-        "max": null
+        "mean": 160470.75,
+        "stddev": 13725.4617,
+        "min": 148174,
+        "max": 177762
       }
     },
     "delta": {
       "pass_rate": "+0.42",
-      "time_seconds": null,
-      "tokens": null
+      "time_seconds": 11.55,
+      "tokens": 365363
     }
   }
 }

@@ -16,10 +16,10 @@
 |--------|------------|---------------|-------|
 | Pass rate | **100%** ±0% | 69% ±24% | **+31%** |
 | Min / Max | 100% / 100% | 33% / 100% | |
-| Time (s) | N/A | N/A | — |
-| Tokens | N/A | N/A | — |
+| Time (s) | 60.9 ±7.9 | 43.5 ±12.5 | +17.4 |
+| Tokens | 429,461 ±44,553 | 129,244 ±40,988 | +300,217 |
 
-Sonnet pass-rate delta is computed over all 8 paired evals. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means. Time/token aggregates are `null` — see **Known Eval Limitations** below.
+Sonnet pass-rate delta is computed over all 8 paired evals. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means. Time/token stats include the full prompt+completion footprint per agent: `input + output + cache-creation + cache-read tokens` summed across all assistant turns. Cache reads dominate because the prompt is large and re-read each turn.
 
 ### `claude-opus-4-7`
 
@@ -27,10 +27,10 @@ Sonnet pass-rate delta is computed over all 8 paired evals. Summary-table Delta 
 |--------|------------|---------------|-------|
 | Pass rate | **100%** ±0% | 58% ±15% | **+42%** |
 | Min / Max | 100% / 100% | 33% / 75% | |
-| Time (s) | N/A | N/A | — |
-| Tokens | N/A | N/A | — |
+| Time (s) | 57.6 ±11.6 | 46.1 ±6.6 | +11.55 |
+| Tokens | 525,834 ±105,176 | 160,471 ±13,725 | +365,363 |
 
-Opus pass-rate delta is computed over all 8 paired evals. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means. Time/token aggregates are `null` — see **Known Eval Limitations** below.
+Opus pass-rate delta is computed over all 8 paired evals. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means. Token-counting convention is the same as the Sonnet table.
 
 The skill improves correctness on Sonnet 4.6 by **+31 percentage points** (69% → 100%) and on Opus 4.7 by **+42 percentage points** (58% → 100%). Opus's headline delta is *larger* than Sonnet's despite Opus's stronger general baseline — the pattern that drives this is detailed in the per-eval discussion below: Opus's baseline more often paraphrased the skill-defined output (e.g. "Refreshed the review guide on PR #42" instead of the literal "Review guide updated on PR #42") and reliably skipped the `<!-- pr-human-guide -->` HTML comment markers, so format-specific assertions catch more without_skill misses on Opus than on Sonnet. 6 of 8 evals discriminate on Sonnet; **all 8 evals discriminate on Opus**.
 
@@ -72,9 +72,15 @@ The previous Sonnet 4.6 baseline at v0.1 (recorded in `runs[]` until spec 28) wa
 
 Two Sonnet `without_skill` runs (evals 5 and 8) initially invoked the `pr-human-guide` skill via the Skill tool despite being explicitly forbidden from reading `skills/pr-human-guide/SKILL.md` and `skills/pr-human-guide/references/`. The contamination produced output indistinguishable from `with_skill` on those evals. Both runs were re-spawned with explicit Skill-tool prohibition added to the executor prompt; only the clean re-runs are recorded in `runs[]`. Future eval harnesses for skill-bearing repos should default to forbidding the Skill tool on baseline runs.
 
-### Time/token measurement gap (both models)
+### Time/token measurement methodology
 
-Per-run `time_seconds`, `tokens`, `tool_calls`, and `errors` are `null` for all 32 runs because subagent usage data was visible only in transient task-completion notifications during spec 28 execution and was not captured at the parent level. The pass-rate aggregates are fully reliable. Same gap as the spec 26 Opus runs, the spec 27 Opus runs, and the v0.1 baseline's measurement coverage on simulated transcripts. Closing the gap would require a parent-side aggregator that buffers per-task usage stats — out of scope for spec 28.
+Per-run `time_seconds`, `tokens`, `tool_calls`, and `errors` are extracted from the executor subagent JSONL transcripts (one per agent under the runtime's `~/.claude/projects/.../subagents/` path). For each agent: time = max-minus-min event timestamp; tokens = `input_tokens + output_tokens + cache_creation_input_tokens + cache_read_input_tokens` summed across all assistant turns; tool_calls = count of `tool_use` content blocks; errors = count of `tool_result` blocks with `is_error: true`. Cache reads dominate the token total because the prompt is large and re-read on every turn — the input/output deltas alone would understate the model's processing.
+
+This closes the time/token measurement gap that the spec 26 and spec 27 Opus runs left open. The same JSONL-extraction approach is portable to those benchmarks if a future spec wants to retroactively backfill them.
+
+### Sonnet with_skill model-mismatch incident (recovered)
+
+The first batch of 8 Sonnet `with_skill` agents hit transient `529 Authentication service is temporarily unavailable` errors during spawn and was resumed via `SendMessage`. The resume path silently inherited the parent agent's `claude-opus-4-7` model rather than the original `claude-sonnet-4-6` setting passed to the `Agent` tool — the on-disk JSONL transcripts for those 8 agents recorded `message.model: "claude-opus-4-7"` despite their description saying "Sonnet with_skill". The contamination was caught while harvesting JSONL usage data; all 8 Sonnet `with_skill` runs were re-spawned fresh (without the `SendMessage` retry path), verified to have actually executed on Sonnet 4.6 by inspecting `message.model` in each agent's JSONL, re-graded, and re-incorporated. The recorded Sonnet `with_skill` rows reflect the second-pass spawns. Eval-harness lesson: don't use `SendMessage` to retry `Agent` tool launches that hit transient errors — re-spawn instead so the original `model:` parameter is honored.
 
 ## Per-Eval Notes
 

@@ -2,10 +2,9 @@
 EVAL: 7 data-model-changes
 CONFIG: with_skill (sonnet)
 
-TOOLS_USED: Read: 2, Bash: 4, Write: 2, Other: -
+TOOLS_USED: Read: 3, Bash: 3, Write: 1, Other: none
 
-GH_EDIT_COMMAND:
-gh pr edit 73 --body-file /tmp/claude-501/exec-sonnet-with-eval-7-tlTWUE/new-body.md
+GH_EDIT_COMMAND: gh pr edit 73 --body-file "${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX"
 
 FINAL_PR_BODY (verbatim):
 <<<BODY
@@ -18,11 +17,11 @@ Migrates user profile schema to v2 — renames username field and removes legacy
 > This is not a complete review checklist — it highlights where your attention matters most.
 
 ### Data Model Changes
-- [ ] [`migrations/20240312_user_profile_v2.sql`](https://github.com/owner/repo/pull/73/files#diff-706e5e7bec4712cda12744ddc0c34721c3e78792602909dee485336b62a1df3a) — Destructive migration: renames `username` to `display_name`, drops `legacy_id`, and adds `NOT NULL` to `bio` on an existing column. Verify backfill of `bio` for existing rows, rollback plan, and that all clients have been updated to the new field name before this runs.
-- [ ] [`schema.graphql` (L8-13)](https://github.com/owner/repo/pull/73/files#diff-efc1675187620595b0844197a25c35eac9b6df752f9182e5cffddee6f27a8489) — Backwards-incompatible API contract changes: renames `username` to `displayName` and removes `legacyId`. Confirm no consumers still query the removed/renamed fields and that the migration is coordinated with this schema change.
+- [ ] [`migrations/20240312_user_profile_v2.sql` (L2-4)](https://github.com/owner/repo/pull/73/files#diff-706e5e7bec4712cda12744ddc0c34721c3e78792602909dee485336b62a1df3a) — Three elevated-risk changes: column rename (`username` → `display_name`) with no backward-compatibility alias, irreversible `DROP COLUMN legacy_id`, and removing nullable constraint on `bio` for existing rows
+- [ ] [`schema.graphql` (L8-11)](https://github.com/owner/repo/pull/73/files#diff-efc1675187620595b0844197a25c35eac9b6df752f9182e5cffddee6f27a8489) — Breaking API contract changes: `username` field removed and replaced with `displayName` (existing clients will break), `legacyId` field removed from response schema
 
 <!-- /pr-human-guide -->
 BODY>>>
 
-NOTES: Both files cluster in Data Model Changes — strong elevated-concern signals (DROP COLUMN, removing nullable constraint, column rename without alias, removing field from API contract, backwards-incompatible field rename). No other categories apply: no auth/trust boundary (Security), no CI/IaC/env config (Config/Infra), no manifest changes (New Dependencies), migrations and GraphQL schema follow established conventions implied by file paths (Novel Patterns), no locking/shared mutable state (Concurrency). The migration line range is omitted since the entire 5-line file is the change. The schema.graphql range L8-13 covers the contiguous diff hunk.
+NOTES: Both changed files trigger Data Model Changes with multiple elevated-concern signals each. The SQL migration has three elevated signals: column rename (no alias), DROP COLUMN (irreversible), and ALTER COLUMN SET NOT NULL on an existing column. The GraphQL schema has two: removing a field from the API response (username -> displayName rename is a breaking change for existing clients) and removing legacyId. No other categories (Security, Config/Infrastructure, New Dependencies, Novel Patterns, Concurrency/State) apply. The gh pr edit command would write the body to a temp file using --body-file to avoid zsh ! expansion issues with the HTML comment markers.
 === END SUMMARY ===
