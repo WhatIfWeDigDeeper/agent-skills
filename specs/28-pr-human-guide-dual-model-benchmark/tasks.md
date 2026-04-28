@@ -15,12 +15,12 @@
 
 ## Phase 1: Schema reset and multi-model setup
 
-- [ ] **1.1** In `evals/pr-human-guide/benchmark.json`, remove all 16 existing v0.1 Sonnet runs from `runs[]` (entire `runs[]` array becomes empty until task 6.2 appends the new entries). Git history retains the prior shape; no in-file historical archive is kept.
-- [ ] **1.2** Reset `metadata.models_tested[]` to an empty array; entries are appended in Phase 6 (task 6.3) after grading.
-- [ ] **1.3** Reset top-level `metadata.skill_version` to `"0.7"` (matches current `skills/pr-human-guide/SKILL.md` `version`); leave top-level `metadata.executor_model`, `metadata.analyzer_model`, and `metadata.timestamp` in place — they flip in Phase 6 (task 6.4) after Opus runs are graded.
-- [ ] **1.4** Remove the existing top-level `run_summary` block (will be repopulated in Phase 6 from the new runs); add an empty `run_summary_by_model: {}` object.
-- [ ] **1.5** JSON-validate: `python3 -c 'import json; json.load(open("evals/pr-human-guide/benchmark.json"))'`.
-- [ ] **1.6** Commit the schema reset as its own commit so the Phase 6 append (task 6.2) lands cleanly on top of an empty `runs[]` and an empty `models_tested[]`.
+- [x] **1.1** In `evals/pr-human-guide/benchmark.json`, remove all 16 existing v0.1 Sonnet runs from `runs[]` (entire `runs[]` array becomes empty until task 6.2 appends the new entries). Git history retains the prior shape; no in-file historical archive is kept.
+- [x] **1.2** Reset `metadata.models_tested[]` to an empty array; entries are appended in Phase 6 (task 6.3) after grading.
+- [x] **1.3** Reset top-level `metadata.skill_version` to `"0.7"` (matches current `skills/pr-human-guide/SKILL.md` `version`); leave top-level `metadata.executor_model`, `metadata.analyzer_model`, and `metadata.timestamp` in place — they flip in Phase 6 (task 6.4) after Opus runs are graded.
+- [x] **1.4** Remove the existing top-level `run_summary` block (will be repopulated in Phase 6 from the new runs); add an empty `run_summary_by_model: {}` object.
+- [x] **1.5** JSON-validate: `python3 -c 'import json; json.load(open("evals/pr-human-guide/benchmark.json"))'`.
+- [x] **1.6** Commit the schema reset as its own commit so the Phase 6 append (task 6.2) lands cleanly on top of an empty `runs[]` and an empty `models_tested[]`.
 
 ---
 
