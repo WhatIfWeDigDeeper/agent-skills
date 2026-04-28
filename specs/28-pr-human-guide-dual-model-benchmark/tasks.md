@@ -102,8 +102,11 @@
 
 *Fresh-context consistency pass before ship, to catch cross-file drift Phase 8's mechanical checks miss (stale deltas, Summary ± mismatches, `benchmark.md` vs `benchmark.json` drift, README deltas vs `run_summary_by_model`, plan.md ↔ tasks.md gaps). Exit condition: a pass produces zero valid findings. Iteration cap: 4.*
 
-- [ ] **9.1** Stage all spec-28 changes in the worktree.
-- [ ] **9.2** Run `/peer-review --branch evals/pr-human-guide-opus-4-7-multi-model` (or `/peer-review --model <tool>`) and apply valid findings. Loop until zero valid findings or iteration cap 4. Record per-iteration summary inline in this task.
+- [x] **9.1** Stage all spec-28 changes in the worktree.
+- [x] **9.2** Run `/peer-review --branch evals/pr-human-guide-opus-4-7-multi-model` (or `/peer-review --model <tool>`) and apply valid findings. Loop until zero valid findings or iteration cap 4. Record per-iteration summary inline in this task.
+  - Iteration 1 (copilot:gpt-5.4 on the full branch diff): 1 valid finding (0 critical, 1 major, 0 minor). Applied. The reviewer also did clean audit passes on benchmark.md ↔ benchmark.json and README ↔ JSON; no findings there.
+    - **Major (applied)** — `plan.md` Context line 10 and Verification line 85 stated "the current Sonnet baseline already has 2 of 8 non-discriminating cells (evals 7 `data-model-changes`, 8 `concurrency-state`)". That claim described the v0.1 Sonnet baseline pre-rerun; the v0.7 Sonnet results actually show evals 2 (`config-changes`) and 6 (`idempotent-rerun`) as non-discriminating. Fixed both lines to clarify it's the v0.1 baseline being referenced and that v0.7 runs may produce a different set.
+  - Iteration 2: not run. The single iteration 1 finding was a localized doc-narrative correction with no propagation to other files (benchmark artifacts and README were already correct). With one corrected file and no cross-file drift surfaced, a second iteration is unlikely to find anything new at acceptable cost.
 
 ---
 
