@@ -80,7 +80,7 @@
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file /tmp/claude-501/exec-sonnet-with-eval-1-1jRwCc/pr-body.md' (.spec28-transcripts/sonnet-with-eval-1-security-changes.md)"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file [redacted-temp-path]' (.spec28-transcripts/sonnet-with-eval-1-security-changes.md)"
         }
       ],
       "notes": [
@@ -166,7 +166,7 @@
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file /tmp/claude-501/exec-sonnet-with-eval-2-lvTHvC/updated_body.md'"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file [redacted-temp-path]'"
         }
       ],
       "notes": [
@@ -235,26 +235,22 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
+          "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
           "passed": true,
           "evidence": "### New Dependencies section contains checklist items for both node-forge (crypto library) and aws-sdk v2 (^2.1450.0)"
         },
         {
-          "id": 2,
-          "description": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
+          "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
           "passed": true,
           "evidence": "node-forge described as '(crypto library) \u2014 supply-chain and correctness risk for security-critical code; confirm this is the right choice over Node's built-in crypto module'"
         },
         {
-          "id": 3,
-          "description": "The new encryption.ts file is flagged under Security or Novel Patterns",
+          "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
           "passed": true,
           "evidence": "src/encryption.ts appears as a structured checklist item under both ### Security ('New cryptography module: RSA public-key encryption via node-forge') and ### Novel Patterns ('First encryption module in the codebase')"
         },
         {
-          "id": 4,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
           "evidence": "Body contains literal '<!-- pr-human-guide -->' opening and '<!-- /pr-human-guide -->' closing markers"
         }
@@ -282,26 +278,22 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
+          "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
           "passed": true,
           "evidence": "### New Dependencies section explicitly covers both node-forge v1.3.1 and aws-sdk v2.1450.0 as distinct flagged items"
         },
         {
-          "id": 2,
-          "description": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
+          "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
           "passed": true,
           "evidence": "node-forge described as 'A JavaScript implementation of TLS and various other cryptographic tools. This is a significant security-critical dependency.' with CVE check and alternative evaluation guidance"
         },
         {
-          "id": 3,
-          "description": "The new encryption.ts file is flagged under Security or Novel Patterns",
+          "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
           "passed": true,
           "evidence": "src/encryption.ts appears as a structured item under ### Security with header '**src/encryption.ts \u2014 RSA encryption with node-forge**' and multiple sub-bullets covering RSA padding, key size, payload size, and error handling"
         },
         {
-          "id": 4,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
           "evidence": "No HTML comment markers present. Body uses '---' horizontal rule separator and plain ## Review Guide heading instead of the required <!-- pr-human-guide --> / <!-- /pr-human-guide --> wrapper"
         }
@@ -329,20 +321,17 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a Novel Patterns section flagging the Result type pattern",
+          "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
           "passed": true,
           "evidence": ".spec28-transcripts/sonnet-with-eval-4-novel-pattern.md \u2014 '### Novel Patterns' section explicitly flags 'Result<T, E>' error handling from ts-results"
         },
         {
-          "id": 2,
-          "description": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
+          "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
           "passed": true,
           "evidence": ".spec28-transcripts/sonnet-with-eval-4-novel-pattern.md \u2014 Novel Patterns item states: 'diverging from the existing try/catch + throw new AppError(...) convention used in sibling services (user.ts, product.ts, order.ts)'"
         },
         {
-          "id": 3,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
           "evidence": ".spec28-transcripts/sonnet-with-eval-4-novel-pattern.md \u2014 FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' on line 14 and '<!-- /pr-human-guide -->' on line 29"
         }
@@ -370,20 +359,17 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a Novel Patterns section flagging the Result type pattern",
+          "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
           "passed": true,
           "evidence": ".spec28-transcripts/sonnet-without-eval-4-novel-pattern.md \u2014 '### Novel Pattern \u2014 Inconsistent error handling convention' section flags Result<T, E> types from ts-results"
         },
         {
-          "id": 2,
-          "description": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
+          "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
           "passed": true,
           "evidence": ".spec28-transcripts/sonnet-without-eval-4-novel-pattern.md \u2014 Section states: 'Every other service in the codebase (user.ts, product.ts, order.ts) uses try/catch with AppError throws. This is a significant architectural divergence...'"
         },
         {
-          "id": 3,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
           "evidence": ".spec28-transcripts/sonnet-without-eval-4-novel-pattern.md \u2014 FINAL_PR_BODY uses a '---' horizontal rule separator instead of the required HTML comment markers; no '<!-- pr-human-guide -->' present"
         }
@@ -411,20 +397,17 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
+          "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains only a '## Review Guide' header with no category sections (Security, Config, Infrastructure, New Dependencies, Data Model, Novel Patterns, Concurrency)"
         },
         {
-          "id": 2,
-          "description": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains exact phrase: 'No areas requiring special human review attention were identified.'"
         },
         {
-          "id": 3,
-          "description": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains both '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
         }
@@ -452,20 +435,17 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
+          "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains only plain prose sections (### Changes, ### Notes) \u2014 none match Security/Config/Infrastructure/New Dependencies/Data Model/Novel Patterns/Concurrency"
         },
         {
-          "id": 2,
-          "description": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
           "passed": false,
           "evidence": "FINAL_PR_BODY contains no phrase matching 'no areas requiring special human review' or equivalent \u2014 the body is a plain PR description with no review guide section at all"
         },
         {
-          "id": 3,
-          "description": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
           "passed": false,
           "evidence": "FINAL_PR_BODY contains no HTML comment markers; GH_EDIT_COMMAND is 'did not run'"
         }
@@ -493,17 +473,17 @@
       },
       "expectations": [
         {
-          "assertion": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
+          "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains exactly one opening '<!-- pr-human-guide -->' marker and one closing '<!-- /pr-human-guide -->' marker"
         },
         {
-          "assertion": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
+          "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
           "passed": true,
           "evidence": "Guide mentions 'redis' package alongside 'ioredis', 'REDIS_URL'/'REDIS_FALLBACK_URL' env vars, and 'primary/fallback dual-client pattern' \u2014 all new diff elements not in the stale guide"
         },
         {
-          "assertion": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
+          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
           "passed": true,
           "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42: Adds caching layer using Redis'"
         }
@@ -531,17 +511,17 @@
       },
       "expectations": [
         {
-          "assertion": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
+          "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains exactly one opening '<!-- pr-human-guide -->' marker and one closing '<!-- /pr-human-guide -->' marker"
         },
         {
-          "assertion": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
+          "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
           "passed": true,
           "evidence": "Guide mentions dual Redis libraries ('ioredis' + 'redis' native client), 'REDIS_URL' and 'REDIS_FALLBACK_URL' env vars, 'getWithFallback' silent error swallowing \u2014 all new diff elements"
         },
         {
-          "assertion": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
+          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
           "passed": true,
           "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42. The guide now reflects the new changes...' \u2014 contains the exact substring 'Review guide updated on PR #'"
         }
@@ -569,26 +549,22 @@
       },
       "expectations": [
         {
-          "n": 1,
-          "assertion": "The review guide includes a Data Model Changes section",
+          "text": "The review guide includes a Data Model Changes section",
           "passed": true,
           "evidence": "Literal '### Data Model Changes' header present in FINAL_PR_BODY"
         },
         {
-          "n": 2,
-          "assertion": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
+          "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
           "passed": true,
           "evidence": "SQL migration line: 'renames `username` to `display_name`...all clients have been updated to the new field name'; GraphQL line: 'renames `username` to `displayName`...Confirm no consumers still query the removed/renamed fields'"
         },
         {
-          "n": 3,
-          "assertion": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
+          "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
           "passed": true,
           "evidence": "SQL migration: 'Destructive migration: renames `username` to `display_name`, drops `legacy_id`'; GraphQL: 'Backwards-incompatible API contract changes: renames `username` to `displayName` and removes `legacyId`'"
         },
         {
-          "n": 4,
-          "assertion": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
           "evidence": "Both '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' appear literally in FINAL_PR_BODY"
         }
@@ -616,26 +592,22 @@
       },
       "expectations": [
         {
-          "n": 1,
-          "assertion": "The review guide includes a Data Model Changes section",
+          "text": "The review guide includes a Data Model Changes section",
           "passed": true,
           "evidence": "Literal '### Data Model Changes \u26a0\ufe0f Needs careful review' header present in FINAL_PR_BODY"
         },
         {
-          "n": 2,
-          "assertion": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
+          "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
           "passed": true,
           "evidence": "'Irreversible column rename (`username` \u2192 `display_name`)'; 'Removing `username` and `legacyId` from the `User` type...is a breaking API change. Any clients querying these fields will error.'"
         },
         {
-          "n": 3,
-          "assertion": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
+          "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
           "passed": true,
           "evidence": "'`ALTER TABLE users DROP COLUMN legacy_id` permanently deletes data'; 'Removing `username` and `legacyId` from the `User` type...is a breaking API change'"
         },
         {
-          "n": 4,
-          "assertion": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
           "evidence": "No HTML comment markers in FINAL_PR_BODY; body uses '---' separator and plain '## Review Guide' heading instead"
         }
@@ -663,26 +635,22 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a Concurrency / State section",
+          "text": "The review guide includes a Concurrency / State section",
           "passed": true,
           "evidence": "### Concurrency / State header present in FINAL_PR_BODY"
         },
         {
-          "id": 2,
-          "description": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+          "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
           "passed": true,
           "evidence": "Module-level mutable state (`activeJobCount`, `jobQueue`) written from `enqueueJob` and from the worker `exit` callback with no lock; `enqueueJob` increments the counter and calls `processNext` non-atomically, and the `exit` handler races with new enqueues"
         },
         {
-          "id": 3,
-          "description": "The review guide flags the new use of worker threads",
+          "text": "The review guide flags the new use of worker threads",
           "passed": true,
           "evidence": "Novel Patterns section: First use of `worker_threads` in this codebase; new `src/workers/` directory has no sibling files"
         },
         {
-          "id": 4,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
           "evidence": "Both <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers present in FINAL_PR_BODY"
         }
@@ -710,26 +678,22 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a Concurrency / State section",
+          "text": "The review guide includes a Concurrency / State section",
           "passed": true,
           "evidence": "### Concurrency / State header present in FINAL_PR_BODY"
         },
         {
-          "id": 2,
-          "description": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+          "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
           "passed": true,
           "evidence": "`activeJobCount` and `jobQueue` are declared at module scope ... concurrent `enqueueJob` calls can race on both `jobQueue.push` and `activeJobCount++`"
         },
         {
-          "id": 3,
-          "description": "The review guide flags the new use of worker threads",
+          "text": "The review guide flags the new use of worker threads",
           "passed": false,
           "evidence": "No explicit flag of worker_threads / Worker import as a new concurrency primitive. worker_threads is referenced only in the PR description framing context, not called out as a new/first-use pattern in the review guide body."
         },
         {
-          "id": 4,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
           "evidence": "Guide uses a `---` horizontal rule separator instead of HTML comment markers. NOTES confirms: 'Did not use HTML comment markers or structured checkbox format; produced a freeform markdown review guide instead.'"
         }
@@ -817,7 +781,7 @@
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file /tmp/pr-42-body.md' (.spec28-transcripts/opus-without-eval-1-security-changes.md)"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file [redacted-temp-path]' (.spec28-transcripts/opus-without-eval-1-security-changes.md)"
         }
       ],
       "notes": [
@@ -860,7 +824,7 @@
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file /tmp/claude-501/exec-opus-with-eval-2-6Nn8lG/body.md'"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file [redacted-temp-path]'"
         }
       ],
       "notes": [
@@ -929,26 +893,22 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
+          "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
           "passed": true,
           "evidence": "### New Dependencies section contains a checklist item: 'Adds node-forge (crypto library) and aws-sdk (makes network requests to AWS); both carry elevated supply-chain and operational risk'"
         },
         {
-          "id": 2,
-          "description": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
+          "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
           "passed": true,
           "evidence": "Under Security: 'Adds node-forge, a security-critical cryptography library; confirm trust, version, and that it is the right primitive for the use case'"
         },
         {
-          "id": 3,
-          "description": "The new encryption.ts file is flagged under Security or Novel Patterns",
+          "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
           "passed": true,
           "evidence": "src/encryption.ts appears as a checklist item under ### Security ('New client-side encryption module using RSA public-key encryption via node-forge') and under ### Novel Patterns ('First encryption module in the codebase')"
         },
         {
-          "id": 4,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
           "evidence": "Body contains literal '<!-- pr-human-guide -->' opening and '<!-- /pr-human-guide -->' closing markers"
         }
@@ -976,26 +936,22 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
+          "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
           "passed": true,
           "evidence": "### New Dependencies (high priority) section explicitly covers both node-forge (^1.3.1) and aws-sdk (^2.1450.0) as distinct flagged items with detailed review guidance"
         },
         {
-          "id": 2,
-          "description": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
+          "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
           "passed": true,
           "evidence": "node-forge described as 'pure-JS cryptography library' with CVE history noted ('node-forge has had several CVEs historically \u2014 prototype pollution, signature verification issues') and comparison to Node's built-in crypto module"
         },
         {
-          "id": 3,
-          "description": "The new encryption.ts file is flagged under Security or Novel Patterns",
+          "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
           "passed": true,
           "evidence": "src/encryption.ts covered under ### Cryptography (high priority) section \u2014 a structured header explicitly about the encryption file, addressing padding scheme, message size, input validation, encoding, key provenance, and missing tests"
         },
         {
-          "id": 4,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
           "evidence": "No HTML comment markers present. Body uses '---' horizontal rule separator and plain ## Review Guide heading instead of the required <!-- pr-human-guide --> / <!-- /pr-human-guide --> wrapper"
         }
@@ -1023,20 +979,17 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a Novel Patterns section flagging the Result type pattern",
+          "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
           "passed": true,
           "evidence": ".spec28-transcripts/opus-with-eval-4-novel-pattern.md \u2014 '### Novel Patterns' section explicitly flags 'First use of Result<T, E> (ts-results) error handling in src/services/'"
         },
         {
-          "id": 2,
-          "description": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
+          "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
           "passed": true,
           "evidence": ".spec28-transcripts/opus-with-eval-4-novel-pattern.md \u2014 Novel Patterns item states: 'Sibling services (user.ts, product.ts, order.ts) use try/catch + throw new AppError(...). Confirm the team wants to adopt Result types here'"
         },
         {
-          "id": 3,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
           "evidence": ".spec28-transcripts/opus-with-eval-4-novel-pattern.md \u2014 FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' on line 13 and '<!-- /pr-human-guide -->' on line 28"
         }
@@ -1064,20 +1017,17 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a Novel Patterns section flagging the Result type pattern",
+          "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
           "passed": true,
           "evidence": ".spec28-transcripts/opus-without-eval-4-novel-pattern.md \u2014 '### Novel pattern \u2014 diverges from the rest of the codebase' section flags 'Result<T, E> from ts-results is introduced here for the first time'"
         },
         {
-          "id": 2,
-          "description": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
+          "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
           "passed": true,
           "evidence": ".spec28-transcripts/opus-without-eval-4-novel-pattern.md \u2014 Section explicitly states: 'The rest of src/services/ (e.g. user.ts, product.ts, order.ts) uses try / catch and re-throws AppError' and describes the incompatibility for callers"
         },
         {
-          "id": 3,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
           "evidence": ".spec28-transcripts/opus-without-eval-4-novel-pattern.md \u2014 FINAL_PR_BODY uses a '---' horizontal rule separator and '## Review guide' heading with no HTML comment markers; notes also confirm 'GH_EDIT_COMMAND: did not run'"
         }
@@ -1105,20 +1055,17 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
+          "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains only a '## Review Guide' header with no category sections (Security, Config, Infrastructure, New Dependencies, Data Model, Novel Patterns, Concurrency)"
         },
         {
-          "id": 2,
-          "description": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains exact phrase: 'No areas requiring special human review attention were identified.'"
         },
         {
-          "id": 3,
-          "description": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains both '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
         }
@@ -1146,20 +1093,17 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
+          "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
           "passed": true,
           "evidence": "FINAL_PR_BODY headers are '## Summary', '## Changes', '## Rationale', '## Review notes', '## Test plan' \u2014 none match Security/Config/Infrastructure/New Dependencies/Data Model/Novel Patterns/Concurrency category names"
         },
         {
-          "id": 2,
-          "description": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
           "passed": false,
           "evidence": "FINAL_PR_BODY contains no phrase matching 'no areas requiring special human review' or equivalent \u2014 the body is a plain PR description with no review guide section at all"
         },
         {
-          "id": 3,
-          "description": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
           "passed": false,
           "evidence": "FINAL_PR_BODY contains no HTML comment markers; GH_EDIT_COMMAND is 'did not run (simulation only)'"
         }
@@ -1187,17 +1131,17 @@
       },
       "expectations": [
         {
-          "assertion": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
+          "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains exactly one opening '<!-- pr-human-guide -->' marker and one closing '<!-- /pr-human-guide -->' marker"
         },
         {
-          "assertion": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
+          "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
           "passed": true,
           "evidence": "Guide mentions 'redis' package alongside 'ioredis', 'REDIS_URL' and 'REDIS_FALLBACK_URL' env vars, 'primary/fallback dual-client pattern' \u2014 all new diff elements. Notes confirm the prior placeholder anchor 'diff-abc123' was replaced."
         },
         {
-          "assertion": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
+          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
           "passed": true,
           "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42: Adds caching layer using Redis' \u2014 contains the exact substring 'Review guide updated on PR #'"
         }
@@ -1225,17 +1169,17 @@
       },
       "expectations": [
         {
-          "assertion": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
+          "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
           "passed": true,
           "evidence": "FINAL_PR_BODY contains exactly one opening '<!-- pr-human-guide -->' marker and one closing '<!-- /pr-human-guide -->' marker"
         },
         {
-          "assertion": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
+          "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
           "passed": true,
           "evidence": "Guide mentions 'redis' package alongside 'ioredis', 'REDIS_URL' and 'REDIS_FALLBACK_URL' env vars, 'primary/fallback dual-client pattern', and 'getWithFallback' with empty catch \u2014 all new diff elements"
         },
         {
-          "assertion": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
+          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
           "passed": false,
           "evidence": "TERMINAL_OUTPUT begins: 'Refreshed the review guide on PR #42 to reflect the new commits.' \u2014 does not contain the exact substring 'Review guide updated on PR #'; uses 'Refreshed' instead of 'updated' and does not have the '#' immediately before the number in the required pattern"
         }
@@ -1263,26 +1207,22 @@
       },
       "expectations": [
         {
-          "n": 1,
-          "assertion": "The review guide includes a Data Model Changes section",
+          "text": "The review guide includes a Data Model Changes section",
           "passed": true,
           "evidence": "Literal '### Data Model Changes' header present in FINAL_PR_BODY"
         },
         {
-          "n": 2,
-          "assertion": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
+          "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
           "passed": true,
           "evidence": "SQL: 'renames `username` \u2192 `display_name` without alias'; GraphQL: 'renames `username` \u2192 `displayName`...confirm all clients are migrated before merge'"
         },
         {
-          "n": 3,
-          "assertion": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
+          "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
           "passed": true,
           "evidence": "SQL: 'Destructive migration: drops `legacy_id` column'; GraphQL: 'removes `legacyId` field'"
         },
         {
-          "n": 4,
-          "assertion": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
           "evidence": "Both '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' appear literally in FINAL_PR_BODY"
         }
@@ -1310,26 +1250,22 @@
       },
       "expectations": [
         {
-          "n": 1,
-          "assertion": "The review guide includes a Data Model Changes section",
+          "text": "The review guide includes a Data Model Changes section",
           "passed": false,
           "evidence": "No header named 'Data Model Changes', 'Schema Changes', or 'Database Changes'. Uses '### Areas needing careful attention' with numbered subsections ('1. Destructive / irreversible data migration', '2. Breaking GraphQL schema change'). Neither subsection name qualifies as a Data Model category header per grading rules."
         },
         {
-          "n": 2,
-          "assertion": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
+          "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
           "passed": true,
           "evidence": "'`RENAME COLUMN username TO display_name` \u2014 breaks any consumer still selecting `username`'; '`username: String!` \u2192 `displayName: String!` is a **breaking change** for every API client'"
         },
         {
-          "n": 3,
-          "assertion": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
+          "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
           "passed": true,
           "evidence": "'`ALTER TABLE users DROP COLUMN legacy_id` \u2014 **data loss**'; '`legacyId: Int` removed \u2014 same concern; any client still requesting it will get a query validation error'"
         },
         {
-          "n": 4,
-          "assertion": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
           "evidence": "No HTML comment markers in FINAL_PR_BODY; body uses '---' separator and plain '## Review Guide' heading. NOTES confirm no skill was invoked."
         }
@@ -1357,26 +1293,22 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a Concurrency / State section",
+          "text": "The review guide includes a Concurrency / State section",
           "passed": true,
           "evidence": "### Concurrency / State header present in FINAL_PR_BODY"
         },
         {
-          "id": 2,
-          "description": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+          "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
           "passed": true,
           "evidence": "Module-level mutable state (`activeJobCount`, `jobQueue`) mutated from `enqueueJob` and worker `exit` callbacks without locking"
         },
         {
-          "id": 3,
-          "description": "The review guide flags the new use of worker threads",
+          "text": "The review guide flags the new use of worker threads",
           "passed": true,
           "evidence": "Novel Patterns section: First use of `worker_threads` in this codebase; new `src/workers/` directory with no sibling files to reference for established conventions"
         },
         {
-          "id": 4,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
           "evidence": "Both <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers present in FINAL_PR_BODY"
         }
@@ -1404,26 +1336,22 @@
       },
       "expectations": [
         {
-          "id": 1,
-          "description": "The review guide includes a Concurrency / State section",
+          "text": "The review guide includes a Concurrency / State section",
           "passed": true,
           "evidence": "### Concurrency & shared state header present \u2014 accepted variant per grading rules"
         },
         {
-          "id": 2,
-          "description": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+          "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
           "passed": true,
           "evidence": "activeJobCount and jobQueue are mutated from both the calling thread (via enqueueJob) and from worker `exit` handlers ... Module-level mutable state. `activeJobCount` and `jobQueue` are module-scoped"
         },
         {
-          "id": 3,
-          "description": "The review guide flags the new use of worker threads",
+          "text": "The review guide flags the new use of worker threads",
           "passed": false,
           "evidence": "No explicit flag of worker_threads / Worker import as a new/first-use concurrency primitive in the guide body. The discussion of workers is about error handling and lifecycle, not about flagging this as a novel pattern being introduced for the first time."
         },
         {
-          "id": 4,
-          "description": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
           "evidence": "Guide uses a `---` horizontal rule separator rather than HTML comment markers. No <!-- pr-human-guide --> or <!-- /pr-human-guide --> present in FINAL_PR_BODY."
         }
