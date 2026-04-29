@@ -47,9 +47,10 @@
 *Fresh-context consistency pass before ship, to catch cross-file drift Phase 3's mechanical checks miss. Exit condition: a pass produces zero valid findings. Iteration cap: 3.*
 
 - [x] **4.1** Commit all Phase 1–3 changes on branch `spec-31-peer-review-focus-and-triage-fixes`: `feat(peer-review): v1.9 — focus validation, path-not-found message, triage forwarding`.
-- [ ] **4.2** Run `/peer-review --branch spec-31-peer-review-focus-and-triage-fixes` and apply valid findings. Loop until zero valid findings or iteration cap 3. Record per-iteration summary inline in this task.
+- [x] **4.2** Run `/peer-review --branch spec-31-peer-review-focus-and-triage-fixes` and apply valid findings. Loop until zero valid findings or iteration cap 3. Record per-iteration summary inline in this task.
   - *Iteration 1: 3 valid findings (0 critical, 1 major, 2 minor). Applied all. Themes: placeholder removal-instruction clarity (`[FOCUS_LINE]` + `[FOCUS_AREA_LINE]` parity), test gap for new `--focus` validation, prose-vs-bash inconsistency in path-existence check.*
   - *Iteration 2: 3 valid findings (0 critical, 1 major, 2 minor). Applied all. Themes: iteration 1's `--focus` tests didn't actually reach the new whitespace-strip branch (str.split discards empty tokens) — fixed by accepting `list[str]` in `parse_arguments` and adding empty/whitespace cases; documented why off-focus skip rule deliberately covers minor only; reconciled plan.md Phase 0 description with tasks.md 0.2 substitution note.*
+  - *Iteration 3: NO FINDINGS. Exit condition met (zero valid findings before iteration cap of 3).*
 
 ---
 
