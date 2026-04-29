@@ -52,8 +52,8 @@ Options:
 
 Parse `$ARGUMENTS` left-to-right:
 - Strip `--staged` → set target type to staged (explicit-staged flag = true; staged-only, no auto-detection)
-- Strip `--pr N` → set target type to PR, store N
-- Strip `--branch NAME` → set target type to branch, store NAME
+- Strip `--pr N` → set target type to PR, store N as `$PR`
+- Strip `--branch NAME` → set target type to branch, store NAME as `$BRANCH`
 - Strip `--model MODEL` → store model override
 - Strip `--focus TOPIC` → store focus topic
 - Remaining token (if any) → treat as a file/dir path target
@@ -77,7 +77,7 @@ Parse `$ARGUMENTS` per the Arguments section above. Set `model` to `self` if not
 
 **Validate parsed arguments before use:**
 - `--pr N`: require `N` to match `^[1-9][0-9]*$`. If not, error: `--pr requires a positive integer, got: <value>` and stop.
-- `--branch NAME`: require `NAME` to match `^[A-Za-z0-9._/-]+$` (git ref-name subset; rejects shell metacharacters and whitespace). If not, error: `--branch requires a git ref name (letters, digits, ., _, /, -), got: <value>` and stop.
+- `--branch NAME`: require `NAME` to match `^[A-Za-z0-9._/-]+$` (character allowlist — rejects shell metacharacters and whitespace; does not enforce all git ref-name rules). If not, error: `--branch requires a git ref name (letters, digits, ., _, /, -), got: <value>` and stop.
 - `--model VALUE`: validated downstream by the supported-prefix check in Step 4.
 
 ### 2. Collect Content
@@ -119,7 +119,7 @@ if [ -z "$DEFAULT_BRANCH" ]; then
 fi
 git diff "${DEFAULT_BRANCH}...${BRANCH}"
 ```
-(`${BRANCH}` is the validated `--branch` value.) If the branch is not found, error with: "Branch NAME not found. Available branches:" followed by `git branch -a`.
+(`${BRANCH}` is the validated `--branch` value.) If the branch is not found, error with: "Branch ${BRANCH} not found. Available branches:" followed by `git branch -a`.
 
 **PR** (`--pr N`):
 ```bash

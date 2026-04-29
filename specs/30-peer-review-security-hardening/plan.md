@@ -28,7 +28,7 @@ After the Step 1 argument parsing block (around `skills/peer-review/SKILL.md` li
 
 > **Validate parsed arguments before use:**
 > - `--pr N`: require `N` to match `^[1-9][0-9]*$`. If not, error: `--pr requires a positive integer, got: <value>` and stop.
-> - `--branch NAME`: require `NAME` to match `^[A-Za-z0-9._/-]+$` (git ref-name subset; rejects shell metacharacters and whitespace). If not, error: `--branch requires a git ref name (letters, digits, ., _, /, -), got: <value>` and stop.
+> - `--branch NAME`: require `NAME` to match `^[A-Za-z0-9._/-]+$` (character allowlist — rejects shell metacharacters and whitespace; does not enforce all git ref-name rules). If not, error: `--branch requires a git ref name (letters, digits, ., _, /, -), got: <value>` and stop.
 > - `--model VALUE`: validated downstream by the supported-prefix check in Step 4.
 
 ### Edit B — quote variables in command examples (addresses #2)
