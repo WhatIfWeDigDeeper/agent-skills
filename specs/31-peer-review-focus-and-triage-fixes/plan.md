@@ -86,7 +86,7 @@ Phrase anchor for C2: the closing ` ``` ` of the triage prompt fenced block, bef
 1. `rg -n 'requires a non-empty topic' skills/peer-review/SKILL.md` → exactly 1 match (Edit A)
 2. `rg -n 'store TOPIC as' skills/peer-review/SKILL.md` → exactly 1 match in the parser bullet list (Edit A1)
 3. `rg -n 'Path not found:' skills/peer-review/SKILL.md` → exactly 1 match in Step 2 path paragraph (Edit B)
-4. `rg -n 'FOCUS_AREA_LINE' skills/peer-review/SKILL.md` → exactly 2 matches (placeholder in triage template + definition block) (Edit C)
+4. `rg -n 'FOCUS_AREA_LINE' skills/peer-review/SKILL.md` → exactly 1 match (the `[FOCUS_AREA_LINE]` placeholder in the triage template). The sibling definition block uses prose `**Focus area line**`, not the all-caps substring — same convention as Step 3's `**Focus line**` block (Edit C)
 5. `rg -n '^  version:' skills/peer-review/SKILL.md` → `version: "1.9"` (Edit D)
 6. `uv run --with pytest pytest tests/` — no regressions
 7. Negative test: `/peer-review --focus ""` should error with `--focus requires a non-empty topic`
