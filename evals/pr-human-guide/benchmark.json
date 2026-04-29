@@ -1448,9 +1448,9 @@
       },
       "delta": {
         "pass_rate": "+0.31",
-        "time_seconds": 17.4,
-        "tokens": 835,
-        "cache_tokens": 299382
+        "time_seconds": "+17.4",
+        "tokens": "+835",
+        "cache_tokens": "+299382"
       }
     },
     "claude-opus-4-7": {
@@ -1508,9 +1508,9 @@
       },
       "delta": {
         "pass_rate": "+0.42",
-        "time_seconds": 11.55,
-        "tokens": 1060,
-        "cache_tokens": 364303
+        "time_seconds": "+11.6",
+        "tokens": "+1060",
+        "cache_tokens": "+364303"
       }
     }
   },
@@ -1569,9 +1569,9 @@
     },
     "delta": {
       "pass_rate": "+0.42",
-      "time_seconds": 11.55,
-      "tokens": 1060,
-      "cache_tokens": 364303
+      "time_seconds": "+11.6",
+      "tokens": "+1060",
+      "cache_tokens": "+364303"
     }
   }
 }

@@ -28,7 +28,7 @@ Sonnet pass-rate delta is computed over all 8 paired evals. Summary-table Delta 
 |--------|------------|---------------|-------|
 | Pass rate | **100%** ±0% | 58% ±15% | **+42%** |
 | Min / Max | 100% / 100% | 33% / 75% | |
-| Time (s) | 57.6 ±11.6 | 46.1 ±6.6 | +11.55 |
+| Time (s) | 57.6 ±11.6 | 46.1 ±6.6 | +11.6 |
 | Tokens (input + output) | 3,869 ±857 | 2,809 ±671 | +1,060 |
 | Cache tokens (creation + reads) | 521,965 ±104,499 | 157,662 ±13,218 | +364,303 |
 
