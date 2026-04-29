@@ -37,6 +37,7 @@ words:
   - GHSA
   - githubcopilot
   - goroutines
+  - gradings
   - healthz
   - heredocs
   - informationally

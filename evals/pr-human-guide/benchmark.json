@@ -65,22 +65,22 @@
         {
           "text": "The review guide includes a Security section flagging the auth middleware changes",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Security' with entry for src/auth/middleware.ts: 'JWT token extraction, validation, and role-based access checks; verify token algorithm is restricted (e.g. no `alg: none`), error messages don't leak details' \u2014 .spec28-transcripts/sonnet-with-eval-1-security-changes.md"
+          "evidence": "FINAL_PR_BODY contains '### Security' with entry for src/auth/middleware.ts: 'JWT token extraction, validation, and role-based access checks; verify token algorithm is restricted (e.g. no `alg: none`), error messages don't leak details'"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-1-security-changes.md"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
         },
         {
           "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts",
           "passed": true,
-          "evidence": "Entry contains 'https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82R41' linking to src/auth/middleware.ts \u2014 .spec28-transcripts/sonnet-with-eval-1-security-changes.md"
+          "evidence": "Entry contains 'https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82R41' linking to src/auth/middleware.ts"
         },
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file \"${TMPDIR:-/private/tmp}/pr-human-guide-body.txt\"' \u2014 .spec28-transcripts/sonnet-with-eval-1-security-changes.md"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file \"${TMPDIR:-/private/tmp}/pr-human-guide-body.txt\"'"
         }
       ],
       "notes": [
@@ -109,22 +109,22 @@
         {
           "text": "The review guide includes a Security section flagging the auth middleware changes",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Security \u2014 Requires Close Review' with multiple bullets about middleware.ts JWT verification and requireRole (.spec28-transcripts/sonnet-without-eval-1-security-changes.md)"
+          "evidence": "FINAL_PR_BODY contains '### Security \u2014 Requires Close Review' with multiple bullets about middleware.ts JWT verification and requireRole"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
-          "evidence": "FINAL_PR_BODY uses '<!-- review-guide-start -->' and '<!-- review-guide-end -->' instead of the required '<!-- pr-human-guide -->' / '<!-- /pr-human-guide -->' markers (.spec28-transcripts/sonnet-without-eval-1-security-changes.md)"
+          "evidence": "FINAL_PR_BODY uses '<!-- review-guide-start -->' and '<!-- review-guide-end -->' instead of the required '<!-- pr-human-guide -->' / '<!-- /pr-human-guide -->' markers"
         },
         {
           "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts",
           "passed": false,
-          "evidence": "Security bullets reference 'middleware.ts' in prose only (e.g. '(`middleware.ts`)') with no /pull/N/files#diff-... URL (.spec28-transcripts/sonnet-without-eval-1-security-changes.md)"
+          "evidence": "Security bullets reference 'middleware.ts' in prose only (e.g. '(`middleware.ts`)') with no /pull/N/files#diff-... URL"
         },
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND begins 'gh pr edit 42 --body \"$(cat <<'EOF'...' (.spec28-transcripts/sonnet-without-eval-1-security-changes.md)"
+          "evidence": "GH_EDIT_COMMAND begins 'gh pr edit 42 --body \"$(cat <<'EOF'...'"
         }
       ],
       "notes": [
@@ -153,22 +153,22 @@
         {
           "text": "The review guide includes a Config / Infrastructure section",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Config / Infrastructure' with entries for .github/workflows/deploy.yml and deploy/terraform/main.tf \u2014 .spec28-transcripts/sonnet-with-eval-2-config-changes.md"
+          "evidence": "FINAL_PR_BODY contains '### Config / Infrastructure' with entries for.github/workflows/deploy.yml and deploy/terraform/main.tf"
         },
         {
           "text": "The review guide flags the IAM permissions widening in deploy/terraform/main.tf",
           "passed": true,
-          "evidence": "Security section: '[`deploy/terraform/main.tf` (L8-10)] \u2014 IAM permissions widened from read-only (`s3:GetObject`) to read-write-delete (`s3:PutObject`, `s3:DeleteObject`); verify this is the minimum required privilege'; also appears in Config/Infrastructure \u2014 .spec28-transcripts/sonnet-with-eval-2-config-changes.md"
+          "evidence": "Security section: '[`deploy/terraform/main.tf` (L8-10)] \u2014 IAM permissions widened from read-only (`s3:GetObject`) to read-write-delete (`s3:PutObject`, `s3:DeleteObject`); verify this is the minimum required privilege'; also appears in Config/Infrastructure"
         },
         {
           "text": "The review guide flags the GitHub Actions workflow change from staging to production",
           "passed": true,
-          "evidence": "Config / Infrastructure section: '[`.github/workflows/deploy.yml` (L14-17)] \u2014 Deployment target changed from staging to production; confirm rollout strategy, rollback plan, and that no staging gate was removed' \u2014 .spec28-transcripts/sonnet-with-eval-2-config-changes.md"
+          "evidence": "Config / Infrastructure section: '[`.github/workflows/deploy.yml` (L14-17)] \u2014 Deployment target changed from staging to production; confirm rollout strategy, rollback plan, and that no staging gate was removed'"
         },
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file \"${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX\"' \u2014 .spec28-transcripts/sonnet-with-eval-2-config-changes.md"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file \"${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX\"'"
         }
       ],
       "notes": [
@@ -241,22 +241,22 @@
         {
           "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### New Dependencies' with entry: 'Adds `node-forge` (crypto library \u2014 elevated concern) and `aws-sdk` (makes network requests \u2014 elevated concern)' \u2014 .spec28-transcripts/sonnet-with-eval-3-new-dependency.md"
+          "evidence": "FINAL_PR_BODY contains '### New Dependencies' with entry: 'Adds `node-forge` (crypto library \u2014 elevated concern) and `aws-sdk` (makes network requests \u2014 elevated concern)'"
         },
         {
           "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
           "passed": true,
-          "evidence": "New Dependencies entry labels node-forge as 'crypto library \u2014 elevated concern' and the Security entry for src/encryption.ts specifies 'RSA public key encryption using node-forge; verify cipher mode (PKCS#1v1.5 vs OAEP)' \u2014 .spec28-transcripts/sonnet-with-eval-3-new-dependency.md"
+          "evidence": "New Dependencies entry labels node-forge as 'crypto library \u2014 elevated concern' and the Security entry for src/encryption.ts specifies 'RSA public key encryption using node-forge; verify cipher mode (PKCS#1v1.5 vs OAEP)'"
         },
         {
           "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
           "passed": true,
-          "evidence": "src/encryption.ts appears under both '### Security' ('RSA public key encryption using node-forge; verify cipher mode') and '### Novel Patterns' ('First use of client-side cryptography in this codebase') \u2014 .spec28-transcripts/sonnet-with-eval-3-new-dependency.md"
+          "evidence": "src/encryption.ts appears under both '### Security' ('RSA public key encryption using node-forge; verify cipher mode') and '### Novel Patterns' ('First use of client-side cryptography in this codebase')"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-3-new-dependency.md"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
         }
       ],
       "notes": [
@@ -329,17 +329,17 @@
         {
           "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Novel Patterns' with entry: 'First use of Result types (`Ok`/`Err` from `ts-results`) in this codebase' \u2014 .spec28-transcripts/sonnet-with-eval-4-novel-pattern.md"
+          "evidence": "FINAL_PR_BODY contains '### Novel Patterns' with entry: 'First use of Result types (`Ok`/`Err` from `ts-results`) in this codebase'"
         },
         {
           "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
           "passed": true,
-          "evidence": "Novel Patterns entry: 'all sibling services (user.ts, product.ts, order.ts) use try/catch with `throw new AppError(...)` \u2014 assess whether this pattern should become the new standard or be aligned with existing convention' \u2014 .spec28-transcripts/sonnet-with-eval-4-novel-pattern.md"
+          "evidence": "Novel Patterns entry: 'all sibling services (user.ts, product.ts, order.ts) use try/catch with `throw new AppError(...)` \u2014 assess whether this pattern should become the new standard or be aligned with existing convention'"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-4-novel-pattern.md"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
         }
       ],
       "notes": [
@@ -368,17 +368,17 @@
         {
           "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
           "passed": true,
-          "evidence": ".spec28-transcripts/sonnet-without-eval-4-novel-pattern.md \u2014 '### Novel Pattern \u2014 Inconsistent error handling convention' section flags Result<T, E> types from ts-results"
+          "evidence": "'### Novel Pattern \u2014 Inconsistent error handling convention' section flags Result<T, E> types from ts-results"
         },
         {
           "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
           "passed": true,
-          "evidence": ".spec28-transcripts/sonnet-without-eval-4-novel-pattern.md \u2014 Section states: 'Every other service in the codebase (user.ts, product.ts, order.ts) uses try/catch with AppError throws. This is a significant architectural divergence...'"
+          "evidence": "Section states: 'Every other service in the codebase (user.ts, product.ts, order.ts) uses try/catch with AppError throws. This is a significant architectural divergence...'"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
-          "evidence": ".spec28-transcripts/sonnet-without-eval-4-novel-pattern.md \u2014 FINAL_PR_BODY uses a '---' horizontal rule separator instead of the required HTML comment markers; no '<!-- pr-human-guide -->' present"
+          "evidence": "FINAL_PR_BODY uses a '---' horizontal rule separator instead of the required HTML comment markers; no '<!-- pr-human-guide -->' present"
         }
       ],
       "notes": [
@@ -407,17 +407,17 @@
         {
           "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains only '## Review Guide' header followed directly by the no-areas message \u2014 no '### Security', '### Config', '### New Dependencies', '### Data Model', '### Novel Patterns', or '### Concurrency' sections present \u2014 .spec28-transcripts/sonnet-with-eval-5-no-special-areas.md"
+          "evidence": "FINAL_PR_BODY contains only '## Review Guide' header followed directly by the no-areas message \u2014 no '### Security', '### Config', '### New Dependencies', '### Data Model', '### Novel Patterns', or '### Concurrency' sections present"
         },
         {
           "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains exact phrase: 'No areas requiring special human review attention were identified.' \u2014 .spec28-transcripts/sonnet-with-eval-5-no-special-areas.md"
+          "evidence": "FINAL_PR_BODY contains exact phrase: 'No areas requiring special human review attention were identified.'"
         },
         {
           "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats like <!-- REVIEW-GUIDE:START --> or similar)",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-5-no-special-areas.md"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
         }
       ],
       "notes": [
@@ -485,17 +485,17 @@
         {
           "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
           "passed": true,
-          "evidence": "FINAL_PR_BODY shows exactly one '<!-- pr-human-guide -->' opening marker and one '<!-- /pr-human-guide -->' closing marker; NOTES confirm 'Existing pr-human-guide block detected in PR body \u2014 replaced contents between markers (idempotent re-run) rather than appending' \u2014 .spec28-transcripts/sonnet-with-eval-6-idempotent-rerun.md"
+          "evidence": "FINAL_PR_BODY shows exactly one '<!-- pr-human-guide -->' opening marker and one '<!-- /pr-human-guide -->' closing marker; NOTES confirm 'Existing pr-human-guide block detected in PR body \u2014 replaced contents between markers (idempotent re-run) rather than appending'"
         },
         {
           "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
           "passed": true,
-          "evidence": "Updated guide includes Security (REDIS_URL/REDIS_FALLBACK_URL env vars), Novel Patterns (dual-client fallback with ioredis+redis), and Concurrency/State (two module-level shared clients with silent fallback) \u2014 all new diff elements beyond the stale original \u2014 .spec28-transcripts/sonnet-with-eval-6-idempotent-rerun.md"
+          "evidence": "Updated guide includes Security (REDIS_URL/REDIS_FALLBACK_URL env vars), Novel Patterns (dual-client fallback with ioredis+redis), and Concurrency/State (two module-level shared clients with silent fallback) \u2014 all new diff elements beyond the stale original"
         },
         {
           "text": "The terminal output contains the exact phrase 'Review guide updated on PR #' (not just general prose like 'the guide has been updated')",
           "passed": true,
-          "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42: Adds caching layer using Redis' \u2014 .spec28-transcripts/sonnet-with-eval-6-idempotent-rerun.md"
+          "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42: Adds caching layer using Redis'"
         }
       ],
       "notes": [
@@ -563,22 +563,22 @@
         {
           "text": "The review guide includes a Data Model Changes section",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Data Model Changes' with two checklist entries for migrations/20240312_user_profile_v2.sql and schema.graphql \u2014 .spec28-transcripts/sonnet-with-eval-7-data-model-changes.md"
+          "evidence": "FINAL_PR_BODY contains '### Data Model Changes' with two checklist entries for migrations/20240312_user_profile_v2.sql and schema.graphql"
         },
         {
           "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
           "passed": true,
-          "evidence": "SQL entry: 'column rename (`username` \u2192 `display_name`) with no backward-compatibility alias'; GraphQL entry: '`username` field removed and replaced with `displayName` (existing clients will break)' \u2014 .spec28-transcripts/sonnet-with-eval-7-data-model-changes.md"
+          "evidence": "SQL entry: 'column rename (`username` \u2192 `display_name`) with no backward-compatibility alias'; GraphQL entry: '`username` field removed and replaced with `displayName` (existing clients will break)'"
         },
         {
           "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
           "passed": true,
-          "evidence": "SQL entry: 'irreversible `DROP COLUMN legacy_id`'; GraphQL entry: '`legacyId` field removed from response schema' \u2014 .spec28-transcripts/sonnet-with-eval-7-data-model-changes.md"
+          "evidence": "SQL entry: 'irreversible `DROP COLUMN legacy_id`'; GraphQL entry: '`legacyId` field removed from response schema'"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-7-data-model-changes.md"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
         }
       ],
       "notes": [
@@ -651,22 +651,22 @@
         {
           "text": "The review guide includes a Concurrency / State section",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Concurrency / State' section with checklist entry for src/workers/job-processor.ts \u2014 .spec28-transcripts/sonnet-with-eval-8-concurrency-state.md"
+          "evidence": "FINAL_PR_BODY contains '### Concurrency / State' section with checklist entry for src/workers/job-processor.ts"
         },
         {
           "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
           "passed": true,
-          "evidence": "Concurrency/State entry: 'Module-level mutable state (`activeJobCount`, `jobQueue`) written from `enqueueJob` and from the worker `exit` callback with no lock; `enqueueJob` increments the counter and calls `processNext` non-atomically, and the `exit` handler races with new enqueues against the shared queue' \u2014 .spec28-transcripts/sonnet-with-eval-8-concurrency-state.md"
+          "evidence": "Concurrency/State entry: 'Module-level mutable state (`activeJobCount`, `jobQueue`) written from `enqueueJob` and from the worker `exit` callback with no lock; `enqueueJob` increments the counter and calls `processNext` non-atomically, and the `exit` handler races with new enqueues against the shared queue'"
         },
         {
           "text": "The review guide flags the new use of worker threads",
           "passed": true,
-          "evidence": "Novel Patterns section: 'First use of `worker_threads` in this codebase; new `src/workers/` directory has no sibling files to compare conventions against, so the queue + worker pattern is novel by default' \u2014 .spec28-transcripts/sonnet-with-eval-8-concurrency-state.md"
+          "evidence": "Novel Patterns section: 'First use of `worker_threads` in this codebase; new `src/workers/` directory has no sibling files to compare conventions against, so the queue + worker pattern is novel by default'"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers \u2014 .spec28-transcripts/sonnet-with-eval-8-concurrency-state.md"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
         }
       ],
       "notes": [
@@ -700,7 +700,7 @@
         {
           "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
           "passed": true,
-          "evidence": "`activeJobCount` and `jobQueue` are declared at module scope ... concurrent `enqueueJob` calls can race on both `jobQueue.push` and `activeJobCount++`"
+          "evidence": "`activeJobCount` and `jobQueue` are declared at module scope... concurrent `enqueueJob` calls can race on both `jobQueue.push` and `activeJobCount++`"
         },
         {
           "text": "The review guide flags the new use of worker threads",
@@ -739,22 +739,22 @@
         {
           "text": "The review guide includes a Security section flagging the auth middleware changes",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Security' with entry for 'src/auth/middleware.ts' covering 'JWT token verification' and 'requireRole authorization middleware' (.spec28-transcripts/opus-with-eval-1-security-changes.md)"
+          "evidence": "FINAL_PR_BODY contains '### Security' with entry for 'src/auth/middleware.ts' covering 'JWT token verification' and 'requireRole authorization middleware'"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": "FINAL_PR_BODY shows literal '<!-- pr-human-guide -->' on line 16 and '<!-- /pr-human-guide -->' on line 25 (.spec28-transcripts/opus-with-eval-1-security-changes.md)"
+          "evidence": "FINAL_PR_BODY shows literal '<!-- pr-human-guide -->' on line 16 and '<!-- /pr-human-guide -->' on line 25"
         },
         {
           "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts",
           "passed": true,
-          "evidence": "Entry contains 'https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82R42-R58' pointing at src/auth/middleware.ts (.spec28-transcripts/opus-with-eval-1-security-changes.md)"
+          "evidence": "Entry contains 'https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82R42-R58' pointing at src/auth/middleware.ts"
         },
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file \"$TMPFILE\"' where TMPFILE is created via mktemp (.spec28-transcripts/opus-with-eval-1-security-changes.md)"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file \"$TMPFILE\"' where TMPFILE is created via mktemp"
         }
       ],
       "notes": [
@@ -783,22 +783,22 @@
         {
           "text": "The review guide includes a Security section flagging the auth middleware changes",
           "passed": true,
-          "evidence": "FINAL_PR_BODY contains '### Security \u2014 high priority' with bullets about JWT algorithm pinning, JWT_SECRET validation, and auth middleware concerns (.spec28-transcripts/opus-without-eval-1-security-changes.md)"
+          "evidence": "FINAL_PR_BODY contains '### Security \u2014 high priority' with bullets about JWT algorithm pinning, JWT_SECRET validation, and auth middleware concerns"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
-          "evidence": "FINAL_PR_BODY has no HTML comment markers; body begins with 'Adds JWT authentication middleware...' and '## Review Guide' with no surrounding <!-- pr-human-guide --> delimiters (.spec28-transcripts/opus-without-eval-1-security-changes.md)"
+          "evidence": "FINAL_PR_BODY has no HTML comment markers; body begins with 'Adds JWT authentication middleware...' and '## Review Guide' with no surrounding <!-- pr-human-guide --> delimiters"
         },
         {
           "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts",
           "passed": false,
-          "evidence": "Security bullets mention JWT concerns in prose only with no /pull/N/files#diff-... URL; no link to src/auth/middleware.ts (.spec28-transcripts/opus-without-eval-1-security-changes.md)"
+          "evidence": "Security bullets mention JWT concerns in prose only with no /pull/N/files#diff-... URL; no link to src/auth/middleware.ts"
         },
         {
           "text": "The skill calls gh pr edit to update the PR body with the review guide",
           "passed": true,
-          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file [redacted-temp-path]' (.spec28-transcripts/opus-without-eval-1-security-changes.md)"
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file [redacted-temp-path]'"
         }
       ],
       "notes": [
@@ -1003,17 +1003,17 @@
         {
           "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
           "passed": true,
-          "evidence": ".spec28-transcripts/opus-with-eval-4-novel-pattern.md \u2014 '### Novel Patterns' section explicitly flags 'First use of Result<T, E> (ts-results) error handling in src/services/'"
+          "evidence": "'### Novel Patterns' section explicitly flags 'First use of Result<T, E> (ts-results) error handling in src/services/'"
         },
         {
           "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
           "passed": true,
-          "evidence": ".spec28-transcripts/opus-with-eval-4-novel-pattern.md \u2014 Novel Patterns item states: 'Sibling services (user.ts, product.ts, order.ts) use try/catch + throw new AppError(...). Confirm the team wants to adopt Result types here'"
+          "evidence": "Novel Patterns item states: 'Sibling services (user.ts, product.ts, order.ts) use try/catch + throw new AppError(...). Confirm the team wants to adopt Result types here'"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": true,
-          "evidence": ".spec28-transcripts/opus-with-eval-4-novel-pattern.md \u2014 FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' on line 13 and '<!-- /pr-human-guide -->' on line 28"
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' on line 13 and '<!-- /pr-human-guide -->' on line 28"
         }
       ],
       "notes": [
@@ -1042,17 +1042,17 @@
         {
           "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
           "passed": true,
-          "evidence": ".spec28-transcripts/opus-without-eval-4-novel-pattern.md \u2014 '### Novel pattern \u2014 diverges from the rest of the codebase' section flags 'Result<T, E> from ts-results is introduced here for the first time'"
+          "evidence": "'### Novel pattern \u2014 diverges from the rest of the codebase' section flags 'Result<T, E> from ts-results is introduced here for the first time'"
         },
         {
           "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
           "passed": true,
-          "evidence": ".spec28-transcripts/opus-without-eval-4-novel-pattern.md \u2014 Section explicitly states: 'The rest of src/services/ (e.g. user.ts, product.ts, order.ts) uses try / catch and re-throws AppError' and describes the incompatibility for callers"
+          "evidence": "Section explicitly states: 'The rest of src/services/ (e.g. user.ts, product.ts, order.ts) uses try / catch and re-throws AppError' and describes the incompatibility for callers"
         },
         {
           "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
           "passed": false,
-          "evidence": ".spec28-transcripts/opus-without-eval-4-novel-pattern.md \u2014 FINAL_PR_BODY uses a '---' horizontal rule separator and '## Review guide' heading with no HTML comment markers; notes also confirm 'GH_EDIT_COMMAND: did not run'"
+          "evidence": "FINAL_PR_BODY uses a '---' horizontal rule separator and '## Review guide' heading with no HTML comment markers; notes also confirm 'GH_EDIT_COMMAND: did not run'"
         }
       ],
       "notes": [
@@ -1374,7 +1374,7 @@
         {
           "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
           "passed": true,
-          "evidence": "activeJobCount and jobQueue are mutated from both the calling thread (via enqueueJob) and from worker `exit` handlers ... Module-level mutable state. `activeJobCount` and `jobQueue` are module-scoped"
+          "evidence": "activeJobCount and jobQueue are mutated from both the calling thread (via enqueueJob) and from worker `exit` handlers... Module-level mutable state. `activeJobCount` and `jobQueue` are module-scoped"
         },
         {
           "text": "The review guide flags the new use of worker threads",

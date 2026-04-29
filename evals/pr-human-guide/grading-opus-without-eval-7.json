@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "expectations": [
+    {
+      "text": "The review guide includes a Data Model Changes section",
+      "passed": false,
+      "evidence": "No header named 'Data Model Changes', 'Schema Changes', or 'Database Changes'. Uses '### Areas needing careful attention' with numbered subsections ('1. Destructive / irreversible data migration', '2. Breaking GraphQL schema change'). Neither subsection name qualifies as a Data Model category header per grading rules."
+    },
+    {
+      "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
+      "passed": true,
+      "evidence": "'`RENAME COLUMN username TO display_name` \u2014 breaks any consumer still selecting `username`'; '`username: String!` \u2192 `displayName: String!` is a **breaking change** for every API client'"
+    },
+    {
+      "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
+      "passed": true,
+      "evidence": "'`ALTER TABLE users DROP COLUMN legacy_id` \u2014 **data loss**'; '`legacyId: Int` removed \u2014 same concern; any client still requesting it will get a query validation error'"
+    },
+    {
+      "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+      "passed": false,
+      "evidence": "No HTML comment markers in FINAL_PR_BODY; body uses '---' separator and plain '## Review Guide' heading. NOTES confirm no skill was invoked."
+    }
+  ],
+  "notes": "Missing the required HTML wrapper markers (assertion 4) and the required 'Data Model Changes' (or equivalent) section header (assertion 1). Content quality for assertions 2 and 3 is excellent \u2014 very detailed flagging of both the rename and drop as breaking/destructive. Baseline (no-skill) run produced a free-form guide rather than the structured skill format."
+}

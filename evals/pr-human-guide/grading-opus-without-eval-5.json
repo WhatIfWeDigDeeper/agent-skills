@@ -1,0 +1,26 @@
+{
+  "summary": {
+    "passed": 1,
+    "failed": 2,
+    "total": 3,
+    "pass_rate": 0.33
+  },
+  "expectations": [
+    {
+      "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
+      "passed": true,
+      "evidence": "FINAL_PR_BODY headers are '## Summary', '## Changes', '## Rationale', '## Review notes', '## Test plan' \u2014 none match Security/Config/Infrastructure/New Dependencies/Data Model/Novel Patterns/Concurrency category names"
+    },
+    {
+      "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
+      "passed": false,
+      "evidence": "FINAL_PR_BODY contains no phrase matching 'no areas requiring special human review' or equivalent \u2014 the body is a plain PR description with no review guide section at all"
+    },
+    {
+      "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+      "passed": false,
+      "evidence": "FINAL_PR_BODY contains no HTML comment markers; GH_EDIT_COMMAND is 'did not run (simulation only)'"
+    }
+  ],
+  "notes": "opus/without did not invoke the skill and produced only a generic enhanced PR description with structured sections but no review guide section and no HTML comment markers."
+}

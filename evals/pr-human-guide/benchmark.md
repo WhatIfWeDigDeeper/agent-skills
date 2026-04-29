@@ -76,7 +76,7 @@ Two Sonnet `without_skill` runs (evals 5 and 8) initially invoked the `pr-human-
 
 ### Time/token measurement methodology
 
-Per-run stats are extracted from the executor subagent JSONL transcripts (one per agent under the runtime's `~/.claude/projects/.../subagents/` path). Conventions:
+Per-run stats are extracted from the executor subagent JSONL transcripts (one per agent under the runtime's `~/.claude/projects/<project-key>/subagents/` path). Conventions:
 
 - **`time_seconds`**: max-minus-min event timestamp across the agent's records.
 - **`tokens`**: `input_tokens + output_tokens` summed across all assistant turns. Matches the convention used in `learn` / `pr-comments` / `peer-review` benchmarks — the "new work" that drives full-rate billing.
@@ -84,7 +84,17 @@ Per-run stats are extracted from the executor subagent JSONL transcripts (one pe
 - **`tool_calls`**: count of `tool_use` content blocks.
 - **`errors`**: count of `tool_result` blocks with `is_error: true`.
 
-This closes the time/token measurement gap that the spec 26 and spec 27 Opus runs left open. The same JSONL-extraction approach is portable to those benchmarks if a future spec wants to retroactively backfill them.
+The extraction logic is generalized in [`evals/scripts/extract_subagent_usage.py`](../scripts/extract_subagent_usage.py) — it takes one or more JSONL transcript paths (or `tasks/<id>.output` symlinks) and emits the conventions above as JSON. Usable for any future spec that wants to backfill the spec 26 / spec 27 Opus runs.
+
+### Preserved grading artifacts
+
+Five `grading-*.json` files alongside this `benchmark.md` capture grader judgment calls worth preserving (the other 27 grading runs were mechanical pass/fail on literal-marker checks):
+
+- `grading-{sonnet,opus}-without-eval-5.json` — judgment: does the **absence** of any review-guide construct count as the body containing the "no areas requiring special human review" message? Both gradings rule "no" — the body must literally contain that message.
+- `grading-{sonnet,opus}-without-eval-8.json` — judgment: does discussion of `worker_threads` framed as a lifecycle/error-handling concern count as flagging it as "the new use of worker threads"? Both gradings rule "no" — the flag must explicitly call it out as a new concurrency primitive.
+- `grading-opus-without-eval-7.json` — judgment: does `"### Areas needing careful attention"` with numbered subsections satisfy "the review guide includes a Data Model Changes section"? Grading rules "no" — the section name (or close equivalent like "Schema Changes" / "Database Changes") must appear literally.
+
+The remaining 27 grading runs are not committed; the benchmark.json `expectations` array carries each one's verdict and evidence inline.
 
 ### Sonnet with_skill model-mismatch incident (recovered)
 
