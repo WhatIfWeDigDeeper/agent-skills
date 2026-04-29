@@ -131,7 +131,7 @@ gh pr diff "$PR"
 
 **Path** (file or directory):
 
-If the path does not exist, error: `Path not found: <path>` and stop. Read all files at the path (in Claude Code: use the `Read` tool). For a directory, read all text files in it recursively — skip binary files (images, compiled artifacts) and files larger than ~100 KB. Set mode to **consistency**.
+First, check that the path exists (e.g. `test -e <path>` via the Bash tool). If it does not, error: `Path not found: <path>` and stop. Otherwise, read all files at the path (in Claude Code: use the `Read` tool). For a directory, read all text files in it recursively — skip binary files (images, compiled artifacts) and files larger than ~100 KB. Set mode to **consistency**.
 
 ### 3. Select Prompt Template
 
@@ -225,7 +225,7 @@ Do NOT implement any changes. Return findings only.
 [FOCUS_LINE]
 ```
 
-**Focus line** (append when `--focus` is provided):
+**Focus line**: if `--focus` is provided, replace `[FOCUS_LINE]` with the line below; otherwise, omit the line entirely (do not leave the placeholder in the prompt).
 ```
 Focus especially on [TOPIC]. Still report any critical findings outside this focus area.
 ```
@@ -358,7 +358,7 @@ FINDING N: skip — [one-line reason]
 [COLLECTED CONTENT — file contents for consistency mode / diff text for diff mode]
 ```
 
-**Focus area line** (include in triage prompt only when `--focus` is provided):
+**Focus area line**: if `--focus` is provided, replace `[FOCUS_AREA_LINE]` with the line below; otherwise, omit the line entirely (do not leave the placeholder in the prompt).
 ```
 Focus area: [TOPIC]
 ```

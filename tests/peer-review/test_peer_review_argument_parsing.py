@@ -254,3 +254,18 @@ class TestArgumentValidation:
         result = parse_arguments("--branch $HOME")
         assert result["error"] is not None
         assert "--branch requires a git ref name" in result["error"]
+
+    def test_focus_invalid_no_topic(self):
+        result = parse_arguments("--focus")
+        assert result["error"] is not None
+        assert "--focus requires a non-empty topic" in result["error"]
+
+    def test_focus_invalid_trailing_no_topic(self):
+        result = parse_arguments("--staged --focus")
+        assert result["error"] is not None
+        assert "--focus requires a non-empty topic" in result["error"]
+
+    def test_focus_valid_topic(self):
+        result = parse_arguments("--focus security")
+        assert result["error"] is None
+        assert result["focus"] == "security"

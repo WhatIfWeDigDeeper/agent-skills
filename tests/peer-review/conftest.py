@@ -109,9 +109,13 @@ def parse_arguments(args: str | None) -> dict:
 
         elif tok == "--focus":
             if i + 1 >= len(tokens):
-                result["error"] = "--focus requires a topic"
+                result["error"] = "--focus requires a non-empty topic"
                 return result
-            result["focus"] = tokens[i + 1]
+            topic = tokens[i + 1]
+            if not topic.strip():
+                result["error"] = "--focus requires a non-empty topic"
+                return result
+            result["focus"] = topic
             i += 2
 
         else:
