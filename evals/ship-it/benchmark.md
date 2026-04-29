@@ -15,7 +15,7 @@
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
 | Pass rate | **100% ±0%** | 71% ±7% | **+29%** |
-| Min / Max | 100% / 100% | 62% / 75% | |
+| Min / Max | 100% / 100% | 63% / 75% | |
 | Time (s) | 51.2 ±4.7 | 35.5 ±9.8 | +15.8 |
 | Tokens (input + output) | 2,364 ±172 | 1,506 ±191 | +859 |
 | Cache tokens (creation + reads) | 583,183 ±88,814 | 228,081 ±59,358 | +355,102 |
@@ -26,7 +26,7 @@ Sonnet pass-rate delta is computed over 3 paired evals. Time, token, and cache-t
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | **100% ±0%** | 62% ±12% | **+38%** |
+| Pass rate | **100% ±0%** | 63% ±12% | **+38%** |
 | Min / Max | 100% / 100% | 50% / 75% | |
 | Time (s) | 51.8 ±7.2 | 45.2 ±4.1 | +6.6 |
 | Tokens (input + output) | 3,272 ±447 | 2,027 ±609 | +1,245 |
@@ -34,7 +34,7 @@ Sonnet pass-rate delta is computed over 3 paired evals. Time, token, and cache-t
 
 Opus pass-rate delta is computed over 3 paired evals. All 6 Opus runs have non-null measurements (extracted from subagent JSONL transcripts). Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
-The skill improves correctness on Sonnet 4.6 by **+29 percentage points** (71% → 100%) and on Opus 4.7 by **+38 percentage points** (62% → 100%). Opus's headline delta is *larger* than Sonnet's despite Opus being the stronger base model — Opus's baseline is paradoxically worse on this skill (62% vs Sonnet's 71%), driven by eval 1 (Opus 50% / Sonnet 75%) and eval 4 (Opus 62% / Sonnet 75%), where the Opus baseline made additional output-quality mistakes (skipping conventional-commit prefix on eval 1; producing a `## Summary` section without bullets — placing bullets under a separate `## Changes` heading — on eval 4) on top of the universally-failed process checks.
+The skill improves correctness on Sonnet 4.6 by **+29 percentage points** (71% → 100%) and on Opus 4.7 by **+38 percentage points** (63% → 100%). Opus's headline delta is *larger* than Sonnet's despite Opus being the stronger base model — Opus's baseline is paradoxically worse on this skill (63% vs Sonnet's 71%), driven by eval 1 (Opus 50% / Sonnet 75%) and eval 4 (Opus 63% / Sonnet 75%), where the Opus baseline made additional output-quality mistakes (skipping conventional-commit prefix on eval 1; producing a `## Summary` section without bullets — placing bullets under a separate `## Changes` heading — on eval 4) on top of the universally-failed process checks.
 
 ## Per-Eval Results
 
@@ -43,8 +43,8 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 | # | Eval | Sonnet 4.6 With | Sonnet 4.6 Without | Opus 4.7 With | Opus 4.7 Without |
 |---|------|-----------------|--------------------|---------------|------------------|
 | 1 | bug-fix-null-check | **8/8 (100%)** | 6/8 (75%) | **8/8 (100%)** | 4/8 (50%) |
-| 2 | draft-pr-wip-feature | **8/8 (100%)** | 5/8 (62%) | **8/8 (100%)** | 6/8 (75%) |
-| 4 | refactor-with-branch-name | **8/8 (100%)** | 6/8 (75%) | **8/8 (100%)** | 5/8 (62%) |
+| 2 | draft-pr-wip-feature | **8/8 (100%)** | 5/8 (63%) | **8/8 (100%)** | 6/8 (75%) |
+| 4 | refactor-with-branch-name | **8/8 (100%)** | 6/8 (75%) | **8/8 (100%)** | 5/8 (63%) |
 
 (Eval 3, `branch-name-collision`, is excluded from this run set — see Known Eval Limitations.)
 
@@ -66,7 +66,7 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 | Configuration | Sonnet 4.6 | Opus 4.7 |
 |---------------|-----------|----------|
 | with-skill    | **8/8 (100%)** | **8/8 (100%)** |
-| without-skill | 5/8 (62%) | 6/8 (75%) |
+| without-skill | 5/8 (63%) | 6/8 (75%) |
 
 **Discriminating** (Sonnet +0.38; Opus +0.25). Draft-mode detection passes in both `without_skill` runs (the prompt's "draft pr" wording is unambiguous). The Sonnet baseline fails three assertions: `git fetch` divergence, `git ls-remote` branch check, and `## Test Plan` section (Sonnet's PR body had only a Summary section with no Test Plan). The Opus baseline fails only the two process checks — its PR body included an explicit `## Test Plan` section, surpassing Sonnet on that output-quality dimension.
 
@@ -76,7 +76,7 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 | Configuration | Sonnet 4.6 | Opus 4.7 |
 |---------------|-----------|----------|
 | with-skill    | **8/8 (100%)** | **8/8 (100%)** |
-| without-skill | 6/8 (75%) | 5/8 (62%) |
+| without-skill | 6/8 (75%) | 5/8 (63%) |
 
 **Discriminating** (Sonnet +0.25; Opus +0.38). Both baselines correctly preserved the user-specified branch name `refactor/auth-service` (assertion 1 passes) and produced a refactor-themed conventional commit and PR title (assertions 2 + 5 pass). The Sonnet baseline fails only the divergence and branch-collision checks. The Opus baseline fails those two plus assertion 3 (`## Summary` section with at least one bullet) — its PR body had a `## Summary` section but it contained only prose, not bullets; the bullets appeared under a separate `## Changes` heading. This is a structural miss against the assertion: the assertion requires bulleted content under `## Summary`, and Opus's baseline placed the bullets under the wrong heading. The miss is correctable by the skill (the `with_skill` Opus run produces bullets under `## Summary` directly), not a paraphrase artifact.
 
@@ -114,11 +114,11 @@ All 12 runs have non-null `time_seconds`, `tokens`, and `cache_tokens` — they 
 
 ### Sonnet 4.6
 
-- **Headline shift from prior baseline**: the pre-spec-29 baseline reported `+38%` over a 6-run set with `branch-name-collision` mislabeled. The v0.5 baseline lands at `+29%` — the drop reflects both the natural improvement on `--base` and the fact that without-skill pass rates now vary across evals (62%/75%/75%) rather than being uniformly 62%.
+- **Headline shift from prior baseline**: the pre-spec-29 baseline reported `+38%` over a 6-run set with `branch-name-collision` mislabeled. The v0.5 baseline lands at `+29%` — the drop reflects both the natural improvement on `--base` and the fact that without-skill pass rates now vary across evals (63%/75%/75%) rather than being uniformly 63%.
 - **Time/token measurements**: 6 of 6 runs have non-null measurements (extracted from subagent JSONL transcripts).
 
 ### Opus 4.7
 
 - **Stronger headline delta despite weaker baseline**: Opus's `+38%` headline exceeds Sonnet's `+29%` despite Opus typically being the stronger base model. The driver is Opus's *worse* baseline on evals 1 and 4 — Opus skipped both process checks AND made an additional output-quality mistake on each of those evals (non-conventional commit on eval 1; `## Summary` section present but lacking bullets — bullets appeared under `## Changes` instead — on eval 4). The Opus `with_skill` runs still hit 100% across all 3 evals, so the skill closes a wider baseline gap.
-- **Eval 2 baseline outperforms Sonnet's**: Opus's `without_skill` eval 2 scored 75% vs Sonnet's 62%. Opus's PR body included an explicit `## Test Plan` section that Sonnet's baseline omitted. Eval 2 is the only eval where Opus's baseline beats Sonnet's.
+- **Eval 2 baseline outperforms Sonnet's**: Opus's `without_skill` eval 2 scored 75% vs Sonnet's 63%. Opus's PR body included an explicit `## Test Plan` section that Sonnet's baseline omitted. Eval 2 is the only eval where Opus's baseline beats Sonnet's.
 - **Time/token measurements**: 6 of 6 runs have non-null measurements.
