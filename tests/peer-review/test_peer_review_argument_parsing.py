@@ -190,3 +190,67 @@ class TestOptions:
         assert result["model"] == "claude-opus-4-6"
         assert result["focus"] == "consistency"
         assert result["target_type"] == "staged"
+
+
+class TestArgumentValidation:
+    """--pr and --branch values are validated against regex rules per SKILL.md."""
+
+    def test_pr_valid_integer(self):
+        result = parse_arguments("--pr 42")
+        assert result["error"] is None
+        assert result["pr_number"] == "42"
+
+    def test_pr_valid_large(self):
+        result = parse_arguments("--pr 9999")
+        assert result["error"] is None
+
+    def test_pr_invalid_zero(self):
+        result = parse_arguments("--pr 0")
+        assert result["error"] is not None
+        assert "--pr requires a positive integer" in result["error"]
+        assert "0" in result["error"]
+
+    def test_pr_invalid_negative(self):
+        result = parse_arguments("--pr -1")
+        assert result["error"] is not None
+        assert "--pr requires a positive integer" in result["error"]
+
+    def test_pr_invalid_shell_injection(self):
+        result = parse_arguments("--pr 1;echo")
+        assert result["error"] is not None
+        assert "--pr requires a positive integer" in result["error"]
+
+    def test_pr_invalid_alpha(self):
+        result = parse_arguments("--pr abc")
+        assert result["error"] is not None
+        assert "--pr requires a positive integer" in result["error"]
+
+    def test_branch_valid_simple(self):
+        result = parse_arguments("--branch main")
+        assert result["error"] is None
+        assert result["branch_name"] == "main"
+
+    def test_branch_valid_with_slash(self):
+        result = parse_arguments("--branch feat/my-feature")
+        assert result["error"] is None
+
+    def test_branch_valid_with_dots_and_underscores(self):
+        result = parse_arguments("--branch release_1.0")
+        assert result["error"] is None
+
+    def test_branch_invalid_semicolon(self):
+        result = parse_arguments("--branch main;rm")
+        assert result["error"] is not None
+        assert "--branch requires a git ref name" in result["error"]
+
+    def test_branch_invalid_metachar_in_name(self):
+        # whitespace splits tokens so spaces can't survive as one token;
+        # test an ampersand metachar that does survive as one token
+        result = parse_arguments("--branch main&evil")
+        assert result["error"] is not None
+        assert "--branch requires a git ref name" in result["error"]
+
+    def test_branch_invalid_dollar_sign(self):
+        result = parse_arguments("--branch $HOME")
+        assert result["error"] is not None
+        assert "--branch requires a git ref name" in result["error"]
