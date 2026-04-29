@@ -27,7 +27,7 @@ Some findings point at real attack surface in `skills/peer-review/SKILL.md`. Oth
 After the Step 1 argument parsing block (around `skills/peer-review/SKILL.md` lines 54–60, the bullet list under "Strip `--…`"), add a new validation step before Step 2. Phrase anchor: insert immediately before the line containing `### 2. Collect Content`.
 
 > **Validate parsed arguments before use:**
-> - `--pr N`: require `N` to match `^[0-9]+$`. If not, error: `--pr requires a positive integer, got: <value>` and stop.
+> - `--pr N`: require `N` to match `^[1-9][0-9]*$`. If not, error: `--pr requires a positive integer, got: <value>` and stop.
 > - `--branch NAME`: require `NAME` to match `^[A-Za-z0-9._/-]+$` (git ref-name subset; rejects shell metacharacters and whitespace). If not, error: `--branch requires a git ref name (letters, digits, ., _, /, -), got: <value>` and stop.
 > - `--model VALUE`: validated downstream by the supported-prefix check in Step 4.
 

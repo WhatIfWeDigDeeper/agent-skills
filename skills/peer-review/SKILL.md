@@ -76,7 +76,7 @@ The skill auto-detects the review mode from the target:
 Parse `$ARGUMENTS` per the Arguments section above. Set `model` to `self` if not overridden.
 
 **Validate parsed arguments before use:**
-- `--pr N`: require `N` to match `^[0-9]+$`. If not, error: `--pr requires a positive integer, got: <value>` and stop.
+- `--pr N`: require `N` to match `^[1-9][0-9]*$`. If not, error: `--pr requires a positive integer, got: <value>` and stop.
 - `--branch NAME`: require `NAME` to match `^[A-Za-z0-9._/-]+$` (git ref-name subset; rejects shell metacharacters and whitespace). If not, error: `--branch requires a git ref name (letters, digits, ., _, /, -), got: <value>` and stop.
 - `--model VALUE`: validated downstream by the supported-prefix check in Step 4.
 
