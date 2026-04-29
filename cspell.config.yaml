@@ -8,6 +8,7 @@ words:
   - anthropics
   - asyncio
   - asyncpg
+  - baselined
   - basenames
   - blockquotes
   - bunx
@@ -84,6 +85,7 @@ words:
   - startswith
   - stddev
   - stddevs
+  - stdev
   - submodel
   - subshell
   - substeps
