@@ -62,9 +62,9 @@
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.7067,
-          "stddev": 0.0751,
-          "min": 0.62,
+          "mean": 0.7083,
+          "stddev": 0.0722,
+          "min": 0.625,
           "max": 0.75
         },
         "time_seconds": {
@@ -122,7 +122,7 @@
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.6233,
+          "mean": 0.625,
           "stddev": 0.125,
           "min": 0.5,
           "max": 0.75
@@ -183,7 +183,7 @@
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.6233,
+        "mean": 0.625,
         "stddev": 0.125,
         "min": 0.5,
         "max": 0.75
@@ -413,7 +413,7 @@
       "analyzer_model": "claude-sonnet-4-6",
       "timestamp": "2026-04-29T13:58:00Z",
       "result": {
-        "pass_rate": 0.62,
+        "pass_rate": 0.625,
         "passed": 5,
         "failed": 3,
         "total": 8,
@@ -917,7 +917,7 @@
       "analyzer_model": "claude-sonnet-4-6",
       "timestamp": "2026-04-29T13:59:00Z",
       "result": {
-        "pass_rate": 0.62,
+        "pass_rate": 0.625,
         "passed": 5,
         "failed": 3,
         "total": 8,
