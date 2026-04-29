@@ -12,7 +12,7 @@
         "skill_version": "0.7",
         "timestamp": "2026-04-28T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Replaces the previous v0.1 Sonnet run set (removed in spec 28 Phase 1). Analyzer is claude-sonnet-4-6 (sole grader for all 32 transcripts) per analyzer-uniformity. Per-run time_seconds, tokens, tool_calls, and errors are extracted from the executor subagent JSONL transcripts (parent-side aggregation of input + output + cache tokens). Two without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool and were re-spawned with explicit Skill-tool prohibition; only the clean re-runs are recorded. All eight with_skill runs were also re-spawned: the first batch hit transient 529 errors and was resumed via SendMessage, but the resume path silently inherited the parent's claude-opus-4-7 model rather than the original claude-sonnet-4-6 setting. The recorded runs are the second-pass spawns, verified to have actually executed on claude-sonnet-4-6 by inspecting the JSONL message.model field."
+        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Replaces the previous v0.1 Sonnet run set (removed in spec 28 Phase 1). Analyzer is claude-sonnet-4-6 (sole grader for all 32 transcripts) per analyzer-uniformity. Per-run time_seconds, tokens, cache_tokens, tool_calls, and errors are extracted from the executor subagent JSONL transcripts. tokens = input_tokens + output_tokens (full-rate billing); cache_tokens = cache_creation_input_tokens + cache_read_input_tokens (billed separately at 1.25-2x and 0.1x). The fields are kept distinct in run results \u2014 tokens does not include cache. Two without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool and were re-spawned with explicit Skill-tool prohibition; only the clean re-runs are recorded. All eight with_skill runs were also re-spawned: the first batch hit transient 529 errors and was resumed via SendMessage, but the resume path silently inherited the parent's claude-opus-4-7 model rather than the original claude-sonnet-4-6 setting. The recorded runs are the second-pass spawns, verified to have actually executed on claude-sonnet-4-6 by inspecting the JSONL message.model field."
       },
       {
         "executor_model": "claude-opus-4-7",
@@ -20,7 +20,7 @@
         "skill_version": "0.7",
         "timestamp": "2026-04-28T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Analyzer is claude-sonnet-4-6 for analyzer-uniformity. Per-run time_seconds, tokens, tool_calls, and errors are extracted from the executor subagent JSONL transcripts."
+        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Analyzer is claude-sonnet-4-6 for analyzer-uniformity. Per-run time_seconds, tokens, cache_tokens, tool_calls, and errors are extracted from the executor subagent JSONL transcripts (tokens = input + output; cache_tokens = creation + reads, kept separate)."
       }
     ],
     "timestamp": "2026-04-28T00:00:00Z",
