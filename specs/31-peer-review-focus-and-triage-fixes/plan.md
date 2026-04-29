@@ -61,6 +61,8 @@ In Step 4e, two sub-edits following the same pattern as `[FOCUS_LINE]` in Step 3
 
 > - When a focus area is specified, the finding is minor severity and is clearly unrelated to that focus area
 
+**Why minor-only (deliberate scope)**: the reviewer prompt's focus line says "Still report any critical findings outside this focus area" — meaning critical off-focus findings always surface. The triage rule deliberately stops short of also skipping *major* off-focus findings: a major issue (e.g. an unrelated edge-case bug) is too important to suppress on the user's behalf. Minor + clearly-unrelated is the safest cutoff — only polish-level noise gets filtered. Users who want broader filtering can omit `--focus` and self-filter results.
+
 Phrase anchor for C1: `Content type: [file contents for consistency mode / diff text for diff mode]`.
 Phrase anchor for C2: the closing ` ``` ` of the triage prompt fenced block, before the "Parse the triage subagent's response" paragraph.
 
@@ -98,5 +100,5 @@ Phrase anchor for C2: the closing ` ``` ` of the triage prompt fenced block, bef
 
 ## Peer review (bookend)
 
-- **Phase 0 (pre-spec consistency pass).** Before any SKILL.md edits, run `/peer-review` against `specs/31-peer-review-focus-and-triage-fixes/` to catch drift between `plan.md` and `tasks.md`. Iteration cap 2. Auto-approve valid findings; record summaries inline in tasks.md.
+- **Phase 0 (pre-spec consistency pass).** Before any SKILL.md edits, run `/peer-review` against `specs/31-peer-review-focus-and-triage-fixes/` to catch drift between `plan.md` and `tasks.md`. Iteration cap 2. Auto-approve valid findings; record summaries inline in tasks.md. *For spec-31, this Phase 0 was satisfied by the planning session that produced both files in the same fresh-context pass — the planning agent reviewed plan.md and tasks.md against each other before either was committed. Tasks.md 0.2 records the substitution.*
 - **Phase 4 (pre-ship branch pass).** After implementation and Phase 3 verification, run `/peer-review --branch spec-31-peer-review-focus-and-triage-fixes` to catch cross-file drift. Iteration cap 3. Loop until zero valid findings or cap. Record summaries inline.

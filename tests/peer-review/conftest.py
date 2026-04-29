@@ -13,8 +13,13 @@ def is_help_request(args: str | None) -> bool:
     return args.strip().lower() in HELP_TRIGGERS if args and args.strip() else False
 
 
-def parse_arguments(args: str | None) -> dict:
+def parse_arguments(args: str | list[str] | None) -> dict:
     """Parse peer-review arguments per SKILL.md.
+
+    Accepts either a raw string (which is then tokenized via str.split — same
+    as the runtime path) or a pre-tokenized list[str] (used by tests that need
+    to exercise validation branches unreachable via str.split, such as an
+    empty/whitespace-only `--focus` topic).
 
     Returns:
         {
@@ -49,12 +54,18 @@ def parse_arguments(args: str | None) -> dict:
         "error": None,
     }
 
-    if not args or not args.strip():
-        result["target_type"] = "staged"
-        result["model"] = "self"
-        return result
-
-    tokens = args.strip().split()
+    if isinstance(args, list):
+        tokens = args
+        if not tokens:
+            result["target_type"] = "staged"
+            result["model"] = "self"
+            return result
+    else:
+        if not args or not args.strip():
+            result["target_type"] = "staged"
+            result["model"] = "self"
+            return result
+        tokens = args.strip().split()
     i = 0
     target_count = 0
 
