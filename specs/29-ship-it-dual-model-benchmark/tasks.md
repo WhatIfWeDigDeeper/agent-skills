@@ -118,8 +118,9 @@
 
 *Fresh-context consistency pass before ship, to catch cross-file drift Phase 8's mechanical checks miss (stale deltas, Summary ± mismatches, `benchmark.md` vs `benchmark.json` drift, README deltas vs `run_summary_by_model`, plan.md ↔ tasks.md gaps). Exit condition: a pass produces zero valid findings. Iteration cap: 4.*
 
-- [ ] **9.1** Stage all spec-29 changes in the worktree.
+- [x] **9.1** Stage all spec-29 changes in the worktree.
 - [ ] **9.2** Run `/peer-review --branch evals/ship-it-opus-4-7-multi-model [--model <tool>]` and apply valid findings. Loop until zero valid findings or iteration cap 4. Record per-iteration summary inline in this task.
+  - Iteration 1 (copilot:gpt-5.4): 2 findings (0 critical, 2 major, 0 minor). Applied 1, declined 1. Applied: Finding 2 — corrected prose in `evals/ship-it/benchmark.md` (Summary paragraph + eval 4 Per-Eval section + Opus 4.7 Notes) and `README.md` Skill Notes Eval cost bullet to describe the actual eval 4 Opus baseline failure (`## Summary` section *was* present, but contained only prose without bullets — bullets appeared under a separate `## Changes` heading), per the recorded `expectations[].evidence` in benchmark.json. Declined: Finding 1 — proposed relaxing the literal-string `## Summary` bullet assertion to a semantic-equivalence check and re-running, on grounds the +38% Opus headline is overstated. Out-of-scope per spec 29 (no assertion changes); the literal-string-vs-paraphrase pattern is already documented as a known limitation in `evals/CLAUDE.md` ("In multi-model benchmarks, literal-string assertions penalize paraphrase-prone models even when behavior is correct") and `benchmark.md` already calls out this Opus-specific output-quality variance explicitly. Candidate follow-up spec.
 
 ---
 
