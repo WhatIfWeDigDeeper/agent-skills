@@ -1,6 +1,11 @@
 """Pytest fixtures and helpers for peer-review skill tests."""
 
+import re
+
 HELP_TRIGGERS = {"help", "--help", "-h", "?"}
+
+_PR_RE = re.compile(r'^[1-9][0-9]*$')
+_BRANCH_RE = re.compile(r'^[A-Za-z0-9._/-]+$')
 
 
 def is_help_request(args: str | None) -> bool:
@@ -75,6 +80,9 @@ def parse_arguments(args: str | None) -> dict:
                 return result
             result["target_type"] = "pr"
             result["pr_number"] = tokens[i + 1]
+            if not _PR_RE.match(result["pr_number"]):
+                result["error"] = f"--pr requires a positive integer, got: {result['pr_number']}"
+                return result
             i += 2
 
         elif tok == "--branch":
@@ -87,6 +95,9 @@ def parse_arguments(args: str | None) -> dict:
                 return result
             result["target_type"] = "branch"
             result["branch_name"] = tokens[i + 1]
+            if not _BRANCH_RE.match(result["branch_name"]):
+                result["error"] = f"--branch requires a git ref name (letters, digits, ., _, /, -), got: {result['branch_name']}"
+                return result
             i += 2
 
         elif tok == "--model":
