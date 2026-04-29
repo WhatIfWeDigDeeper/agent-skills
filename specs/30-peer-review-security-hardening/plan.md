@@ -90,7 +90,7 @@ Insert a new subsection at the start of Step 4 ("Spawn Reviewer"), immediately a
 - **Tightening `copilot --allow-all-tools` further.** Skipped without a documented copilot tool inventory.
 - **Eval re-run.** Existing `evals/peer-review/evals.json` covers behavior, not security text. The hardening edits do not change the structured findings format. Optional spot check in verification.
 - **README updates.** Skill's surface API (triggers, args) is unchanged.
-- **`.github/copilot-instructions.md`.** No project-rule additions; nothing to mirror.
+- **`.github/copilot-instructions.md`.** The jq portability fix and Copilot bot-login note added to `CLAUDE.md` during implementation were mirrored here per project convention. No additional spec-driven additions were needed beyond that mirror.
 
 ## Branch
 
