@@ -9,19 +9,19 @@
 - [x] **0.3** Record per-iteration summary inline in this task. Format per spec-26/27/28 precedent: `Iteration N: K valid findings (X critical, Y major, Z minor). Applied all. {Brief note on themes.}`
   - Iteration 1 (copilot:gpt-5.4): 5 valid findings (1 critical, 3 major, 1 minor). Applied all. Themes: tasks.md inherited several spec-28 quirks that drifted from plan.md — (a) `with_skill` sandbox wording was self-contradictory (forbade reads outside the workspace AND required reading the parent-repo SKILL.md) and needed an explicit carve-out, (b) Phase 8 verifications were missing for the plan's sample-stddev (N−1) and signed-string `delta.*` requirements, (c) Per-Eval verification was a one-row spot check rather than the full 4-column × 3-eval grid, (d) `--branch` target was absent from the alt form of the Phase 9 command, (e) "Models tested" header verification said "run dates" instead of "date ranges". All from a literal copy of spec 28's tasks.md skeleton; spec 28 carried the same drift but the smaller surface area made it less consequential there.
   - Iteration 2 (copilot:gpt-5.4): 5 findings (0 critical, 4 major, 1 minor). Applied 4, declined 1. Applied: (a) sample-stddev verification needed 3-value subsets per configuration, not the merged 6-value set; (b) null-handling for aggregates (mean/stddev/min/max with `null` inputs) was unspecified — added explicit rule to plan.md and task 6.5; (c) eval_id verification was too narrow (only checked the historical mislabel) — broadened task 8.8 to validate every `(eval_id, eval_name)` pair against evals.json; (d) Phase 0.3 self-consistency — this iteration-2 summary added. Declined: "git worktree add flag position" finding — `git worktree add <path> -b <branch>` is valid git syntax (empirically verified in this session). Stopped after iteration 2 per cap.
-- [ ] **0.4** Commit the post-review spec docs as a single commit on the branch before Phase 1 begins. This commit is the start of the spec-29 PR; benchmark.json/benchmark.md/README.md changes from Phases 1–9 land as subsequent commits on the same branch.
+- [x] **0.4** Commit the post-review spec docs as a single commit on the branch before Phase 1 begins. This commit is the start of the spec-29 PR; benchmark.json/benchmark.md/README.md changes from Phases 1–9 land as subsequent commits on the same branch.
 
 ---
 
 ## Phase 1: Schema reset and multi-model setup
 
-- [ ] **1.1** In `evals/ship-it/benchmark.json`, remove all 6 existing Sonnet runs from `runs[]` (entire `runs[]` array becomes empty until task 6.2 appends the new entries). Git history retains the prior shape; no in-file historical archive is kept.
-- [ ] **1.2** Reset `metadata.models_tested[]` to an empty array; entries are appended in Phase 6 (task 6.3) after grading.
-- [ ] **1.3** Set top-level `metadata.skill_version` to `"0.5"` (matches current `skills/ship-it/SKILL.md` `version`). This **backfills** the field — the prior benchmark.json had no `skill_version` recorded. Leave top-level `metadata.executor_model`, `metadata.analyzer_model`, and `metadata.timestamp` in place — they flip in Phase 6 (task 6.4) after Opus runs are graded.
-- [ ] **1.4** Set `metadata.evals_run` to `[1, 2, 4]` — corrects the prior `[1, 2, 3]` mislabel. The Phase 1 reset is the natural place to apply this fix because new entries are about to be appended with correct ids.
-- [ ] **1.5** Remove the existing top-level `run_summary` block (will be repopulated in Phase 6 from the new runs); add an empty `run_summary_by_model: {}` object.
-- [ ] **1.6** JSON-validate: `python3 -c 'import json; json.load(open("evals/ship-it/benchmark.json"))'`.
-- [ ] **1.7** Commit the schema reset as its own commit so the Phase 6 append (task 6.2) lands cleanly on top of an empty `runs[]` and an empty `models_tested[]`.
+- [x] **1.1** In `evals/ship-it/benchmark.json`, remove all 6 existing Sonnet runs from `runs[]` (entire `runs[]` array becomes empty until task 6.2 appends the new entries). Git history retains the prior shape; no in-file historical archive is kept.
+- [x] **1.2** Reset `metadata.models_tested[]` to an empty array; entries are appended in Phase 6 (task 6.3) after grading.
+- [x] **1.3** Set top-level `metadata.skill_version` to `"0.5"` (matches current `skills/ship-it/SKILL.md` `version`). This **backfills** the field — the prior benchmark.json had no `skill_version` recorded. Leave top-level `metadata.executor_model`, `metadata.analyzer_model`, and `metadata.timestamp` in place — they flip in Phase 6 (task 6.4) after Opus runs are graded.
+- [x] **1.4** Set `metadata.evals_run` to `[1, 2, 4]` — corrects the prior `[1, 2, 3]` mislabel. The Phase 1 reset is the natural place to apply this fix because new entries are about to be appended with correct ids.
+- [x] **1.5** Remove the existing top-level `run_summary` block (will be repopulated in Phase 6 from the new runs); add an empty `run_summary_by_model: {}` object.
+- [x] **1.6** JSON-validate: `python3 -c 'import json; json.load(open("evals/ship-it/benchmark.json"))'`.
+- [x] **1.7** Commit the schema reset as its own commit so the Phase 6 append (task 6.2) lands cleanly on top of an empty `runs[]` and an empty `models_tested[]`.
 
 ---
 
