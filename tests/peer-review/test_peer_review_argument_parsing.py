@@ -243,9 +243,9 @@ class TestArgumentValidation:
         assert result["error"] is not None
         assert "--branch requires a git ref name" in result["error"]
 
-    def test_branch_invalid_space_in_name(self):
-        # whitespace splits tokens — the branch name itself can't contain spaces
-        # via normal tokenization; test a metachar that survives as one token
+    def test_branch_invalid_metachar_in_name(self):
+        # whitespace splits tokens so spaces can't survive as one token;
+        # test an ampersand metachar that does survive as one token
         result = parse_arguments("--branch main&evil")
         assert result["error"] is not None
         assert "--branch requires a git ref name" in result["error"]
