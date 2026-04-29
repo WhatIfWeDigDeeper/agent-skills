@@ -2,198 +2,974 @@
   "metadata": {
     "skill_name": "ship-it",
     "skill_path": "skills/ship-it",
-    "executor_model": "claude-sonnet-4-6",
+    "skill_version": "0.5",
+    "executor_model": "claude-opus-4-7",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-03-11T15:30:00Z",
-    "evals_run": [1, 2, 3],
+    "models_tested": [
+      {
+        "executor_model": "claude-sonnet-4-6",
+        "analyzer_model": "claude-sonnet-4-6",
+        "timestamp": "2026-04-29T13:58:00Z",
+        "skill_version": "0.5",
+        "runs_per_configuration": 1,
+        "notes": "3 evals \u00d7 2 configs \u00d7 1 run = 6 runs at SKILL.md v0.5. All transcripts graded by Sonnet 4.6 (analyzer-uniformity, no Opus self-grading). Eval 3 (branch-name-collision) excluded \u2014 fixture requires a git remote with the natural branch name pre-existing, meaningfully heavier setup than the other three evals; flagged as a follow-up candidate."
+      },
+      {
+        "executor_model": "claude-opus-4-7",
+        "analyzer_model": "claude-sonnet-4-6",
+        "timestamp": "2026-04-29T13:59:00Z",
+        "skill_version": "0.5",
+        "runs_per_configuration": 1,
+        "notes": "3 evals \u00d7 2 configs \u00d7 1 run = 6 runs at SKILL.md v0.5. All transcripts graded by Sonnet 4.6 (analyzer-uniformity, no Opus self-grading). Eval 3 (branch-name-collision) excluded \u2014 fixture requires a git remote with the natural branch name pre-existing, meaningfully heavier setup than the other three evals; flagged as a follow-up candidate. Per-run usage (time/tokens/cache_tokens/tool_calls/errors) recovered from subagent JSONL transcripts."
+      }
+    ],
+    "timestamp": "2026-04-29T13:59:00Z",
+    "evals_run": [
+      1,
+      2,
+      4
+    ],
     "runs_per_configuration": 1
+  },
+  "notes": [],
+  "run_summary_by_model": {
+    "claude-sonnet-4-6": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 1.0,
+          "stddev": 0.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 51.2233,
+          "stddev": 4.6809,
+          "min": 45.96,
+          "max": 54.92
+        },
+        "tokens": {
+          "mean": 2364.3333,
+          "stddev": 171.7974,
+          "min": 2187,
+          "max": 2530
+        },
+        "cache_tokens": {
+          "mean": 583183,
+          "stddev": 88813.524,
+          "min": 489863,
+          "max": 666672
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.7083,
+          "stddev": 0.0722,
+          "min": 0.625,
+          "max": 0.75
+        },
+        "time_seconds": {
+          "mean": 35.4633,
+          "stddev": 9.8,
+          "min": 26.25,
+          "max": 45.76
+        },
+        "tokens": {
+          "mean": 1505.6667,
+          "stddev": 191.1474,
+          "min": 1319,
+          "max": 1701
+        },
+        "cache_tokens": {
+          "mean": 228080.6667,
+          "stddev": 59358.1438,
+          "min": 175681,
+          "max": 292544
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.29",
+        "time_seconds": "+15.8",
+        "tokens": "+859",
+        "cache_tokens": "+355102"
+      }
+    },
+    "claude-opus-4-7": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 1.0,
+          "stddev": 0.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 51.7767,
+          "stddev": 7.1533,
+          "min": 44.83,
+          "max": 59.12
+        },
+        "tokens": {
+          "mean": 3272,
+          "stddev": 446.9094,
+          "min": 2924,
+          "max": 3776
+        },
+        "cache_tokens": {
+          "mean": 807498,
+          "stddev": 123640.6643,
+          "min": 679885,
+          "max": 926741
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.625,
+          "stddev": 0.125,
+          "min": 0.5,
+          "max": 0.75
+        },
+        "time_seconds": {
+          "mean": 45.1767,
+          "stddev": 4.0999,
+          "min": 40.48,
+          "max": 48.04
+        },
+        "tokens": {
+          "mean": 2027.3333,
+          "stddev": 608.5839,
+          "min": 1643,
+          "max": 2729
+        },
+        "cache_tokens": {
+          "mean": 373502,
+          "stddev": 16047.6868,
+          "min": 355021,
+          "max": 383912
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.38",
+        "time_seconds": "+6.6",
+        "tokens": "+1245",
+        "cache_tokens": "+433996"
+      }
+    }
+  },
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 51.7767,
+        "stddev": 7.1533,
+        "min": 44.83,
+        "max": 59.12
+      },
+      "tokens": {
+        "mean": 3272,
+        "stddev": 446.9094,
+        "min": 2924,
+        "max": 3776
+      },
+      "cache_tokens": {
+        "mean": 807498,
+        "stddev": 123640.6643,
+        "min": 679885,
+        "max": 926741
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.625,
+        "stddev": 0.125,
+        "min": 0.5,
+        "max": 0.75
+      },
+      "time_seconds": {
+        "mean": 45.1767,
+        "stddev": 4.0999,
+        "min": 40.48,
+        "max": 48.04
+      },
+      "tokens": {
+        "mean": 2027.3333,
+        "stddev": 608.5839,
+        "min": 1643,
+        "max": 2729
+      },
+      "cache_tokens": {
+        "mean": 373502,
+        "stddev": 16047.6868,
+        "min": 355021,
+        "max": 383912
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.38",
+      "time_seconds": "+6.6",
+      "tokens": "+1245",
+      "cache_tokens": "+433996"
+    }
   },
   "runs": [
     {
       "eval_id": 1,
       "eval_name": "bug-fix-null-check",
-      "configuration": "with_skill",
       "run_number": 1,
+      "configuration": "with_skill",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:58:00Z",
       "result": {
         "pass_rate": 1.0,
         "passed": 8,
         "failed": 0,
         "total": 8,
-        "time_seconds": 121.1,
-        "tokens": 20393,
-        "tool_calls": 23,
+        "time_seconds": 54.92,
+        "tokens": 2530,
+        "cache_tokens": 593014,
+        "tool_calls": 13,
         "errors": 0
       },
       "expectations": [
-        {"text": "Branch name starts with 'fix/' prefix", "passed": true, "evidence": "branch_name.txt: 'fix/users-api-null-checks'"},
-        {"text": "Commit message follows conventional format: 'type: description'", "passed": true, "evidence": "'fix: add null checks to users API getUser and updateUser'"},
-        {"text": "PR body contains a '## Summary' section with at least one bullet point", "passed": true, "evidence": "## Summary with 3 bullets"},
-        {"text": "PR body contains a '## Test Plan' section with at least one item", "passed": true, "evidence": "## Test Plan with 4 checklist items"},
-        {"text": "No .env or credential files were staged or committed", "passed": true, "evidence": "Only src/api/users.js was staged"},
-        {"text": "Transcript shows 'git fetch' was run before pushing to check for divergence", "passed": true, "evidence": "Step 4: git fetch origin executed (failed due to fake remote, but step was run)"},
-        {"text": "Transcript shows 'git ls-remote --heads origin' was run to check for branch name collision", "passed": true, "evidence": "Step 2: git ls-remote --heads origin fix/users-api-null-checks was run"},
-        {"text": "The gh pr create command uses --base to explicitly target the default branch", "passed": true, "evidence": "Skill instructs --base; draft-pr eval explicitly confirmed 'gh pr create --base main --draft'"}
+        {
+          "text": "Branch name starts with 'fix/' prefix",
+          "passed": true,
+          "evidence": "BRANCH_NAME: fix/add-null-checks-to-user-api"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description' (e.g. 'fix: handle null user in getUser')",
+          "passed": true,
+          "evidence": "COMMITS: fix: add null checks to getUser and updateUser functions"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR_BODY contains '## Summary' followed by bullet points starting with '- Add early-return null guard to `getUser`...'"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section with at least one item",
+          "passed": true,
+          "evidence": "PR_BODY contains '## Test Plan' followed by '- [ ] Call `getUser(null)` and `getUser(undefined)`...'"
+        },
+        {
+          "text": "No .env or credential files were staged or committed",
+          "passed": true,
+          "evidence": "Step 9: 'git add src/api/users.js' \u2014 only src/api/users.js was staged; step 10 confirms 'git diff --cached --name-only' showed only src/api/users.js"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": true,
+          "evidence": "Step 12: 'git fetch origin'; Step 13: 'git log HEAD..origin/main --oneline \u2014 no divergence (empty output)'"
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": true,
+          "evidence": "Step 7: 'git ls-remote --heads origin fix/add-null-checks-to-user-api \u2014 branch does not exist on remote'"
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "[would-run] gh pr create --base main --title 'fix: add null checks to getUser and updateUser functions' ..."
+        }
       ],
       "notes": []
     },
     {
       "eval_id": 1,
       "eval_name": "bug-fix-null-check",
-      "configuration": "without_skill",
       "run_number": 1,
+      "configuration": "without_skill",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:58:00Z",
       "result": {
-        "pass_rate": 0.625,
-        "passed": 5,
-        "failed": 3,
+        "pass_rate": 0.75,
+        "passed": 6,
+        "failed": 2,
         "total": 8,
-        "time_seconds": 66.7,
-        "tokens": 15172,
-        "tool_calls": 13,
+        "time_seconds": 26.25,
+        "tokens": 1497,
+        "cache_tokens": 175681,
+        "tool_calls": 7,
         "errors": 0
       },
       "expectations": [
-        {"text": "Branch name starts with 'fix/' prefix", "passed": true, "evidence": "branch_name.txt: 'fix/users-api-null-checks'"},
-        {"text": "Commit message follows conventional format: 'type: description'", "passed": true, "evidence": "'fix: add null checks to users API functions'"},
-        {"text": "PR body contains a '## Summary' section with at least one bullet point", "passed": true, "evidence": "## Summary with 3 bullets"},
-        {"text": "PR body contains a '## Test Plan' section with at least one item", "passed": true, "evidence": "## Test plan with 6 checklist items"},
-        {"text": "No .env or credential files were staged or committed", "passed": true, "evidence": "Only src/api/users.js was staged"},
-        {"text": "Transcript shows 'git fetch' was run before pushing to check for divergence", "passed": false, "evidence": "Went straight from commit to git push with no fetch step"},
-        {"text": "Transcript shows 'git ls-remote --heads origin' was run to check for branch name collision", "passed": false, "evidence": "git checkout -b ran with no prior ls-remote check"},
-        {"text": "The gh pr create command uses --base to explicitly target the default branch", "passed": false, "evidence": "'Would have run: gh pr create --title ... --body ...' — no --base flag"}
+        {
+          "text": "Branch name starts with 'fix/' prefix",
+          "passed": true,
+          "evidence": "BRANCH_NAME: fix/null-check-users-api; step 5: git checkout -b fix/null-check-users-api"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description' (e.g. 'fix: handle null user in getUser')",
+          "passed": true,
+          "evidence": "COMMITS: fix: add null checks to getUser and updateUser"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR_BODY contains '## Summary' followed by bullet points: '- Added null guard to `getUser(id)`...' and '- Added null guard to `updateUser(id, data)`...'"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section with at least one item",
+          "passed": true,
+          "evidence": "PR_BODY contains '## Test plan' followed by three checkbox items. Note: heading casing is 'Test plan' rather than 'Test Plan' but the section exists with items."
+        },
+        {
+          "text": "No .env or credential files were staged or committed",
+          "passed": true,
+          "evidence": "Step 6 shows only 'git add src/api/users.js' was staged. No .env or credential files appear anywhere in the workflow steps."
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": false,
+          "evidence": "Workflow steps 1-9 show no 'git fetch' command. Steps go directly from commit (step 7) to push (step 8)."
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": false,
+          "evidence": "No 'git ls-remote --heads origin' command appears anywhere in the workflow steps (1-9)."
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "[would-run] gh pr create --title '...' --base main --head fix/null-check-users-api"
+        }
       ],
       "notes": []
     },
     {
       "eval_id": 2,
       "eval_name": "draft-pr-wip-feature",
-      "configuration": "with_skill",
       "run_number": 1,
+      "configuration": "with_skill",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:58:00Z",
       "result": {
         "pass_rate": 1.0,
         "passed": 8,
         "failed": 0,
         "total": 8,
-        "time_seconds": 110.5,
-        "tokens": 20901,
-        "tool_calls": 21,
+        "time_seconds": 45.96,
+        "tokens": 2187,
+        "cache_tokens": 489863,
+        "tool_calls": 11,
         "errors": 0
       },
       "expectations": [
-        {"text": "Branch name starts with 'feat/' prefix", "passed": true, "evidence": "branch_name.txt: 'feat/onboarding-flow'"},
-        {"text": "Commit message follows conventional format: 'type: description'", "passed": true, "evidence": "'feat: add onboarding flow with step tracking'"},
-        {"text": "Draft mode detected — --draft flag would be used", "passed": true, "evidence": "draft_mode.txt: 'yes'; transcript: 'gh pr create --base main --draft'"},
-        {"text": "PR body contains a '## Summary' section with at least one bullet point", "passed": true, "evidence": "## Summary with 3 bullets"},
-        {"text": "PR body contains a '## Test Plan' section with at least one item", "passed": true, "evidence": "## Test Plan with 3 checklist items"},
-        {"text": "Transcript shows 'git fetch' was run before pushing to check for divergence", "passed": true, "evidence": "Step 4: git fetch origin executed"},
-        {"text": "Transcript shows 'git ls-remote --heads origin' was run to check for branch name collision", "passed": true, "evidence": "Step 2: git ls-remote --heads origin feat/onboarding-flow was run"},
-        {"text": "The gh pr create command uses --base to explicitly target the default branch", "passed": true, "evidence": "Transcript explicitly shows: 'gh pr create --base main --draft --title ...'"}
+        {
+          "text": "Branch name starts with 'feat/' prefix",
+          "passed": true,
+          "evidence": "BRANCH_NAME: feat/onboarding-flow"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description'",
+          "passed": true,
+          "evidence": "COMMITS: feat: add WIP onboarding flow scaffold"
+        },
+        {
+          "text": "The word 'draft' appears in the gh pr create command or the agent explicitly notes draft mode should be used",
+          "passed": true,
+          "evidence": "[would-run] gh pr create --base main --draft --title ...; DRAFT_FLAG_USED: yes"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR body includes '## Summary' followed by bullet points: '- Adds a multi-step `OnboardingFlow` React component...'"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section with at least one item",
+          "passed": true,
+          "evidence": "PR body includes '## Test Plan' with items: '- [ ] Render `OnboardingFlow` and verify step navigation...'"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": true,
+          "evidence": "Step 13: git fetch origin, followed by step 14: git log HEAD..origin/main --oneline, before step 15: git push"
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": true,
+          "evidence": "Step 8: git ls-remote --heads origin feat/onboarding-flow"
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "[would-run] gh pr create --base main --draft --title ..."
+        }
       ],
       "notes": []
     },
     {
       "eval_id": 2,
       "eval_name": "draft-pr-wip-feature",
-      "configuration": "without_skill",
       "run_number": 1,
+      "configuration": "without_skill",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:58:00Z",
       "result": {
         "pass_rate": 0.625,
         "passed": 5,
         "failed": 3,
         "total": 8,
-        "time_seconds": 65.2,
-        "tokens": 15458,
-        "tool_calls": 15,
+        "time_seconds": 45.76,
+        "tokens": 1701,
+        "cache_tokens": 292544,
+        "tool_calls": 12,
         "errors": 0
       },
       "expectations": [
-        {"text": "Branch name starts with 'feat/' prefix", "passed": true, "evidence": "branch_name.txt: 'feat/onboarding-flow'"},
-        {"text": "Commit message follows conventional format: 'type: description'", "passed": true, "evidence": "'feat: add onboarding flow prototype'"},
-        {"text": "Draft mode detected — --draft flag would be used", "passed": true, "evidence": "draft_mode.txt: 'yes'; inferred from 'prototyping' and TODO comments"},
-        {"text": "PR body contains a '## Summary' section with at least one bullet point", "passed": true, "evidence": "## Summary paragraph + ### Changes bullets"},
-        {"text": "PR body contains a '## Test Plan' section with at least one item", "passed": true, "evidence": "## Test plan with 3 checklist items"},
-        {"text": "Transcript shows 'git fetch' was run before pushing to check for divergence", "passed": false, "evidence": "Went from commit directly to git push with no fetch"},
-        {"text": "Transcript shows 'git ls-remote --heads origin' was run to check for branch name collision", "passed": false, "evidence": "git checkout -b with no prior ls-remote check"},
-        {"text": "The gh pr create command uses --base to explicitly target the default branch", "passed": false, "evidence": "'Would have run: gh pr create --draft --title ...' — no --base flag"}
+        {
+          "text": "Branch name starts with 'feat/' prefix",
+          "passed": true,
+          "evidence": "BRANCH_NAME: feat/onboarding-flow; step 6: git checkout -b feat/onboarding-flow"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description'",
+          "passed": true,
+          "evidence": "COMMITS: feat: add onboarding flow prototype; step 8: git commit -m \"feat: add onboarding flow prototype ...\""
+        },
+        {
+          "text": "The word 'draft' appears in the gh pr create command or the agent explicitly notes draft mode should be used",
+          "passed": true,
+          "evidence": "DRAFT_FLAG_USED: yes; step 11: gh pr create --draft --base main ..."
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR body contains '## Summary' section followed by prose and '### What's included' subsection with bullet points for OnboardingFlow component, steps.js, and index.js"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section with at least one item",
+          "passed": false,
+          "evidence": "No '## Test Plan' section in the PR body. Body contains '## Summary', '### What's included', and '### Still WIP' sections only."
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": false,
+          "evidence": "No 'git fetch' command in the workflow steps. Steps proceed directly from reading files to branch creation, staging, committing, and pushing without any fetch."
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": false,
+          "evidence": "No 'git ls-remote --heads origin' command in the workflow steps. No remote branch existence check was performed."
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "step 11: gh pr create --draft --base main --head feat/onboarding-flow ..."
+        }
       ],
       "notes": []
     },
     {
-      "eval_id": 3,
+      "eval_id": 4,
       "eval_name": "refactor-with-branch-name",
-      "configuration": "with_skill",
       "run_number": 1,
+      "configuration": "with_skill",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:58:00Z",
       "result": {
         "pass_rate": 1.0,
         "passed": 8,
         "failed": 0,
         "total": 8,
-        "time_seconds": 115.4,
-        "tokens": 22710,
-        "tool_calls": 24,
+        "time_seconds": 52.79,
+        "tokens": 2376,
+        "cache_tokens": 666672,
+        "tool_calls": 12,
         "errors": 0
       },
       "expectations": [
-        {"text": "Branch name is exactly 'refactor/auth-service' as specified by the user", "passed": true, "evidence": "branch_name.txt: 'refactor/auth-service'"},
-        {"text": "Commit message follows conventional format: 'type: description'", "passed": true, "evidence": "'refactor: modularize auth service into focused sub-modules'"},
-        {"text": "PR body contains a '## Summary' section with at least one bullet point", "passed": true, "evidence": "## Summary with 3 bullets"},
-        {"text": "PR body contains a '## Test Plan' section", "passed": true, "evidence": "## Test Plan with 4 checklist items"},
-        {"text": "PR title reflects auth refactor (not generic)", "passed": true, "evidence": "'refactor: modularize auth service into focused sub-modules'"},
-        {"text": "Transcript shows 'git fetch' was run before pushing to check for divergence", "passed": true, "evidence": "Step 4: git fetch origin executed"},
-        {"text": "Transcript shows 'git ls-remote --heads origin' was run to check for branch name collision", "passed": true, "evidence": "Step 2: git ls-remote --heads origin refactor/auth-service was run"},
-        {"text": "The gh pr create command uses --base to explicitly target the default branch", "passed": true, "evidence": "Skill instructs --base; consistent with draft-pr eval confirmation"}
+        {
+          "text": "Branch name is exactly 'refactor/auth-service' as specified by the user",
+          "passed": true,
+          "evidence": "BRANCH_NAME: refactor/auth-service; step 9: git checkout -b refactor/auth-service"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description'",
+          "passed": true,
+          "evidence": "COMMITS: refactor: extract auth service into modular session and middleware layers"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR body contains '## Summary' followed by three bullet points starting with '- Extracted session logic...', '- Added src/auth/index.js...', '- Refactored src/middleware/auth.js...'"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section",
+          "passed": true,
+          "evidence": "PR body contains '## Test Plan' with three checklist items"
+        },
+        {
+          "text": "PR title reflects auth refactor (not a generic title like 'chore: changes')",
+          "passed": true,
+          "evidence": "PR_TITLE: refactor: auth service \u2014 specifically references auth and uses 'refactor' type"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": true,
+          "evidence": "Step 13: git fetch origin; step 14: git log HEAD..origin/main --oneline (no divergence) \u2014 both before push at step 15"
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": true,
+          "evidence": "Step 8: git ls-remote --heads origin refactor/auth-service \u2014 branch name confirmed free"
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "Step 18: gh pr create --base main --title \"refactor: auth service\" --body ..."
+        }
       ],
       "notes": []
     },
     {
-      "eval_id": 3,
+      "eval_id": 4,
       "eval_name": "refactor-with-branch-name",
-      "configuration": "without_skill",
       "run_number": 1,
+      "configuration": "without_skill",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:58:00Z",
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 6,
+        "failed": 2,
+        "total": 8,
+        "time_seconds": 34.38,
+        "tokens": 1319,
+        "cache_tokens": 216017,
+        "tool_calls": 9,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Branch name is exactly 'refactor/auth-service' as specified by the user",
+          "passed": true,
+          "evidence": "BRANCH_NAME: refactor/auth-service; 'git checkout -b refactor/auth-service'"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description'",
+          "passed": true,
+          "evidence": "COMMITS: refactor: extract auth logic into dedicated auth service"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR_BODY includes '## Summary' followed by three bullet points starting with '-'"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section",
+          "passed": true,
+          "evidence": "PR_BODY includes '## Test plan' with three checklist items (note: lowercase 'p' in 'plan')"
+        },
+        {
+          "text": "PR title reflects auth refactor (not a generic title like 'chore: changes')",
+          "passed": true,
+          "evidence": "PR_TITLE: refactor: extract auth logic into dedicated auth service"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": false,
+          "evidence": "No 'git fetch' command appears in the workflow steps; steps go directly from commit to push"
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": false,
+          "evidence": "No 'git ls-remote --heads origin' command appears in the workflow steps"
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "[would-run] gh pr create --base main --head refactor/auth-service ..."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "bug-fix-null-check",
+      "run_number": 1,
+      "configuration": "with_skill",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:59:00Z",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 51.38,
+        "tokens": 3116,
+        "cache_tokens": 815868,
+        "tool_calls": 12,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Branch name starts with 'fix/' prefix",
+          "passed": true,
+          "evidence": "BRANCH_NAME: fix/handle-null-response"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description' (e.g. 'fix: handle null user in getUser')",
+          "passed": true,
+          "evidence": "COMMITS: fix: add null checks to user API functions"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "## Summary followed by bullet points: '- Guard `getUser` against null/undefined `id`...' and '- Guard `updateUser` against null/undefined `id` or `data`...'"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section with at least one item",
+          "passed": true,
+          "evidence": "## Test Plan followed by '- [ ] Call `getUser(null)` and `getUser(undefined)` and confirm they return `null`...'"
+        },
+        {
+          "text": "No .env or credential files were staged or committed",
+          "passed": true,
+          "evidence": "git add src/api/users.js \u2014 only users.js was staged; no .env or credential files appear in any git add command"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": true,
+          "evidence": "Step 12: git fetch origin (followed by step 13: git log HEAD..origin/main --oneline, empty output)"
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": true,
+          "evidence": "Step 7: git ls-remote --heads origin fix/handle-null-response \u2014 empty, name available"
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "Step 17: [would-run] gh pr create --base main --title \"fix: add null checks to user API functions\" --body ..."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "bug-fix-null-check",
+      "run_number": 1,
+      "configuration": "without_skill",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:59:00Z",
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 4,
+        "failed": 4,
+        "total": 8,
+        "time_seconds": 47.01,
+        "tokens": 1643,
+        "cache_tokens": 383912,
+        "tool_calls": 11,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Branch name starts with 'fix/' prefix",
+          "passed": true,
+          "evidence": "BRANCH_NAME: fix/null-check-users-api; step 10: git checkout -b fix/null-check-users-api"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description' (e.g. 'fix: handle null user in getUser')",
+          "passed": false,
+          "evidence": "COMMITS: 'Add users API with null-safe getUser and updateUser' \u2014 no conventional 'type: description' prefix (no 'fix:', 'feat:', etc.)"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR body contains '## Summary' with bullet points for getUser and updateUser"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section with at least one item",
+          "passed": true,
+          "evidence": "PR body contains '## Test plan' with three checkbox items"
+        },
+        {
+          "text": "No .env or credential files were staged or committed",
+          "passed": true,
+          "evidence": "Step 11 shows only 'git add src/api/users.js' was staged; no .env or credential files appear in any git add or diff commands"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": false,
+          "evidence": "No 'git fetch' command appears anywhere in the workflow steps (1-16)"
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": false,
+          "evidence": "No 'git ls-remote --heads origin' command appears anywhere in the workflow steps (1-16)"
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": false,
+          "evidence": "Step 16: '[would-run] gh pr create --title \"Add users API with null-safe getUser and updateUser\" --body ...' \u2014 no --base flag present"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "draft-pr-wip-feature",
+      "run_number": 1,
+      "configuration": "with_skill",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:59:00Z",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 59.12,
+        "tokens": 3776,
+        "cache_tokens": 926741,
+        "tool_calls": 16,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Branch name starts with 'feat/' prefix",
+          "passed": true,
+          "evidence": "BRANCH_NAME: feat/onboarding-flow-wip; 'git checkout -b feat/onboarding-flow-wip'"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description'",
+          "passed": true,
+          "evidence": "COMMITS: feat: scaffold onboarding flow (WIP); git commit -m \"feat: scaffold onboarding flow (WIP)\""
+        },
+        {
+          "text": "The word 'draft' appears in the gh pr create command or the agent explicitly notes draft mode should be used",
+          "passed": true,
+          "evidence": "DRAFT_FLAG_USED: yes; gh pr create command includes '--draft' flag"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR body shows '## Summary' followed by three bullet points starting with '- Scaffolds...', '- Wires up...', '- Marks remaining work...'"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section with at least one item",
+          "passed": true,
+          "evidence": "PR body shows '## Test Plan' followed by three checklist items"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": true,
+          "evidence": "Step 15: 'git fetch origin', followed by step 16: 'git log HEAD..origin/main --oneline' before the push at step 17"
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": true,
+          "evidence": "Step 10: 'git ls-remote --heads origin feat/onboarding-flow-wip'"
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "gh pr create command includes '--base main': 'gh pr create --base main --draft --title ...'"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "draft-pr-wip-feature",
+      "run_number": 1,
+      "configuration": "without_skill",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:59:00Z",
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 6,
+        "failed": 2,
+        "total": 8,
+        "time_seconds": 48.04,
+        "tokens": 2729,
+        "cache_tokens": 381573,
+        "tool_calls": 11,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Branch name starts with 'feat/' prefix",
+          "passed": true,
+          "evidence": "BRANCH_NAME: feat/onboarding-flow-wip; git checkout -b feat/onboarding-flow-wip (step 10)"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description'",
+          "passed": true,
+          "evidence": "COMMITS: feat(onboarding): scaffold WIP onboarding flow \u2014 uses conventional commit format 'type(scope): description'"
+        },
+        {
+          "text": "The word 'draft' appears in the gh pr create command or the agent explicitly notes draft mode should be used",
+          "passed": true,
+          "evidence": "DRAFT_FLAG_USED: yes; gh pr create --draft ... (step 15)"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR_BODY includes '## Summary' section with multiple bullet points: '- `OnboardingFlow.js`...', '- `steps.js`...', '- `index.js`...'"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section with at least one item",
+          "passed": true,
+          "evidence": "PR_BODY includes '## Test plan' section with items: '- [ ] Manual smoke test once real step components land' and '- [ ] Unit tests for step navigation'"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": false,
+          "evidence": "No 'git fetch' command appears in the workflow steps. The agent went directly from commit to 'git push -u origin feat/onboarding-flow-wip' without fetching first."
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": false,
+          "evidence": "No 'git ls-remote --heads origin' command appears anywhere in the workflow steps."
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "gh pr create --draft --base main --head feat/onboarding-flow-wip ... \u2014 explicitly uses --base main"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "refactor-with-branch-name",
+      "run_number": 1,
+      "configuration": "with_skill",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:59:00Z",
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 8,
+        "failed": 0,
+        "total": 8,
+        "time_seconds": 44.83,
+        "tokens": 2924,
+        "cache_tokens": 679885,
+        "tool_calls": 10,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Branch name is exactly 'refactor/auth-service' as specified by the user",
+          "passed": true,
+          "evidence": "BRANCH_NAME: refactor/auth-service; git checkout -b refactor/auth-service (step 10); git push -u origin refactor/auth-service (step 16)"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description'",
+          "passed": true,
+          "evidence": "COMMITS: refactor: extract auth service from middleware; git commit -m \"refactor: extract auth service from middleware\" (step 13)"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": true,
+          "evidence": "PR_BODY includes '## Summary' followed by three bullet points starting with '- Extract session logic...'"
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section",
+          "passed": true,
+          "evidence": "PR_BODY includes '## Test Plan' with three checklist items"
+        },
+        {
+          "text": "PR title reflects auth refactor (not a generic title like 'chore: changes')",
+          "passed": true,
+          "evidence": "PR_TITLE: refactor: extract auth service from middleware"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": true,
+          "evidence": "Step 14: git fetch origin \u2014 run before git push at step 16"
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": true,
+          "evidence": "Step 9: git ls-remote --heads origin refactor/auth-service"
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "Step 19: [would-run] gh pr create --base main --title \"refactor: extract auth service from middleware\" ..."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "refactor-with-branch-name",
+      "run_number": 1,
+      "configuration": "without_skill",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "timestamp": "2026-04-29T13:59:00Z",
       "result": {
         "pass_rate": 0.625,
         "passed": 5,
         "failed": 3,
         "total": 8,
-        "time_seconds": 92.3,
-        "tokens": 18156,
-        "tool_calls": 17,
+        "time_seconds": 40.48,
+        "tokens": 1710,
+        "cache_tokens": 355021,
+        "tool_calls": 11,
         "errors": 0
       },
       "expectations": [
-        {"text": "Branch name is exactly 'refactor/auth-service' as specified by the user", "passed": true, "evidence": "branch_name.txt: 'refactor/auth-service'"},
-        {"text": "Commit message follows conventional format: 'type: description'", "passed": true, "evidence": "'refactor: decompose auth module into focused, async-aware submodules'"},
-        {"text": "PR body contains a '## Summary' section with at least one bullet point", "passed": true, "evidence": "## Summary with 3 bullets"},
-        {"text": "PR body contains a '## Test Plan' section", "passed": true, "evidence": "## Test plan with 6 checklist items"},
-        {"text": "PR title reflects auth refactor (not generic)", "passed": true, "evidence": "'refactor: decompose auth service into modular, async-aware submodules'"},
-        {"text": "Transcript shows 'git fetch' was run before pushing to check for divergence", "passed": false, "evidence": "Went from git commit directly to git push with no fetch step"},
-        {"text": "Transcript shows 'git ls-remote --heads origin' was run to check for branch name collision", "passed": false, "evidence": "git checkout -b ran with no prior ls-remote check"},
-        {"text": "The gh pr create command uses --base to explicitly target the default branch", "passed": false, "evidence": "No --base mentioned anywhere in transcript"}
+        {
+          "text": "Branch name is exactly 'refactor/auth-service' as specified by the user",
+          "passed": true,
+          "evidence": "BRANCH_NAME: refactor/auth-service; step 5: git checkout -b refactor/auth-service"
+        },
+        {
+          "text": "Commit message follows conventional format: 'type: description'",
+          "passed": true,
+          "evidence": "COMMITS: refactor(auth): extract session logic into dedicated auth module \u2014 follows conventional commits format 'type(scope): description'"
+        },
+        {
+          "text": "PR body contains a '## Summary' section with at least one bullet point",
+          "passed": false,
+          "evidence": "PR body has a '## Summary' section but it contains only a paragraph of prose, not a bullet point. Bullet points appear under '## Changes', not '## Summary'."
+        },
+        {
+          "text": "PR body contains a '## Test Plan' section",
+          "passed": true,
+          "evidence": "PR body contains '## Test plan' section with three checklist items (lowercase 'plan' but section is present)"
+        },
+        {
+          "text": "PR title reflects auth refactor (not a generic title like 'chore: changes')",
+          "passed": true,
+          "evidence": "PR_TITLE: refactor(auth): extract session logic into dedicated auth module \u2014 clearly reflects auth refactor"
+        },
+        {
+          "text": "Transcript shows 'git fetch' was run before pushing to check for divergence from the default branch",
+          "passed": false,
+          "evidence": "Workflow steps show: git status, git log, git branch -a, git checkout -b, git add, git status, git commit, git push. No 'git fetch' was run at any point."
+        },
+        {
+          "text": "Transcript shows 'git ls-remote --heads origin' was run to check if the branch name already exists on remote",
+          "passed": false,
+          "evidence": "No 'git ls-remote --heads origin' command appears in the workflow steps. Only git branch -a was run."
+        },
+        {
+          "text": "The gh pr create command uses --base to explicitly target the default branch (prevents wrong-branch PRs in forks)",
+          "passed": true,
+          "evidence": "Step 10: [would-run] gh pr create --base main --head refactor/auth-service \u2014 '--base main' is explicitly specified"
+        }
       ],
       "notes": []
     }
-  ],
-  "run_summary": {
-    "with_skill": {
-      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
-      "time_seconds": {"mean": 115.7, "stddev": 4.3, "min": 110.5, "max": 121.1},
-      "tokens": {"mean": 21335, "stddev": 1203, "min": 20393, "max": 22710}
-    },
-    "without_skill": {
-      "pass_rate": {"mean": 0.625, "stddev": 0.0, "min": 0.625, "max": 0.625},
-      "time_seconds": {"mean": 74.7, "stddev": 14.8, "min": 65.2, "max": 92.3},
-      "tokens": {"mean": 16262, "stddev": 1668, "min": 15172, "max": 18156}
-    },
-    "delta": {
-      "pass_rate": "+0.38",
-      "time_seconds": "+41.0",
-      "tokens": "+5073"
-    }
-  },
-  "notes": [
-    "Process assertions (3 new): with_skill 3/3 pass, without_skill 0/3 pass — skill consistently runs divergence check, branch collision check, and --base flag; baseline skips all three.",
-    "Output quality assertions (5 original): both configurations 5/5 — Claude naturally produces conventional commits, proper branch prefixes, and structured PR bodies regardless of skill guidance.",
-    "The skill adds ~41s and ~5000 tokens overhead per run from reading the skill file and following the structured checklist.",
-    "Timing caveat: without_skill is faster partly because it skips the 3 process checks the skill mandates.",
-    "All 3 failed assertions in without_skill are omissions (things not done), not errors — Claude doesn't actively do the wrong thing, it just skips safety steps."
   ]
 }
