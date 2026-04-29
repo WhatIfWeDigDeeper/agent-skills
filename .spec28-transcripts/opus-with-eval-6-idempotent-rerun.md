@@ -4,7 +4,7 @@ CONFIG: with_skill (opus)
 
 TOOLS_USED: Read: 2, Bash: 4, Write: 2, Other: -
 
-GH_EDIT_COMMAND: gh pr edit 42 --body-file /tmp/claude-501/exec-opus-with-eval-6-NdUNAd/new_body.md
+GH_EDIT_COMMAND: gh pr edit 42 --body-file [redacted-temp-path]
 
 FINAL_PR_BODY (verbatim):
 <<<BODY

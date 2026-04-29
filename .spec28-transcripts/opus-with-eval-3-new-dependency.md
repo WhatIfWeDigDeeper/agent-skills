@@ -4,7 +4,7 @@ CONFIG: with_skill (opus)
 
 TOOLS_USED: Read: 2, Bash: 3, Write: 2, Other: none
 
-GH_EDIT_COMMAND: gh pr edit 67 --body-file /tmp/claude-501/exec-opus-with-eval-3-TayGZg/pr-body.md
+GH_EDIT_COMMAND: gh pr edit 67 --body-file [redacted-temp-path]
 
 FINAL_PR_BODY (verbatim):
 <<<BODY

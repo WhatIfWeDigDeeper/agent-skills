@@ -4,7 +4,7 @@ CONFIG: without_skill (opus)
 
 TOOLS_USED: Read: 0, Bash: 2, Write: 1, Other: none
 
-GH_EDIT_COMMAND: gh pr edit 73 --body-file /tmp/claude-501/exec-opus-without-eval-7-TUm3sN/pr-body.md
+GH_EDIT_COMMAND: gh pr edit 73 --body-file [redacted-temp-path]
 
 FINAL_PR_BODY (verbatim):
 <<<BODY
