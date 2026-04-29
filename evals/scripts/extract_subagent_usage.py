@@ -3,8 +3,10 @@
 
 The runtime stores each spawned subagent's full transcript at
 `~/.claude/projects/<project-key>/subagents/agent-<id>.jsonl`. The agent's
-`output_file` symlink (returned at spawn time and visible in
-`/private/tmp/claude-501/.../tasks/<id>.output`) points there. This file
+`output_file` symlink (returned at spawn time and visible at
+`${TMPDIR:-/private/tmp}/claude-<uid>/.../tasks/<id>.output`, where
+`<uid>` is the user's POSIX uid; `TMPDIR` switches between sandboxed and
+non-sandboxed Claude Code runs) points there. This file
 records every assistant turn's `message.model`, `message.usage`, content
 blocks (tool_use / tool_result / text), and timestamps — which means
 per-subagent time, tokens, tool calls, and errors are recoverable post-hoc
