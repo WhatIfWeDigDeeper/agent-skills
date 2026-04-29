@@ -72,6 +72,8 @@ Evals live under `evals/` at the repo root, not inside `skills/` — they are de
 - **jq bot-login exclusions need exact equality, not `contains()`**: when excluding a specific bot from a jq filter, use `.user.login == "claude[bot]"` — not `.user.login | contains("claude")`, which silently excludes unrelated bots sharing the substring (e.g. `claude-reviewer[bot]`, `claude-pr-reviewer[bot]`). This bug is easy to introduce and passes casual review; catch it by naming the exact login you mean to exclude.
 - **Bash auto-backgrounds long-running commands**: use `TaskOutput` (`block: true`, `timeout: 300000`) to retrieve output — don't retry, it's already running.
 - **GitHub Actions `workflow_dispatch` inputs**: never use `${{ inputs.field }}` directly in `run:` (injection risk) — pass via `env: VAR: ${{ inputs.field }}` and reference `"$VAR"`. Sanitize before using in git refs.
+- **Don't `SendMessage`-retry a transient-failed `Agent` launch** — the resume path silently inherits the parent's model, not the Agent's `model:` parameter. Re-spawn instead. Verify with `message.model` in the agent's JSONL.
+- **Subagent JSONL transcripts at `~/.claude/projects/.../subagents/agent-*.jsonl` record every turn's `message.model`, `message.usage`, tool blocks, and timestamps** — per-subagent time/tokens/tool_calls/errors are recoverable; parse the JSONL rather than recording them as `null`.
 
 ## Spell Checking
 
