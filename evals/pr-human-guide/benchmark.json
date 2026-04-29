@@ -38,7 +38,7 @@
   },
   "notes": [
     "Multi-model framing: Sonnet 4.6 and Opus 4.7 both ran the full 8-eval suite at SKILL.md v0.7. The previous v0.1 Sonnet runs were removed (git history retains the prior shape) so both models share an apples-to-apples skill version.",
-    "Per-run time_seconds and tokens are aggregated from the per-agent JSONL transcripts: time = max-minus-min event timestamp; tokens = input + output + cache-creation + cache-read tokens summed across all assistant turns. Cache reads dominate the token count because the prompt is large and re-read each turn.",
+    "Per-run stats are aggregated from the per-agent JSONL transcripts. time_seconds = max-minus-min event timestamp. tokens = input_tokens + output_tokens summed across all assistant turns (matches the repo's learn / pr-comments / peer-review convention \u2014 the 'new work' that drives full-rate billing). cache_tokens = cache_creation_input_tokens + cache_read_input_tokens summed similarly; this is tracked separately because cache reads (0.1x rate) dominate the volume but not the cost. tool_calls = count of tool_use content blocks. errors = count of tool_result blocks with is_error: true.",
     "Sonnet with_skill runs were re-spawned to correct an executor-model mismatch: the first batch hit transient 529 errors at spawn time, was resumed via SendMessage, and the resume path inherited the parent's claude-opus-4-7 instead of the original claude-sonnet-4-6 model. The re-spawns ran cleanly on Sonnet 4.6, verified by inspecting message.model in each agent's JSONL.",
     "Two Sonnet without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool despite the SKILL.md/references read prohibition; those runs were re-spawned with explicit Skill-tool prohibition added to the executor prompt, and only the clean re-runs are recorded."
   ],
@@ -56,7 +56,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 67.62,
-        "tokens": 435052,
+        "tokens": 3251,
+        "cache_tokens": 431801,
         "tool_calls": 9,
         "errors": 1
       },
@@ -99,7 +100,8 @@
         "failed": 2,
         "total": 4,
         "time_seconds": 51.87,
-        "tokens": 134290,
+        "tokens": 4245,
+        "cache_tokens": 130045,
         "tool_calls": 3,
         "errors": 0
       },
@@ -142,7 +144,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 66.11,
-        "tokens": 418234,
+        "tokens": 3911,
+        "cache_tokens": 414323,
         "tool_calls": 9,
         "errors": 1
       },
@@ -185,7 +188,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 35.03,
-        "tokens": 94689,
+        "tokens": 2256,
+        "cache_tokens": 92433,
         "tool_calls": 3,
         "errors": 0
       },
@@ -228,7 +232,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 59.83,
-        "tokens": 432237,
+        "tokens": 3368,
+        "cache_tokens": 428869,
         "tool_calls": 9,
         "errors": 1
       },
@@ -271,7 +276,8 @@
         "failed": 1,
         "total": 4,
         "time_seconds": 39.49,
-        "tokens": 92266,
+        "tokens": 2542,
+        "cache_tokens": 89724,
         "tool_calls": 2,
         "errors": 0
       },
@@ -314,7 +320,8 @@
         "failed": 0,
         "total": 3,
         "time_seconds": 68.29,
-        "tokens": 504336,
+        "tokens": 3745,
+        "cache_tokens": 500591,
         "tool_calls": 9,
         "errors": 1
       },
@@ -352,7 +359,8 @@
         "failed": 1,
         "total": 3,
         "time_seconds": 38.23,
-        "tokens": 111079,
+        "tokens": 2232,
+        "cache_tokens": 108847,
         "tool_calls": 3,
         "errors": 0
       },
@@ -390,7 +398,8 @@
         "failed": 0,
         "total": 3,
         "time_seconds": 50.3,
-        "tokens": 359814,
+        "tokens": 2199,
+        "cache_tokens": 357615,
         "tool_calls": 8,
         "errors": 1
       },
@@ -428,7 +437,8 @@
         "failed": 2,
         "total": 3,
         "time_seconds": 57.43,
-        "tokens": 176161,
+        "tokens": 1397,
+        "cache_tokens": 174764,
         "tool_calls": 6,
         "errors": 1
       },
@@ -466,7 +476,8 @@
         "failed": 0,
         "total": 3,
         "time_seconds": 65.45,
-        "tokens": 471419,
+        "tokens": 3657,
+        "cache_tokens": 467762,
         "tool_calls": 9,
         "errors": 1
       },
@@ -504,7 +515,8 @@
         "failed": 0,
         "total": 3,
         "time_seconds": 32.22,
-        "tokens": 110274,
+        "tokens": 1412,
+        "cache_tokens": 108862,
         "tool_calls": 3,
         "errors": 0
       },
@@ -542,7 +554,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 61.65,
-        "tokens": 423576,
+        "tokens": 3282,
+        "cache_tokens": 420294,
         "tool_calls": 9,
         "errors": 1
       },
@@ -585,7 +598,8 @@
         "failed": 1,
         "total": 4,
         "time_seconds": 30.05,
-        "tokens": 109254,
+        "tokens": 1469,
+        "cache_tokens": 107785,
         "tool_calls": 3,
         "errors": 1
       },
@@ -628,7 +642,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 47.76,
-        "tokens": 391023,
+        "tokens": 1760,
+        "cache_tokens": 389263,
         "tool_calls": 8,
         "errors": 1
       },
@@ -671,7 +686,8 @@
         "failed": 2,
         "total": 4,
         "time_seconds": 63.52,
-        "tokens": 205941,
+        "tokens": 2937,
+        "cache_tokens": 203004,
         "tool_calls": 6,
         "errors": 1
       },
@@ -714,7 +730,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 49.46,
-        "tokens": 397032,
+        "tokens": 3380,
+        "cache_tokens": 393652,
         "tool_calls": 6,
         "errors": 0
       },
@@ -757,7 +774,8 @@
         "failed": 2,
         "total": 4,
         "time_seconds": 51.96,
-        "tokens": 176471,
+        "tokens": 3429,
+        "cache_tokens": 173042,
         "tool_calls": 3,
         "errors": 0
       },
@@ -800,7 +818,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 53.74,
-        "tokens": 579398,
+        "tokens": 3937,
+        "cache_tokens": 575461,
         "tool_calls": 8,
         "errors": 0
       },
@@ -843,7 +862,8 @@
         "failed": 1,
         "total": 4,
         "time_seconds": 50.0,
-        "tokens": 177762,
+        "tokens": 2978,
+        "cache_tokens": 174784,
         "tool_calls": 3,
         "errors": 0
       },
@@ -886,7 +906,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 59.33,
-        "tokens": 532075,
+        "tokens": 4544,
+        "cache_tokens": 527531,
         "tool_calls": 8,
         "errors": 0
       },
@@ -929,7 +950,8 @@
         "failed": 1,
         "total": 4,
         "time_seconds": 43.44,
-        "tokens": 148174,
+        "tokens": 1912,
+        "cache_tokens": 146262,
         "tool_calls": 3,
         "errors": 0
       },
@@ -972,7 +994,8 @@
         "failed": 0,
         "total": 3,
         "time_seconds": 60.49,
-        "tokens": 507571,
+        "tokens": 4330,
+        "cache_tokens": 503241,
         "tool_calls": 7,
         "errors": 0
       },
@@ -1010,7 +1033,8 @@
         "failed": 1,
         "total": 3,
         "time_seconds": 51.22,
-        "tokens": 176574,
+        "tokens": 3756,
+        "cache_tokens": 172818,
         "tool_calls": 3,
         "errors": 0
       },
@@ -1048,7 +1072,8 @@
         "failed": 0,
         "total": 3,
         "time_seconds": 40.79,
-        "tokens": 376179,
+        "tokens": 2081,
+        "cache_tokens": 374098,
         "tool_calls": 5,
         "errors": 0
       },
@@ -1086,7 +1111,8 @@
         "failed": 2,
         "total": 3,
         "time_seconds": 35.16,
-        "tokens": 150224,
+        "tokens": 2369,
+        "cache_tokens": 147855,
         "tool_calls": 3,
         "errors": 0
       },
@@ -1124,7 +1150,8 @@
         "failed": 0,
         "total": 3,
         "time_seconds": 66.56,
-        "tokens": 628119,
+        "tokens": 3985,
+        "cache_tokens": 624134,
         "tool_calls": 9,
         "errors": 0
       },
@@ -1162,7 +1189,8 @@
         "failed": 1,
         "total": 3,
         "time_seconds": 37.69,
-        "tokens": 149301,
+        "tokens": 2147,
+        "cache_tokens": 147154,
         "tool_calls": 3,
         "errors": 0
       },
@@ -1200,7 +1228,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 78.77,
-        "tokens": 681696,
+        "tokens": 4876,
+        "cache_tokens": 676820,
         "tool_calls": 10,
         "errors": 2
       },
@@ -1243,7 +1272,8 @@
         "failed": 2,
         "total": 4,
         "time_seconds": 51.12,
-        "tokens": 153122,
+        "tokens": 3370,
+        "cache_tokens": 149752,
         "tool_calls": 3,
         "errors": 0
       },
@@ -1286,7 +1316,8 @@
         "failed": 0,
         "total": 4,
         "time_seconds": 52.06,
-        "tokens": 504598,
+        "tokens": 3816,
+        "cache_tokens": 500782,
         "tool_calls": 7,
         "errors": 0
       },
@@ -1329,7 +1360,8 @@
         "failed": 2,
         "total": 4,
         "time_seconds": 48.19,
-        "tokens": 152138,
+        "tokens": 2508,
+        "cache_tokens": 149630,
         "tool_calls": 3,
         "errors": 0
       },
@@ -1376,10 +1408,16 @@
           "max": 68.29
         },
         "tokens": {
-          "mean": 429461.375,
-          "stddev": 44552.6463,
-          "min": 359814,
-          "max": 504336
+          "mean": 3146.625,
+          "stddev": 765.4834,
+          "min": 1760,
+          "max": 3911
+        },
+        "cache_tokens": {
+          "mean": 426314.75,
+          "stddev": 43987.0083,
+          "min": 357615,
+          "max": 500591
         }
       },
       "without_skill": {
@@ -1396,16 +1434,23 @@
           "max": 63.52
         },
         "tokens": {
-          "mean": 129244.25,
-          "stddev": 40987.7082,
-          "min": 92266,
-          "max": 205941
+          "mean": 2311.25,
+          "stddev": 967.1327,
+          "min": 1397,
+          "max": 4245
+        },
+        "cache_tokens": {
+          "mean": 126933.0,
+          "stddev": 40847.025,
+          "min": 89724,
+          "max": 203004
         }
       },
       "delta": {
         "pass_rate": "+0.31",
         "time_seconds": 17.4,
-        "tokens": 300217
+        "tokens": 835,
+        "cache_tokens": 299382
       }
     },
     "claude-opus-4-7": {
@@ -1423,10 +1468,16 @@
           "max": 78.77
         },
         "tokens": {
-          "mean": 525833.5,
-          "stddev": 105176.2572,
-          "min": 376179,
-          "max": 681696
+          "mean": 3868.625,
+          "stddev": 856.8337,
+          "min": 2081,
+          "max": 4876
+        },
+        "cache_tokens": {
+          "mean": 521964.875,
+          "stddev": 104498.5039,
+          "min": 374098,
+          "max": 676820
         }
       },
       "without_skill": {
@@ -1443,16 +1494,23 @@
           "max": 51.96
         },
         "tokens": {
-          "mean": 160470.75,
-          "stddev": 13725.4617,
-          "min": 148174,
-          "max": 177762
+          "mean": 2808.625,
+          "stddev": 670.9848,
+          "min": 1912,
+          "max": 3756
+        },
+        "cache_tokens": {
+          "mean": 157662.125,
+          "stddev": 13218.2129,
+          "min": 146262,
+          "max": 174784
         }
       },
       "delta": {
         "pass_rate": "+0.42",
         "time_seconds": 11.55,
-        "tokens": 365363
+        "tokens": 1060,
+        "cache_tokens": 364303
       }
     }
   },
@@ -1471,10 +1529,16 @@
         "max": 78.77
       },
       "tokens": {
-        "mean": 525833.5,
-        "stddev": 105176.2572,
-        "min": 376179,
-        "max": 681696
+        "mean": 3868.625,
+        "stddev": 856.8337,
+        "min": 2081,
+        "max": 4876
+      },
+      "cache_tokens": {
+        "mean": 521964.875,
+        "stddev": 104498.5039,
+        "min": 374098,
+        "max": 676820
       }
     },
     "without_skill": {
@@ -1491,16 +1555,23 @@
         "max": 51.96
       },
       "tokens": {
-        "mean": 160470.75,
-        "stddev": 13725.4617,
-        "min": 148174,
-        "max": 177762
+        "mean": 2808.625,
+        "stddev": 670.9848,
+        "min": 1912,
+        "max": 3756
+      },
+      "cache_tokens": {
+        "mean": 157662.125,
+        "stddev": 13218.2129,
+        "min": 146262,
+        "max": 174784
       }
     },
     "delta": {
       "pass_rate": "+0.42",
       "time_seconds": 11.55,
-      "tokens": 365363
+      "tokens": 1060,
+      "cache_tokens": 364303
     }
   }
 }
