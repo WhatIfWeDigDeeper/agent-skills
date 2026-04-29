@@ -48,7 +48,7 @@ def parse_ts(s):
 
 def extract(path):
     """Parse a single JSONL transcript and return a usage dict."""
-    p = Path(path).resolve()
+    p = Path(path).expanduser().resolve()
     if not p.exists():
         return {"path": str(path), "error": "not found"}
     models = set()
@@ -98,8 +98,8 @@ def extract(path):
         "cache_tokens": cache_creation + cache_read,
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
-        "cache_creation_tokens": cache_creation,
-        "cache_read_tokens": cache_read,
+        "cache_creation_input_tokens": cache_creation,
+        "cache_read_input_tokens": cache_read,
         "tool_calls": tool_calls,
         "errors": errors,
     }
@@ -114,7 +114,8 @@ def main():
     )
     args = parser.parse_args()
     results = [extract(p) for p in args.paths]
-    json.dump(results if len(results) > 1 else results[0], sys.stdout, indent=2)
+    # Always emit a JSON array — predictable shape for jq/scripts regardless of arg count.
+    json.dump(results, sys.stdout, indent=2)
     print()
 
 
