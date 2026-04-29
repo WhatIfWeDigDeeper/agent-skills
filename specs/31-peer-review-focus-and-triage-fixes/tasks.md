@@ -26,7 +26,7 @@
 ## Phase 2: Tooling
 
 - [x] **2.1** `npx cspell skills/peer-review/SKILL.md specs/31-peer-review-focus-and-triage-fixes/*.md` — confirm clean. No new tokens expected; if any are flagged, add to `cspell.config.yaml` `words:` list in alphabetical position.
-- [x] **2.2** `uv run --with pytest pytest tests/` — confirm no regressions. *816 passed.*
+- [x] **2.2** `uv run --with pytest pytest tests/` — confirm no regressions.
 
 ---
 
