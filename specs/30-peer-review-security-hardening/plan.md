@@ -105,7 +105,7 @@ Two peer-review passes bracket the implementation, mirroring the spec-28 pattern
 
 ## Verification
 
-1. `npx cspell skills/peer-review/SKILL.md` — clean (or wordlist updated for any flagged tokens).
+1. `npx cspell skills/peer-review/SKILL.md specs/30-peer-review-security-hardening/*.md` — clean (or wordlist updated for any flagged tokens). CI runs cspell on both `skills/**/*.md` and `specs/**/*.md`.
 2. `rg -n 'untrusted_diff' skills/peer-review/SKILL.md` → at least 3 matches (open tag, close tag, preamble reference).
 3. `rg -n 'untrusted_files' skills/peer-review/SKILL.md` → at least 3 matches.
 4. `rg -n '\$\{DEFAULT_BRANCH\}\.\.\.NAME' skills/peer-review/SKILL.md` → no matches (old unquoted form gone).

@@ -2,7 +2,7 @@
 
 ## Phase 0: Pre-spec peer review (consistency pass on plan.md and tasks.md)
 
-*Catch drift between `plan.md` and `tasks.md` before any SKILL.md edits commit. Uses an external CLI reviewer for fresh-context judgment on the spec docs themselves. Auto-approves valid findings; iteration cap 2.*
+*Catch drift between `plan.md` and `tasks.md` before any SKILL.md edits are committed. Uses an external CLI reviewer for fresh-context judgment on the spec docs themselves. Auto-approves valid findings; iteration cap 2.*
 
 - [ ] **0.1** Create branch `spec-30-peer-review-security-hardening`. (No worktree needed — this spec is small and does not run sub-agent fleets; a plain feature branch is sufficient.) Stage `specs/30-peer-review-security-hardening/plan.md` and `tasks.md`.
 - [ ] **0.2** Run `/peer-review specs/30-peer-review-security-hardening/ --model copilot:gpt-5.4` (consistency mode — peer-review auto-detects this from the directory target). Auto-approve every finding the reviewer classifies as valid; record skipped/declined findings inline with reason. Iteration cap 2 — re-run after applying iteration 1's findings, then stop regardless of whether iteration 2 introduced new findings. The cap is deliberately lower than Phase 4's cap of 4 because the surface area here is two short spec docs.
@@ -26,7 +26,7 @@
 
 ## Phase 2: Tooling
 
-- [ ] **2.1** `npx cspell skills/peer-review/SKILL.md` — if `untrusted_diff` / `untrusted_files` flagged, add to `cspell.config.yaml` `words:` list in alphabetical position.
+- [ ] **2.1** `npx cspell skills/peer-review/SKILL.md specs/30-peer-review-security-hardening/*.md` — if `untrusted_diff` / `untrusted_files` flagged, add to `cspell.config.yaml` `words:` list in alphabetical position. (CI runs cspell on both `skills/**/*.md` and `specs/**/*.md`.)
 - [ ] **2.2** `uv run --with pytest pytest tests/` — confirm no regressions.
 
 ---

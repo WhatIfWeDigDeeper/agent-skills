@@ -96,6 +96,8 @@ words:
   - underspecified
   - unmatch
   - unsoftenable
+  - untrusted_diff
+  - untrusted_files
   - unupgradable
   - venv
   - vite
