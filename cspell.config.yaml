@@ -20,6 +20,7 @@ words:
   - DOABC
   - Dockerfiles
   - dogfood
+  - dogfoods
   - DOXYZ
   - duplicative
   - EBADPLATFORM
@@ -36,6 +37,7 @@ words:
   - GHSA
   - githubcopilot
   - goroutines
+  - gradings
   - healthz
   - heredocs
   - informationally

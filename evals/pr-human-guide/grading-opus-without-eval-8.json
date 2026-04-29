@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "expectations": [
+    {
+      "text": "The review guide includes a Concurrency / State section",
+      "passed": true,
+      "evidence": "### Concurrency & shared state header present \u2014 accepted variant per grading rules"
+    },
+    {
+      "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+      "passed": true,
+      "evidence": "activeJobCount and jobQueue are mutated from both the calling thread (via enqueueJob) and from worker `exit` handlers ... Module-level mutable state. `activeJobCount` and `jobQueue` are module-scoped"
+    },
+    {
+      "text": "The review guide flags the new use of worker threads",
+      "passed": false,
+      "evidence": "No explicit flag of worker_threads / Worker import as a new/first-use concurrency primitive in the guide body. The discussion of workers is about error handling and lifecycle, not about flagging this as a novel pattern being introduced for the first time."
+    },
+    {
+      "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+      "passed": false,
+      "evidence": "Guide uses a `---` horizontal rule separator rather than HTML comment markers. No <!-- pr-human-guide --> or <!-- /pr-human-guide --> present in FINAL_PR_BODY."
+    }
+  ],
+  "notes": "Without the skill, Opus produced a thorough freeform review with correct concurrency/state content and an accepted section header variant, but missed flagging worker_threads as a new primitive (treated it as a lifecycle/error concern instead) and omitted the required HTML comment markers. Same pattern as sonnet/without."
+}

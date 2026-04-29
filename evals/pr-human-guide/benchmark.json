@@ -2,23 +2,52 @@
   "metadata": {
     "skill_name": "pr-human-guide",
     "skill_path": "skills/pr-human-guide",
-    "executor_model": "claude-sonnet-4-6",
+    "skill_version": "0.7",
+    "executor_model": "claude-opus-4-7",
     "analyzer_model": "claude-sonnet-4-6",
-    "timestamp": "2026-04-12T05:00:00Z",
-    "evals_run": [1, 2, 3, 4, 5, 6, 7, 8],
-    "skill_version": "0.1",
+    "models_tested": [
+      {
+        "executor_model": "claude-sonnet-4-6",
+        "analyzer_model": "claude-sonnet-4-6",
+        "skill_version": "0.7",
+        "timestamp": "2026-04-28T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Replaces the previous v0.1 Sonnet run set (removed in spec 28 Phase 1). Analyzer is claude-sonnet-4-6 (sole grader for all 32 transcripts) per analyzer-uniformity. Per-run time_seconds, tokens, cache_tokens, tool_calls, and errors are extracted from the executor subagent JSONL transcripts. tokens = input_tokens + output_tokens (full-rate billing); cache_tokens = cache_creation_input_tokens + cache_read_input_tokens (billed separately at 1.25-2x and 0.1x). The fields are kept distinct in run results \u2014 tokens does not include cache. Two without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool and were re-spawned with explicit Skill-tool prohibition; only the clean re-runs are recorded. All eight with_skill runs were also re-spawned: the first batch hit transient 529 errors and was resumed via SendMessage, but the resume path silently inherited the parent's claude-opus-4-7 model rather than the original claude-sonnet-4-6 setting. The recorded runs are the second-pass spawns, verified to have actually executed on claude-sonnet-4-6 by inspecting the JSONL message.model field."
+      },
+      {
+        "executor_model": "claude-opus-4-7",
+        "analyzer_model": "claude-sonnet-4-6",
+        "skill_version": "0.7",
+        "timestamp": "2026-04-28T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Analyzer is claude-sonnet-4-6 for analyzer-uniformity. Per-run time_seconds, tokens, cache_tokens, tool_calls, and errors are extracted from the executor subagent JSONL transcripts (tokens = input + output; cache_tokens = creation + reads, kept separate)."
+      }
+    ],
+    "timestamp": "2026-04-28T00:00:00Z",
+    "evals_run": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
     "runs_per_configuration": 1
   },
   "notes": [
-    "Eval prompts use neutral user requests that do not mention the skill by name. Evals 7 (data-model-changes) and 8 (concurrency-state) cover those categories. Assertions for evals 5 and 6 require exact markers and terminal format.",
-    "6 of 8 evals discriminate (1, 2, 3, 4, 5, 6). 2 are non-discriminating (7, 8): baselines independently produce correct content including <!-- pr-human-guide --> markers for those scenarios.",
-    "The discriminating evals test format-specific behavior: exact HTML comment markers (evals 1, 2, 3, 4, 5), SHA-256 diff anchor links (eval 1), and the exact 'Review guide updated on PR #...' terminal format (eval 6).",
-    "with_skill runs are slower (+21s) and heavier (+5517 tokens) than baseline because they read SKILL.md and categories.md before analysis. The quality gain (+39% pass rate) justifies the cost."
+    "Multi-model framing: Sonnet 4.6 and Opus 4.7 both ran the full 8-eval suite at SKILL.md v0.7. The previous v0.1 Sonnet runs were removed (git history retains the prior shape) so both models share an apples-to-apples skill version.",
+    "Per-run stats are aggregated from the per-agent JSONL transcripts. time_seconds = max-minus-min event timestamp. tokens = input_tokens + output_tokens summed across all assistant turns (matches the repo's learn / pr-comments / peer-review convention \u2014 the 'new work' that drives full-rate billing). cache_tokens = cache_creation_input_tokens + cache_read_input_tokens summed similarly; this is tracked separately because cache reads (0.1x rate) dominate the volume but not the cost. tool_calls = count of tool_use content blocks. errors = count of tool_result blocks with is_error: true.",
+    "Sonnet with_skill runs were re-spawned to correct an executor-model mismatch: the first batch hit transient 529 errors at spawn time, was resumed via SendMessage, and the resume path inherited the parent's claude-opus-4-7 instead of the original claude-sonnet-4-6 model. The re-spawns ran cleanly on Sonnet 4.6, verified by inspecting message.model in each agent's JSONL.",
+    "Two Sonnet without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool despite the SKILL.md/references read prohibition; those runs were re-spawned with explicit Skill-tool prohibition added to the executor prompt, and only the clean re-runs are recorded."
   ],
   "runs": [
     {
       "eval_id": 1,
       "eval_name": "security-changes",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -26,45 +55,87 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 46.24,
-        "tokens": 29969,
-        "tool_calls": 5,
-        "errors": 0
+        "time_seconds": 67.62,
+        "tokens": 3251,
+        "cache_tokens": 431801,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
-        {"text": "The review guide includes a Security section flagging the auth middleware changes", "passed": true, "evidence": "Guide has '### Security' section with src/auth/middleware.ts (L42-59) entry noting JWT token validation and role-based access control gate."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": true, "evidence": "Output shows exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing markers around the guide block."},
-        {"text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts", "passed": true, "evidence": "Entry links to https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82 (SHA-256 anchor for src/auth/middleware.ts)."},
-        {"text": "The skill calls gh pr edit to update the PR body with the review guide", "passed": true, "evidence": "gh pr edit 42 --body-file ... command shown with the full updated body written via a body file."}
+        {
+          "text": "The review guide includes a Security section flagging the auth middleware changes",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Security' with entry for src/auth/middleware.ts: 'JWT token extraction, validation, and role-based access checks; verify token algorithm is restricted (e.g. no `alg: none`), error messages don't leak details'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
+        },
+        {
+          "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts",
+          "passed": true,
+          "evidence": "Entry contains 'https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82R41' linking to src/auth/middleware.ts"
+        },
+        {
+          "text": "The skill calls gh pr edit to update the PR body with the review guide",
+          "passed": true,
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file \"${TMPDIR:-/private/tmp}/pr-human-guide-body.txt\"'"
+        }
       ],
-      "notes": []
+      "notes": [
+        "All 4 assertions pass. Security section flags JWT validation and RBAC in src/auth/middleware.ts with GitHub diff link and SHA anchor. Markers present verbatim. gh pr edit invoked with --body-file."
+      ]
     },
     {
       "eval_id": 1,
       "eval_name": "security-changes",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.25,
-        "passed": 1,
-        "failed": 3,
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
         "total": 4,
-        "time_seconds": 16.23,
-        "tokens": 22870,
-        "tool_calls": 2,
+        "time_seconds": 51.87,
+        "tokens": 4245,
+        "cache_tokens": 130045,
+        "tool_calls": 3,
         "errors": 0
       },
       "expectations": [
-        {"text": "The review guide includes a Security section flagging the auth middleware changes", "passed": false, "evidence": "Output has '## Review Notes' heading (not '### Security' category section); freeform bullets without the skill's structured category taxonomy."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": false, "evidence": "PR body uses no HTML comment markers; guide section uses plain markdown heading only."},
-        {"text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts", "passed": false, "evidence": "No GitHub diff link to src/auth/middleware.ts anywhere in the output; file is mentioned in prose only."},
-        {"text": "The skill calls gh pr edit to update the PR body with the review guide", "passed": true, "evidence": "gh pr edit 42 --body '...' command shown."}
+        {
+          "text": "The review guide includes a Security section flagging the auth middleware changes",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Security \u2014 Requires Close Review' with multiple bullets about middleware.ts JWT verification and requireRole"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "FINAL_PR_BODY uses '<!-- review-guide-start -->' and '<!-- review-guide-end -->' instead of the required '<!-- pr-human-guide -->' / '<!-- /pr-human-guide -->' markers"
+        },
+        {
+          "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts",
+          "passed": false,
+          "evidence": "Security bullets reference 'middleware.ts' in prose only (e.g. '(`middleware.ts`)') with no /pull/N/files#diff-... URL"
+        },
+        {
+          "text": "The skill calls gh pr edit to update the PR body with the review guide",
+          "passed": true,
+          "evidence": "GH_EDIT_COMMAND begins 'gh pr edit 42 --body \"$(cat <<'EOF'...'"
+        }
       ],
-      "notes": ["Discriminating: baseline used freeform '## Review Notes' heading, no HTML markers, no diff links. Passed only updates-pr-description."]
+      "notes": [
+        "2/4 passed: Security section present and gh pr edit called; failed on wrong HTML markers (review-guide-start/end) and no GitHub diff link."
+      ]
     },
     {
       "eval_id": 2,
       "eval_name": "config-changes",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -72,45 +143,87 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 35.70,
-        "tokens": 29502,
-        "tool_calls": 5,
-        "errors": 0
+        "time_seconds": 66.11,
+        "tokens": 3911,
+        "cache_tokens": 414323,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
-        {"text": "The review guide includes a Config / Infrastructure section", "passed": true, "evidence": "Guide has '### Config / Infrastructure' section with entries for .github/workflows/deploy.yml and deploy/terraform/main.tf."},
-        {"text": "The review guide flags the IAM permissions widening in deploy/terraform/main.tf", "passed": true, "evidence": "Security section flags deploy/terraform/main.tf: 'IAM policy widened from read-only to read/write/delete on production S3 bucket'."},
-        {"text": "The review guide flags the GitHub Actions workflow change from staging to production", "passed": true, "evidence": "Config/Infrastructure section flags .github/workflows/deploy.yml: 'Deployment target changed from staging to production'."},
-        {"text": "The skill calls gh pr edit to update the PR body with the review guide", "passed": true, "evidence": "gh pr edit 55 --body-file command shown with temp file approach."}
+        {
+          "text": "The review guide includes a Config / Infrastructure section",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Config / Infrastructure' with entries for.github/workflows/deploy.yml and deploy/terraform/main.tf"
+        },
+        {
+          "text": "The review guide flags the IAM permissions widening in deploy/terraform/main.tf",
+          "passed": true,
+          "evidence": "Security section: '[`deploy/terraform/main.tf` (L8-10)] \u2014 IAM permissions widened from read-only (`s3:GetObject`) to read-write-delete (`s3:PutObject`, `s3:DeleteObject`); verify this is the minimum required privilege'; also appears in Config/Infrastructure"
+        },
+        {
+          "text": "The review guide flags the GitHub Actions workflow change from staging to production",
+          "passed": true,
+          "evidence": "Config / Infrastructure section: '[`.github/workflows/deploy.yml` (L14-17)] \u2014 Deployment target changed from staging to production; confirm rollout strategy, rollback plan, and that no staging gate was removed'"
+        },
+        {
+          "text": "The skill calls gh pr edit to update the PR body with the review guide",
+          "passed": true,
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file \"${TMPDIR:-/private/tmp}/pr-human-guide-XXXXXX\"'"
+        }
       ],
-      "notes": []
+      "notes": [
+        "All 4 assertions pass. IAM widening flagged under both Security and Config/Infrastructure. Staging-to-production workflow change flagged with rollback concern. gh pr edit invoked."
+      ]
     },
     {
       "eval_id": 2,
       "eval_name": "config-changes",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.25,
-        "passed": 1,
-        "failed": 3,
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
         "total": 4,
-        "time_seconds": 11.32,
-        "tokens": 22526,
-        "tool_calls": 1,
+        "time_seconds": 35.03,
+        "tokens": 2256,
+        "cache_tokens": 92433,
+        "tool_calls": 3,
         "errors": 0
       },
       "expectations": [
-        {"text": "The review guide includes a Config / Infrastructure section", "passed": false, "evidence": "Output updated PR description with a prose summary sentence; explicitly noted 'No review guide was added to the description.' No structured review guide produced."},
-        {"text": "The review guide flags the IAM permissions widening in deploy/terraform/main.tf", "passed": false, "evidence": "Changes mentioned in a single prose summary sentence but not in any structured flagged section."},
-        {"text": "The review guide flags the GitHub Actions workflow change from staging to production", "passed": false, "evidence": "Changes mentioned in a single prose summary sentence but not in any structured section."},
-        {"text": "The skill calls gh pr edit to update the PR body with the review guide", "passed": true, "evidence": "gh pr edit 55 --body '...' command shown updating the description with a prose summary (not a structured guide)."}
+        {
+          "text": "The review guide includes a Config / Infrastructure section",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Config / Infrastructure' as a structured heading"
+        },
+        {
+          "text": "The review guide flags the IAM permissions widening in deploy/terraform/main.tf",
+          "passed": true,
+          "evidence": "Security / IAM Permissions section: '`deploy/terraform/main.tf` \u2014 IAM policy expansion' with explicit mention of s3:PutObject and s3:DeleteObject added to read-only policy, flagged as 'destructive S3 permissions are irreversible once exercised'"
+        },
+        {
+          "text": "The review guide flags the GitHub Actions workflow change from staging to production",
+          "passed": true,
+          "evidence": "Config / Infrastructure section: '`.github/workflows/deploy.yml` \u2014 Production deployment target' \u2014 'Renamed step: `Deploy to staging` \u2192 `Deploy to production`'"
+        },
+        {
+          "text": "The skill calls gh pr edit to update the PR body with the review guide",
+          "passed": true,
+          "evidence": "GH_EDIT_COMMAND: \"gh pr edit 55 --repo owner/repo --body '...'\""
+        }
       ],
-      "notes": ["Discriminating: baseline opted to update description with a prose summary only, explicitly noting no review guide was added. Passed only updates-pr-description."]
+      "notes": [
+        "Full 4/4 pass without the skill loaded. Generated a structured review guide with Security/IAM and Config/Infrastructure sections. gh pr edit called with inline --body argument."
+      ]
     },
     {
       "eval_id": 3,
       "eval_name": "new-dependency",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -118,22 +231,43 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 51.29,
-        "tokens": 30902,
-        "tool_calls": 5,
-        "errors": 0
+        "time_seconds": 59.83,
+        "tokens": 3368,
+        "cache_tokens": 428869,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
-        {"text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk", "passed": true, "evidence": "Guide has '### New Dependencies' section listing both node-forge (crypto, elevated concern) and aws-sdk (network requests, elevated concern)."},
-        {"text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review", "passed": true, "evidence": "node-forge described as 'a crypto/PKI library; verify version has no known CVEs and that the pinned range is appropriate'."},
-        {"text": "The new encryption.ts file is flagged under Security or Novel Patterns", "passed": true, "evidence": "src/encryption.ts appears under both '### Security' (RSA public-key encryption review) and '### Novel Patterns' (first cryptographic module)."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": true, "evidence": "Output wrapped in exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing markers (consistent with all other with_skill runs)."}
+        {
+          "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### New Dependencies' with entry: 'Adds `node-forge` (crypto library \u2014 elevated concern) and `aws-sdk` (makes network requests \u2014 elevated concern)'"
+        },
+        {
+          "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
+          "passed": true,
+          "evidence": "New Dependencies entry labels node-forge as 'crypto library \u2014 elevated concern' and the Security entry for src/encryption.ts specifies 'RSA public key encryption using node-forge; verify cipher mode (PKCS#1v1.5 vs OAEP)'"
+        },
+        {
+          "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
+          "passed": true,
+          "evidence": "src/encryption.ts appears under both '### Security' ('RSA public key encryption using node-forge; verify cipher mode') and '### Novel Patterns' ('First use of client-side cryptography in this codebase')"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
+        }
       ],
-      "notes": []
+      "notes": [
+        "All 4 assertions pass. Three categories flagged (Security, New Dependencies, Novel Patterns). node-forge explicitly labeled as crypto with elevated concern. encryption.ts appears in both Security and Novel Patterns. Markers present verbatim."
+      ]
     },
     {
       "eval_id": 3,
       "eval_name": "new-dependency",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -141,22 +275,43 @@
         "passed": 3,
         "failed": 1,
         "total": 4,
-        "time_seconds": 20.89,
-        "tokens": 23083,
+        "time_seconds": 39.49,
+        "tokens": 2542,
+        "cache_tokens": 89724,
         "tool_calls": 2,
         "errors": 0
       },
       "expectations": [
-        {"text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk", "passed": true, "evidence": "'### New Dependencies' section lists both node-forge (pure JavaScript cryptography library) and aws-sdk (v2, legacy) with descriptions."},
-        {"text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review", "passed": true, "evidence": "node-forge described as 'a pure JavaScript cryptography library. Check for known CVEs and confirm this is the right choice over native Node.js crypto'."},
-        {"text": "The new encryption.ts file is flagged under Security or Novel Patterns", "passed": true, "evidence": "'### Security' section flags src/encryption.ts for RSA encryption concerns (hybrid encryption note, no input validation, no error handling)."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": false, "evidence": "Baseline output used ad-hoc markdown headings for the review guide instead of the exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing HTML comment markers."}
+        {
+          "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
+          "passed": true,
+          "evidence": "### New Dependencies section explicitly covers both node-forge v1.3.1 and aws-sdk v2.1450.0 as distinct flagged items"
+        },
+        {
+          "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
+          "passed": true,
+          "evidence": "node-forge described as 'A JavaScript implementation of TLS and various other cryptographic tools. This is a significant security-critical dependency.' with CVE check and alternative evaluation guidance"
+        },
+        {
+          "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
+          "passed": true,
+          "evidence": "src/encryption.ts appears as a structured item under ### Security with header '**src/encryption.ts \u2014 RSA encryption with node-forge**' and multiple sub-bullets covering RSA padding, key size, payload size, and error handling"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "No HTML comment markers present. Body uses '---' horizontal rule separator and plain ## Review Guide heading instead of the required <!-- pr-human-guide --> / <!-- /pr-human-guide --> wrapper"
+        }
       ],
-      "notes": ["Discriminating on marker format: baseline produced structured New Dependencies and Security sections with correct content, but used ad-hoc markdown headings rather than exact <!-- pr-human-guide --> markers. Passed 3/4 assertions."]
+      "notes": [
+        "3/4 pass. Content quality is high \u2014 both deps flagged with crypto context, encryption.ts under Security \u2014 but the required HTML comment markers are absent. Without-skill baseline lacks the structural formatting convention."
+      ]
     },
     {
       "eval_id": 4,
       "eval_name": "novel-pattern",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -164,21 +319,38 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": 45.33,
-        "tokens": 30226,
-        "tool_calls": 5,
-        "errors": 0
+        "time_seconds": 68.29,
+        "tokens": 3745,
+        "cache_tokens": 500591,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
-        {"text": "The review guide includes a Novel Patterns section flagging the Result type pattern", "passed": true, "evidence": "Guide has '### Novel Patterns' section flagging ts-results Result/Ok/Err pattern in src/services/payment.ts."},
-        {"text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere", "passed": true, "evidence": "Entry: 'all sibling services (user.ts, product.ts, order.ts) use throw/AppError — assess whether this divergence is intentional and whether the pattern should be adopted codebase-wide or reverted'."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": true, "evidence": "Output wrapped in exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing markers (consistent with all other with_skill runs)."}
+        {
+          "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Novel Patterns' with entry: 'First use of Result types (`Ok`/`Err` from `ts-results`) in this codebase'"
+        },
+        {
+          "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
+          "passed": true,
+          "evidence": "Novel Patterns entry: 'all sibling services (user.ts, product.ts, order.ts) use try/catch with `throw new AppError(...)` \u2014 assess whether this pattern should become the new standard or be aligned with existing convention'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
+        }
       ],
-      "notes": []
+      "notes": [
+        "All 3 assertions pass. Novel Patterns section flags ts-results Result type with explicit contrast against try/catch+AppError pattern in user.ts/product.ts/order.ts. Markers present verbatim. Also flagged ts-results as New Dependency."
+      ]
     },
     {
       "eval_id": 4,
       "eval_name": "novel-pattern",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -186,21 +358,38 @@
         "passed": 2,
         "failed": 1,
         "total": 3,
-        "time_seconds": 22.23,
-        "tokens": 23051,
-        "tool_calls": 2,
+        "time_seconds": 38.23,
+        "tokens": 2232,
+        "cache_tokens": 108847,
+        "tool_calls": 3,
         "errors": 0
       },
       "expectations": [
-        {"text": "The review guide includes a Novel Patterns section flagging the Result type pattern", "passed": true, "evidence": "Guide has '### ⚠️ Novel Pattern — Result Type' section explicitly flagging ts-results Ok/Err pattern."},
-        {"text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere", "passed": true, "evidence": "'This service uses ts-results (Ok/Err return values) instead of the try/catch + AppError pattern used in all other services (user.ts, product.ts, order.ts)'."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": false, "evidence": "Baseline used non-standard heading formatting (e.g. '### ⚠️ Novel Pattern — Result Type') rather than the exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing HTML comment markers. Baseline also found a logic bug in refundPayment that the skill did not flag."}
+        {
+          "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
+          "passed": true,
+          "evidence": "'### Novel Pattern \u2014 Inconsistent error handling convention' section flags Result<T, E> types from ts-results"
+        },
+        {
+          "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
+          "passed": true,
+          "evidence": "Section states: 'Every other service in the codebase (user.ts, product.ts, order.ts) uses try/catch with AppError throws. This is a significant architectural divergence...'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "FINAL_PR_BODY uses a '---' horizontal rule separator instead of the required HTML comment markers; no '<!-- pr-human-guide -->' present"
+        }
       ],
-      "notes": ["Discriminating on marker format: baseline identified the pattern contrast clearly and found a logic bug the skill didn't flag — but used non-standard heading formatting rather than exact <!-- pr-human-guide --> markers."]
+      "notes": [
+        "Assertions 1 and 2 pass \u2014 the novel pattern section correctly identifies Result<T,E> from ts-results and contrasts it with the try/catch + AppError convention in user.ts/product.ts/order.ts. Assertion 3 fails: without the skill, the agent used a markdown '---' separator and '## Review Guide' heading with no HTML comment delimiters."
+      ]
     },
     {
       "eval_id": 5,
       "eval_name": "no-special-areas",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -208,21 +397,38 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": 35.22,
-        "tokens": 29345,
-        "tool_calls": 4,
-        "errors": 0
+        "time_seconds": 50.3,
+        "tokens": 2199,
+        "cache_tokens": 357615,
+        "tool_calls": 8,
+        "errors": 1
       },
       "expectations": [
-        {"text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging", "passed": true, "evidence": "Analysis table shows all 6 categories evaluated and none flagged; guide body is 'no items' variant with no category sections."},
-        {"text": "The review guide body contains the message indicating no areas requiring special human review were identified", "passed": true, "evidence": "Guide body: 'No areas requiring special human review attention were identified.' — exact required message."},
-        {"text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats like <!-- REVIEW-GUIDE:START --> or similar)", "passed": true, "evidence": "Updated body uses exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing markers."}
+        {
+          "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains only '## Review Guide' header followed directly by the no-areas message \u2014 no '### Security', '### Config', '### New Dependencies', '### Data Model', '### Novel Patterns', or '### Concurrency' sections present"
+        },
+        {
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains exact phrase: 'No areas requiring special human review attention were identified.'"
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats like <!-- REVIEW-GUIDE:START --> or similar)",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
+        }
       ],
-      "notes": []
+      "notes": [
+        "All 3 assertions pass. Skill correctly identified no flaggable areas for a pure presentational JSX change with routine tests. Emitted minimal empty-guide body with exact markers and the required no-areas phrase."
+      ]
     },
     {
       "eval_id": 5,
       "eval_name": "no-special-areas",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -230,21 +436,38 @@
         "passed": 1,
         "failed": 2,
         "total": 3,
-        "time_seconds": 14.76,
-        "tokens": 22766,
-        "tool_calls": 2,
-        "errors": 0
+        "time_seconds": 57.43,
+        "tokens": 1397,
+        "cache_tokens": 174764,
+        "tool_calls": 6,
+        "errors": 1
       },
       "expectations": [
-        {"text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging", "passed": true, "evidence": "No Security/Config/etc category sections in the output; baseline added a 'Notes for reviewers' section about the User type interface, but no flagged-category sections."},
-        {"text": "The review guide body contains the message indicating no areas requiring special human review were identified", "passed": false, "evidence": "Output has a 'Notes for reviewers' section with suggestions about the User type; no 'No areas requiring special human review attention were identified' message present."},
-        {"text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats like <!-- REVIEW-GUIDE:START --> or similar)", "passed": false, "evidence": "Updated PR body uses plain markdown headings (## What changed, ## Testing, ## Notes for reviewers) with no HTML comment markers."}
+        {
+          "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains only plain prose sections (### Changes, ### Notes) \u2014 none match Security/Config/Infrastructure/New Dependencies/Data Model/Novel Patterns/Concurrency"
+        },
+        {
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "passed": false,
+          "evidence": "FINAL_PR_BODY contains no phrase matching 'no areas requiring special human review' or equivalent \u2014 the body is a plain PR description with no review guide section at all"
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "passed": false,
+          "evidence": "FINAL_PR_BODY contains no HTML comment markers; GH_EDIT_COMMAND is 'did not run'"
+        }
       ],
-      "notes": ["Discriminating: baseline omitted both the required 'no areas' message and the exact HTML comment markers. Passed only no-categories-flagged."]
+      "notes": [
+        "sonnet/without did not invoke the skill and produced only a generic enhanced PR description with no review guide section and no HTML comment markers."
+      ]
     },
     {
       "eval_id": 6,
       "eval_name": "idempotent-rerun",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -252,21 +475,556 @@
         "passed": 3,
         "failed": 0,
         "total": 3,
-        "time_seconds": 46.42,
-        "tokens": 30268,
-        "tool_calls": 4,
-        "errors": 0
+        "time_seconds": 65.45,
+        "tokens": 3657,
+        "cache_tokens": 467762,
+        "tool_calls": 9,
+        "errors": 1
       },
       "expectations": [
-        {"text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two", "passed": true, "evidence": "Step 5 shows content before opening marker and after closing marker extracted, new guide sandwiched — single pair in updated body."},
-        {"text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide", "passed": true, "evidence": "New guide has Security (env vars), New Dependencies (redis createClient), Novel Patterns (dual-client), and Concurrency/State (module-level shared clients) — all from current diff, not stale 'First use of Redis' entry."},
-        {"text": "The terminal output contains the exact phrase 'Review guide updated on PR #' (not just general prose like 'the guide has been updated')", "passed": true, "evidence": "Step 6 report: 'Review guide updated on PR #42: Adds caching layer using Redis' — exact required phrase present."}
+        {
+          "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY shows exactly one '<!-- pr-human-guide -->' opening marker and one '<!-- /pr-human-guide -->' closing marker; NOTES confirm 'Existing pr-human-guide block detected in PR body \u2014 replaced contents between markers (idempotent re-run) rather than appending'"
+        },
+        {
+          "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
+          "passed": true,
+          "evidence": "Updated guide includes Security (REDIS_URL/REDIS_FALLBACK_URL env vars), Novel Patterns (dual-client fallback with ioredis+redis), and Concurrency/State (two module-level shared clients with silent fallback) \u2014 all new diff elements beyond the stale original"
+        },
+        {
+          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #' (not just general prose like 'the guide has been updated')",
+          "passed": true,
+          "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42: Adds caching layer using Redis'"
+        }
       ],
-      "notes": []
+      "notes": [
+        "All 3 assertions pass. Idempotent re-run correctly detected existing guide block, replaced it in-place with a richer guide covering Security/Novel Patterns/Concurrency. Terminal output contains exact required phrase 'Review guide updated on PR #'."
+      ]
     },
     {
       "eval_id": 6,
       "eval_name": "idempotent-rerun",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 32.22,
+        "tokens": 1412,
+        "cache_tokens": 108862,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains exactly one opening '<!-- pr-human-guide -->' marker and one closing '<!-- /pr-human-guide -->' marker"
+        },
+        {
+          "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
+          "passed": true,
+          "evidence": "Guide mentions dual Redis libraries ('ioredis' + 'redis' native client), 'REDIS_URL' and 'REDIS_FALLBACK_URL' env vars, 'getWithFallback' silent error swallowing \u2014 all new diff elements"
+        },
+        {
+          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
+          "passed": true,
+          "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42. The guide now reflects the new changes...' \u2014 contains the exact substring 'Review guide updated on PR #'"
+        }
+      ],
+      "notes": [
+        "Perfect score without the skill. The agent manually located and replaced content between the HTML comment markers. Notably GH_EDIT_COMMAND shows 'did not run', but the FINAL_PR_BODY is correct and the terminal output contains the required exact phrase."
+      ]
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "data-model-changes",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 61.65,
+        "tokens": 3282,
+        "cache_tokens": 420294,
+        "tool_calls": 9,
+        "errors": 1
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a Data Model Changes section",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Data Model Changes' with two checklist entries for migrations/20240312_user_profile_v2.sql and schema.graphql"
+        },
+        {
+          "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
+          "passed": true,
+          "evidence": "SQL entry: 'column rename (`username` \u2192 `display_name`) with no backward-compatibility alias'; GraphQL entry: '`username` field removed and replaced with `displayName` (existing clients will break)'"
+        },
+        {
+          "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
+          "passed": true,
+          "evidence": "SQL entry: 'irreversible `DROP COLUMN legacy_id`'; GraphQL entry: '`legacyId` field removed from response schema'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
+        }
+      ],
+      "notes": [
+        "All 4 assertions pass. Data Model Changes section covers both the SQL migration (column rename + DROP COLUMN) and GraphQL schema (field rename breaking existing clients + field removal). Markers present verbatim."
+      ]
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "data-model-changes",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 30.05,
+        "tokens": 1469,
+        "cache_tokens": 107785,
+        "tool_calls": 3,
+        "errors": 1
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a Data Model Changes section",
+          "passed": true,
+          "evidence": "Literal '### Data Model Changes \u26a0\ufe0f Needs careful review' header present in FINAL_PR_BODY"
+        },
+        {
+          "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
+          "passed": true,
+          "evidence": "'Irreversible column rename (`username` \u2192 `display_name`)'; 'Removing `username` and `legacyId` from the `User` type...is a breaking API change. Any clients querying these fields will error.'"
+        },
+        {
+          "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
+          "passed": true,
+          "evidence": "'`ALTER TABLE users DROP COLUMN legacy_id` permanently deletes data'; 'Removing `username` and `legacyId` from the `User` type...is a breaking API change'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "No HTML comment markers in FINAL_PR_BODY; body uses '---' separator and plain '## Review Guide' heading instead"
+        }
+      ],
+      "notes": [
+        "Missing the required HTML wrapper markers (assertion 4). Content quality is otherwise strong \u2014 correct section name and explicit flags for both the rename and drop as breaking/destructive. Baseline (no-skill) run did not follow the structured marker format."
+      ]
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "concurrency-state",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 47.76,
+        "tokens": 1760,
+        "cache_tokens": 389263,
+        "tool_calls": 8,
+        "errors": 1
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a Concurrency / State section",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Concurrency / State' section with checklist entry for src/workers/job-processor.ts"
+        },
+        {
+          "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+          "passed": true,
+          "evidence": "Concurrency/State entry: 'Module-level mutable state (`activeJobCount`, `jobQueue`) written from `enqueueJob` and from the worker `exit` callback with no lock; `enqueueJob` increments the counter and calls `processNext` non-atomically, and the `exit` handler races with new enqueues against the shared queue'"
+        },
+        {
+          "text": "The review guide flags the new use of worker threads",
+          "passed": true,
+          "evidence": "Novel Patterns section: 'First use of `worker_threads` in this codebase; new `src/workers/` directory has no sibling files to compare conventions against, so the queue + worker pattern is novel by default'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
+        }
+      ],
+      "notes": [
+        "All 4 assertions pass. Concurrency/State section explicitly names both activeJobCount and jobQueue as shared mutable state with no lock. Worker threads flagged under Novel Patterns. Markers present verbatim."
+      ]
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "concurrency-state",
+      "executor_model": "claude-sonnet-4-6",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 63.52,
+        "tokens": 2937,
+        "cache_tokens": 203004,
+        "tool_calls": 6,
+        "errors": 1
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a Concurrency / State section",
+          "passed": true,
+          "evidence": "### Concurrency / State header present in FINAL_PR_BODY"
+        },
+        {
+          "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+          "passed": true,
+          "evidence": "`activeJobCount` and `jobQueue` are declared at module scope... concurrent `enqueueJob` calls can race on both `jobQueue.push` and `activeJobCount++`"
+        },
+        {
+          "text": "The review guide flags the new use of worker threads",
+          "passed": false,
+          "evidence": "No explicit flag of worker_threads / Worker import as a new concurrency primitive. worker_threads is referenced only in the PR description framing context, not called out as a new/first-use pattern in the review guide body."
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "Guide uses a `---` horizontal rule separator instead of HTML comment markers. NOTES confirms: 'Did not use HTML comment markers or structured checkbox format; produced a freeform markdown review guide instead.'"
+        }
+      ],
+      "notes": [
+        "Without the skill, the model correctly identified the concurrency/state concern and included the right section header, but missed flagging worker_threads as a new primitive and did not use the required HTML comment markers. Classic baseline behavior: good content, missing format and novel-pattern signal."
+      ]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "security-changes",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 49.46,
+        "tokens": 3380,
+        "cache_tokens": 393652,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a Security section flagging the auth middleware changes",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Security' with entry for 'src/auth/middleware.ts' covering 'JWT token verification' and 'requireRole authorization middleware'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY shows literal '<!-- pr-human-guide -->' on line 16 and '<!-- /pr-human-guide -->' on line 25"
+        },
+        {
+          "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts",
+          "passed": true,
+          "evidence": "Entry contains 'https://github.com/owner/repo/pull/42/files#diff-e67371ea94bae31fbe0781e9d8777c9b44a1471d7dbd27d444ecd73ac826eb82R42-R58' pointing at src/auth/middleware.ts"
+        },
+        {
+          "text": "The skill calls gh pr edit to update the PR body with the review guide",
+          "passed": true,
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file \"$TMPFILE\"' where TMPFILE is created via mktemp"
+        }
+      ],
+      "notes": [
+        "All 4 assertions passed: Security section present, correct HTML markers, GitHub diff link to src/auth/middleware.ts, and gh pr edit called."
+      ]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "security-changes",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 51.96,
+        "tokens": 3429,
+        "cache_tokens": 173042,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a Security section flagging the auth middleware changes",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Security \u2014 high priority' with bullets about JWT algorithm pinning, JWT_SECRET validation, and auth middleware concerns"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "FINAL_PR_BODY has no HTML comment markers; body begins with 'Adds JWT authentication middleware...' and '## Review Guide' with no surrounding <!-- pr-human-guide --> delimiters"
+        },
+        {
+          "text": "The flagged file entry includes a GitHub diff link to src/auth/middleware.ts",
+          "passed": false,
+          "evidence": "Security bullets mention JWT concerns in prose only with no /pull/N/files#diff-... URL; no link to src/auth/middleware.ts"
+        },
+        {
+          "text": "The skill calls gh pr edit to update the PR body with the review guide",
+          "passed": true,
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 42 --body-file [redacted-temp-path]'"
+        }
+      ],
+      "notes": [
+        "2/4 passed: Security section present and gh pr edit called; failed on missing HTML markers entirely and no GitHub diff link."
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "config-changes",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 53.74,
+        "tokens": 3937,
+        "cache_tokens": 575461,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a Config / Infrastructure section",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Config / Infrastructure' as a structured heading"
+        },
+        {
+          "text": "The review guide flags the IAM permissions widening in deploy/terraform/main.tf",
+          "passed": true,
+          "evidence": "Security section: '[`deploy/terraform/main.tf` (L5-12)] \u2014 IAM policy widened from read-only (`s3:GetObject`) to include `s3:PutObject` and `s3:DeleteObject`; confirm scope and resource ARN are appropriate, and consider blast radius if credentials are compromised'"
+        },
+        {
+          "text": "The review guide flags the GitHub Actions workflow change from staging to production",
+          "passed": true,
+          "evidence": "Config / Infrastructure section: '[`.github/workflows/deploy.yml` (L12-18)] \u2014 Deploy step retargeted from staging to production with hardcoded `AWS_REGION` and `DEPLOY_ENV`; verify gating, approvals, and that staging coverage isn't lost'"
+        },
+        {
+          "text": "The skill calls gh pr edit to update the PR body with the review guide",
+          "passed": true,
+          "evidence": "GH_EDIT_COMMAND: 'gh pr edit 55 --body-file [redacted-temp-path]'"
+        }
+      ],
+      "notes": [
+        "Full 4/4 pass. IAM widening flagged in Security section and again in Config/Infrastructure per multi-category rule. Staging\u2192production explicitly flagged. gh pr edit used with --body-file."
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "config-changes",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 50.0,
+        "tokens": 2978,
+        "cache_tokens": 174784,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a Config / Infrastructure section",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains '### Config / infrastructure (high priority)' as a structured heading (case variation accepted)"
+        },
+        {
+          "text": "The review guide flags the IAM permissions widening in deploy/terraform/main.tf",
+          "passed": true,
+          "evidence": "Security / IAM section: 'Privilege expansion on S3: the policy now grants `s3:PutObject` and `s3:DeleteObject` in addition to `s3:GetObject`. Confirm the application actually needs write and delete on `my-app-bucket/*`'"
+        },
+        {
+          "text": "The review guide flags the GitHub Actions workflow change from staging to production",
+          "passed": true,
+          "evidence": "Config / infrastructure section: 'Staging \u2192 production rename: the workflow step previously named \"Deploy to staging\" is now \"Deploy to production\". Verify this is an intentional promotion of this workflow to deploy to prod'"
+        },
+        {
+          "text": "The skill calls gh pr edit to update the PR body with the review guide",
+          "passed": false,
+          "evidence": "GH_EDIT_COMMAND: 'did not run' \u2014 no gh pr edit command was executed"
+        }
+      ],
+      "notes": [
+        "3/4 pass. Content quality is excellent (most detailed guide of the four), correctly identifying IAM widening and staging\u2192production change in well-structured sections. Fails only on assertion 4: gh pr edit was not executed per the simulation rules per NOTES, and GH_EDIT_COMMAND is explicitly 'did not run'."
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "new-dependency",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 59.33,
+        "tokens": 4544,
+        "cache_tokens": 527531,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
+          "passed": true,
+          "evidence": "### New Dependencies section contains a checklist item: 'Adds node-forge (crypto library) and aws-sdk (makes network requests to AWS); both carry elevated supply-chain and operational risk'"
+        },
+        {
+          "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
+          "passed": true,
+          "evidence": "Under Security: 'Adds node-forge, a security-critical cryptography library; confirm trust, version, and that it is the right primitive for the use case'"
+        },
+        {
+          "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
+          "passed": true,
+          "evidence": "src/encryption.ts appears as a checklist item under ### Security ('New client-side encryption module using RSA public-key encryption via node-forge') and under ### Novel Patterns ('First encryption module in the codebase')"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "Body contains literal '<!-- pr-human-guide -->' opening and '<!-- /pr-human-guide -->' closing markers"
+        }
+      ],
+      "notes": [
+        "Full 4/4 pass. Skill correctly produced Security, New Dependencies, and Novel Patterns sections. node-forge flagged as security-critical crypto library in both Security and New Dependencies sections. encryption.ts flagged in two structured sections."
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "new-dependency",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 43.44,
+        "tokens": 1912,
+        "cache_tokens": 146262,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a New Dependencies section flagging node-forge and/or aws-sdk",
+          "passed": true,
+          "evidence": "### New Dependencies (high priority) section explicitly covers both node-forge (^1.3.1) and aws-sdk (^2.1450.0) as distinct flagged items with detailed review guidance"
+        },
+        {
+          "text": "The review guide specifically flags node-forge as a cryptography-related dependency warranting review",
+          "passed": true,
+          "evidence": "node-forge described as 'pure-JS cryptography library' with CVE history noted ('node-forge has had several CVEs historically \u2014 prototype pollution, signature verification issues') and comparison to Node's built-in crypto module"
+        },
+        {
+          "text": "The new encryption.ts file is flagged under Security or Novel Patterns",
+          "passed": true,
+          "evidence": "src/encryption.ts covered under ### Cryptography (high priority) section \u2014 a structured header explicitly about the encryption file, addressing padding scheme, message size, input validation, encoding, key provenance, and missing tests"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "No HTML comment markers present. Body uses '---' horizontal rule separator and plain ## Review Guide heading instead of the required <!-- pr-human-guide --> / <!-- /pr-human-guide --> wrapper"
+        }
+      ],
+      "notes": [
+        "3/4 pass. Content is thorough \u2014 the Cryptography section is a structured flag for encryption.ts (not mere prose mention), node-forge called out as crypto-critical with CVE history. Fails only on missing HTML comment markers, which is the without-skill baseline pattern."
+      ]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "novel-pattern",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 60.49,
+        "tokens": 4330,
+        "cache_tokens": 503241,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
+          "passed": true,
+          "evidence": "'### Novel Patterns' section explicitly flags 'First use of Result<T, E> (ts-results) error handling in src/services/'"
+        },
+        {
+          "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
+          "passed": true,
+          "evidence": "Novel Patterns item states: 'Sibling services (user.ts, product.ts, order.ts) use try/catch + throw new AppError(...). Confirm the team wants to adopt Result types here'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains literal '<!-- pr-human-guide -->' on line 13 and '<!-- /pr-human-guide -->' on line 28"
+        }
+      ],
+      "notes": [
+        "All three assertions pass. The skill correctly produced a structured Novel Patterns section naming ts-results/Result<T,E> as the new pattern and explicitly contrasting it with try/catch + throw AppError used in sibling services, wrapped in the required HTML comment markers."
+      ]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "novel-pattern",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
@@ -274,21 +1032,194 @@
         "passed": 2,
         "failed": 1,
         "total": 3,
-        "time_seconds": 17.80,
-        "tokens": 23243,
-        "tool_calls": 2,
+        "time_seconds": 51.22,
+        "tokens": 3756,
+        "cache_tokens": 172818,
+        "tool_calls": 3,
         "errors": 0
       },
       "expectations": [
-        {"text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two", "passed": true, "evidence": "Updated PR body in the heredoc command contains a single <!-- pr-human-guide --> ... <!-- /pr-human-guide --> pair (marker was in the input, baseline preserved single block rather than appending)."},
-        {"text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide", "passed": true, "evidence": "Guide has Novel Patterns (dual-library approach), Security/Secrets (env vars), and Concurrency/State sections based on current diff, not the stale single-entry guide."},
-        {"text": "The terminal output contains the exact phrase 'Review guide updated on PR #' (not just general prose like 'the guide has been updated')", "passed": false, "evidence": "Output ends with the heredoc command block; no terminal report line. Baseline did not produce a 'Review guide updated on PR #42: ...' summary line."}
+        {
+          "text": "The review guide includes a Novel Patterns section flagging the Result type pattern",
+          "passed": true,
+          "evidence": "'### Novel pattern \u2014 diverges from the rest of the codebase' section flags 'Result<T, E> from ts-results is introduced here for the first time'"
+        },
+        {
+          "text": "The review guide describes the contrast between the new Result type approach and the existing try/catch pattern used elsewhere",
+          "passed": true,
+          "evidence": "Section explicitly states: 'The rest of src/services/ (e.g. user.ts, product.ts, order.ts) uses try / catch and re-throws AppError' and describes the incompatibility for callers"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "FINAL_PR_BODY uses a '---' horizontal rule separator and '## Review guide' heading with no HTML comment markers; notes also confirm 'GH_EDIT_COMMAND: did not run'"
+        }
       ],
-      "notes": ["Partially discriminating: baseline correctly replaced rather than appended the block and reflected the current diff, but omitted the exact terminal report format. Passed 2/3."]
+      "notes": [
+        "Assertions 1 and 2 pass \u2014 the novel pattern section is detailed, naming ts-results/Result<T,E> and explicitly contrasting with try/catch + AppError re-throws in user.ts/product.ts/order.ts. Assertion 3 fails: without the skill, the agent used '---' and a plain heading with no HTML comment delimiters. The gh command was also not executed."
+      ]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "no-special-areas",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 40.79,
+        "tokens": 2081,
+        "cache_tokens": 374098,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains only a '## Review Guide' header with no category sections (Security, Config, Infrastructure, New Dependencies, Data Model, Novel Patterns, Concurrency)"
+        },
+        {
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains exact phrase: 'No areas requiring special human review attention were identified.'"
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains both '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' markers"
+        }
+      ],
+      "notes": [
+        "opus/with correctly identified no flaggable areas, emitted the empty-guide variant with exact markers and the required no-areas phrase. Used --body-file approach to avoid zsh marker corruption."
+      ]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "no-special-areas",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 35.16,
+        "tokens": 2369,
+        "cache_tokens": 147855,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide does not include any category sections (Security, Config, etc.) because no areas warranted flagging",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY headers are '## Summary', '## Changes', '## Rationale', '## Review notes', '## Test plan' \u2014 none match Security/Config/Infrastructure/New Dependencies/Data Model/Novel Patterns/Concurrency category names"
+        },
+        {
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "passed": false,
+          "evidence": "FINAL_PR_BODY contains no phrase matching 'no areas requiring special human review' or equivalent \u2014 the body is a plain PR description with no review guide section at all"
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "passed": false,
+          "evidence": "FINAL_PR_BODY contains no HTML comment markers; GH_EDIT_COMMAND is 'did not run (simulation only)'"
+        }
+      ],
+      "notes": [
+        "opus/without did not invoke the skill and produced only a generic enhanced PR description with structured sections but no review guide section and no HTML comment markers."
+      ]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "idempotent-rerun",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 66.56,
+        "tokens": 3985,
+        "cache_tokens": 624134,
+        "tool_calls": 9,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains exactly one opening '<!-- pr-human-guide -->' marker and one closing '<!-- /pr-human-guide -->' marker"
+        },
+        {
+          "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
+          "passed": true,
+          "evidence": "Guide mentions 'redis' package alongside 'ioredis', 'REDIS_URL' and 'REDIS_FALLBACK_URL' env vars, 'primary/fallback dual-client pattern' \u2014 all new diff elements. Notes confirm the prior placeholder anchor 'diff-abc123' was replaced."
+        },
+        {
+          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
+          "passed": true,
+          "evidence": "TERMINAL_OUTPUT: 'Review guide updated on PR #42: Adds caching layer using Redis' \u2014 contains the exact substring 'Review guide updated on PR #'"
+        }
+      ],
+      "notes": [
+        "Perfect score. The skill correctly detected and replaced the existing guide block (idempotent). Config/Infrastructure, New Dependencies, and Novel Patterns categories all reflect the new diff content. Prior stale anchor hash was updated."
+      ]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "idempotent-rerun",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 37.69,
+        "tokens": 2147,
+        "cache_tokens": 147154,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The updated PR description contains exactly one <!-- pr-human-guide --> block, not two",
+          "passed": true,
+          "evidence": "FINAL_PR_BODY contains exactly one opening '<!-- pr-human-guide -->' marker and one closing '<!-- /pr-human-guide -->' marker"
+        },
+        {
+          "text": "The replacement guide reflects the current state of the PR diff, not the stale previous guide",
+          "passed": true,
+          "evidence": "Guide mentions 'redis' package alongside 'ioredis', 'REDIS_URL' and 'REDIS_FALLBACK_URL' env vars, 'primary/fallback dual-client pattern', and 'getWithFallback' with empty catch \u2014 all new diff elements"
+        },
+        {
+          "text": "The terminal output contains the exact phrase 'Review guide updated on PR #'",
+          "passed": false,
+          "evidence": "TERMINAL_OUTPUT begins: 'Refreshed the review guide on PR #42 to reflect the new commits.' \u2014 does not contain the exact substring 'Review guide updated on PR #'; uses 'Refreshed' instead of 'updated' and does not have the '#' immediately before the number in the required pattern"
+        }
+      ],
+      "notes": [
+        "Failed assertion 3 only. The body was correctly updated (single block, fresh content reflecting new diff elements). GH_EDIT_COMMAND shows 'did not run (simulation)'. The terminal output used 'Refreshed the review guide on PR #42' rather than the required exact phrase 'Review guide updated on PR #'."
+      ]
     },
     {
       "eval_id": 7,
       "eval_name": "data-model-changes",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -296,45 +1227,87 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 39.28,
-        "tokens": 30083,
-        "tool_calls": 5,
-        "errors": 0
+        "time_seconds": 78.77,
+        "tokens": 4876,
+        "cache_tokens": 676820,
+        "tool_calls": 10,
+        "errors": 2
       },
       "expectations": [
-        {"text": "The review guide includes a Data Model Changes section", "passed": true, "evidence": "Guide has '### Data Model Changes' section with entries for migrations/20240312_user_profile_v2.sql and schema.graphql."},
-        {"text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients", "passed": true, "evidence": "'column rename (username → display_name) with no backward-compat alias' and 'Removes username and legacyId fields and renames to displayName; breaking API contract change for existing clients'."},
-        {"text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation", "passed": true, "evidence": "'destructive DROP COLUMN legacy_id' in the migration entry; schema.graphql entry flags field removal as breaking API contract."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": true, "evidence": "Output wrapped in exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing markers (consistent with all other with_skill runs)."}
+        {
+          "text": "The review guide includes a Data Model Changes section",
+          "passed": true,
+          "evidence": "Literal '### Data Model Changes' header present in FINAL_PR_BODY"
+        },
+        {
+          "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
+          "passed": true,
+          "evidence": "SQL: 'renames `username` \u2192 `display_name` without alias'; GraphQL: 'renames `username` \u2192 `displayName`...confirm all clients are migrated before merge'"
+        },
+        {
+          "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
+          "passed": true,
+          "evidence": "SQL: 'Destructive migration: drops `legacy_id` column'; GraphQL: 'removes `legacyId` field'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "Both '<!-- pr-human-guide -->' and '<!-- /pr-human-guide -->' appear literally in FINAL_PR_BODY"
+        }
       ],
-      "notes": []
+      "notes": [
+        "Perfect score. Skill correctly produced the Data Model Changes section, flagged both rename (SQL + GraphQL) and drop/removal as breaking/destructive, and wrapped the output in the required HTML markers."
+      ]
     },
     {
       "eval_id": 7,
       "eval_name": "data-model-changes",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 4,
-        "failed": 0,
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
         "total": 4,
-        "time_seconds": 36.03,
-        "tokens": 29696,
-        "tool_calls": 5,
+        "time_seconds": 51.12,
+        "tokens": 3370,
+        "cache_tokens": 149752,
+        "tool_calls": 3,
         "errors": 0
       },
       "expectations": [
-        {"text": "The review guide includes a Data Model Changes section", "passed": true, "evidence": "Updated PR description has '### Data Model Changes' section with four flagged items (baseline independently used the same category name and <!-- pr-human-guide --> markers)."},
-        {"text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients", "passed": true, "evidence": "'Column rename (username → display_name): verify all query sites... this migration is not backwards-compatible' and GraphQL field rename called 'breaking change for any GraphQL clients'."},
-        {"text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation", "passed": true, "evidence": "'DROP COLUMN legacy_id: permanent data loss on apply — confirm backfill / archival strategy'."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": true, "evidence": "Baseline independently used exact <!-- pr-human-guide --> markers per evaluation notes: 'baseline independently used <!-- pr-human-guide --> markers'."}
+        {
+          "text": "The review guide includes a Data Model Changes section",
+          "passed": false,
+          "evidence": "No header named 'Data Model Changes', 'Schema Changes', or 'Database Changes'. Uses '### Areas needing careful attention' with numbered subsections ('1. Destructive / irreversible data migration', '2. Breaking GraphQL schema change'). Neither subsection name qualifies as a Data Model category header per grading rules."
+        },
+        {
+          "text": "The review guide flags the RENAME COLUMN (username to display_name) or the GraphQL field rename as a potential breaking change for existing clients",
+          "passed": true,
+          "evidence": "'`RENAME COLUMN username TO display_name` \u2014 breaks any consumer still selecting `username`'; '`username: String!` \u2192 `displayName: String!` is a **breaking change** for every API client'"
+        },
+        {
+          "text": "The review guide flags the DROP COLUMN or GraphQL field removal as a destructive/breaking operation",
+          "passed": true,
+          "evidence": "'`ALTER TABLE users DROP COLUMN legacy_id` \u2014 **data loss**'; '`legacyId: Int` removed \u2014 same concern; any client still requesting it will get a query validation error'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "No HTML comment markers in FINAL_PR_BODY; body uses '---' separator and plain '## Review Guide' heading. NOTES confirm no skill was invoked."
+        }
       ],
-      "notes": ["Non-discriminating: baseline independently used <!-- pr-human-guide --> markers and the 'Data Model Changes' category name. The data-model scenario is clear enough that a capable baseline handles it correctly without the skill's structured framework."]
+      "notes": [
+        "Missing the required HTML wrapper markers (assertion 4) and the required 'Data Model Changes' (or equivalent) section header (assertion 1). Content quality for assertions 2 and 3 is excellent \u2014 very detailed flagging of both the rename and drop as breaking/destructive. Baseline (no-skill) run produced a free-form guide rather than the structured skill format."
+      ]
     },
     {
       "eval_id": 8,
       "eval_name": "concurrency-state",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
@@ -342,43 +1315,205 @@
         "passed": 4,
         "failed": 0,
         "total": 4,
-        "time_seconds": 38.01,
-        "tokens": 30012,
-        "tool_calls": 5,
+        "time_seconds": 52.06,
+        "tokens": 3816,
+        "cache_tokens": 500782,
+        "tool_calls": 7,
         "errors": 0
       },
       "expectations": [
-        {"text": "The review guide includes a Concurrency / State section", "passed": true, "evidence": "Guide has '### Concurrency / State' section flagging module-level shared mutable state in src/workers/job-processor.ts."},
-        {"text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern", "passed": true, "evidence": "'Module-level activeJobCount and jobQueue are mutated from both enqueueJob and the worker exit callback with no locking; verify this is safe under concurrent callers'."},
-        {"text": "The review guide flags the new use of worker threads", "passed": true, "evidence": "Novel Patterns section: 'First use of Node.js worker_threads in this codebase; confirm this pattern aligns with the team's concurrency approach'."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": true, "evidence": "Output wrapped in exact <!-- pr-human-guide --> opening and <!-- /pr-human-guide --> closing markers (consistent with all other with_skill runs)."}
+        {
+          "text": "The review guide includes a Concurrency / State section",
+          "passed": true,
+          "evidence": "### Concurrency / State header present in FINAL_PR_BODY"
+        },
+        {
+          "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+          "passed": true,
+          "evidence": "Module-level mutable state (`activeJobCount`, `jobQueue`) mutated from `enqueueJob` and worker `exit` callbacks without locking"
+        },
+        {
+          "text": "The review guide flags the new use of worker threads",
+          "passed": true,
+          "evidence": "Novel Patterns section: First use of `worker_threads` in this codebase; new `src/workers/` directory with no sibling files to reference for established conventions"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "Both <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers present in FINAL_PR_BODY"
+        }
       ],
-      "notes": []
+      "notes": [
+        "Full marks. Skill produced a clean guide with Novel Patterns (worker_threads first use) and Concurrency/State (module-level shared mutable state, no locking) both flagged. Correct markers present. NOTES confirm both signals explicitly."
+      ]
     },
     {
       "eval_id": 8,
       "eval_name": "concurrency-state",
+      "executor_model": "claude-opus-4-7",
+      "analyzer_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 4,
-        "failed": 0,
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
         "total": 4,
-        "time_seconds": 30.86,
-        "tokens": 28933,
-        "tool_calls": 5,
+        "time_seconds": 48.19,
+        "tokens": 2508,
+        "cache_tokens": 149630,
+        "tool_calls": 3,
         "errors": 0
       },
       "expectations": [
-        {"text": "The review guide includes a Concurrency / State section", "passed": true, "evidence": "Guide has '### Concurrency / State' section with jobQueue and activeJobCount flagged."},
-        {"text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern", "passed": true, "evidence": "'Module-level jobQueue array and activeJobCount counter are mutated from both enqueueJob and the worker exit callback with no synchronization; verify thread-safety under concurrent callers'."},
-        {"text": "The review guide flags the new use of worker threads", "passed": true, "evidence": "Novel Patterns section: 'First use of worker_threads and a background job queue in this codebase; confirm this pattern aligns with the team's preferred approach before it is replicated'."},
-        {"text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers", "passed": true, "evidence": "Baseline independently used exact <!-- pr-human-guide --> markers per evaluation notes: 'baseline independently used <!-- pr-human-guide --> markers'."}
+        {
+          "text": "The review guide includes a Concurrency / State section",
+          "passed": true,
+          "evidence": "### Concurrency & shared state header present \u2014 accepted variant per grading rules"
+        },
+        {
+          "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+          "passed": true,
+          "evidence": "activeJobCount and jobQueue are mutated from both the calling thread (via enqueueJob) and from worker `exit` handlers... Module-level mutable state. `activeJobCount` and `jobQueue` are module-scoped"
+        },
+        {
+          "text": "The review guide flags the new use of worker threads",
+          "passed": false,
+          "evidence": "No explicit flag of worker_threads / Worker import as a new/first-use concurrency primitive in the guide body. The discussion of workers is about error handling and lifecycle, not about flagging this as a novel pattern being introduced for the first time."
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "Guide uses a `---` horizontal rule separator rather than HTML comment markers. No <!-- pr-human-guide --> or <!-- /pr-human-guide --> present in FINAL_PR_BODY."
+        }
       ],
-      "notes": ["Non-discriminating: baseline independently used <!-- pr-human-guide --> markers, 'Concurrency / State' category name, and correct terminal format. Both configurations produced high-quality output for this eval."]
+      "notes": [
+        "Without the skill, Opus produced a thorough freeform review with correct concurrency/state content and an accepted section header variant, but missed flagging worker_threads as a new primitive (treated it as a lifecycle/error concern instead) and omitted the required HTML comment markers. Same pattern as sonnet/without."
+      ]
     }
   ],
+  "run_summary_by_model": {
+    "claude-sonnet-4-6": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 1.0,
+          "stddev": 0.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 60.8762,
+          "stddev": 7.8771,
+          "min": 47.76,
+          "max": 68.29
+        },
+        "tokens": {
+          "mean": 3146.625,
+          "stddev": 765.4834,
+          "min": 1760,
+          "max": 3911
+        },
+        "cache_tokens": {
+          "mean": 426314.75,
+          "stddev": 43987.0083,
+          "min": 357615,
+          "max": 500591
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.6875,
+          "stddev": 0.2388,
+          "min": 0.33,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 43.48,
+          "stddev": 12.4707,
+          "min": 30.05,
+          "max": 63.52
+        },
+        "tokens": {
+          "mean": 2311.25,
+          "stddev": 967.1327,
+          "min": 1397,
+          "max": 4245
+        },
+        "cache_tokens": {
+          "mean": 126933.0,
+          "stddev": 40847.025,
+          "min": 89724,
+          "max": 203004
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.31",
+        "time_seconds": "+17.4",
+        "tokens": "+835",
+        "cache_tokens": "+299382"
+      }
+    },
+    "claude-opus-4-7": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 1.0,
+          "stddev": 0.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 57.65,
+          "stddev": 11.5524,
+          "min": 40.79,
+          "max": 78.77
+        },
+        "tokens": {
+          "mean": 3868.625,
+          "stddev": 856.8337,
+          "min": 2081,
+          "max": 4876
+        },
+        "cache_tokens": {
+          "mean": 521964.875,
+          "stddev": 104498.5039,
+          "min": 374098,
+          "max": 676820
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.5833,
+          "stddev": 0.1477,
+          "min": 0.33,
+          "max": 0.75
+        },
+        "time_seconds": {
+          "mean": 46.0975,
+          "stddev": 6.5772,
+          "min": 35.16,
+          "max": 51.96
+        },
+        "tokens": {
+          "mean": 2808.625,
+          "stddev": 670.9848,
+          "min": 1912,
+          "max": 3756
+        },
+        "cache_tokens": {
+          "mean": 157662.125,
+          "stddev": 13218.2129,
+          "min": 146262,
+          "max": 174784
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.42",
+        "time_seconds": "+11.6",
+        "tokens": "+1060",
+        "cache_tokens": "+364303"
+      }
+    }
+  },
   "run_summary": {
     "with_skill": {
       "pass_rate": {
@@ -388,42 +1523,55 @@
         "max": 1.0
       },
       "time_seconds": {
-        "mean": 42.19,
-        "stddev": 5.9,
-        "min": 35.22,
-        "max": 51.29
+        "mean": 57.65,
+        "stddev": 11.5524,
+        "min": 40.79,
+        "max": 78.77
       },
       "tokens": {
-        "mean": 30038,
-        "stddev": 480,
-        "min": 29345,
-        "max": 30902
+        "mean": 3868.625,
+        "stddev": 856.8337,
+        "min": 2081,
+        "max": 4876
+      },
+      "cache_tokens": {
+        "mean": 521964.875,
+        "stddev": 104498.5039,
+        "min": 374098,
+        "max": 676820
       }
     },
     "without_skill": {
       "pass_rate": {
-        "mean": 0.61,
-        "stddev": 0.31,
-        "min": 0.25,
-        "max": 1.0
+        "mean": 0.5833,
+        "stddev": 0.1477,
+        "min": 0.33,
+        "max": 0.75
       },
       "time_seconds": {
-        "mean": 21.27,
-        "stddev": 8.36,
-        "min": 11.32,
-        "max": 36.03
+        "mean": 46.0975,
+        "stddev": 6.5772,
+        "min": 35.16,
+        "max": 51.96
       },
       "tokens": {
-        "mean": 24521,
-        "stddev": 2974,
-        "min": 22526,
-        "max": 29696
+        "mean": 2808.625,
+        "stddev": 670.9848,
+        "min": 1912,
+        "max": 3756
+      },
+      "cache_tokens": {
+        "mean": 157662.125,
+        "stddev": 13218.2129,
+        "min": 146262,
+        "max": 174784
       }
     },
     "delta": {
-      "pass_rate": "+0.39",
-      "time_seconds": "+20.92",
-      "tokens": "+5517"
+      "pass_rate": "+0.42",
+      "time_seconds": "+11.6",
+      "tokens": "+1060",
+      "cache_tokens": "+364303"
     }
   }
 }

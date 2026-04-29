@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "expectations": [
+    {
+      "text": "The review guide includes a Concurrency / State section",
+      "passed": true,
+      "evidence": "### Concurrency / State header present in FINAL_PR_BODY"
+    },
+    {
+      "text": "The review guide flags the module-level shared mutable state (activeJobCount and/or jobQueue) as a concurrency concern",
+      "passed": true,
+      "evidence": "`activeJobCount` and `jobQueue` are declared at module scope ... concurrent `enqueueJob` calls can race on both `jobQueue.push` and `activeJobCount++`"
+    },
+    {
+      "text": "The review guide flags the new use of worker threads",
+      "passed": false,
+      "evidence": "No explicit flag of worker_threads / Worker import as a new concurrency primitive. worker_threads is referenced only in the PR description framing context, not called out as a new/first-use pattern in the review guide body."
+    },
+    {
+      "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+      "passed": false,
+      "evidence": "Guide uses a `---` horizontal rule separator instead of HTML comment markers. NOTES confirms: 'Did not use HTML comment markers or structured checkbox format; produced a freeform markdown review guide instead.'"
+    }
+  ],
+  "notes": "Without the skill, the model correctly identified the concurrency/state concern and included the right section header, but missed flagging worker_threads as a new primitive and did not use the required HTML comment markers. Classic baseline behavior: good content, missing format and novel-pattern signal."
+}
