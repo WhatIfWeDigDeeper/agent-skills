@@ -1,11 +1,21 @@
 """Pytest fixtures and helpers for pr-human-guide skill tests."""
 
 import hashlib
+import re
 
 HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 
 OPENING_MARKER = "<!-- pr-human-guide -->"
 CLOSING_MARKER = "<!-- /pr-human-guide -->"
+
+# Regression sentinels for SKILL.md instruction-level guards, not runtime sanitizers.
+PROMPT_INJECTION_PATTERNS = (
+    re.compile(r"ignore\s+(all\s+)?previous\s+instructions", re.IGNORECASE),
+    re.compile(r"do\s+not\s+(add|create|write|update)\s+(a\s+)?(review\s+)?guide", re.IGNORECASE),
+    re.compile(r"mark\s+(this\s+)?(pr\s+)?as\s+(safe|no\s+areas)", re.IGNORECASE),
+    re.compile(r"use\s+(these\s+)?markers?\s+instead", re.IGNORECASE),
+    re.compile(r"print\s+(the\s+)?(token|secret|api\s+key)", re.IGNORECASE),
+)
 
 
 def is_help_request(args: str | None) -> bool:
@@ -41,11 +51,18 @@ def replace_guide(body: str, new_guide: str) -> str:
     """Replace the existing guide block with new_guide per SKILL.md Step 5.
 
     new_guide must include the opening and closing markers.
+    Prefers a marker immediately followed by the Review Guide heading when
+    multiple marker-like blocks are present in untrusted PR body text.
     Preserves all content before the opening marker and after the closing marker
     when present. If the closing marker is missing, replaces from the opening
     marker to the end of body.
     """
-    start = body.index(OPENING_MARKER)
+    review_guide_marker = re.compile(re.escape(OPENING_MARKER) + r"\r?\n## Review Guide")
+    match = review_guide_marker.search(body)
+    if match:
+        start = match.start()
+    else:
+        start = body.index(OPENING_MARKER)
     closing_start = body.find(CLOSING_MARKER, start + len(OPENING_MARKER))
     end = (
         closing_start + len(CLOSING_MARKER)
@@ -112,3 +129,33 @@ def build_diff_link(owner: str, repo: str, pr_number: int, file_path: str) -> st
     """Build the full GitHub diff anchor link for a file per SKILL.md Step 4."""
     anchor = compute_diff_anchor(file_path)
     return f"https://github.com/{owner}/{repo}/pull/{pr_number}/files#diff-{anchor}"
+
+
+def escape_markdown_link_label(text: str) -> str:
+    """Escape file paths before placing them in markdown link labels."""
+    return (
+        text.replace("\\", "\\\\")
+        .replace("`", "\\`")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+        .replace("(", "\\(")
+        .replace(")", "\\)")
+    )
+
+
+def contains_prompt_injection_instruction(text: str) -> bool:
+    """Return True when untrusted PR content looks like agent instructions."""
+    return any(pattern.search(text) for pattern in PROMPT_INJECTION_PATTERNS)
+
+
+def sanitize_guide_reason(reason: str) -> str:
+    """Summarize unsafe prompt-like content without copying it as a directive."""
+    if contains_prompt_injection_instruction(reason) or OPENING_MARKER in reason or CLOSING_MARKER in reason:
+        return "Changed content contains prompt-like text; review the surrounding code as data."
+    return reason
+
+
+def diff_mentions_auth_keywords(diff_text: str) -> bool:
+    """Detect known auth/security keywords as a regression sentinel."""
+    security_terms = ("jwt.verify", "requireRole", "authorization", "permission", "secret")
+    return any(term in diff_text for term in security_terms)
