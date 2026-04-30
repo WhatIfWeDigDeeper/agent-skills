@@ -122,6 +122,16 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
 
 ## Shared polling loop
 
+### Runtime capability check
+
+Before entering the loop, identify your runtime's wait capability — this determines whether the loop runs cyclically or short-circuits to a single pass. Full tier definitions live under "Poll interval and timeout" below.
+
+- **Tier 1 — delayed-resume primitive available** (e.g. Claude Code's `ScheduleWakeup`): run the loop normally, scheduling a resume after each 60-second interval.
+- **Tier 2 — blocking `sleep 60` allowed inside a single command**: run the loop with a bounded `sleep 60` between cycles.
+- **Tier 3 — neither available** (e.g. Copilot in VS Code, or any runtime that cuts off long-running shell commands within a turn): **do not enter the cyclic loop.** Run a single immediate pass of Signals 1–3, handle any that fire, and otherwise emit the tier-3 exit message in "Poll interval and timeout" and end the invocation.
+
+If uncertain which tier applies, default to tier 3 — emitting the re-invoke message is preferable to hanging the turn.
+
 ### Auto mode (default)
 
 Begin polling automatically without prompting. Display a status line:
@@ -194,9 +204,9 @@ Poll every **60 seconds**. Stop after **10 minutes** if no signals fire.
 
 Use the host runtime's best available wait primitive for the 60-second interval between poll cycles:
 
-1. **Preferred: delayed resume / scheduler primitive available** — schedule a delayed resume after each 60-second interval. `Monitor` is for short-interval polling, not waits of 60 seconds or longer. In Claude Code, one such primitive is `ScheduleWakeup(delaySeconds=60, prompt=<invocation text used to start this skill, e.g. "/pr-comments 130">)`.
-2. **Otherwise, if the host permits blocking waits** — use a bounded `sleep 60` loop honoring the 60-second cadence and 10-minute timeout; see the `for i in $(seq 1 N); do` form earlier in this file.
-3. **Otherwise, if neither delayed resume nor blocking waits are available** — run one immediate pass of Signals 1-3 using the same queries and priorities described above. If a signal fires, handle it exactly as this polling loop normally would. If no signal fires, print:
+1. **Tier 1 — delayed resume / scheduler primitive available** — schedule a delayed resume after each 60-second interval. `Monitor` is for short-interval polling, not waits of 60 seconds or longer. In Claude Code, one such primitive is `ScheduleWakeup(delaySeconds=60, prompt=<invocation text used to start this skill, e.g. "/pr-comments 130">)`.
+2. **Tier 2 — host permits blocking waits** — use a bounded `sleep 60` loop honoring the 60-second cadence and 10-minute timeout; see the `for i in $(seq 1 N); do` form earlier in this file.
+3. **Tier 3 — neither delayed resume nor blocking waits are available** — run one immediate pass of Signals 1-3 using the same queries and priorities described above. If a signal fires, handle it exactly as this polling loop normally would. If no signal fires, print:
 
     > `@<bot-handle>` hasn't responded yet. This runtime can't wait 60 seconds between poll cycles. Re-invoke the pr-comments skill when the review is ready.
 
