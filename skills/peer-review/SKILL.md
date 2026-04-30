@@ -131,7 +131,7 @@ gh pr diff "$PR"
 
 **Path** (file or directory):
 
-First, check that the path exists (e.g. `test -e <path>` via the Bash tool). If it does not, error: `Path not found: <path>` and stop. Otherwise, read all files at the path (in Claude Code: use the `Read` tool). For a directory, read all text files in it recursively — skip binary files (images, compiled artifacts) and files larger than ~100 KB. Set mode to **consistency**.
+First, check that the path exists (e.g. `test -e "<path>"` via the Bash tool — quote the substituted value so paths with spaces or shell metacharacters don't split or expand). If it does not, error: `Path not found: <path>` and stop. Otherwise, read all files at the path (in Claude Code: use the `Read` tool). For a directory, read all text files in it recursively — skip binary files (images, compiled artifacts) and files larger than ~100 KB. Set mode to **consistency**.
 
 ### 3. Select Prompt Template
 
