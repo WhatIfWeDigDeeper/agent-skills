@@ -20,7 +20,7 @@
         "approve": false,
         "matchCommandLine": true
     },
-    "/^\\s*rm\\s+-(?:[^\\s]*r[^\\s]*f|[^\\s]*f[^\\s]*r)[^\\s]*\\s+\\/(?:\\s|$|[;&|*])/": {
+    "/^\\s*rm\\b(?=.*(?:^|\\s)(?:-[^\\s]*r[^\\s]*|--recursive)(?:\\s|$))(?=.*(?:^|\\s)(?:-[^\\s]*f[^\\s]*|--force)(?:\\s|$)).*\\s+\\/\\*?(?=\\s|$|[;&|])/": {
         "approve": false,
         "matchCommandLine": true
     },
