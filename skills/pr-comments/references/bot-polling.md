@@ -128,7 +128,7 @@ Before entering the loop, identify your runtime's wait capability — this deter
 
 - **Tier 1 — delayed-resume primitive available** (e.g. Claude Code's `ScheduleWakeup`): run the loop normally, scheduling a resume after each 60-second interval.
 - **Tier 2 — blocking `sleep 60` allowed inside a single command**: run the loop with a bounded `sleep 60` between cycles.
-- **Tier 3 — neither available** (e.g. Copilot in VS Code, or any runtime that cuts off long-running shell commands within a turn): **do not enter the cyclic loop.** Run a single immediate pass of Signals 1–3, handle any that fire, and otherwise emit the tier-3 exit message in "Poll interval and timeout" and end the invocation.
+- **Tier 3 — neither available** (e.g. Copilot in VS Code, or any runtime that cuts off long-running shell commands within a turn): **do not enter the cyclic loop.** Run a single immediate pass of Signals 1-3, handle any that fire, and otherwise emit the tier-3 exit message in "Poll interval and timeout" and end the invocation.
 
 If uncertain which tier applies, default to tier 3 — emitting the re-invoke message is preferable to hanging the turn.
 

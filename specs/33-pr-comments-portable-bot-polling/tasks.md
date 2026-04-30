@@ -24,7 +24,7 @@
   ```
 - [x] **1.2** Edit A — in `skills/pr-comments/references/bot-polling.md`, update `Poll interval and timeout` to prefer the host runtime's delayed-resume or scheduler primitive when available.
 - [x] **1.3** Edit A — add the second fallback: if no scheduler exists but blocking waits are allowed, use the existing bounded `sleep 60` loop and keep the 10-minute timeout.
-- [x] **1.4** Edit A — add the third fallback: if neither scheduler nor blocking waits are available, run one immediate Signals 1-3 check, report pending bot review, tell the user to re-invoke `pr-comments` when the review lands, then proceed to Step 14/end the invocation.
+- [x] **1.4** Edit A — add the third fallback: if neither scheduler nor blocking waits are available, run one immediate pass of Signals 1-3, report pending bot review, tell the user to re-invoke `pr-comments` when the review lands, then proceed to Step 14/end the invocation.
 - [x] **1.5** Edit A — keep the Claude Code `ScheduleWakeup` call as an example only, and keep the warning not to use `Monitor` for waits of 60 seconds or longer.
 - [x] **1.6** Edit B — re-read the updated polling section and confirm the change preserves the existing Signals 1-3 priority, loop-back behavior on new threads, all-bots-responded clean exit, and timeout behavior.
 - [x] **1.7** Edit C — bump `metadata.version` in `skills/pr-comments/SKILL.md` once if required by the Phase 1.1 check.
