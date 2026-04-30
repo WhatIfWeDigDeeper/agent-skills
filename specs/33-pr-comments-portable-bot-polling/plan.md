@@ -16,7 +16,7 @@ In `skills/pr-comments/references/bot-polling.md`, update the `Poll interval and
 
 1. Prefer the host runtime's delayed-resume or scheduler primitive when available. Use it after each 60-second interval and resume the same bounded polling loop.
 2. If no scheduler exists but the host permits blocking waits, use a bounded `sleep 60` loop. Keep the existing `for i in $(seq 1 N); do` guidance and 10-minute timeout.
-3. If neither a scheduler nor blocking waits are available, run one immediate signal check using the same Signals 1-3 queries. If no signal fires, report that bot review is still pending, tell the user to re-invoke `pr-comments` when the review lands, then proceed to Step 14 and end the invocation.
+3. If neither a scheduler nor blocking waits are available, run one immediate pass of Signals 1-3 using the same queries. If no signal fires, report that bot review is still pending, tell the user to re-invoke `pr-comments` when the review lands, then proceed to Step 14 and end the invocation.
 
 Keep Claude Code as an example only:
 
@@ -60,7 +60,7 @@ No unit-test change is expected. `tests/pr-comments/test_bot_poll_routing.py` co
 Suggested manual review checks:
 
 1. The `Poll interval and timeout` section explicitly names all three runtime cases: scheduler available, blocking waits allowed, and neither available.
-2. The no-scheduler/no-sleep fallback performs an immediate signal check before reporting pending review.
+2. The no-scheduler/no-sleep fallback performs an immediate pass of Signals 1-3 before reporting pending review.
 3. The Claude Code `ScheduleWakeup` example is qualified as an example, not a universal instruction.
 4. The instruction does not tell VS Code/Copilot agents to run `sleep` when their terminal tool forbids it.
 
@@ -86,7 +86,7 @@ If implementation changes any existing eval assertion semantics, follow the repo
 1. Confirm the fallback language exists:
 
    ```bash
-   rg -n 'delayed-resume|blocking waits|neither.*scheduler|immediate signal check|ScheduleWakeup' skills/pr-comments/references/bot-polling.md
+   rg -n 'delayed-resume|blocking waits|neither.*scheduler|immediate pass of Signals|ScheduleWakeup' skills/pr-comments/references/bot-polling.md
    ```
 
 2. Confirm version state:

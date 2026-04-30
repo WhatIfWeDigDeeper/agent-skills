@@ -45,7 +45,7 @@
 
 - [x] **3.1** Confirm fallback language:
   ```bash
-  rg -n 'delayed-resume|blocking waits|neither.*scheduler|immediate signal check|ScheduleWakeup' skills/pr-comments/references/bot-polling.md
+  rg -n 'delayed-resume|blocking waits|neither.*scheduler|immediate pass of Signals|ScheduleWakeup' skills/pr-comments/references/bot-polling.md
   ```
 - [x] **3.2** Confirm version:
   ```bash
