@@ -15,12 +15,24 @@
       "WebSearch"
     ],
     "deny": [
-      "Read(.env*)",
-      "Write(.env*)",
-      "Edit(.env*)",
+      "Read(.env)",
+      "Write(.env)",
+      "Edit(.env)",
+      "Read(~/.zshrc)",
+      "Write(~/.zshrc)",
+      "Edit(~/.zshrc)",
       "Bash(rm -rf /)",
+      "Bash(rm *-r*f* /)",
+      "Bash(rm *-f*r* /)",
+      "Bash(rm *-r*f* /*)",
+      "Bash(rm *-f*r* /*)",
+      "Bash(rm *--recursive*--force* /)",
+      "Bash(rm *--force*--recursive* /)",
+      "Bash(rm *--recursive*--force* /*)",
+      "Bash(rm *--force*--recursive* /*)",
       "Bash(sudo *)",
-      "Bash(chmod 777 *)"
+      "Bash(chmod 777 *)",
+      "Bash(chmod *777 *)"
     ],
     "defaultMode": "acceptEdits"
   },
