@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.38"
+  version: "1.39"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -331,7 +331,7 @@ Deduplicate co-authors — one entry per person. Accepted suggestions are includ
 
 `consistency` changes (from Step 6b) are included in the same commit as the originating comment's changes. Credit goes to the original commenter — their suggestion triggered the parallel change. No separate `Co-authored-by` entry is needed for the consistency item itself since it derives from the same reviewer's feedback.
 
-**Commit fallbacks:** If the commit fails due to GPG signing, retry the same command with `--no-gpg-sign`. If the heredoc for the commit message fails, write it to a temp file instead: `msg_file="$(mktemp)"`, write the message into it, run `git commit -F "$msg_file"`, then clean up with `rm -f "$msg_file"` (or set `trap 'rm -f "$msg_file"' EXIT` before writing).
+**Commit fallbacks:** If the commit fails due to GPG signing, retry the same command with `--no-gpg-sign`. If the heredoc for the commit message fails, write it to a temp file instead: `msg_file="$(mktemp "${TMPDIR:-/private/tmp}/pr-comments-msg-XXXXXX")"`, write the message into it, run `git commit -F "$msg_file"`, then clean up with `rm -f "$msg_file"` (or set `trap 'rm -f "$msg_file"' EXIT` before writing).
 
 ### 11. Reply to Comments
 
@@ -357,7 +357,7 @@ File a follow-up GitHub issue for the out-of-scope suggestion from @reviewer? [y
 
 If confirmed:
 ```bash
-issue_body_file="$(mktemp)"
+issue_body_file="$(mktemp "${TMPDIR:-/private/tmp}/pr-comments-issue-XXXXXX")"
 trap 'rm -f "$issue_body_file"' EXIT
 {
   printf 'Suggested in PR #%s by @%s.\n\n' "N" "reviewer"
@@ -488,7 +488,7 @@ Use the templates in that file to structure your output. Omit lines that don't a
 ## Notes
 
 - **Keyring access required**: `gh` needs OS keyring/credential helper access. If your assistant runs in a sandbox, ensure it can reach the OS keyring.
-- **Temp files**: Use `mktemp` (not a hardcoded `/tmp/` path) when creating temp files — `/tmp/` may not be writable in sandboxed environments.
+- **Temp files**: Use `mktemp "${TMPDIR:-/private/tmp}/<prefix>-XXXXXX"` when creating temp files. Bare `mktemp` defaults to `/var/folders/...` on macOS, which is outside the sandbox's write allowlist; an explicit template under `$TMPDIR` lands in the sandbox-writable directory.
 - **Multiple reviewers raised the same issue**: Give all of them credit in the commit message.
 - **Draft PRs**: Treat comments the same as on open PRs.
 - **Suggestion conflicts**: If a suggestion overlaps with a line you're also editing for another comment, apply the suggestion diff as your starting point and layer the other change on top.

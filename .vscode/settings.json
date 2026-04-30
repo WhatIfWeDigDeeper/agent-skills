@@ -1,5 +1,37 @@
 {
+  "chat.permissions.default": "autoApprove",
+  "chat.tools.edits.autoApprove": {
+    "**/*": true,
+    "**/.claude/**": false,
+    "**/.vscode/*.json": false,
+    "**/.git/**": false,
+    "**/{.env,.zshrc,server.xml,build.rs,web.config,.gitattributes}": false,
+    "**/*.{code-workspace,csproj,fsproj,vbproj,vcxproj,proj,targets,props}": false,
+    "**/*.lock": false
+  },
+  "chat.tools.terminal.enableAutoApprove": true,
+  "chat.tools.terminal.ignoreDefaultAutoApproveRules": true,
   "chat.tools.terminal.autoApprove": {
-    "npx --yes cspell@8.14.2": true
+    "/(^|[\\s\"'=:/])\\.env(?:\\.|[\\s\"':/]|$)/": {
+        "approve": false,
+        "matchCommandLine": true
+    },
+    "/(^|[\\s\"'=:/])\\.zshrc(?:[\\s\"':/]|$)/": {
+        "approve": false,
+        "matchCommandLine": true
+    },
+    "/^\\s*rm\\b(?=.*(?:^|\\s)(?:-[^\\s]*[rR][^\\s]*|--recursive)(?:\\s|$))(?=.*(?:^|\\s)(?:-[^\\s]*f[^\\s]*|--force)(?:\\s|$)).*\\s+\\/\\*?(?=\\s|$|[;&|])/": {
+        "approve": false,
+        "matchCommandLine": true
+    },
+    "/^\\s*sudo\\b/": {
+        "approve": false,
+        "matchCommandLine": true
+    },
+    "/^\\s*chmod\\s+(?:-[^\\s]+\\s+)*777\\b/": {
+        "approve": false,
+        "matchCommandLine": true
+    },
+    "/.*/": true
   }
 }
