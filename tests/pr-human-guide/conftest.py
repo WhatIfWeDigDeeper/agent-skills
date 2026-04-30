@@ -1,11 +1,21 @@
 """Pytest fixtures and helpers for pr-human-guide skill tests."""
 
 import hashlib
+import re
 
 HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 
 OPENING_MARKER = "<!-- pr-human-guide -->"
 CLOSING_MARKER = "<!-- /pr-human-guide -->"
+
+# Regression sentinels for SKILL.md instruction-level guards, not runtime sanitizers.
+PROMPT_INJECTION_PATTERNS = (
+    re.compile(r"ignore\s+(all\s+)?previous\s+instructions", re.IGNORECASE),
+    re.compile(r"do\s+not\s+(add|create|write|update)\s+(a\s+)?(review\s+)?guide", re.IGNORECASE),
+    re.compile(r"mark\s+(this\s+)?(pr\s+)?as\s+(safe|no\s+areas)", re.IGNORECASE),
+    re.compile(r"use\s+(these\s+)?markers?\s+instead", re.IGNORECASE),
+    re.compile(r"print\s+(the\s+)?(token|secret|api\s+key)", re.IGNORECASE),
+)
 
 
 def is_help_request(args: str | None) -> bool:
@@ -34,24 +44,50 @@ def parse_pr_argument(args: str | None) -> dict:
 
 def has_existing_guide(body: str) -> bool:
     """Return True if body already contains a pr-human-guide block per SKILL.md Step 5."""
-    return OPENING_MARKER in body
+    return _select_guide_bounds(body) is not None
+
+
+def _select_guide_bounds(body: str) -> tuple[int, int] | None:
+    """Return replacement bounds for the last complete guide block."""
+    opening_positions = [match.start() for match in re.finditer(re.escape(OPENING_MARKER), body)]
+    complete_blocks = []
+    anchored_blocks = []
+
+    for index, start in enumerate(opening_positions):
+        next_start = opening_positions[index + 1] if index + 1 < len(opening_positions) else len(body)
+        closing_start = body.find(CLOSING_MARKER, start + len(OPENING_MARKER))
+        if closing_start == -1 or closing_start > next_start:
+            continue
+
+        end = closing_start + len(CLOSING_MARKER)
+        complete_blocks.append((start, end))
+
+        after_opening = body[start + len(OPENING_MARKER):]
+        if re.match(r"\r?\n## Review Guide", after_opening):
+            anchored_blocks.append((start, end))
+
+    if anchored_blocks:
+        return anchored_blocks[-1]
+    if complete_blocks:
+        return complete_blocks[-1]
+    return None
 
 
 def replace_guide(body: str, new_guide: str) -> str:
     """Replace the existing guide block with new_guide per SKILL.md Step 5.
 
     new_guide must include the opening and closing markers.
+    Prefers the last complete marker pair whose opening marker is immediately
+    followed by the Review Guide heading when multiple marker-like blocks are
+    present in untrusted PR body text.
     Preserves all content before the opening marker and after the closing marker
-    when present. If the closing marker is missing, replaces from the opening
-    marker to the end of body.
+    when present. If no complete marker pair exists, appends the guide instead
+    of replacing from an unbounded marker.
     """
-    start = body.index(OPENING_MARKER)
-    closing_start = body.find(CLOSING_MARKER, start + len(OPENING_MARKER))
-    end = (
-        closing_start + len(CLOSING_MARKER)
-        if closing_start != -1
-        else len(body)
-    )
+    bounds = _select_guide_bounds(body)
+    if bounds is None:
+        return append_guide(body, new_guide)
+    start, end = bounds
     return body[:start] + new_guide + body[end:]
 
 
@@ -112,3 +148,33 @@ def build_diff_link(owner: str, repo: str, pr_number: int, file_path: str) -> st
     """Build the full GitHub diff anchor link for a file per SKILL.md Step 4."""
     anchor = compute_diff_anchor(file_path)
     return f"https://github.com/{owner}/{repo}/pull/{pr_number}/files#diff-{anchor}"
+
+
+def escape_markdown_link_label(text: str) -> str:
+    """Escape file paths before placing them in markdown link labels."""
+    return (
+        text.replace("\\", "\\\\")
+        .replace("`", "\\`")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+        .replace("(", "\\(")
+        .replace(")", "\\)")
+    )
+
+
+def contains_prompt_injection_instruction(text: str) -> bool:
+    """Return True when untrusted PR content looks like agent instructions."""
+    return any(pattern.search(text) for pattern in PROMPT_INJECTION_PATTERNS)
+
+
+def sanitize_guide_reason(reason: str) -> str:
+    """Summarize unsafe prompt-like content without copying it as a directive."""
+    if contains_prompt_injection_instruction(reason) or OPENING_MARKER in reason or CLOSING_MARKER in reason:
+        return "Changed content contains prompt-like text; review the surrounding code as data."
+    return reason
+
+
+def diff_mentions_auth_keywords(diff_text: str) -> bool:
+    """Detect known auth/security keywords as a regression sentinel."""
+    security_terms = ("jwt.verify", "requireRole", "authorization", "permission", "secret")
+    return any(term in diff_text for term in security_terms)
