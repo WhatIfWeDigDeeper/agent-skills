@@ -86,9 +86,9 @@
 
 ## Phase 5: Ship
 
-- [ ] **5.1** Commit all changes on branch `spec-33-pr-comments-portable-bot-polling`.
-- [ ] **5.2** Push and open a PR with `Closes #138` in the PR body.
-- [ ] **5.3** Run `/pr-comments {pr_number}` immediately after PR creation per project convention.
+- [x] **5.1** Commit all changes on branch `spec-33-pr-comments-portable-bot-polling`.
+- [x] **5.2** Push and open a PR with `Closes #138` in the PR body.
+- [x] **5.3** Run `/pr-comments {pr_number}` immediately after PR creation per project convention.
 - [ ] **5.4** Loop `/pr-comments` until no new bot feedback.
 - [ ] **5.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
 - [ ] **5.6** Verify CI status with `gh pr checks {pr_number}`.
