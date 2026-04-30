@@ -44,31 +44,50 @@ def parse_pr_argument(args: str | None) -> dict:
 
 def has_existing_guide(body: str) -> bool:
     """Return True if body already contains a pr-human-guide block per SKILL.md Step 5."""
-    return OPENING_MARKER in body
+    return _select_guide_bounds(body) is not None
+
+
+def _select_guide_bounds(body: str) -> tuple[int, int] | None:
+    """Return replacement bounds for the last complete guide block."""
+    opening_positions = [match.start() for match in re.finditer(re.escape(OPENING_MARKER), body)]
+    complete_blocks = []
+    anchored_blocks = []
+
+    for index, start in enumerate(opening_positions):
+        next_start = opening_positions[index + 1] if index + 1 < len(opening_positions) else len(body)
+        closing_start = body.find(CLOSING_MARKER, start + len(OPENING_MARKER))
+        if closing_start == -1 or closing_start > next_start:
+            continue
+
+        end = closing_start + len(CLOSING_MARKER)
+        complete_blocks.append((start, end))
+
+        after_opening = body[start + len(OPENING_MARKER):]
+        if re.match(r"\r?\n## Review Guide", after_opening):
+            anchored_blocks.append((start, end))
+
+    if anchored_blocks:
+        return anchored_blocks[-1]
+    if complete_blocks:
+        return complete_blocks[-1]
+    return None
 
 
 def replace_guide(body: str, new_guide: str) -> str:
     """Replace the existing guide block with new_guide per SKILL.md Step 5.
 
     new_guide must include the opening and closing markers.
-    Prefers a marker immediately followed by the Review Guide heading when
-    multiple marker-like blocks are present in untrusted PR body text.
+    Prefers the last complete marker pair whose opening marker is immediately
+    followed by the Review Guide heading when multiple marker-like blocks are
+    present in untrusted PR body text.
     Preserves all content before the opening marker and after the closing marker
-    when present. If the closing marker is missing, replaces from the opening
-    marker to the end of body.
+    when present. If no complete marker pair exists, appends the guide instead
+    of replacing from an unbounded marker.
     """
-    review_guide_marker = re.compile(re.escape(OPENING_MARKER) + r"\r?\n## Review Guide")
-    match = review_guide_marker.search(body)
-    if match:
-        start = match.start()
-    else:
-        start = body.index(OPENING_MARKER)
-    closing_start = body.find(CLOSING_MARKER, start + len(OPENING_MARKER))
-    end = (
-        closing_start + len(CLOSING_MARKER)
-        if closing_start != -1
-        else len(body)
-    )
+    bounds = _select_guide_bounds(body)
+    if bounds is None:
+        return append_guide(body, new_guide)
+    start, end = bounds
     return body[:start] + new_guide + body[end:]
 
 

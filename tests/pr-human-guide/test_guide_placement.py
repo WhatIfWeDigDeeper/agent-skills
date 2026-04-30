@@ -34,10 +34,10 @@ class TestHasExistingGuide:
     def test_empty_body(self):
         assert has_existing_guide("") is False
 
-    def test_opening_marker_sufficient_for_detection(self):
-        """Detection is based on the opening marker alone (closing may be missing on corrupt body)."""
+    def test_opening_marker_alone_is_not_sufficient_for_detection(self):
+        """Detection requires a complete bounded marker pair."""
         body = f"Description.\n{OPENING_MARKER}\n## Review Guide"
-        assert has_existing_guide(body) is True
+        assert has_existing_guide(body) is False
 
 
 class TestAppendGuide:

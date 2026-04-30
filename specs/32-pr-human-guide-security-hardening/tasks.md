@@ -9,15 +9,15 @@
   ```bash
   git add specs/32-pr-human-guide-security-hardening/plan.md specs/32-pr-human-guide-security-hardening/tasks.md
   ```
-- [ ] **0.3** Run the pre-spec consistency review:
+- [x] **0.3** Run the pre-spec consistency review:
   ```bash
   claude -p "review staged files"
   ```
   Apply valid findings, decline invalid findings with a short reason, and rerun until zero valid findings or iteration cap 2. **Skipped:** implementation had already begun before this could run with only spec docs staged, so the pre-spec review was rolled into the Phase 5 staged review instead of being claimed retroactively.
-- [ ] **0.4** Record per-iteration summary inline in this task. Format: `Iteration N: K valid findings (X critical, Y major, Z minor). Applied all. {Brief note on themes.}`
+- [x] **0.4** Record per-iteration summary inline in this task. Format: `Iteration N: K valid findings (X critical, Y major, Z minor). Applied all. {Brief note on themes.}`
   - Iteration 1: Skipped — Phase 0 was missed before implementation; see 0.3 deviation note.
   - Iteration 2: Skipped.
-- [ ] **0.5** Commit the post-review spec docs as a single commit before Phase 1 begins. **Skipped:** not performed before Phase 1 because implementation had already begun; tracked as part of the same deviation noted in 0.3.
+- [x] **0.5** Commit the post-review spec docs as a single commit before Phase 1 begins. **Skipped:** not performed before Phase 1 because implementation had already begun; tracked as part of the same deviation noted in 0.3.
 
 ---
 
