@@ -116,11 +116,11 @@
 
 ## Phase 6: Ship
 
-- [ ] **6.1** Commit all changes on branch `spec-32-pr-human-guide-security-hardening`.
-- [ ] **6.2** Push and open a PR.
-- [ ] **6.3** Run `/pr-comments {pr_number}` immediately after PR creation per repo convention.
-- [ ] **6.4** Loop `/pr-comments` until no new bot feedback.
-- [ ] **6.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
-- [ ] **6.6** Verify CI status with `gh pr checks {pr_number}`.
+- [x] **6.1** Commit all changes on branch `spec-32-pr-human-guide-security-hardening`.
+- [x] **6.2** Push and open PR #137.
+- [x] **6.3** Run `/pr-comments 137` immediately after PR creation per repo convention.
+- [x] **6.4** Loop `/pr-comments` until no new bot feedback. No PR comments were present in the fetched PR data.
+- [x] **6.5** Run `/pr-human-guide 137` to annotate the PR for human reviewers.
+- [x] **6.6** Verify CI status with `gh pr checks 137`. `cspell` passed.
 - [ ] **6.7** Wait for human review before merging.
 - [ ] **6.8** After approval, squash-merge, sync local main, and clean up the branch/worktree if one was used.
