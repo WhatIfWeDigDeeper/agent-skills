@@ -20,7 +20,7 @@
         "approve": false,
         "matchCommandLine": true
     },
-    "/^\\s*rm\\b(?=.*(?:^|\\s)(?:-[^\\s]*r[^\\s]*|--recursive)(?:\\s|$))(?=.*(?:^|\\s)(?:-[^\\s]*f[^\\s]*|--force)(?:\\s|$)).*\\s+\\/\\*?(?=\\s|$|[;&|])/": {
+    "/^\\s*rm\\b(?=.*(?:^|\\s)(?:-[^\\s]*[rR][^\\s]*|--recursive)(?:\\s|$))(?=.*(?:^|\\s)(?:-[^\\s]*f[^\\s]*|--force)(?:\\s|$)).*\\s+\\/\\*?(?=\\s|$|[;&|])/": {
         "approve": false,
         "matchCommandLine": true
     },
