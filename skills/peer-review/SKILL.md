@@ -15,7 +15,7 @@ compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.8"
+  version: "1.9"
 ---
 
 # Peer Review
@@ -55,7 +55,7 @@ Parse `$ARGUMENTS` left-to-right:
 - Strip `--pr N` → set target type to PR, store N as `$PR`
 - Strip `--branch NAME` → set target type to branch, store NAME as `$BRANCH`
 - Strip `--model MODEL` → store model override
-- Strip `--focus TOPIC` → store focus topic
+- Strip `--focus TOPIC` → store TOPIC as `$FOCUS`
 - Remaining token (if any) → treat as a file/dir path target
 
 **Conflict**: if more than one target selector is present after parsing (e.g. both `--pr N` and `--branch NAME`, or `--pr N` and a path, or `--staged` and a path, or two leftover path tokens), error: "specify one target at a time — targets are mutually exclusive."
@@ -79,6 +79,7 @@ Parse `$ARGUMENTS` per the Arguments section above. Set `model` to `self` if not
 - `$PR` (from `--pr N`): require the value to match `^[1-9][0-9]*$`. If not, error: `--pr requires a positive integer, got: <value>` and stop.
 - `$BRANCH` (from `--branch NAME`): require the value to match `^[A-Za-z0-9._/-]+$` (character allowlist — rejects shell metacharacters and whitespace; does not enforce all git ref-name rules). If not, error: `--branch requires a git ref name (letters, digits, ., _, /, -), got: <value>` and stop.
 - `--model VALUE`: validated downstream by the supported-prefix check in Step 4.
+- `$FOCUS` (from `--focus TOPIC`): if `--focus` was provided, require the topic to be non-empty. If empty or whitespace-only, error: `--focus requires a non-empty topic` and stop.
 
 ### 2. Collect Content
 
@@ -130,7 +131,7 @@ gh pr diff "$PR"
 
 **Path** (file or directory):
 
-Read all files at the path (in Claude Code: use the `Read` tool). For a directory, read all text files in it recursively — skip binary files (images, compiled artifacts) and files larger than ~100 KB. Set mode to **consistency**.
+First, verify the path exists using a check that does not invoke a shell — interpolating `<path>` into a `test -e ...` command would still trigger parameter expansion (`$VAR`) and command substitution (`$(...)`) inside double quotes, even with quoting. In Claude Code, attempt the `Read` tool on the path (for a directory, on any file under it) — the tool errors if the path does not exist, without invoking a shell. If the path does not exist, error: `Path not found: <path>` and stop. Otherwise, read all files at the path (in Claude Code: use the `Read` tool). For a directory, read all text files in it recursively — skip binary files (images, compiled artifacts) and files larger than ~100 KB. Set mode to **consistency**.
 
 ### 3. Select Prompt Template
 
@@ -224,7 +225,7 @@ Do NOT implement any changes. Return findings only.
 [FOCUS_LINE]
 ```
 
-**Focus line** (append when `--focus` is provided):
+**Focus line**: if `--focus` is provided, replace `[FOCUS_LINE]` with the line below; otherwise, omit the line entirely (do not leave the placeholder in the prompt).
 ```
 Focus especially on [TOPIC]. Still report any critical findings outside this focus area.
 ```
@@ -333,6 +334,7 @@ Your job is to classify each finding as recommend or skip.
 
 Review mode: [consistency / diff]
 Content type: [file contents for consistency mode / diff text for diff mode]
+[FOCUS_AREA_LINE]
 
 Recommend a finding if:
 - The issue is real and not already addressed in the reviewed content
@@ -344,6 +346,7 @@ Skip a finding if:
 - The finding contradicts verified facts in the content
 - The finding is speculative or opinion without clear evidence
 - The fix is already present
+- When a focus area is specified, the finding is minor severity and is clearly unrelated to that focus area
 
 For each finding, output exactly one line:
 FINDING N: recommend
@@ -353,6 +356,11 @@ FINDING N: skip — [one-line reason]
 [NORMALIZED FINDINGS — title, severity, file, location, problem, fix for each]
 
 [COLLECTED CONTENT — file contents for consistency mode / diff text for diff mode]
+```
+
+**Focus area line**: if `--focus` is provided, replace `[FOCUS_AREA_LINE]` with the line below; otherwise, omit the line entirely (do not leave the placeholder in the prompt).
+```
+Focus area: [TOPIC]
 ```
 
 Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed or is otherwise invalid (including missing `FINDING N:` lines, wrong format, empty response, duplicate `FINDING N:` lines, conflicting `recommend` and `skip` decisions for the same `N`, IDs outside the valid `1..N` finding range, or any other violation of the "exactly one line per finding" rule), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.
