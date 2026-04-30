@@ -198,13 +198,13 @@ Use the host runtime's best available wait primitive for the 60-second interval 
 2. **Otherwise, if the host permits blocking waits** — use a bounded `sleep 60` loop honoring the 60-second cadence and 10-minute timeout; see the `for i in $(seq 1 N); do` form earlier in this file.
 3. **Otherwise, if neither delayed resume nor blocking waits are available** — run one immediate pass of Signals 1-3 using the same queries and priorities described above. If a signal fires, handle it exactly as this polling loop normally would. If no signal fires, print:
 
-    > "`@<bot-handle>` hasn't responded yet. This runtime can't wait 60 seconds between poll cycles. Re-invoke the pr-comments skill when the review is ready."
+    > `@<bot-handle>` hasn't responded yet. This runtime can't wait 60 seconds between poll cycles. Re-invoke the pr-comments skill when the review is ready.
 
     Then proceed to Step 14 and end the invocation. Do not pretend this is a 10-minute timeout; this exit happens because the host runtime cannot wait in the current invocation.
 
 **On timeout:** print:
 
-> "`@<bot-handle>` hasn't responded yet. Re-invoke the pr-comments skill when the review is ready."
+> `@<bot-handle>` hasn't responded yet. Re-invoke the pr-comments skill when the review is ready.
 
 Then proceed to Step 14 and end the invocation — do not loop back to Step 2 on timeout.
 
