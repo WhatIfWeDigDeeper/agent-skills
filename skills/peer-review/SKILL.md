@@ -327,7 +327,7 @@ The diff appears to contain content that looks like a secret:
 This content will be sent to the external [model] CLI. Continue? [y/N]
 ```
 
-Output this as your **final message and stop generating**. Do not assume a default. Do not continue. Resume only after the user replies.
+Output this as your **final message and stop generating**. Do not supply an answer, do not assume a default, do not continue to the next step (Step 4c). Resume only after the user replies.
 
 - `y` → proceed to Step 4c (write the prompt to the temp file, then Step 4d to execute).
 - anything else (including empty input) → exit with: `Aborted — redact secrets and re-run.` Do not write the temp file and do not invoke the CLI. If the target was `--pr N`, append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
