@@ -138,12 +138,14 @@ if [ -z "$DEFAULT_BRANCH" ]; then
   DEFAULT_BRANCH=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | sed 's/.*: //')
 fi
 if [ -z "$DEFAULT_BRANCH" ]; then
-  if ! git remote get-url origin >/dev/null 2>&1; then
-    echo "Could not detect default branch: no remote named 'origin'. Add one with: git remote add origin <url>" >&2
-  elif [ -z "$(git for-each-ref refs/remotes/origin 2>/dev/null)" ]; then
-    echo "Could not detect default branch: no refs fetched from origin. Run: git fetch origin" >&2
+  if git remote get-url origin >/dev/null 2>&1; then
+    if [ -z "$(git for-each-ref refs/remotes/origin 2>/dev/null)" ]; then
+      echo "Could not detect default branch: no refs fetched from origin. Run: git fetch origin" >&2
+    else
+      echo "Could not detect default branch: origin/HEAD is not set. Set it with: git remote set-head origin --auto" >&2
+    fi
   else
-    echo "Could not detect default branch: origin/HEAD is not set. Set it with: git remote set-head origin --auto" >&2
+    echo "Could not detect default branch: no remote named 'origin'. Add one with: git remote add origin <url>" >&2
   fi
   exit 1
 fi
@@ -309,14 +311,18 @@ Before writing the prompt to disk or invoking the external CLI, scan the assembl
 
 If any pattern matches, surface the match (with the value redacted) and require explicit confirmation.
 
-Patterns to check (POSIX ERE — compatible with `grep -E` / `grep -Ei`):
+Patterns to check (POSIX ERE — compatible with `grep -E`). Provider tokens have strict casing (real OpenAI keys are always lowercase `sk-`; real AWS keys always start with uppercase `AKIA`), so they must be matched case-sensitively. Only the generic-assignment keyword pattern needs case-insensitivity. Two grep invocations:
+
+Case-sensitive group:
 - `-----BEGIN [A-Z ]+PRIVATE KEY-----`
 - `ghp_[A-Za-z0-9]{36,}` (GitHub PAT)
 - `gho_[A-Za-z0-9]{36,}` / `ghs_[A-Za-z0-9]{36,}` / `ghu_[A-Za-z0-9]{36,}` (other GitHub tokens)
-- `sk-[A-Za-z0-9_-]{20,}` (OpenAI / Anthropic-style)
-- `AKIA[0-9A-Z]{16}` (AWS access key id)
+- `(^|[^A-Za-z0-9])sk-[A-Za-z0-9]{20,}` (OpenAI / Anthropic-style — boundary anchor avoids matching `risk-…`/`task-…`/`disk-…`; inner class drops `-`/`_` since real keys are alphanumeric after the prefix)
+- `AKIA[0-9A-Z]{16}` (AWS access key id — strict uppercase)
 - `xox[baprs]-[A-Za-z0-9-]{10,}` (Slack)
-- `(api[_-]?key|secret|password|bearer|authorization)[[:space:]]*[:=][[:space:]]*['"]?[A-Za-z0-9+/_=-]{16,}` (generic assignment — pair with `grep -Ei` for case-insensitive matching)
+
+Case-insensitive group:
+- `(api[_-]?key|secret|password|bearer|authorization)[[:space:]]*[:=][[:space:]]*['"]?[A-Za-z0-9+/_=-]{16,}` (generic keyword assignment)
 
 If any pattern matches, output the match (with the secret value redacted to `<redacted>`), name the pattern that fired, and prompt:
 
@@ -332,35 +338,42 @@ Output this as your **final message and stop generating**. Do not supply an answ
 - `y` → proceed to Step 4c (write the prompt to the temp file, then Step 4d to execute).
 - anything else (including empty input) → exit with: `Aborted — redact secrets and re-run.` Do not write the temp file and do not invoke the CLI. If the target was `--pr N`, append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 
-Implementation note: run the scan against the in-memory `$PROMPT` string before Step 4c writes it to disk. The patterns above are POSIX ERE so they work with `grep -Ei` using one `-e` flag per pattern (do not use `-f patterns` — that flag reads patterns from a file, and no `patterns` file is created in this workflow; an agent invoking `-f patterns` literally would get `grep: patterns: No such file or directory` and a non-zero exit, which an error-tolerant caller could silently treat as "no matches found"):
+Implementation note: run the scan against the in-memory `$PROMPT` string before Step 4c writes it to disk. The patterns above are POSIX ERE so they work with `grep -E` (case-sensitive group) and `grep -Ei` (case-insensitive group), using one `-e` flag per pattern (do not use `-f patterns` — that flag reads patterns from a file, and no `patterns` file is created in this workflow; an agent invoking `-f patterns` literally would get `grep: patterns: No such file or directory` and a non-zero exit, which an error-tolerant caller could silently treat as "no matches found"):
 
 ```bash
-printf '%s' "$PROMPT" | grep -Eiq \
+# Case-sensitive: PEM headers, GitHub tokens, OpenAI sk- (with word boundary), AWS AKIA, Slack
+printf '%s' "$PROMPT" | grep -Eq \
   -e '-----BEGIN [A-Z ]+PRIVATE KEY-----' \
   -e 'ghp_[A-Za-z0-9]{36,}' \
   -e 'gho_[A-Za-z0-9]{36,}' \
   -e 'ghs_[A-Za-z0-9]{36,}' \
   -e 'ghu_[A-Za-z0-9]{36,}' \
-  -e 'sk-[A-Za-z0-9_-]{20,}' \
+  -e '(^|[^A-Za-z0-9])sk-[A-Za-z0-9]{20,}' \
   -e 'AKIA[0-9A-Z]{16}' \
-  -e 'xox[baprs]-[A-Za-z0-9-]{10,}' \
+  -e 'xox[baprs]-[A-Za-z0-9-]{10,}'
+
+# Case-insensitive: generic keyword assignments
+printf '%s' "$PROMPT" | grep -Eiq \
   -e '(api[_-]?key|secret|password|bearer|authorization)[[:space:]]*[:=][[:space:]]*['"'"'"]?[A-Za-z0-9+/_=-]{16,}'
 ```
 
+A match in **either** invocation triggers the prompt. Do not collapse both groups into a single `grep -Ei` call: that turns `AKIA[0-9A-Z]{16}` into a case-insensitive match and `[0-9A-Z]` becomes `[0-9A-Za-z]`, so non-AWS lowercase strings like `akiamatashotokugawamotoharu` would falsely fire. The boundary anchor `(^|[^A-Za-z0-9])` on `sk-` prevents matching innocuous English substrings (`risk-mitigation-recommendations-list`, `task-management-…`, `disk-encryption-…`); real `sk-` keys appear at word boundaries (start of line, after whitespace, after `=`/`:`/quote).
+
 (Use `-q` for a yes/no exit code, or drop `-q` and capture matches when you want to surface them in the prompt. If you genuinely prefer the `-f` form, write the patterns to a temp file first — e.g. `printf '%s\n' "$PATTERNS" > "$patterns_file"; grep -Eif "$patterns_file"` — and clean it up.)
 
-If you prefer PCRE for richer constructs (e.g. `(?i)`, `\s`, lookarounds), use a PCRE-capable engine — `grep -P` (GNU grep, not available on macOS BSD grep), `perl -ne`, or `python -c "import re; ..."` — and rewrite the patterns accordingly. Do not feed PCRE syntax to `grep -E`; it will silently fail to match. Do not move this scan to after Step 4c — across multiple tool calls, the `trap` in Step 4c deletes `$PROMPT_FILE` when the writing call exits, so a post-write scan that pauses for user confirmation may find the file already gone when the next call resumes.
+If you prefer PCRE for richer constructs (e.g. `(?i)`, `\s`, lookarounds), use a PCRE-capable engine — `grep -P` (GNU grep, not available on macOS BSD grep), `perl -ne`, or `python -c "import re; ..."` — and rewrite the patterns accordingly. Do not feed PCRE syntax to `grep -E`; it will silently fail to match. Do not move this scan to after Step 4c: scanning the in-memory `$PROMPT` string before the temp-file write keeps the secret-detection decision and the user-confirmation pause out of the disk-write/CLI-execution path entirely, so an aborted scan never leaves a temp file behind.
 
 **4c. Write prompt to temp file:**
 
 ```bash
 PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")
 chmod 600 "$PROMPT_FILE"
-trap 'rm -f "$PROMPT_FILE"' EXIT INT TERM
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 ```
 
 Prompt content is passed via stdin redirection (copilot, gemini) or piping (codex), so it never appears on the process command line and shell metacharacters in diff/PR content are not interpreted by the shell.
+
+**Cleanup of `$PROMPT_FILE` is explicit, not via `trap`.** A `trap 'rm -f "$PROMPT_FILE"' EXIT` fires when the bash subshell exits — which, in assistant workflows that run each fenced block as a separate Bash tool call, happens at the end of *this* call, before Step 4d gets to read the file. Use the explicit `rm -f "$PROMPT_FILE"` at the end of Step 4d instead. If 4c and 4d are run together in a single Bash tool call, the explicit `rm -f` still works correctly.
 
 **4d. Execute and capture output:**
 
@@ -389,6 +402,11 @@ if [ -n "$SUBMODEL" ]; then
 else
   REVIEW_OUTPUT=$(gemini --approval-mode plan < "$PROMPT_FILE" 2>&1)
 fi
+```
+
+After the CLI call returns (success or failure), clean up the temp file explicitly:
+```bash
+rm -f "$PROMPT_FILE"
 ```
 
 **4e. Parse output → normalized findings:**

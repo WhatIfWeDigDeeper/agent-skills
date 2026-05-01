@@ -65,11 +65,12 @@ Phrase anchor: the `**4c. Write prompt to temp file:**` heading inside Step 4 (w
 ```bash
 PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")
 chmod 600 "$PROMPT_FILE"
-trap 'rm -f "$PROMPT_FILE"' EXIT INT TERM
 printf '%s' "$PROMPT" > "$PROMPT_FILE"
 ```
 
 `mktemp` defaults to 600 on macOS and most Linuxes, but make it explicit — scanners read the literal text and so do auditors.
+
+**Note (round 5):** the original v1.9 block had a `trap 'rm -f "$PROMPT_FILE"' EXIT INT TERM` line. It was removed during round-5 review because the trap fires when the bash subshell exits — which, in assistant workflows that run each fenced bash block as a separate Bash tool call, deletes `$PROMPT_FILE` at the end of Step 4c before Step 4d can read it. Cleanup is now an explicit `rm -f "$PROMPT_FILE"` at the end of Step 4d (added during round-5 review per Copilot 3175521282).
 
 ### Edit C — pre-flight secret scan (addresses #3)
 
@@ -140,7 +141,7 @@ Implementation-phase targets (Phase 1–2 of `tasks.md`):
 | File | Change |
 |------|--------|
 | `skills/peer-review/SKILL.md` | Edits A–E |
-| `cspell.config.yaml` | Add new tokens (`bis`, `cmdline`, `xoxb`, `xoxp`, `AKIA`, `gho`, `ghs`, `ghu`, plus any vendor names cspell flags) in alphabetical position |
+| `cspell.config.yaml` | Add new tokens in alphabetical position. Tokens actually added during implementation: `AKIA`, `baprs`, `cmdline`, `lookarounds`, `PCRE`, `xoxb`, `xoxp`. (Initial planning predicted `bis` from `4b-bis`, but Edit C's heading was renamed to `4b. Pre-flight secret scan` during round-4 review, so `bis` was never needed. `gho`/`ghs`/`ghu` appear only inside fenced regex code blocks, which cspell ignores by default.) |
 
 The spec docs themselves (`specs/34-peer-review-security-hardening-v2/plan.md` and `tasks.md`) are also edited and committed during the bookend peer-review phases (Phase 0 pre-implementation, Phase 4 post-implementation per `tasks.md`).
 
