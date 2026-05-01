@@ -135,10 +135,14 @@ Replace the existing in-line "Trust model." paragraph at the start of Step 4 wit
 
 ## Files to Modify
 
+Implementation-phase targets (Phase 1–2 of `tasks.md`):
+
 | File | Change |
 |------|--------|
 | `skills/peer-review/SKILL.md` | Edits A–E |
 | `cspell.config.yaml` | Add new tokens (`bis`, `cmdline`, `xoxb`, `xoxp`, `AKIA`, `gho`, `ghs`, `ghu`, plus any vendor names cspell flags) in alphabetical position |
+
+The spec docs themselves (`specs/34-peer-review-security-hardening-v2/plan.md` and `tasks.md`) are also edited and committed during the bookend peer-review phases (Phase 0 pre-implementation, Phase 4 post-implementation per `tasks.md`).
 
 ## Out of Scope
 
@@ -170,19 +174,21 @@ Two peer-review passes bracket the implementation, mirroring the spec-30 pattern
 7. `rg -n 'Trust model\.' skills/peer-review/SKILL.md` → no matches (replaced by the cross-reference one-liner).
 8. `rg -n '^  version:' skills/peer-review/SKILL.md` → `version: "1.10"`.
 9. `uv run --with pytest pytest tests/` — no regressions.
-10. **Manual stdin verification** (must be attempted before commit; fallback is allowed): `echo "say hi" | copilot --allow-all-tools --deny-tool='write' 2>&1 | head -20` and `echo "say hi" | gemini --approval-mode plan 2>&1 | head -20`. Two acceptable outcomes — do not commit without one of them: (a) both CLIs accept piped stdin, in which case Edits A/B land as written and verification checks 2–3 above describe the expected end state; or (b) one or both CLIs reject piped stdin, in which case revert that CLI's block to argv + `chmod 600` for that CLI only, update Edit A's prose to note the limitation, and update Edit D's "Residual risks" to name the affected CLI. In the fallback case, the expected match counts in checks 2–3 shift — see tasks.md 3.8 for the conditional counts.
-11. **Manual secret-scan smoke test**: stage a diff containing a fake `ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, invoke `/peer-review --staged --model copilot`, confirm the secret prompt fires and `n` aborts before any CLI call.
-12. **Negative regression on Spec 30 mitigations**: re-run `/peer-review --pr "1; echo pwned"` and `/peer-review --branch 'main; rm -rf /'` — both still error at Step 1 validation.
+10. **Manual stdin verification** (must be attempted before commit; fallback is allowed): `echo "say hi" | copilot --allow-all-tools --deny-tool='write' 2>&1 | head -20` and `echo "say hi" | gemini --approval-mode plan 2>&1 | head -20`. Two acceptable outcomes — do not commit without one of them: (a) both CLIs accept piped stdin, in which case Edits A/B land as written and verification checks 2–3 above describe the expected end state; or (b) one or both CLIs reject piped stdin, in which case revert that CLI's block to argv + `chmod 600` for that CLI only, update Edit A's prose to note the limitation, and update Edit D's "Residual risks" to name the affected CLI. In the fallback case, the expected match counts in checks 2–3 shift — see tasks.md 3.1–3.2 for the conditional counts (3.8 records which fallback path was taken).
+11. **Manual secret-scan smoke test**: stage a diff containing a fake `ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`, invoke `/peer-review --staged --model copilot`, confirm the secret prompt fires and `n` aborts before any CLI call. (May be performed pre-merge in the ship phase rather than pre-PR — see `tasks.md` Phase 5.5 for the deferred execution slot.)
+12. **Negative regression on Spec 30 mitigations**: verify the validation regexes (`^[1-9][0-9]*$` for `--pr`, `^[A-Za-z0-9._/-]+$` for `--branch`) reject `1; echo pwned` and `main; rm -rf /`. Direct regex execution via `bash [[ =~ ]]` is acceptable since the validation is well-isolated logic; re-running the full `/peer-review` slash flow is also acceptable but not required.
 13. Re-read SKILL.md end-to-end after all edits to confirm phrase anchors in Edits A–E still match (line numbers will have drifted).
 14. **Post-merge:** re-fetch the three skills.sh scanner pages after the registry re-scans and confirm the FAILs flip to PASS — or, at minimum, that residual findings shift to ones documented as accepted residual risks in the Security model section.
 
 ## Shipping
 
 1. Commit on branch `spec-34-peer-review-security-hardening-v2`: `feat(peer-review): v1.10 — stdin transport, pre-flight secret scan, consolidated security model`.
-2. Push and open PR; immediately run `/pr-comments {pr_number}` per project convention.
-3. After bot review settles, run `/pr-human-guide` before merging.
-4. Verify CI green (`gh pr checks {pr_number}`); a human must review before merge.
-5. `gh pr merge --squash --delete-branch`, sync local main, run `/learn` if prompted.
+2. If the post-implementation peer-review passes (`tasks.md` Phase 4.2 / 4.3) produced any file edits, commit them as a follow-up before push: `chore(peer-review): apply post-implementation peer-review fixes`. Skip if no edits were applied.
+3. Push and open PR; immediately run `/pr-comments {pr_number}` per project convention.
+4. After bot review settles, run `/pr-human-guide` before merging.
+5. Run the manual secret-scan smoke test (`tasks.md` Phase 5.5) before merge if not already done pre-PR.
+6. Verify CI green (`gh pr checks {pr_number}`); a human must review before merge.
+7. `gh pr merge --squash --delete-branch`, sync local main, run `/learn` if prompted.
 
 ## Risks
 
