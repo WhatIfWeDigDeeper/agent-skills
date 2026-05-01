@@ -79,14 +79,14 @@ Insert a new sub-step `**4b-bis. Pre-flight secret scan (external CLI path only)
 >
 > Before invoking the external CLI, scan the prompt for common secret patterns. This is a defense-in-depth check — it is not a substitute for the author's own redaction. If any pattern matches, surface the match (with the value redacted) and require explicit confirmation.
 >
-> Patterns to check:
+> Patterns to check (POSIX ERE — compatible with `grep -E` / `grep -Ei`):
 > - `-----BEGIN [A-Z ]+PRIVATE KEY-----`
 > - `ghp_[A-Za-z0-9]{36,}` (GitHub PAT)
 > - `gho_[A-Za-z0-9]{36,}` / `ghs_[A-Za-z0-9]{36,}` / `ghu_[A-Za-z0-9]{36,}` (other GitHub tokens)
 > - `sk-[A-Za-z0-9_-]{20,}` (OpenAI / Anthropic-style)
 > - `AKIA[0-9A-Z]{16}` (AWS access key id)
 > - `xox[baprs]-[A-Za-z0-9-]{10,}` (Slack)
-> - `(?i)(api[_-]?key|secret|password|bearer|authorization)\s*[:=]\s*['"]?[A-Za-z0-9+/_=-]{16,}` (generic assignment, case-insensitive)
+> - `(api[_-]?key|secret|password|bearer|authorization)[[:space:]]*[:=][[:space:]]*['"]?[A-Za-z0-9+/_=-]{16,}` (generic assignment — pair with `grep -Ei` for case-insensitive matching)
 >
 > If any pattern matches, output the match (with the secret value redacted to `<redacted>`), name the pattern that fired, and prompt:
 >

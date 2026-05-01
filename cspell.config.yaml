@@ -46,6 +46,7 @@ words:
   - heredocs
   - informationally
   - lockfiles
+  - lookarounds
   - metacharacter
   - metacharacters
   - metaprogramming
@@ -62,6 +63,7 @@ words:
   - opusplan
   - osascript
   - parentheticals
+  - PCRE
   - pipenv
   - Pipfile
   - prauthor
