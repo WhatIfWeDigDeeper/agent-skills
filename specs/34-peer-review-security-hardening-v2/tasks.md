@@ -70,7 +70,7 @@
 
 ## Phase 5: Ship
 
-- [ ] **5.1** Push branch (Phase 1–3 commit + any Phase 4.4 commits), open PR, immediately run `/pr-comments {pr_number}`.
+- [x] **5.1** Push branch (Phase 1–3 commit + any Phase 4.4 commits), open PR, immediately run `/pr-comments {pr_number}`.
 - [ ] **5.2** Loop `/pr-comments` until no new bot feedback.
 - [ ] **5.3** Run `/pr-human-guide` to annotate the PR for human reviewers.
 - [ ] **5.4** Verify CI is green (`gh pr checks {pr_number}`) and a human has reviewed before merging.
