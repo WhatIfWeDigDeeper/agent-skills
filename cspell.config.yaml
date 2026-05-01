@@ -4,14 +4,17 @@ dictionaryDefinitions: []
 dictionaries: []
 words:
   - actioned
+  - AKIA
   - ALLSKIP
   - anthropics
   - asyncio
   - asyncpg
+  - baprs
   - baselined
   - basenames
   - blockquotes
   - bunx
+  - cmdline
   - codepoints
   - commenters
   - conftest
@@ -108,5 +111,7 @@ words:
   - wordlist
   - worktree
   - worktrees
+  - xoxb
+  - xoxp
 ignoreWords: []
 import: []
