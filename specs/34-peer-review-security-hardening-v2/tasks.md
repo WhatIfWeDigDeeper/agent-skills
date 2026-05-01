@@ -15,11 +15,11 @@
 
 ## Phase 1: Edits to `skills/peer-review/SKILL.md`
 
-- [x] **1.1** Edit B — under the `**4b. Write prompt to temp file:**` heading, add `chmod 600 "$PROMPT_FILE"` immediately after the `mktemp` line and before the `trap` line.
-- [x] **1.2** Edit A (copilot) — under the `**4c. Execute and capture output:**` heading, replace the copilot if/else block to use `< "$PROMPT_FILE"` (stdin) instead of `-p "$(cat "$PROMPT_FILE")"`. Match the exact bash from plan.md "Edit A".
+- [x] **1.1** Edit B — under the temp-file-write heading (`**4c. Write prompt to temp file:**` post-Edit-C; was `**4b.**` in v1.9), add `chmod 600 "$PROMPT_FILE"` immediately after the `mktemp` line and before the `trap` line.
+- [x] **1.2** Edit A (copilot) — under the execute heading (`**4d. Execute and capture output:**` post-Edit-C; was `**4c.**` in v1.9), replace the copilot if/else block to use `< "$PROMPT_FILE"` (stdin) instead of `-p "$(cat "$PROMPT_FILE")"`. Match the exact bash from plan.md "Edit A".
 - [x] **1.3** Edit A (gemini) — same heading, replace the gemini if/else block to use `< "$PROMPT_FILE"` instead of `-p "$(cat "$PROMPT_FILE")"`. Match the exact bash from plan.md "Edit A".
-- [x] **1.4** Edit A (prose) — find the sentence beginning "In the commands below, prompt content is passed safely either as a single quoted argument" between Step 4b and 4c and replace it with the new wording from plan.md "Edit A".
-- [x] **1.5** Edit C — insert a new sub-step `**4b-bis. Pre-flight secret scan (external CLI path only):**` between Step 4b (write prompt to temp file) and Step 4c (execute and capture output). Use the exact text from plan.md "Edit C", including the seven secret patterns, the redaction-and-confirm prompt, the `**stop generating**` clause, and the `y` / anything-else branches.
+- [x] **1.4** Edit A (prose) — find the sentence beginning "In the commands below, prompt content is passed safely either as a single quoted argument" between the temp-file-write step (`**4c.**` post-Edit-C) and the execute step (`**4d.**`) and replace it with the new wording from plan.md "Edit A".
+- [x] **1.5** Edit C — insert a new sub-step `**4b. Pre-flight secret scan (external CLI path only):**` immediately before the v1.9 `**4b. Write prompt to temp file:**` heading (which renumbers to `**4c.**`). Use the exact text from plan.md "Edit C", including the seven secret patterns, the redaction-and-confirm prompt, the `**stop generating**` clause, and the `y` / anything-else branches.
 - [x] **1.6** Edit D (new section) — insert `## Security model` section immediately after the `## Review Modes` table and before `## Process`. Use the exact bullet list and "Residual risks" sub-list from plan.md "Edit D".
 - [x] **1.7** Edit D (replace existing trust-model paragraph) — find the paragraph beginning "**Trust model.** With `--model self`" at the top of Step 4 and replace the entire paragraph with the one-liner: `**See the Security model section above for the full trust model and pre-flight checks.**`
 - [x] **1.8** Edit E — bump `metadata.version` from `"1.9"` to `"1.10"` in frontmatter.
@@ -38,7 +38,7 @@
 - [x] **3.1** `rg -n '< "\$PROMPT_FILE"' skills/peer-review/SKILL.md` → at least 4 matches (no-fallback path: copilot if/else + gemini if/else). If 3.8 fallback was taken for one CLI, expected count drops to 2 (one CLI's if/else); if both CLIs fell back, expected count is 0 — note which path applied. (4 matches — no fallback.)
 - [x] **3.2** `rg -n '"\$\(cat "\$PROMPT_FILE"\)"' skills/peer-review/SKILL.md` → no matches (no-fallback path). If 3.8 fallback was taken, expected count is 2 per fallback CLI (the if/else branches still using argv) — note which CLIs fell back. (0 matches — no fallback.)
 - [x] **3.3** `rg -n 'chmod 600' skills/peer-review/SKILL.md` → exactly 1 match. (1 match.)
-- [x] **3.4** `rg -n '4b-bis' skills/peer-review/SKILL.md` → at least 2 matches (the heading and the Security-model bullet cross-reference). (2 matches.)
+- [x] **3.4** `rg -n '4b\. Pre-flight secret scan' skills/peer-review/SKILL.md` → exactly 1 match (the heading). (1 match.)
 - [x] **3.5** `rg -n '^## Security model' skills/peer-review/SKILL.md` → exactly 1 match. (1 match.)
 - [x] **3.6** `rg -n 'Trust model\.' skills/peer-review/SKILL.md` → no matches (replaced by the cross-reference one-liner). (0 matches.)
 - [x] **3.7** `rg -n '^  version:' skills/peer-review/SKILL.md` → `version: "1.10"`. (`version: "1.10"`.)

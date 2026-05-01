@@ -28,7 +28,7 @@ Two findings remain real and one set is "real but invisible":
 
 ### Edit A — switch copilot/gemini to stdin transport (addresses #4)
 
-Phrase anchor: the `**4c. Execute and capture output:**` heading inside Step 4.
+Phrase anchor: the `**4d. Execute and capture output:**` heading inside Step 4 (was `**4c.**` in v1.9; the secret-scan insert in Edit C bumps the numbering).
 
 For `copilot`:
 ```bash
@@ -50,7 +50,7 @@ fi
 
 Codex block (currently `cat "$PROMPT_FILE" | codex …`) unchanged.
 
-Update the prose between Step 4b and 4c (currently begins "In the commands below, prompt content is passed safely either as a single quoted argument …") to: "Prompt content is passed via stdin redirection (copilot, gemini) or piping (codex), so it never appears on the process command line and shell metacharacters in diff/PR content are not interpreted by the shell."
+Update the prose between the temp-file write (post-Edit-C `**4c.**`) and the execute block (`**4d.**`) — sentence currently begins "In the commands below, prompt content is passed safely either as a single quoted argument …" — to: "Prompt content is passed via stdin redirection (copilot, gemini) or piping (codex), so it never appears on the process command line and shell metacharacters in diff/PR content are not interpreted by the shell."
 
 **Verification before commit:** the implementer must attempt the stdin smoke tests for both CLIs in the installed version:
 - `echo "say hi" | copilot --allow-all-tools --deny-tool='write' 2>&1 | head -20`
@@ -60,7 +60,7 @@ Two acceptable outcomes — do not commit without one of them: (a) both CLIs pro
 
 ### Edit B — explicit `chmod 600` on temp file (addresses #4)
 
-Phrase anchor: the `**4b. Write prompt to temp file:**` heading inside Step 4. Add `chmod 600 "$PROMPT_FILE"` immediately after the `mktemp` line:
+Phrase anchor: the `**4c. Write prompt to temp file:**` heading inside Step 4 (was `**4b.**` in v1.9; the secret-scan insert in Edit C bumps the numbering). Add `chmod 600 "$PROMPT_FILE"` immediately after the `mktemp` line:
 
 ```bash
 PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")
@@ -73,9 +73,9 @@ printf '%s' "$PROMPT" > "$PROMPT_FILE"
 
 ### Edit C — pre-flight secret scan (addresses #3)
 
-Insert a new sub-step `**4b-bis. Pre-flight secret scan (external CLI path only):**` between current Step 4b and Step 4c. Apply only on the external CLI path; the self/claude-* path keeps content inside the assistant runtime and does not need this prompt.
+Insert a new sub-step `**4b. Pre-flight secret scan (external CLI path only):**` immediately before the existing v1.9 `**4b. Write prompt to temp file:**` heading — the existing heading then renumbers to `**4c.**`, and downstream sub-steps cascade to `4d` (Execute), `4e` (Parse), `4f` (Triage), `4g` (Continue). Apply the new step only on the external CLI path; the self/claude-* path keeps content inside the assistant runtime and does not need this prompt.
 
-> **4b-bis. Pre-flight secret scan (external CLI path only):**
+> **4b. Pre-flight secret scan (external CLI path only):**
 >
 > Before invoking the external CLI, scan the prompt for common secret patterns. This is a defense-in-depth check — it is not a substitute for the author's own redaction. If any pattern matches, surface the match (with the value redacted) and require explicit confirmation.
 >
@@ -97,9 +97,9 @@ Insert a new sub-step `**4b-bis. Pre-flight secret scan (external CLI path only)
 > This content will be sent to the external [model] CLI. Continue? [y/N]
 > ```
 >
-> Output this as your **final message and stop generating**. Do not assume a default. Do not continue. Resume only after the user replies.
+> Output this as your **final message and stop generating**. Do not supply an answer, do not assume a default, do not continue to the next step (Step 4c). Resume only after the user replies.
 >
-> - `y` → proceed to Step 4c.
+> - `y` → proceed to Step 4c (write the prompt to the temp file, then Step 4d to execute).
 > - anything else (including empty input) → exit with: `Aborted — redact secrets and re-run.` Do not invoke the CLI. If the target was `--pr N`, append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 >
 > Implementation note: run the scan against the assembled prompt content (post-Step 3, pre-temp-file-write is fine; or `grep -E -f patterns "$PROMPT_FILE"` after write — either is acceptable).
@@ -149,7 +149,7 @@ The spec docs themselves (`specs/34-peer-review-security-hardening-v2/plan.md` a
 - **Eval coverage for the secret pre-scan and stdin transport.** The existing `--model copilot` evals (#5–7 in `evals/peer-review/evals.json`) mock the CLI response and do not exercise the invocation path; they remain valid. Adding a new eval for the secret-prompt confirmation flow is optional — propose during implementation, do not block on it.
 - **Removing `--allow-all-tools` from copilot.** Same disposition as spec 30: no actionable change without a copilot tool inventory; `--deny-tool='write'` is the meaningful restriction we already apply.
 - **Automatic secret redaction (vs prompt-and-confirm).** Considered. Rejected for the same reason spec 30 rejected it: shell-side regex redaction has high FP/FN rates and silently alters reviewer input. Prompt-and-confirm puts the human in the loop.
-- **`README.md` updates.** Skill's surface API (triggers, args, options) is unchanged.
+- **`README.md` updates.** Added a **Security model (v1.10+)** bullet to the peer-review entry documenting stdin transport, the pre-flight secret scan, and the consolidated `## Security model` section, per the `skills/CLAUDE.md` substantial-modification rule. Skill's surface API (triggers, args, options) remains unchanged.
 - **Third-party CLI version pinning enforcement.** No automated check; covered as a manual practice via the "Third-party CLI provenance" mitigation bullet in the Security model section (Edit D), which restates the publisher-verification and version-pinning guidance previously inline in Step 4's trust-model paragraph.
 
 ## Branch
@@ -169,7 +169,7 @@ Two peer-review passes bracket the implementation, mirroring the spec-30 pattern
 2. `rg -n '< "\$PROMPT_FILE"' skills/peer-review/SKILL.md` → at least 4 matches (copilot if/else + gemini if/else).
 3. `rg -n '"\$\(cat "\$PROMPT_FILE"\)"' skills/peer-review/SKILL.md` → no matches (old argv form gone for copilot/gemini).
 4. `rg -n 'chmod 600' skills/peer-review/SKILL.md` → exactly 1 match (Edit B).
-5. `rg -n '4b-bis' skills/peer-review/SKILL.md` → at least 2 matches (heading + Security-model bullet cross-reference).
+5. `rg -n '4b\. Pre-flight secret scan' skills/peer-review/SKILL.md` → exactly 1 match (the heading).
 6. `rg -n '^## Security model' skills/peer-review/SKILL.md` → exactly 1 match.
 7. `rg -n 'Trust model\.' skills/peer-review/SKILL.md` → no matches (replaced by the cross-reference one-liner).
 8. `rg -n '^  version:' skills/peer-review/SKILL.md` → `version: "1.10"`.
