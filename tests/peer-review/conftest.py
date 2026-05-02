@@ -256,8 +256,8 @@ def route_confirmation_response(response: str | None) -> str:
     Returns "proceed" or "abort". Empty input, whitespace-only input, and any
     non-`y` reply all route to "abort" per the spec's "anything else (including
     empty input)" clause. The check is exact-match on `y` (case-insensitive,
-    stripped) — `yes`, `yep`, `Y\n` all proceed, but `n`, `no`, `maybe`, `` ``
-    abort.
+    stripped) — `y`, `Y`, ` y `, `Y\n` proceed; `yes`, `yep`, `n`, `no`,
+    `maybe`, `` ``, and `None` all abort.
     """
     if response is None:
         return "abort"
