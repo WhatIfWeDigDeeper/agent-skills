@@ -307,7 +307,7 @@ If the binary is not found, output the error message and stop. Do not proceed to
 
 **4b. Pre-flight secret scan (external CLI path only):**
 
-Before writing the prompt to disk or invoking the external CLI, scan the assembled prompt content (the in-memory `$PROMPT` string built from Steps 2 and 3) for common secret patterns. This is a defense-in-depth check — it is not a substitute for the author's own redaction. The scan must run **before** Step 4c (temp-file write) so that an aborted scan does not leave a temp file on disk and so that the user-confirmation pause cannot be invalidated by trap-driven cleanup of the temp file across tool calls.
+Before writing the prompt to disk or invoking the external CLI, scan the assembled prompt content (the in-memory `$PROMPT` string built from Steps 2 and 3) for common secret patterns. This is a defense-in-depth check — it is not a substitute for the author's own redaction. The scan must run **before** Step 4c (temp-file write) so that secrets are never written to disk before the user has confirmed and so that an aborted scan leaves no temp file behind for later steps or out-of-band readers to pick up.
 
 If any pattern matches, surface the match (with the value redacted) and require explicit confirmation.
 
