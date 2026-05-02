@@ -15,7 +15,7 @@
 
 ## Phase 1: Edits to `skills/peer-review/SKILL.md`
 
-- [x] **1.1** Edit B — under the temp-file-write heading (`**4c. Write prompt to temp file:**` post-Edit-C; was `**4b.**` in v1.9), add `chmod 600 "$PROMPT_FILE"` immediately after the `mktemp` line and before the `trap` line.
+- [x] **1.1** Edit B — under the temp-file-write heading (`**4c. Write prompt to temp file:**` post-Edit-C; was `**4b.**` in v1.9), add `chmod 600 "$PROMPT_FILE"` immediately after the `mktemp` line.
 - [x] **1.2** Edit A (copilot) — under the execute heading (`**4d. Execute and capture output:**` post-Edit-C; was `**4c.**` in v1.9), replace the copilot if/else block to use `< "$PROMPT_FILE"` (stdin) instead of `-p "$(cat "$PROMPT_FILE")"`. Match the exact bash from plan.md "Edit A".
 - [x] **1.3** Edit A (gemini) — same heading, replace the gemini if/else block to use `< "$PROMPT_FILE"` instead of `-p "$(cat "$PROMPT_FILE")"`. Match the exact bash from plan.md "Edit A".
 - [x] **1.4** Edit A (prose) — find the sentence beginning "In the commands below, prompt content is passed safely either as a single quoted argument" between the temp-file-write step (`**4c.**` post-Edit-C) and the execute step (`**4d.**`) and replace it with the new wording from plan.md "Edit A".
