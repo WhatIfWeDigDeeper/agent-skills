@@ -237,16 +237,29 @@ def secret_scan(prompt: str) -> list[tuple[str, str]]:
     Returns a list of `(pattern_name, matched_substring)` tuples — empty when
     the prompt is clean. A match in either group counts; both groups are run
     independently per the spec's "two grep invocations" requirement.
+
+    Scanning is line-by-line to mirror `grep -E` / `grep -Ei` semantics: in
+    Python `re`, character classes like `\\s` match `\\n`/`\\r`, which would
+    let a pattern like `secret\\s*=\\s*VALUE` span line breaks. `grep` is
+    line-based and cannot, so the unit helper iterates over `splitlines()` to
+    keep the documented behavior faithful. Each pattern is reported at most
+    once per scan (first matching line wins) — same as a single
+    `grep -E PATTERN` invocation.
     """
     matches: list[tuple[str, str]] = []
+    lines = prompt.splitlines() or [prompt]
     for name, pat in _SECRET_PATTERNS_CASE_SENSITIVE:
-        m = pat.search(prompt)
-        if m:
-            matches.append((name, m.group(0)))
+        for line in lines:
+            m = pat.search(line)
+            if m:
+                matches.append((name, m.group(0)))
+                break
     for name, pat in _SECRET_PATTERNS_CASE_INSENSITIVE:
-        m = pat.search(prompt)
-        if m:
-            matches.append((name, m.group(0)))
+        for line in lines:
+            m = pat.search(line)
+            if m:
+                matches.append((name, m.group(0)))
+                break
     return matches
 
 

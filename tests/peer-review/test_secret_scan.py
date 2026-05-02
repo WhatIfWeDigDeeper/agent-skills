@@ -182,6 +182,24 @@ def test_generic_credential_assignment_matches(line):
     assert "Generic credential assignment" in names
 
 
+@pytest.mark.parametrize(
+    "split",
+    [
+        "api_key:\nAbCdEfGhIjKlMnOpQrStUv",
+        "secret =\nAbCdEfGhIjKlMnOpQrStUvWxYz",
+        "Authorization:\r\nAbCdEfGhIjKlMnOpQrStUv",
+        "password=\n\nAbCdEfGhIjKlMnOpQrStUvWx",
+    ],
+)
+def test_generic_credential_assignment_does_not_span_lines(split):
+    """`grep -Ei` is line-based — the keyword on one line and the value on the
+    next must not match. Python `re`'s `\\s*` would otherwise span newlines, so
+    `secret_scan()` iterates over `splitlines()` to mimic grep semantics."""
+    hits = secret_scan(split)
+    names = [name for name, _ in hits]
+    assert "Generic credential assignment" not in names
+
+
 # --- Pattern matching: negative cases (clean prompts must produce no matches) ---
 
 
