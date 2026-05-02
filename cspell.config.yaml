@@ -114,7 +114,10 @@ words:
   - wordlist
   - worktree
   - worktrees
+  - xoxa
   - xoxb
   - xoxp
+  - xoxr
+  - xoxs
 ignoreWords: []
 import: []

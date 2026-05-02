@@ -192,3 +192,76 @@ def route_model(model: str | None) -> dict:
         "Supported values: self (default), claude-* (if your assistant supports model selection), "
         "copilot[:submodel], codex[:submodel], gemini[:submodel]."
     )
+
+
+# Step 4b — Pre-flight secret scan (external CLI path only).
+# Patterns mirror SKILL.md L317-325 — POSIX ERE in the spec, translated to
+# Python regex here (Python uses `\s`/`\w` rather than POSIX bracket classes;
+# semantics are equivalent for the spec's pattern set).
+_SECRET_PATTERNS_CASE_SENSITIVE = [
+    ("PEM private key", re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----")),
+    ("GitHub PAT (ghp_)", re.compile(r"ghp_[A-Za-z0-9]{36,}")),
+    ("GitHub OAuth (gho_)", re.compile(r"gho_[A-Za-z0-9]{36,}")),
+    ("GitHub server (ghs_)", re.compile(r"ghs_[A-Za-z0-9]{36,}")),
+    ("GitHub user (ghu_)", re.compile(r"ghu_[A-Za-z0-9]{36,}")),
+    ("OpenAI/Anthropic-style (sk-)", re.compile(r"(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}")),
+    ("AWS access key (AKIA)", re.compile(r"AKIA[0-9A-Z]{16}")),
+    ("Slack token (xox*)", re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}")),
+]
+
+_SECRET_PATTERNS_CASE_INSENSITIVE = [
+    (
+        "Generic credential assignment",
+        re.compile(
+            r"(api[_-]?key|secret|password|bearer|authorization)\s*[:=]\s*['\"]?[A-Za-z0-9+/_=-]{16,}",
+            re.IGNORECASE,
+        ),
+    ),
+]
+
+
+def should_run_secret_scan(model: str | None) -> bool:
+    """SKILL.md Step 4b runs the pre-flight secret scan only on the external CLI path.
+
+    Internal routes (self / claude-*) keep content inside the assistant runtime and
+    skip the scan; copilot/codex/gemini send the prompt to a third-party CLI and
+    must run the scan first.
+    """
+    route = route_model(model)["route"]
+    return route != "internal"
+
+
+def secret_scan(prompt: str) -> list[tuple[str, str]]:
+    """Run both grep -E groups from SKILL.md Step 4b against `prompt`.
+
+    Returns a list of `(pattern_name, matched_substring)` tuples — empty when
+    the prompt is clean. A match in either group counts; both groups are run
+    independently per the spec's "two grep invocations" requirement.
+    """
+    matches: list[tuple[str, str]] = []
+    for name, pat in _SECRET_PATTERNS_CASE_SENSITIVE:
+        m = pat.search(prompt)
+        if m:
+            matches.append((name, m.group(0)))
+    for name, pat in _SECRET_PATTERNS_CASE_INSENSITIVE:
+        m = pat.search(prompt)
+        if m:
+            matches.append((name, m.group(0)))
+    return matches
+
+
+def route_confirmation_response(response: str | None) -> str:
+    """SKILL.md Step 4b confirmation routing: `y` proceeds, anything else aborts.
+
+    Returns "proceed" or "abort". Empty input, whitespace-only input, and any
+    non-`y` reply all route to "abort" per the spec's "anything else (including
+    empty input)" clause. The check is exact-match on `y` (case-insensitive,
+    stripped) — `yes`, `yep`, `Y\n` all proceed, but `n`, `no`, `maybe`, `` ``
+    abort.
+    """
+    if response is None:
+        return "abort"
+    cleaned = response.strip().lower()
+    if cleaned == "y":
+        return "proceed"
+    return "abort"
