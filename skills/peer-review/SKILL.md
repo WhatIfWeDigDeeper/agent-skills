@@ -162,12 +162,17 @@ gh pr diff "$PR"
 
 **Path** (file or directory):
 
-First, verify the path exists using a check that does not invoke a shell — interpolating `<path>` into a `test -e ...` command would still trigger parameter expansion (`$VAR`) and command substitution (`$(...)`) inside double quotes, even with quoting. In Claude Code, attempt the `Read` tool on the path. For a directory, first list its contents using a non-shell directory tool (in Claude Code: use the `Glob` tool with a pattern like `<path>/**/*`). Distinguish two outcomes:
+First, verify the path exists using a check that does not invoke a shell — interpolating `<path>` into a `test -e ...` command would still trigger parameter expansion (`$VAR`) and command substitution (`$(...)`) inside double quotes, even with quoting.
 
-- **`Glob` errors out** (the path itself does not resolve, e.g. typo, deleted file/dir): error `Path not found: <path>` and stop.
-- **`Glob` succeeds but returns zero matches** (the path exists but is empty, or contains only excluded file types): warn `Path is empty: <path> — nothing to review` and exit cleanly. This is not an error — an empty directory is a valid input that has no content to send to the reviewer.
+The control flow below uses two non-shell tools (in Claude Code: `Read` and `Glob`); `Read` errors on directories and on missing paths with distinguishable messages, and `Glob` lists directory contents without a shell:
 
-Otherwise (one or more entries), `Read` a matched file as a final existence check, then read all files at the path. For a directory, read all text files in it recursively — skip binary files (images, compiled artifacts) and files larger than ~100 KB. For a file, the `Read` tool itself errors if the path does not exist, without invoking a shell — same `Path not found: <path>` error. Set mode to **consistency**.
+1. Attempt `Read` on `<path>`. If it succeeds, treat `<path>` as a single file — proceed to the read-all step below.
+2. If `Read` errors and the message indicates the path is a directory (e.g. `EISDIR`, "is a directory"), switch to the directory branch: list contents via `Glob` with a pattern like `<path>/**/*`. Distinguish two outcomes:
+   - **`Glob` returns one or more entries**: read all text files in the directory recursively — skip binary files (images, compiled artifacts) and files larger than ~100 KB.
+   - **`Glob` succeeds but returns zero matches** (the directory exists but is empty, or contains only excluded file types): warn `Path is empty: <path> — nothing to review` and exit cleanly. This is not an error — an empty directory is a valid input that has no content to send to the reviewer.
+3. If `Read` errors with any other message (e.g. file not found), error `Path not found: <path>` and stop. Likewise if `Glob` itself errors out on the directory branch.
+
+Set mode to **consistency**.
 
 ### 3. Select Prompt Template
 

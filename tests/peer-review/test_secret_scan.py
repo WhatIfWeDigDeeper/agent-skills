@@ -193,8 +193,10 @@ def test_generic_credential_assignment_matches(line):
 )
 def test_generic_credential_assignment_does_not_span_lines(split):
     """`grep -Ei` is line-based — the keyword on one line and the value on the
-    next must not match. Python `re`'s `\\s*` would otherwise span newlines, so
-    `secret_scan()` iterates over `splitlines()` to mimic grep semantics."""
+    next must not match. Two layers keep this faithful: the pattern uses
+    `[ \\t]*` (ASCII spaces/tabs only, no `\\n`) instead of Python's
+    Unicode-aware `\\s*`, and `secret_scan()` additionally iterates over
+    `splitlines()` so any future `\\s` pattern stays line-bounded too."""
     hits = secret_scan(split)
     names = [name for name, _ in hits]
     assert "Generic credential assignment" not in names

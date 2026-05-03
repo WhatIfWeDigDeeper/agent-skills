@@ -196,8 +196,12 @@ def route_model(model: str | None) -> dict:
 
 # Step 4b — Pre-flight secret scan (external CLI path only).
 # Patterns mirror SKILL.md L317-325 — POSIX ERE in the spec, translated to
-# Python regex here (Python uses `\s`/`\w` rather than POSIX bracket classes;
-# semantics are equivalent for the spec's pattern set).
+# Python regex here. The translation prefers explicit ASCII character classes
+# (`[A-Za-z0-9]`, `[ \t]`) over Python's PCRE-style `\w`/`\s` shortcuts so the
+# semantics stay byte-identical to `grep -E` / `grep -Ei` (the SKILL.md spec
+# uses `[[:space:]]`, which is ASCII-only; Python's `\s` is Unicode-aware and
+# would silently broaden the match set). Cross-line `\s` matching is separately
+# handled by `secret_scan()` iterating line-by-line.
 _SECRET_PATTERNS_CASE_SENSITIVE = [
     ("PEM private key", re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----")),
     ("GitHub PAT (ghp_)", re.compile(r"ghp_[A-Za-z0-9]{36,}")),
@@ -213,7 +217,7 @@ _SECRET_PATTERNS_CASE_INSENSITIVE = [
     (
         "Generic credential assignment",
         re.compile(
-            r"(api[_-]?key|secret|password|bearer|authorization)\s*[:=]\s*['\"]?[A-Za-z0-9+/_=-]{16,}",
+            r"(api[_-]?key|secret|password|bearer|authorization)[ \t]*[:=][ \t]*['\"]?[A-Za-z0-9+/_=-]{16,}",
             re.IGNORECASE,
         ),
     ),
