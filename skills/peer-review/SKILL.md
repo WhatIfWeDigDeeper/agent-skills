@@ -389,7 +389,7 @@ A match in **either** group triggers the prompt. Do not collapse both groups int
 Notes on the loop above:
 - `grep -Eo -m1` emits the matched substring (so you know what fired) and stops at the first match per pattern (cheap, line-bounded — same as the spec).
 - The captured `$match` is **never** echoed to the user — it's a secret. Only the pattern name and the literal `<redacted>` appear in the prompt. Logging `$match` would defeat the point of the scan.
-- `grep -E` exits non-zero on no match; `|| continue` keeps the loop going. With `set -e`, prefer `match=$(... ) || true` and a follow-up `[ -z "$match" ] && continue`.
+- `grep -E` exits non-zero on no match; `|| continue` keeps the loop going. The `... || continue` form is `set -e`-safe on its own — do **not** wrap it in `|| true`, which would also swallow real grep failures (binary-not-found, malformed regex, I/O error). If you need to distinguish "no match" (exit 1) from a real error (exit 2+), capture and inspect the status: `match=$(printf '%s' "$PROMPT" | grep -Eo -m1 -- "$pat"); rc=$?; case "$rc" in 0) ;; 1) continue ;; *) echo "grep failed: $rc" >&2; exit "$rc" ;; esac`.
 - Per-pattern invocation also avoids the `-f patterns` form, which would read patterns from a file (no `patterns` file is created in this workflow; `grep -f patterns` would fail with `grep: patterns: No such file or directory`).
 - For surrounding context (e.g. `key=…` with the `…` redacted), capture a window with `grep -Eo -m1 ".{0,20}<pat>.{0,20}"`, then mask the match's character span before display.
 

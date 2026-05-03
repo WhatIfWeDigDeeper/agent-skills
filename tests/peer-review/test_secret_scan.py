@@ -148,7 +148,8 @@ def test_aws_access_key_matches():
 
 def test_aws_lowercase_akia_does_not_match():
     """AWS keys are strictly uppercase — `akia…` is an English word, not a key.
-    SKILL.md L360 explicitly warns against case-folding `[0-9A-Z]` to
+    The SKILL.md Step 4b note "Do not collapse both groups into a single
+    `grep -Ei` call" explicitly warns against case-folding `[0-9A-Z]` to
     `[0-9A-Za-z]` because it would falsely match `akiamatashotokugawamotoharu`."""
     prompt = "consider akiamatashotokugawamotoharu as a counterexample"
     hits = secret_scan(prompt)
@@ -259,6 +260,7 @@ def test_confirmation_y_proceeds(response):
     ],
 )
 def test_confirmation_anything_else_aborts(response):
-    """Per SKILL.md L339: 'anything else (including empty input) → exit' — strict
-    match on `y`; `yes`, blank input, and None all route to abort."""
+    """Per the SKILL.md Step 4b confirmation-routing rule "anything else
+    (including empty input) → exit" — strict match on `y`; `yes`, blank input,
+    and None all route to abort."""
     assert route_confirmation_response(response) == "abort"

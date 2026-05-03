@@ -195,8 +195,9 @@ def route_model(model: str | None) -> dict:
 
 
 # Step 4b — Pre-flight secret scan (external CLI path only).
-# Patterns mirror SKILL.md L317-325 — POSIX ERE in the spec, translated to
-# Python regex here. The translation prefers explicit ASCII character classes
+# Patterns mirror the SKILL.md "**4b. Pre-flight secret scan**" step's
+# "Case-sensitive group" / "Case-insensitive group" lists — POSIX ERE in the
+# spec, translated to Python regex here. The translation prefers explicit ASCII character classes
 # (`[A-Za-z0-9]`, `[ \t]`) over Python's PCRE-style `\w`/`\s` shortcuts to keep
 # the matched whitespace set narrow and predictable. Python's `\s` is Unicode-
 # aware (it includes NBSP, ideographic space, etc.); POSIX `[[:space:]]` follows
