@@ -90,6 +90,10 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 
 **Do not pipe `npx cspell` through `grep -v`** — if the npm cache has an EPERM error, filtering output with `grep -v "npm error"` silently swallows the failure, making it appear as "No matches found" when cspell never ran. Report the failure explicitly and tell the user to run `! npx cspell <files>` directly to fix the cache first.
 
+## Code Review
+
+- **Before raising PR feedback, read existing review threads and replies on the touched code.** Do not restate issues that were already answered, intentionally accepted, or deferred to a linked follow-up issue unless later commits materially changed the code or invalidated the earlier resolution.
+
 ## Git Workflow
 
 - **Never commit directly to `main`.** Always create a feature branch and open a PR for review.

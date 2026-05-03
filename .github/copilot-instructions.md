@@ -86,6 +86,10 @@ uv run --with pytest pytest tests/
 - Adding a singular form to `cspell.config.yaml` does not automatically cover its plural — add both forms explicitly (e.g., `metacharacter` and `metacharacters`) if both appear in the codebase.
 - Do not pipe `npx cspell` through `grep -v` — if the npm cache has an EPERM error, filtering with `grep -v "npm error"` silently swallows the failure, making it appear as "No matches found" when cspell never ran.
 
+## Code Review
+
+- **Before raising PR feedback, read existing review threads and replies on the touched code.** Do not restate issues that were already answered, intentionally accepted, or deferred to a linked follow-up issue unless later commits materially changed the code or invalidated the earlier resolution.
+
 ## Git And PR Workflow
 
 - Never commit directly to `main`. Always create a feature branch and open a PR for review.
