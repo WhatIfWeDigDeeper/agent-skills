@@ -329,11 +329,12 @@ Case-sensitive group:
 Case-insensitive group:
 - `(api[_-]?key|secret|password|bearer|authorization)[[:space:]]*[:=][[:space:]]*['"]?[A-Za-z0-9+/_=-]{16,}` (generic keyword assignment)
 
-If any pattern matches, output the match (with the secret value redacted to `<redacted>`), name the pattern that fired, and prompt:
+If any pattern matches, name the pattern that fired and emit a short surrounding-context phrase with the matched secret value masked to the literal string `<redacted>`. The "context phrase" is a window of up to ~20 characters before and after the match — its purpose is to help the user locate the secret in their source (e.g. `token = <redacted>`), not to display the secret. The raw match text must never appear in user-facing output. Then prompt:
 
 ```text
 The diff appears to contain content that looks like a secret:
-  <pattern name>: <surrounding phrase with value redacted>
+  GitHub PAT (ghp_): token = <redacted>
+  AWS access key (AKIA): id=<redacted>,
   ...
 This content will be sent to the external [model] CLI. Continue? [y/N]
 ```
@@ -365,33 +366,44 @@ Generic credential assignment	(api[_-]?key|secret|password|bearer|authorization)
 PATS
 )
 
+# redact_context: capture a windowed phrase around the match and replace the
+# match span with the literal string "<redacted>". The window is up to ~20
+# chars on each side, so the user can locate the line without seeing the secret.
+redact_context() {
+  local pat="$1" flag="$2"   # flag: "" for case-sensitive, "i" for case-insensitive
+  printf '%s' "$PROMPT" \
+    | grep -Eo${flag} -m1 -- ".{0,20}${pat}.{0,20}" \
+    | sed -E "s/${pat}/<redacted>/${flag}"
+}
+
 hits=""
 while IFS=$'\t' read -r name pat; do
   [ -z "$name" ] && continue
-  match=$(printf '%s' "$PROMPT" | grep -Eo -m1 -- "$pat") || continue
-  # Redact the secret — keep the pattern name and a short context window.
-  hits="${hits}${name}: <redacted>"$'\n'
+  printf '%s' "$PROMPT" | grep -Eq -- "$pat" || continue   # cheap match check
+  ctx=$(redact_context "$pat" "")
+  hits="${hits}${name}: ${ctx}"$'\n'
 done <<< "$patterns_case_sensitive"
 
 while IFS=$'\t' read -r name pat; do
   [ -z "$name" ] && continue
-  match=$(printf '%s' "$PROMPT" | grep -Eio -m1 -- "$pat") || continue
-  hits="${hits}${name}: <redacted>"$'\n'
+  printf '%s' "$PROMPT" | grep -Eiq -- "$pat" || continue
+  ctx=$(redact_context "$pat" "i")
+  hits="${hits}${name}: ${ctx}"$'\n'
 done <<< "$patterns_case_insensitive"
 
 if [ -n "$hits" ]; then
-  printf '%s' "$hits"   # surface in the confirmation prompt above; do NOT echo $match
+  printf '%s' "$hits"   # surface in the confirmation prompt above
 fi
 ```
 
 A match in **either** group triggers the prompt. Do not collapse both groups into a single `grep -Ei` call: that turns `AKIA[0-9A-Z]{16}` into a case-insensitive match and `[0-9A-Z]` becomes `[0-9A-Za-z]`, so non-AWS lowercase strings like `akiamatashotokugawamotoharu` would falsely fire. The boundary anchor `(^|[^A-Za-z0-9])` on `sk-` prevents matching innocuous English substrings (`risk-mitigation-recommendations-list`, `task-management-…`, `disk-encryption-…`); real `sk-` keys appear at word boundaries (start of line, after whitespace, after `=`/`:`/quote).
 
 Notes on the loop above:
-- `grep -Eo -m1` emits the matched substring (so you know what fired) and stops at the first match per pattern (cheap, line-bounded — same as the spec).
-- The captured `$match` is **never** echoed to the user — it's a secret. Only the pattern name and the literal `<redacted>` appear in the prompt. Logging `$match` would defeat the point of the scan.
-- `grep -E` exits non-zero on no match; `|| continue` keeps the loop going. The `... || continue` form is `set -e`-safe on its own — do **not** wrap it in `|| true`, which would also swallow real grep failures (binary-not-found, malformed regex, I/O error). If you need to distinguish "no match" (exit 1) from a real error (exit 2+), capture and inspect the status: `match=$(printf '%s' "$PROMPT" | grep -Eo -m1 -- "$pat"); rc=$?; case "$rc" in 0) ;; 1) continue ;; *) echo "grep failed: $rc" >&2; exit "$rc" ;; esac`.
+- The detection step (`grep -Eq`) and the context step (`grep -Eo` for the window, `sed` to mask the match span) are split intentionally: the `-q` form is the cheapest "did anything match" check and the windowed `-Eo` only runs when a hit is confirmed. The match itself is never bound to a shell variable that gets echoed — by the time `$ctx` is built, the secret characters have already been replaced with `<redacted>` in the pipeline.
+- The user-facing output is the redacted-context phrase only (e.g. `token = <redacted>`). The raw secret value never enters `$hits`, never enters logs, and never goes to stdout — that is what makes the scan meaningful. If you modify the loop, preserve this property: any new branch that touches the match must redact before assigning to a variable that is later printed.
+- `grep -E` exits non-zero on no match; `|| continue` keeps the loop going. The `... || continue` form is `set -e`-safe on its own — do **not** wrap it in `|| true`, which would also swallow real grep failures (binary-not-found, malformed regex, I/O error). If you need to distinguish "no match" (exit 1) from a real error (exit 2+), capture and inspect the status: `printf '%s' "$PROMPT" | grep -Eq -- "$pat"; rc=$?; case "$rc" in 0) ;; 1) continue ;; *) echo "grep failed: $rc" >&2; exit "$rc" ;; esac`.
 - Per-pattern invocation also avoids the `-f patterns` form, which would read patterns from a file (no `patterns` file is created in this workflow; `grep -f patterns` would fail with `grep: patterns: No such file or directory`).
-- For surrounding context (e.g. `key=…` with the `…` redacted), capture a window with `grep -Eo -m1 ".{0,20}<pat>.{0,20}"`, then mask the match's character span before display.
+- The window size (`.{0,20}` on each side) is a safety margin: large enough to be useful for locating the secret, small enough that the surrounding context cannot accidentally include a second secret. If you increase it, audit the patterns above to make sure none of them can be embedded in another pattern's window.
 
 If you prefer PCRE for richer constructs (e.g. `(?i)`, `\s`, lookarounds), use a PCRE-capable engine — `grep -P` (GNU grep, not available on macOS BSD grep), `perl -ne`, or `python -c "import re; ..."` — and rewrite the patterns accordingly. Do not feed PCRE syntax to `grep -E`; it will silently fail to match. Do not move this scan to after Step 4c: scanning the in-memory `$PROMPT` string before the temp-file write keeps the secret-detection decision and the user-confirmation pause out of the disk-write/CLI-execution path entirely, so an aborted scan never leaves a temp file behind.
 
