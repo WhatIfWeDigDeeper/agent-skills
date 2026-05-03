@@ -197,11 +197,15 @@ def route_model(model: str | None) -> dict:
 # Step 4b — Pre-flight secret scan (external CLI path only).
 # Patterns mirror SKILL.md L317-325 — POSIX ERE in the spec, translated to
 # Python regex here. The translation prefers explicit ASCII character classes
-# (`[A-Za-z0-9]`, `[ \t]`) over Python's PCRE-style `\w`/`\s` shortcuts so the
-# semantics stay byte-identical to `grep -E` / `grep -Ei` (the SKILL.md spec
-# uses `[[:space:]]`, which is ASCII-only; Python's `\s` is Unicode-aware and
-# would silently broaden the match set). Cross-line `\s` matching is separately
-# handled by `secret_scan()` iterating line-by-line.
+# (`[A-Za-z0-9]`, `[ \t]`) over Python's PCRE-style `\w`/`\s` shortcuts to keep
+# the matched whitespace set narrow and predictable. Python's `\s` is Unicode-
+# aware (it includes NBSP, ideographic space, etc.); POSIX `[[:space:]]` follows
+# the current locale's `isspace()` classification, so under common locales like
+# `en_US.UTF-8` it can also match a broader set than just ASCII space/tab.
+# Pinning the Python side to `[ \t]` keeps the match set narrow regardless of
+# locale, and matches what the SKILL.md note recommends for callers that want
+# strict ASCII semantics (run grep under `LC_ALL=C`). Cross-line `\s` matching
+# is separately handled by `secret_scan()` iterating line-by-line.
 _SECRET_PATTERNS_CASE_SENSITIVE = [
     ("PEM private key", re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----")),
     ("GitHub PAT (ghp_)", re.compile(r"ghp_[A-Za-z0-9]{36,}")),

@@ -343,28 +343,55 @@ Output this as your **final message and stop generating**. Do not supply an answ
 - `y` → proceed to Step 4c (write the prompt to the temp file, then Step 4d to execute).
 - anything else (including empty input) → exit with: `Aborted — redact secrets and re-run.` Do not write the temp file and do not invoke the CLI. If the target was `--pr N`, append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 
-Implementation note: run the scan against the in-memory `$PROMPT` string before Step 4c writes it to disk. The patterns above are POSIX ERE so they work with `grep -E` (case-sensitive group) and `grep -Ei` (case-insensitive group), using one `-e` flag per pattern (do not use `-f patterns` — that flag reads patterns from a file, and no `patterns` file is created in this workflow; an agent invoking `-f patterns` literally would get `grep: patterns: No such file or directory` and a non-zero exit, which an error-tolerant caller could silently treat as "no matches found"):
+Implementation note: run the scan against the in-memory `$PROMPT` string before Step 4c writes it to disk. The patterns above are POSIX ERE so they work with `grep -E` (case-sensitive group) and `grep -Ei` (case-insensitive group). Because the prompt template (lines above) requires surfacing **which** pattern fired and **what** substring matched (so the secret can be redacted before display), check each pattern individually rather than collapsing them into a single `grep -Eq` with many `-e` flags — `-q` only yields a boolean exit, and a multi-pattern `-e` list can't tell you which `-e` matched. Iterate, capture the matched substring with `grep -Eo`, and redact for display:
 
 ```bash
-# Case-sensitive: PEM headers, GitHub tokens, OpenAI sk- (with word boundary), AWS AKIA, Slack
-printf '%s' "$PROMPT" | grep -Eq \
-  -e '-----BEGIN [A-Z ]+PRIVATE KEY-----' \
-  -e 'ghp_[A-Za-z0-9]{36,}' \
-  -e 'gho_[A-Za-z0-9]{36,}' \
-  -e 'ghs_[A-Za-z0-9]{36,}' \
-  -e 'ghu_[A-Za-z0-9]{36,}' \
-  -e '(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}' \
-  -e 'AKIA[0-9A-Z]{16}' \
-  -e 'xox[baprs]-[A-Za-z0-9-]{10,}'
+# Pairs of "human-readable name<TAB>POSIX ERE pattern". Tab separator keeps the
+# regex (which contains spaces) intact when split with read -r name pat.
+patterns_case_sensitive=$(cat <<'PATS'
+PEM private key	-----BEGIN [A-Z ]+PRIVATE KEY-----
+GitHub PAT (ghp_)	ghp_[A-Za-z0-9]{36,}
+GitHub OAuth (gho_)	gho_[A-Za-z0-9]{36,}
+GitHub server (ghs_)	ghs_[A-Za-z0-9]{36,}
+GitHub user (ghu_)	ghu_[A-Za-z0-9]{36,}
+OpenAI/Anthropic-style (sk-)	(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}
+AWS access key (AKIA)	AKIA[0-9A-Z]{16}
+Slack token (xox*)	xox[baprs]-[A-Za-z0-9-]{10,}
+PATS
+)
 
-# Case-insensitive: generic keyword assignments
-printf '%s' "$PROMPT" | grep -Eiq \
-  -e '(api[_-]?key|secret|password|bearer|authorization)[[:space:]]*[:=][[:space:]]*['"'"'"]?[A-Za-z0-9+/_=-]{16,}'
+patterns_case_insensitive=$(cat <<'PATS'
+Generic credential assignment	(api[_-]?key|secret|password|bearer|authorization)[[:space:]]*[:=][[:space:]]*['"]?[A-Za-z0-9+/_=-]{16,}
+PATS
+)
+
+hits=""
+while IFS=$'\t' read -r name pat; do
+  [ -z "$name" ] && continue
+  match=$(printf '%s' "$PROMPT" | grep -Eo -m1 -- "$pat") || continue
+  # Redact the secret — keep the pattern name and a short context window.
+  hits="${hits}${name}: <redacted>"$'\n'
+done <<< "$patterns_case_sensitive"
+
+while IFS=$'\t' read -r name pat; do
+  [ -z "$name" ] && continue
+  match=$(printf '%s' "$PROMPT" | grep -Eio -m1 -- "$pat") || continue
+  hits="${hits}${name}: <redacted>"$'\n'
+done <<< "$patterns_case_insensitive"
+
+if [ -n "$hits" ]; then
+  printf '%s' "$hits"   # surface in the confirmation prompt above; do NOT echo $match
+fi
 ```
 
-A match in **either** invocation triggers the prompt. Do not collapse both groups into a single `grep -Ei` call: that turns `AKIA[0-9A-Z]{16}` into a case-insensitive match and `[0-9A-Z]` becomes `[0-9A-Za-z]`, so non-AWS lowercase strings like `akiamatashotokugawamotoharu` would falsely fire. The boundary anchor `(^|[^A-Za-z0-9])` on `sk-` prevents matching innocuous English substrings (`risk-mitigation-recommendations-list`, `task-management-…`, `disk-encryption-…`); real `sk-` keys appear at word boundaries (start of line, after whitespace, after `=`/`:`/quote).
+A match in **either** group triggers the prompt. Do not collapse both groups into a single `grep -Ei` call: that turns `AKIA[0-9A-Z]{16}` into a case-insensitive match and `[0-9A-Z]` becomes `[0-9A-Za-z]`, so non-AWS lowercase strings like `akiamatashotokugawamotoharu` would falsely fire. The boundary anchor `(^|[^A-Za-z0-9])` on `sk-` prevents matching innocuous English substrings (`risk-mitigation-recommendations-list`, `task-management-…`, `disk-encryption-…`); real `sk-` keys appear at word boundaries (start of line, after whitespace, after `=`/`:`/quote).
 
-(Use `-q` for a yes/no exit code, or drop `-q` and capture matches when you want to surface them in the prompt. If you genuinely prefer the `-f` form, write the patterns to a temp file first — e.g. `printf '%s\n' "$PATTERNS" > "$patterns_file"; grep -Eif "$patterns_file"` — and clean it up.)
+Notes on the loop above:
+- `grep -Eo -m1` emits the matched substring (so you know what fired) and stops at the first match per pattern (cheap, line-bounded — same as the spec).
+- The captured `$match` is **never** echoed to the user — it's a secret. Only the pattern name and the literal `<redacted>` appear in the prompt. Logging `$match` would defeat the point of the scan.
+- `grep -E` exits non-zero on no match; `|| continue` keeps the loop going. With `set -e`, prefer `match=$(... ) || true` and a follow-up `[ -z "$match" ] && continue`.
+- Per-pattern invocation also avoids the `-f patterns` form, which would read patterns from a file (no `patterns` file is created in this workflow; `grep -f patterns` would fail with `grep: patterns: No such file or directory`).
+- For surrounding context (e.g. `key=…` with the `…` redacted), capture a window with `grep -Eo -m1 ".{0,20}<pat>.{0,20}"`, then mask the match's character span before display.
 
 If you prefer PCRE for richer constructs (e.g. `(?i)`, `\s`, lookarounds), use a PCRE-capable engine — `grep -P` (GNU grep, not available on macOS BSD grep), `perl -ne`, or `python -c "import re; ..."` — and rewrite the patterns accordingly. Do not feed PCRE syntax to `grep -E`; it will silently fail to match. Do not move this scan to after Step 4c: scanning the in-memory `$PROMPT` string before the temp-file write keeps the secret-detection decision and the user-confirmation pause out of the disk-write/CLI-execution path entirely, so an aborted scan never leaves a temp file behind.
 
