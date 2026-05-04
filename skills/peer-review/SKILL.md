@@ -493,7 +493,15 @@ After the CLI call returns (success or failure), clean up the temp file uncondit
 rm -f "$PROMPT_FILE"
 ```
 
-`CLI_RC` is then available to Step 4e's parser for fallback decisions (e.g. treat `CLI_RC != 0` plus malformed output as the raw-output fallback path).
+`CLI_RC` is a bash variable scoped to the Bash tool call that ran Step 4d — it does not persist into the prose of Step 4e (the assistant parses `REVIEW_OUTPUT` itself; bash variables go out of scope when the Bash call ends). If you want to act on the exit status before parsing, do so **within the same Bash tool call** as Step 4d — for example, append a sentinel to the captured output so Step 4e can still see it:
+
+```bash
+if [ "$CLI_RC" -ne 0 ]; then
+  REVIEW_OUTPUT="[CLI exited $CLI_RC]"$'\n'"$REVIEW_OUTPUT"
+fi
+```
+
+The marker survives into Step 4e's parsing input (which is the assistant's reading of `REVIEW_OUTPUT`), so the parser can short-circuit to the raw-output fallback path on `CLI exited <nonzero>` plus malformed body.
 
 **4e. Parse output → normalized findings:**
 
