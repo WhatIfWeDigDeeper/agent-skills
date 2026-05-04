@@ -4,14 +4,18 @@ dictionaryDefinitions: []
 dictionaries: []
 words:
   - actioned
+  - AKIA
+  - akiamatashotokugawamotoharu
   - ALLSKIP
   - anthropics
   - asyncio
   - asyncpg
+  - baprs
   - baselined
   - basenames
   - blockquotes
   - bunx
+  - cmdline
   - codepoints
   - commenters
   - conftest
@@ -25,6 +29,7 @@ words:
   - DOXYZ
   - duplicative
   - EBADPLATFORM
+  - EISDIR
   - elif
   - endswith
   - ensurepip
@@ -39,10 +44,12 @@ words:
   - githubcopilot
   - goroutines
   - gradings
+  - hardlink
   - healthz
   - heredocs
   - informationally
   - lockfiles
+  - lookarounds
   - metacharacter
   - metacharacters
   - metaprogramming
@@ -59,6 +66,7 @@ words:
   - opusplan
   - osascript
   - parentheticals
+  - PCRE
   - pipenv
   - Pipfile
   - prauthor
@@ -90,11 +98,14 @@ words:
   - subshell
   - substeps
   - tfvars
+  - TOCTOU
   - toplevel
+  - ugrep
   - undercounted
   - underspecification
   - underspecified
   - unmatch
+  - unredacted
   - unsoftenable
   - untrusted_diff
   - untrusted_files
@@ -108,5 +119,10 @@ words:
   - wordlist
   - worktree
   - worktrees
+  - xoxa
+  - xoxb
+  - xoxp
+  - xoxr
+  - xoxs
 ignoreWords: []
 import: []

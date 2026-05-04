@@ -192,3 +192,98 @@ def route_model(model: str | None) -> dict:
         "Supported values: self (default), claude-* (if your assistant supports model selection), "
         "copilot[:submodel], codex[:submodel], gemini[:submodel]."
     )
+
+
+# Step 4b — Pre-flight secret scan (external CLI path only).
+# Patterns mirror the SKILL.md "**4b. Pre-flight secret scan**" step's
+# "Case-sensitive group" / "Case-insensitive group" lists — POSIX ERE in the
+# spec, translated to Python regex here. The translation prefers explicit ASCII character classes
+# (`[A-Za-z0-9]`, `[ \t]`) over Python's PCRE-style `\w`/`\s` shortcuts to keep
+# the matched whitespace set narrow and predictable. Python's `\s` is Unicode-
+# aware (it includes NBSP, ideographic space, etc.); POSIX `[[:space:]]` follows
+# the current locale's `isspace()` classification, so under common locales like
+# `en_US.UTF-8` it can also match a broader set than just ASCII space/tab.
+# Pinning the Python side to `[ \t]` keeps the match set narrow regardless of
+# locale, and matches what the SKILL.md note recommends for callers that want
+# strict ASCII semantics (run grep under `LC_ALL=C`). Cross-line `\s` matching
+# is separately handled by `secret_scan()` iterating line-by-line.
+_SECRET_PATTERNS_CASE_SENSITIVE = [
+    ("PEM private key", re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----")),
+    ("GitHub PAT (ghp_)", re.compile(r"ghp_[A-Za-z0-9]{36,}")),
+    ("GitHub OAuth (gho_)", re.compile(r"gho_[A-Za-z0-9]{36,}")),
+    ("GitHub server (ghs_)", re.compile(r"ghs_[A-Za-z0-9]{36,}")),
+    ("GitHub user (ghu_)", re.compile(r"ghu_[A-Za-z0-9]{36,}")),
+    ("OpenAI/Anthropic-style (sk-)", re.compile(r"(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}")),
+    ("AWS access key (AKIA)", re.compile(r"AKIA[0-9A-Z]{16}")),
+    ("Slack token (xox*)", re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}")),
+]
+
+_SECRET_PATTERNS_CASE_INSENSITIVE = [
+    (
+        "Generic credential assignment",
+        re.compile(
+            r"(api[_-]?key|secret|password|bearer|authorization)[ \t]*[:=][ \t]*['\"]?[A-Za-z0-9+/_=-]{16,}",
+            re.IGNORECASE,
+        ),
+    ),
+]
+
+
+def should_run_secret_scan(model: str | None) -> bool:
+    """SKILL.md Step 4b runs the pre-flight secret scan only on the external CLI path.
+
+    Internal routes (self / claude-*) keep content inside the assistant runtime and
+    skip the scan; copilot/codex/gemini send the prompt to a third-party CLI and
+    must run the scan first.
+    """
+    route = route_model(model)["route"]
+    return route != "internal"
+
+
+def secret_scan(prompt: str) -> list[tuple[str, str]]:
+    """Run both grep -E groups from SKILL.md Step 4b against `prompt`.
+
+    Returns a list of `(pattern_name, matched_substring)` tuples — empty when
+    the prompt is clean. A match in either group counts; both groups are run
+    independently per the spec's "two grep invocations" requirement.
+
+    Scanning is line-by-line to mirror `grep -E` / `grep -Ei` semantics: in
+    Python `re`, character classes like `\\s` match `\\n`/`\\r`, which would
+    let a pattern like `secret\\s*=\\s*VALUE` span line breaks. `grep` is
+    line-based and cannot, so the unit helper iterates over `splitlines()` to
+    keep the documented behavior faithful. Each pattern is reported at most
+    once per scan (first matching line wins) — same as a single
+    `grep -E PATTERN` invocation.
+    """
+    matches: list[tuple[str, str]] = []
+    lines = prompt.splitlines() or [prompt]
+    for name, pat in _SECRET_PATTERNS_CASE_SENSITIVE:
+        for line in lines:
+            m = pat.search(line)
+            if m:
+                matches.append((name, m.group(0)))
+                break
+    for name, pat in _SECRET_PATTERNS_CASE_INSENSITIVE:
+        for line in lines:
+            m = pat.search(line)
+            if m:
+                matches.append((name, m.group(0)))
+                break
+    return matches
+
+
+def route_confirmation_response(response: str | None) -> str:
+    """SKILL.md Step 4b confirmation routing: `y` proceeds, anything else aborts.
+
+    Returns "proceed" or "abort". Empty input, whitespace-only input, and any
+    non-`y` reply all route to "abort" per the spec's "anything else (including
+    empty input)" clause. The check is exact-match on `y` (case-insensitive,
+    stripped) — `y`, `Y`, ` y `, `Y\n` proceed; `yes`, `yep`, `n`, `no`,
+    `maybe`, `` ``, and `None` all abort.
+    """
+    if response is None:
+        return "abort"
+    cleaned = response.strip().lower()
+    if cleaned == "y":
+        return "proceed"
+    return "abort"
