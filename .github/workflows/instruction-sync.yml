@@ -1,0 +1,44 @@
+name: Instruction Sync Check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'CLAUDE.md'
+      - '.github/copilot-instructions.md'
+
+jobs:
+  instruction-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate mirrored instruction edits
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+
+          CHANGED_FILES="$(git diff --name-only "origin/${BASE_REF}...HEAD")"
+
+          claude_changed=0
+          copilot_changed=0
+
+          echo "$CHANGED_FILES" | grep -Fxq 'CLAUDE.md' && claude_changed=1 || true
+          echo "$CHANGED_FILES" | grep -Fxq '.github/copilot-instructions.md' && copilot_changed=1 || true
+
+          if [ "$claude_changed" -eq 1 ] && [ "$copilot_changed" -eq 0 ]; then
+            echo 'CLAUDE.md changed without a matching update to .github/copilot-instructions.md.'
+            echo 'Mirror the relevant instruction update in both files.'
+            exit 1
+          fi
+
+          if [ "$claude_changed" -eq 0 ] && [ "$copilot_changed" -eq 1 ]; then
+            echo '.github/copilot-instructions.md changed without a matching update to CLAUDE.md.'
+            echo 'Mirror the relevant instruction update in both files.'
+            exit 1
+          fi
+
+          echo 'Instruction sync check passed.'
