@@ -44,6 +44,7 @@ words:
   - githubcopilot
   - goroutines
   - gradings
+  - hardlink
   - healthz
   - heredocs
   - informationally
@@ -97,6 +98,7 @@ words:
   - subshell
   - substeps
   - tfvars
+  - TOCTOU
   - toplevel
   - ugrep
   - undercounted
