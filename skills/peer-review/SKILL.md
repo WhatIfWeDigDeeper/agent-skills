@@ -347,28 +347,40 @@ Output this as your **final message and stop generating**. Do not supply an answ
 Implementation note: run the scan against the in-memory `$PROMPT` string before Step 4c writes it to disk. The patterns above are POSIX ERE so they work with `grep -E` (case-sensitive group) and `grep -Ei` (case-insensitive group). Because the prompt template (lines above) requires surfacing **which** pattern fired and **what** substring matched (so the secret can be redacted before display), check each pattern individually rather than collapsing them into a single `grep -Eq` with many `-e` flags — `-q` only yields a boolean exit, and a multi-pattern `-e` list can't tell you which `-e` matched. Iterate, capture the matched substring with `grep -Eo`, and redact for display:
 
 ```bash
-# Pairs of "human-readable name<TAB>POSIX ERE pattern". Tab separator keeps the
-# regex (which contains spaces) intact when split with read -r name pat.
+# Triples of "human-readable name<TAB>detection POSIX ERE<TAB>redaction POSIX ERE".
+# Tab separator keeps the regexes (which contain spaces) intact when split with
+# read -r name det red. Two columns of regex because the *detection* pattern
+# may legitimately match more than just the secret bytes — e.g. the `sk-` rule
+# uses a leading boundary group `(^|[^A-Za-z0-9])` to skip innocent English
+# substrings, and the generic-credential rule matches the whole `key: value`
+# assignment so it can fire on the right shape. If we redacted by literal
+# substitution of the *detection* match, we would also remove the boundary
+# character (`token = sk-...` → `token =<redacted>`) or the key prefix
+# (`api_key: secret` → `<redacted>`), which loses readable context. The
+# *redaction* pattern is the bare token portion that should be replaced with
+# `<redacted>`. For rules where detection == redaction (most patterns), repeat
+# the same regex in both columns.
 patterns_case_sensitive=$(cat <<'PATS'
-PEM private key	-----BEGIN [A-Z ]+PRIVATE KEY-----
-GitHub PAT (ghp_)	ghp_[A-Za-z0-9]{36,}
-GitHub OAuth (gho_)	gho_[A-Za-z0-9]{36,}
-GitHub server (ghs_)	ghs_[A-Za-z0-9]{36,}
-GitHub user (ghu_)	ghu_[A-Za-z0-9]{36,}
-OpenAI/Anthropic-style (sk-)	(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}
-AWS access key (AKIA)	AKIA[0-9A-Z]{16}
-Slack token (xox*)	xox[baprs]-[A-Za-z0-9-]{10,}
+PEM private key	-----BEGIN [A-Z ]+PRIVATE KEY-----	-----BEGIN [A-Z ]+PRIVATE KEY-----
+GitHub PAT (ghp_)	ghp_[A-Za-z0-9]{36,}	ghp_[A-Za-z0-9]{36,}
+GitHub OAuth (gho_)	gho_[A-Za-z0-9]{36,}	gho_[A-Za-z0-9]{36,}
+GitHub server (ghs_)	ghs_[A-Za-z0-9]{36,}	ghs_[A-Za-z0-9]{36,}
+GitHub user (ghu_)	ghu_[A-Za-z0-9]{36,}	ghu_[A-Za-z0-9]{36,}
+OpenAI/Anthropic-style (sk-)	(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}	sk-[A-Za-z0-9_-]{20,}
+AWS access key (AKIA)	AKIA[0-9A-Z]{16}	AKIA[0-9A-Z]{16}
+Slack token (xox*)	xox[baprs]-[A-Za-z0-9-]{10,}	xox[baprs]-[A-Za-z0-9-]{10,}
 PATS
 )
 
 patterns_case_insensitive=$(cat <<'PATS'
-Generic credential assignment	(api[_-]?key|secret|password|bearer|authorization)[[:space:]]*[:=][[:space:]]*['"]?[A-Za-z0-9+/_=-]{16,}
+Generic credential assignment	(api[_-]?key|secret|password|bearer|authorization)[[:space:]]*[:=][[:space:]]*['"]?[A-Za-z0-9+/_=-]{16,}	['"]?[A-Za-z0-9+/_=-]{16,}
 PATS
 )
 
-# redact_context: capture a windowed phrase around the match and replace the
-# match span with the literal string "<redacted>". The window is up to ~20
-# chars on each side, so the user can locate the line without seeing the secret.
+# redact_context: capture a windowed phrase around a *detection* match and
+# replace just the *secret bytes* (per the redaction pattern) with the literal
+# string "<redacted>". The window is up to ~20 chars on each side of the
+# detection match, so the user can locate the line without seeing the secret.
 #
 # We use bash parameter substitution (${var//literal/replacement}) to mask the
 # secret rather than `sed -E "s/${pat}/<redacted>/"`. Two reasons: (a) several
@@ -382,29 +394,39 @@ PATS
 # `${window//$secret/<redacted>}` does literal-string replacement (no regex),
 # so no characters in `$secret` are interpreted specially.
 redact_context() {
-  local pat="$1" flag="$2"   # flag: "" for case-sensitive, "i" for case-insensitive
+  local det_pat="$1" red_pat="$2" flag="$3"   # flag: "" for case-sensitive, "i" for case-insensitive
   local window secret
-  # First grep extracts the windowed context (up to ~20 chars on each side of
-  # a match). Then a SECOND grep extracts the secret from inside that window
-  # — not from `$PROMPT` directly. This matters because BSD grep's leftmost
-  # match for the windowed regex `.{0,20}${pat}.{0,20}` is not always the
-  # same as its leftmost match for the bare `${pat}` (the leading `.{0,20}`
-  # backtracks differently on macOS BSD grep than on GNU grep / ugrep). If we
-  # grep `$PROMPT` independently for both, `$secret` may be a different
-  # secret than the one inside `$window`, the bash substitution below fails
-  # silently, and an unredacted secret leaks into user-facing output.
-  # Extracting `$secret` from `$window` guarantees it is present and
-  # substitutable.
+  # First grep extracts the windowed context using the detection pattern (up
+  # to ~20 chars on each side of a detection match). Then a SECOND grep
+  # extracts the secret from inside that window using the *redaction* pattern
+  # — not from `$PROMPT` directly. Two reasons:
+  #
+  # (1) The detection pattern may include leading boundary groups (e.g.
+  #     `(^|[^A-Za-z0-9])sk-...`) or surrounding context (e.g. the
+  #     generic-credential `key[:=]value` shape) that should *not* be
+  #     replaced. The redaction pattern is the bare token portion. Using it
+  #     for the literal substitution preserves the boundary character and
+  #     the key prefix in the output (`token = <redacted>`, not
+  #     `token =<redacted>`; `api_key: <redacted>`, not `<redacted>`).
+  #
+  # (2) Re-grepping `$PROMPT` independently with the detection pattern would
+  #     drift on macOS BSD grep — its leftmost match for the windowed
+  #     `.{0,20}${det_pat}.{0,20}` is not always the same as its leftmost
+  #     match for bare `${det_pat}` (the leading `.{0,20}` backtracks
+  #     differently than on GNU grep / ugrep). If `$secret` were a different
+  #     occurrence than the one inside `$window`, the substitution would
+  #     fail silently and leak an unredacted secret. Extracting `$secret`
+  #     from `$window` guarantees it is present and substitutable.
   #
   # `grep -Eo -m1` stops after the first matching *line* but `-o` still emits
   # *every* match on that line — pipe through `head -n1` to keep just one
   # match, otherwise multi-secret lines yield multi-line strings that defeat
   # the literal-string substitution.
-  window=$(printf '%s' "$PROMPT" | grep -Eo${flag} -m1 -- ".{0,20}${pat}.{0,20}" | head -n1)
+  window=$(printf '%s' "$PROMPT" | grep -Eo${flag} -m1 -- ".{0,20}${det_pat}.{0,20}" | head -n1)
   if [ -z "$window" ]; then
     return
   fi
-  secret=$(printf '%s' "$window" | grep -Eo${flag} -m1 -- "${pat}" | head -n1)
+  secret=$(printf '%s' "$window" | grep -Eo${flag} -m1 -- "${red_pat}" | head -n1)
   if [ -z "$secret" ]; then
     return
   fi
@@ -412,17 +434,17 @@ redact_context() {
 }
 
 hits=""
-while IFS=$'\t' read -r name pat; do
+while IFS=$'\t' read -r name det red; do
   [ -z "$name" ] && continue
-  printf '%s' "$PROMPT" | grep -Eq -- "$pat" || continue   # cheap match check
-  ctx=$(redact_context "$pat" "")
+  printf '%s' "$PROMPT" | grep -Eq -- "$det" || continue   # cheap match check
+  ctx=$(redact_context "$det" "$red" "")
   hits="${hits}${name}: ${ctx}"$'\n'
 done <<< "$patterns_case_sensitive"
 
-while IFS=$'\t' read -r name pat; do
+while IFS=$'\t' read -r name det red; do
   [ -z "$name" ] && continue
-  printf '%s' "$PROMPT" | grep -Eiq -- "$pat" || continue
-  ctx=$(redact_context "$pat" "i")
+  printf '%s' "$PROMPT" | grep -Eiq -- "$det" || continue
+  ctx=$(redact_context "$det" "$red" "i")
   hits="${hits}${name}: ${ctx}"$'\n'
 done <<< "$patterns_case_insensitive"
 
@@ -445,14 +467,16 @@ If you prefer PCRE for richer constructs (e.g. `(?i)`, `\s`, lookarounds), use a
 **4c. Write prompt to temp file:**
 
 ```bash
-PROMPT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-prompt.XXXXXX")
+PROMPT_FILE="${TMPDIR:-/private/tmp}/peer-review-prompt.txt"
+( umask 077 && printf '%s' "$PROMPT" > "$PROMPT_FILE" )
 chmod 600 "$PROMPT_FILE"
-printf '%s' "$PROMPT" > "$PROMPT_FILE"
 ```
 
 Prompt content is passed via stdin redirection (copilot, gemini) or piping (codex), so it never appears on the process command line and shell metacharacters in diff/PR content are not interpreted by the shell.
 
-**Cleanup of `$PROMPT_FILE` is explicit, not via `trap`.** A `trap 'rm -f "$PROMPT_FILE"' EXIT` fires when the bash subshell exits — which, in assistant workflows that run each fenced block as a separate Bash tool call, happens at the end of *this* call, before Step 4d gets to read the file. Use the explicit `rm -f "$PROMPT_FILE"` at the end of Step 4d instead. If 4c and 4d are run together in a single Bash tool call, the explicit `rm -f` still works correctly.
+**Why a deterministic named path, not `mktemp`.** `mktemp` returns a random suffix that lives only in the `$PROMPT_FILE` shell variable for the life of the bash subshell. In assistant workflows that run each fenced block as a separate Bash tool call, that variable goes out of scope between Step 4c (write) and Step 4d (read), so Step 4d cannot recover the path — it would read from an empty `$PROMPT_FILE` (CLI reads `/dev/null`) or fail with `cat: '': No such file or directory`. A deterministic path under `$TMPDIR` lets any subsequent Bash tool call recompute the same `$PROMPT_FILE` value and find the file. The acceptable trade-off is that two concurrent peer-review runs would clobber each other; peer-review is invoked by a single interactive assistant turn at a time, so concurrent runs are not a realistic threat. The `umask 077` subshell guarantees mode `600` on creation (closing the brief race window between write and `chmod 600` where a permissive umask could leak the file to other local users), and the explicit `chmod 600` is kept for auditors and scanners that read the literal text.
+
+**Cleanup of `$PROMPT_FILE` is explicit, not via `trap`.** A `trap 'rm -f "$PROMPT_FILE"' EXIT` fires when the bash subshell exits — which, in assistant workflows that run each fenced block as a separate Bash tool call, happens at the end of *this* call, before Step 4d gets to read the file. Use the explicit `rm -f "$PROMPT_FILE"` at the end of Step 4d instead. With the deterministic path above, any Bash tool call running Step 4d can re-derive `$PROMPT_FILE` from the same `${TMPDIR:-/private/tmp}/peer-review-prompt.txt` expression and find the file written by Step 4c.
 
 **4d. Execute and capture output:**
 
