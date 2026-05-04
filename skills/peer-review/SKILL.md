@@ -369,11 +369,46 @@ PATS
 # redact_context: capture a windowed phrase around the match and replace the
 # match span with the literal string "<redacted>". The window is up to ~20
 # chars on each side, so the user can locate the line without seeing the secret.
+#
+# We use bash parameter substitution (${var//literal/replacement}) to mask the
+# secret rather than `sed -E "s/${pat}/<redacted>/"`. Two reasons: (a) several
+# patterns above contain a literal `/` (e.g. the generic-credential character
+# class `[A-Za-z0-9+/_=-]{16,}`), which would clash with sed's default
+# delimiter and force a per-pattern delimiter choice; (b) sed's
+# case-insensitive `s///i` flag is a GNU extension and is not portable to
+# BSD/macOS sed, which would silently leave the secret unredacted on macOS for
+# the case-insensitive group. The two-grep + bash-substitution approach
+# sidesteps both problems: `grep -Eo` returns the literal matched bytes, and
+# `${window//$secret/<redacted>}` does literal-string replacement (no regex),
+# so no characters in `$secret` are interpreted specially.
 redact_context() {
   local pat="$1" flag="$2"   # flag: "" for case-sensitive, "i" for case-insensitive
-  printf '%s' "$PROMPT" \
-    | grep -Eo${flag} -m1 -- ".{0,20}${pat}.{0,20}" \
-    | sed -E "s/${pat}/<redacted>/${flag}"
+  local window secret
+  # First grep extracts the windowed context (up to ~20 chars on each side of
+  # a match). Then a SECOND grep extracts the secret from inside that window
+  # — not from `$PROMPT` directly. This matters because BSD grep's leftmost
+  # match for the windowed regex `.{0,20}${pat}.{0,20}` is not always the
+  # same as its leftmost match for the bare `${pat}` (the leading `.{0,20}`
+  # backtracks differently on macOS BSD grep than on GNU grep / ugrep). If we
+  # grep `$PROMPT` independently for both, `$secret` may be a different
+  # secret than the one inside `$window`, the bash substitution below fails
+  # silently, and an unredacted secret leaks into user-facing output.
+  # Extracting `$secret` from `$window` guarantees it is present and
+  # substitutable.
+  #
+  # `grep -Eo -m1` stops after the first matching *line* but `-o` still emits
+  # *every* match on that line — pipe through `head -n1` to keep just one
+  # match, otherwise multi-secret lines yield multi-line strings that defeat
+  # the literal-string substitution.
+  window=$(printf '%s' "$PROMPT" | grep -Eo${flag} -m1 -- ".{0,20}${pat}.{0,20}" | head -n1)
+  if [ -z "$window" ]; then
+    return
+  fi
+  secret=$(printf '%s' "$window" | grep -Eo${flag} -m1 -- "${pat}" | head -n1)
+  if [ -z "$secret" ]; then
+    return
+  fi
+  printf '%s' "${window//$secret/<redacted>}"
 }
 
 hits=""
@@ -399,7 +434,7 @@ fi
 A match in **either** group triggers the prompt. Do not collapse both groups into a single `grep -Ei` call: that turns `AKIA[0-9A-Z]{16}` into a case-insensitive match and `[0-9A-Z]` becomes `[0-9A-Za-z]`, so non-AWS lowercase strings like `akiamatashotokugawamotoharu` would falsely fire. The boundary anchor `(^|[^A-Za-z0-9])` on `sk-` prevents matching innocuous English substrings (`risk-mitigation-recommendations-list`, `task-management-…`, `disk-encryption-…`); real `sk-` keys appear at word boundaries (start of line, after whitespace, after `=`/`:`/quote).
 
 Notes on the loop above:
-- The detection step (`grep -Eq`) and the context step (`grep -Eo` for the window, `sed` to mask the match span) are split intentionally: the `-q` form is the cheapest "did anything match" check and the windowed `-Eo` only runs when a hit is confirmed. The match itself is never bound to a shell variable that gets echoed — by the time `$ctx` is built, the secret characters have already been replaced with `<redacted>` in the pipeline.
+- The detection step (`grep -Eq`) and the context step (`grep -Eo` for the window plus bash parameter substitution to mask the match span) are split intentionally: the `-q` form is the cheapest "did anything match" check and the windowed `-Eo` only runs when a hit is confirmed. The match itself is never bound to a shell variable that gets echoed — by the time `$ctx` is built, the secret characters have already been replaced with `<redacted>` in the pipeline.
 - The user-facing output is the redacted-context phrase only (e.g. `token = <redacted>`). The raw secret value never enters `$hits`, never enters logs, and never goes to stdout — that is what makes the scan meaningful. If you modify the loop, preserve this property: any new branch that touches the match must redact before assigning to a variable that is later printed.
 - `grep -E` exits non-zero on no match; `|| continue` keeps the loop going. The `... || continue` form is `set -e`-safe on its own — do **not** wrap it in `|| true`, which would also swallow real grep failures (binary-not-found, malformed regex, I/O error). If you need to distinguish "no match" (exit 1) from a real error (exit 2+), capture and inspect the status: `printf '%s' "$PROMPT" | grep -Eq -- "$pat"; rc=$?; case "$rc" in 0) ;; 1) continue ;; *) echo "grep failed: $rc" >&2; exit "$rc" ;; esac`.
 - Per-pattern invocation also avoids the `-f patterns` form, which would read patterns from a file (no `patterns` file is created in this workflow; `grep -f patterns` would fail with `grep: patterns: No such file or directory`).
@@ -421,37 +456,44 @@ Prompt content is passed via stdin redirection (copilot, gemini) or piping (code
 
 **4d. Execute and capture output:**
 
+Each CLI invocation captures its exit status in `CLI_RC` so non-zero exits (CLI warnings, parse errors, network failures) do not abort the bash block before the temp-file cleanup runs. The `|| CLI_RC=$?` form is `set -e`-safe — without it, a non-zero CLI exit would propagate out of the `$( … )` assignment and skip the unconditional `rm -f` below, leaving the prompt file (which may contain unredacted diff content) on disk.
+
 For copilot:
 ```bash
+CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool='write' --model "$SUBMODEL" < "$PROMPT_FILE" 2>&1)
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool='write' --model "$SUBMODEL" < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool='write' < "$PROMPT_FILE" 2>&1)
+  REVIEW_OUTPUT=$(copilot --allow-all-tools --deny-tool='write' < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
 fi
 ```
 
 For codex (`--no-auto-edit` suppresses file writes; unverified — adjust if your version uses a different flag):
 ```bash
+CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit --model "$SUBMODEL" 2>&1)
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit --model "$SUBMODEL" 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit 2>&1)
+  REVIEW_OUTPUT=$(cat "$PROMPT_FILE" | codex --no-auto-edit 2>&1) || CLI_RC=$?
 fi
 ```
 
 For gemini (`--approval-mode plan` enables read-only mode):
 ```bash
+CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(gemini --approval-mode plan -m "$SUBMODEL" < "$PROMPT_FILE" 2>&1)
+  REVIEW_OUTPUT=$(gemini --approval-mode plan -m "$SUBMODEL" < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(gemini --approval-mode plan < "$PROMPT_FILE" 2>&1)
+  REVIEW_OUTPUT=$(gemini --approval-mode plan < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
 fi
 ```
 
-After the CLI call returns (success or failure), clean up the temp file explicitly:
+After the CLI call returns (success or failure), clean up the temp file unconditionally — the `|| CLI_RC=$?` capture above guarantees control reaches this line even when the CLI exited non-zero:
 ```bash
 rm -f "$PROMPT_FILE"
 ```
+
+`CLI_RC` is then available to Step 4e's parser for fallback decisions (e.g. treat `CLI_RC != 0` plus malformed output as the raw-output fallback path).
 
 **4e. Parse output → normalized findings:**
 

@@ -98,10 +98,12 @@ words:
   - substeps
   - tfvars
   - toplevel
+  - ugrep
   - undercounted
   - underspecification
   - underspecified
   - unmatch
+  - unredacted
   - unsoftenable
   - untrusted_diff
   - untrusted_files
