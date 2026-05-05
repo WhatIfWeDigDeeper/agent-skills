@@ -107,8 +107,8 @@
 - [x] **5.2** Push and open a PR with `Closes #141`, `Closes #144`, `Closes #145` in the PR body. → PR #147
 - [x] **5.3** Run `/pr-comments {pr_number}` immediately after PR creation per project convention.
 - [x] **5.4** Loop `/pr-comments` until no new bot feedback.
-- [ ] **5.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
-- [ ] **5.6** Verify CI status with `gh pr checks {pr_number}`.
+- [x] **5.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
+- [x] **5.6** Verify CI status with `gh pr checks {pr_number}`.
 - [ ] **5.7** Wait for human review before merging.
 - [ ] **5.8** After approval, squash-merge, sync local main, and clean up the branch/worktree if one was used.
 - [ ] **5.9** Verify issues #141, #144, #145 are closed after merge; close any not auto-closed.
