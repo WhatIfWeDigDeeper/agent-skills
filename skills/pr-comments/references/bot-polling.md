@@ -41,25 +41,23 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
 
    ```bash
    sleep 5 || true  # heuristic wait for event surfacing; tolerate failure on harnesses that block sleep — the check then runs immediately
-   verified_bots=()
-   for bot_reviewer in "${bot_reviewers[@]}"; do
-     event_count=$(gh api "repos/{owner}/{repo}/issues/{pr_number}/events" --paginate \
-       | jq -s --arg ts "$snapshot_timestamp" --arg login "$bot_reviewer" \
-         '[.[] | .[] | select(.event == "review_requested" and .created_at >= $ts and (.requested_reviewer.login? // "") == $login)] | length')
-     if [ "$event_count" -gt 0 ]; then
-       verified_bots+=("$bot_reviewer")
-     else
-       printf '@%s was added to requested_reviewers but the review_requested event did not fire. GitHub may silently skip event emission for previously-reviewed bots. Click the "Re-request review" arrow next to @%s in the PR sidebar, then re-invoke pr-comments to poll for the response.\n' "$bot_reviewer" "$bot_reviewer"
-     fi
-   done
-   bot_reviewers=("${verified_bots[@]}")
+   event_count=$(gh api "repos/{owner}/{repo}/issues/{pr_number}/events" --paginate \
+     | jq -s --arg ts "$snapshot_timestamp" \
+       '[.[] | .[] | select(.event == "review_requested" and .created_at >= $ts)] | length')
+   if [ "$event_count" -eq 0 ]; then
+     for bot_reviewer in "${bot_reviewers[@]}"; do
+       printf '@%s was added to requested_reviewers but no review_requested event fired. GitHub may silently skip event emission for previously-reviewed bots. Click the "Re-request review" arrow next to @%s in the PR sidebar, then re-invoke pr-comments to poll for the response.\n' "$bot_reviewer" "$bot_reviewer"
+     done
+     bot_reviewers=()
+   fi
    ```
 
    **Caveats:**
    - The 5-second sleep is heuristic. GitHub event emission is normally near-instant for bots that aren't in the silent-no-op case; the wait exists to absorb occasional slow/delayed event surfacing. A false negative is still possible if emission lags more than 5 seconds, but the fallback message tells the user to click the UI re-request arrow, which is safe even on a false negative.
    - On harnesses where `sleep` is blocked, the event check runs immediately (no wait) — increasing the chance of a false negative on slow/delayed emissions, with the same UI-fallback safety property.
+   - **Multi-bot precision:** the check counts all `review_requested` events after the snapshot, not per-bot. The login form returned by `/issues/{n}/events` (e.g., `Copilot`) often differs from the canonical login carried in `bot_reviewers` (e.g., `copilot-pull-request-reviewer[bot]`), so a per-bot equality predicate would false-negative. The gate's primary target is the single-bot silent-no-op case (issue #144), where this counts correctly. In a multi-bot call where one bot's event fires and another's silently no-op'd, the gate cannot tell them apart and proceeds to poll for both — the silently-no-op'd bot's polling will time out unproductively, which is the same behavior as without the gate.
 
-   After the loop, `bot_reviewers` contains only the bots whose `review_requested` event actually fired. **If the rewritten array is empty (every bot's event count was 0), skip the Shared polling loop entirely and proceed to Step 14** — there is nothing to poll for. Otherwise proceed to step 5.
+   **If `event_count` is 0**, every bot's POST silently no-op'd: `bot_reviewers` has been emptied, the UI-fallback message has been emitted for each, and you must skip the Shared polling loop entirely and proceed to Step 14. Otherwise (`event_count > 0`) proceed to step 5 — `bot_reviewers` is unchanged.
 
 5. Proceed to the **Shared polling loop** below.
 
