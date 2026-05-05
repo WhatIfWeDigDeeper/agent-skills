@@ -40,7 +40,11 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
 4. **Verify a `review_requested` event was actually emitted.** GitHub silently treats POST `/requested_reviewers` as a no-op when the requested reviewer is a bot that has previously reviewed this PR — the REST endpoint returns 201 and updates `requested_reviewers`, but no `review_requested` entry appears in the PR's `/issues/{pr_number}/events` timeline. Observed downstream behavior is that the bot's review pipeline is never triggered, so polling times out with no signal. Confirm at least one `review_requested` event landed after `snapshot_timestamp` (recorded in step 1; do **not** introduce a new timestamp variable). The check is global, not per-bot — see the "Multi-bot precision" caveat below for why.
 
    ```bash
-   sleep 5 || true  # heuristic wait for event surfacing; tolerate failure on harnesses that block sleep — the check then runs immediately
+   # Heuristic 5-second wait for event surfacing. Run the snippet outside `set -e` —
+   # if the harness blocks or kills `sleep`, execution proceeds to the event check
+   # immediately, which is the documented intent. Do not suppress with `|| true`
+   # (skills/CLAUDE.md: "|| true is too broad for a specific expected error").
+   sleep 5
    event_count=$(gh api "repos/{owner}/{repo}/issues/{pr_number}/events" --paginate \
      | jq -s --arg ts "$snapshot_timestamp" \
        '[.[] | .[] | select(.event == "review_requested" and .created_at >= $ts)] | length')
