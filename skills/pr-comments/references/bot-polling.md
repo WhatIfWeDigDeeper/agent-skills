@@ -37,7 +37,31 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
    ```
    **HTTP 422 is non-fatal** — the bot may still self-trigger. Other exits (auth, rate-limit, network) must surface rather than silently let polling proceed with no re-request actually sent.
 
-4. Proceed to the **Shared polling loop** below.
+4. **Verify the `review_requested` event was actually emitted.** GitHub silently treats POST `/requested_reviewers` as a no-op when the requested reviewer is a bot that has previously reviewed this PR — the REST endpoint returns 201 and updates `requested_reviewers`, but no `review_requested` webhook event is enqueued, so the bot's backend never sees the signal. Confirm the event landed for each bot, using the `snapshot_timestamp` recorded in step 1 (do **not** introduce a new timestamp variable):
+
+   ```bash
+   sleep 5  # heuristic wait for event surfacing; on harnesses that block sleep, the check runs immediately
+   verified_bots=()
+   for bot_reviewer in "${bot_reviewers[@]}"; do
+     event_count=$(gh api "repos/{owner}/{repo}/issues/{pr_number}/events" --paginate \
+       | jq -s --arg ts "$snapshot_timestamp" --arg login "$bot_reviewer" \
+         '[.[] | .[] | select(.event == "review_requested" and .created_at >= $ts and (.requested_reviewer.login? // "") == $login)] | length')
+     if [ "$event_count" -gt 0 ]; then
+       verified_bots+=("$bot_reviewer")
+     else
+       printf '@%s was added to requested_reviewers but the review_requested event did not fire. GitHub may silently skip event emission for previously-reviewed bots. Click the "Re-request review" arrow next to @%s in the PR sidebar, then re-invoke pr-comments to poll for the response.\n' "$bot_reviewer" "$bot_reviewer"
+     fi
+   done
+   bot_reviewers=("${verified_bots[@]}")
+   ```
+
+   **Caveats:**
+   - The 5-second sleep is heuristic. GitHub event emission is normally near-instant for bots that aren't in the silent-no-op case, so a false negative on very fast emissions is acceptable; the fallback message tells the user to click the UI re-request arrow, which is safe even on a false negative.
+   - On harnesses where `sleep` is blocked, the event check runs immediately (no wait) — at worst a false negative for very fast event emissions, with the same UI-fallback safety property.
+
+   After the loop, `bot_reviewers` contains only the bots whose `review_requested` event actually fired. **If the rewritten array is empty (every bot's event count was 0), skip the Shared polling loop entirely and proceed to Step 14** — there is nothing to poll for. Otherwise proceed to step 5.
+
+5. Proceed to the **Shared polling loop** below.
 
 ---
 
@@ -275,3 +299,20 @@ When building display prompts for bot accounts (e.g., the push/re-request prompt
 3. Otherwise, keep the remaining login as-is (e.g. `renovate[bot]` → `renovate`).
 
 Use the full login (including any `[bot]` suffix) for the actual API calls.
+
+## Known limitations: silent no-op POST for re-reviewed bots
+
+GitHub's REST `POST /repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers` returns HTTP 201 and updates the `requested_reviewers` list even when the request is a functional no-op — specifically when the bot has already reviewed this PR at least once. In that case no `review_requested` webhook event is emitted, the bot's review pipeline is never triggered, and the polling loop will time out without any signal.
+
+This is independent of which login form is used (`Copilot` short form vs `copilot-pull-request-reviewer[bot]` canonical form — both return 201, both produce no event).
+
+The verification gate in **Entry from Step 13b**, step 4 detects this and emits a UI-fallback message. The only known reliable workaround is the PR sidebar's "Re-request review" arrow, which uses a different internal GitHub endpoint that does enqueue the event.
+
+Diagnostic command (run after the fact, with `<timestamp_before_post>` set to an ISO 8601 UTC time recorded immediately before the original POST):
+
+```bash
+gh api "repos/{owner}/{repo}/issues/{pr_number}/events" --paginate \
+  | jq -s --arg ts "<timestamp_before_post>" \
+    '[.[] | .[] | select(.event == "review_requested" and .created_at >= $ts)]'
+# → []  means GitHub silently dropped the event despite the 201 response.
+```

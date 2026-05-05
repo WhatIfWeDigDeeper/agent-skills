@@ -75,7 +75,7 @@ This matches the CLAUDE.md "mandatory-step reference link" pattern (imperative p
 - Notes the issue is environment-specific; the documented `@file` pattern remains correct for environments without such a hook.
 - Two fallbacks in priority order:
   1. **Read the file before re-issuing**, so its content appears in the transcript. Re-run the same `-F body=@<path>` call.
-  2. **Pass content inline via a shell variable** (`QUERY=$(cat "${TMPDIR:-/private/tmp}/resolve.graphql")`, then `-f query="$QUERY"`), with a note that this partially undoes the reason the skill uses `@file` (zsh `<!--` corruption / heredoc quoting), so prefer option 1 when feasible. Use `${TMPDIR:-/private/tmp}` rather than a hardcoded `/tmp/` to comply with the CLAUDE.md sandbox-writability rule.
+  2. **Pass content inline via a shell variable** (`QUERY=$(cat "${TMPDIR:-/private/tmp}/resolve.graphql")`, then `-f query="$QUERY"`), with a note that this partially undoes the reason the skill uses `@file` (zsh `<!--` corruption / heredoc quoting), so prefer option 1 when feasible. Use `${TMPDIR:-/private/tmp}` rather than a hardcoded `/tmp/` to comply with the CLAUDE.md "do not hardcode `/tmp/`" sandbox rule.
 
 ### Edit D — version bump
 
@@ -131,7 +131,7 @@ If implementation changes any existing eval assertion semantics, follow the repo
 
    ```bash
    rg -n 'review_requested' skills/pr-comments/SKILL.md skills/pr-comments/references/bot-polling.md
-   rg -n '[Vv]erify.*event' skills/pr-comments/SKILL.md
+   rg -ni 'verify.*event' skills/pr-comments/SKILL.md
    rg -n 'Entry from Step 13b' skills/pr-comments/SKILL.md
    ```
 
