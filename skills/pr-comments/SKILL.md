@@ -475,7 +475,7 @@ After the POST:
 
 1. Confirm the pre-POST snapshot was recorded (timestamp + unresolved thread IDs)
 2. Confirm the POST re-request was sent for each bot reviewer
-3. **Verify the `review_requested` event was actually emitted** — see `references/bot-polling.md` → **Entry from Step 13b**, step 4. GitHub silently no-ops the POST (HTTP 201, no event) for bots that have previously reviewed this PR; without the verification gate, the polling loop will time out for nothing.
+3. **Verify a `review_requested` event was actually emitted** — see `references/bot-polling.md` → **Entry from Step 13b**, step 4. GitHub silently no-ops the POST (HTTP 201, no event) for bots that have previously reviewed this PR; without the verification gate, the polling loop will time out for nothing. The check is global (any post-snapshot `review_requested` event), not per-bot.
 4. **Resume the shared bot-polling flow in `references/bot-polling.md` after its setup section** — do not restart the setup section (snapshot and POST are already done), but still follow any manual-mode poll-offer / stop-and-wait behavior before the signal-checking and loop-exit logic
 
 ### 14. Report

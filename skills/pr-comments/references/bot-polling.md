@@ -37,7 +37,7 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
    ```
    **HTTP 422 is non-fatal** — the bot may still self-trigger. Other exits (auth, rate-limit, network) must surface rather than silently let polling proceed with no re-request actually sent.
 
-4. **Verify the `review_requested` event was actually emitted.** GitHub silently treats POST `/requested_reviewers` as a no-op when the requested reviewer is a bot that has previously reviewed this PR — the REST endpoint returns 201 and updates `requested_reviewers`, but no `review_requested` entry appears in the PR's `/issues/{pr_number}/events` timeline. Observed downstream behavior is that the bot's review pipeline is never triggered, so polling times out with no signal. Confirm the event landed for each bot, using the `snapshot_timestamp` recorded in step 1 (do **not** introduce a new timestamp variable):
+4. **Verify a `review_requested` event was actually emitted.** GitHub silently treats POST `/requested_reviewers` as a no-op when the requested reviewer is a bot that has previously reviewed this PR — the REST endpoint returns 201 and updates `requested_reviewers`, but no `review_requested` entry appears in the PR's `/issues/{pr_number}/events` timeline. Observed downstream behavior is that the bot's review pipeline is never triggered, so polling times out with no signal. Confirm at least one `review_requested` event landed after `snapshot_timestamp` (recorded in step 1; do **not** introduce a new timestamp variable). The check is global, not per-bot — see the "Multi-bot precision" caveat below for why.
 
    ```bash
    sleep 5 || true  # heuristic wait for event surfacing; tolerate failure on harnesses that block sleep — the check then runs immediately
@@ -304,7 +304,7 @@ GitHub's REST `POST /repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers`
 
 This is independent of which login form is used (`Copilot` short form vs `copilot-pull-request-reviewer[bot]` canonical form — both return 201, both produce no event).
 
-The verification gate in **Entry from Step 13b**, step 4 detects this and emits a UI-fallback message. The only known reliable workaround is the PR sidebar's "Re-request review" arrow, which uses a different internal GitHub endpoint that does enqueue the event.
+The verification gate in **Entry from Step 13b**, step 4 detects this and emits a UI-fallback message. The only known reliable workaround is the PR sidebar's "Re-request review" arrow — clicking it reliably results in a `review_requested` entry appearing in the `/issues/{pr_number}/events` timeline, where the equivalent REST POST does not. The underlying mechanism is not documented, so we treat this only as observed behavior.
 
 Diagnostic command (run after the fact, with `<timestamp_before_post>` set to an ISO 8601 UTC time recorded immediately before the original POST):
 
