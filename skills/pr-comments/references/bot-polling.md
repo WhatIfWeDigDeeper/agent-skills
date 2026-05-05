@@ -37,10 +37,10 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
    ```
    **HTTP 422 is non-fatal** — the bot may still self-trigger. Other exits (auth, rate-limit, network) must surface rather than silently let polling proceed with no re-request actually sent.
 
-4. **Verify the `review_requested` event was actually emitted.** GitHub silently treats POST `/requested_reviewers` as a no-op when the requested reviewer is a bot that has previously reviewed this PR — the REST endpoint returns 201 and updates `requested_reviewers`, but no `review_requested` webhook event is enqueued, so the bot's backend never sees the signal. Confirm the event landed for each bot, using the `snapshot_timestamp` recorded in step 1 (do **not** introduce a new timestamp variable):
+4. **Verify the `review_requested` event was actually emitted.** GitHub silently treats POST `/requested_reviewers` as a no-op when the requested reviewer is a bot that has previously reviewed this PR — the REST endpoint returns 201 and updates `requested_reviewers`, but no `review_requested` entry appears in the PR's `/issues/{pr_number}/events` timeline. Observed downstream behavior is that the bot's review pipeline is never triggered, so polling times out with no signal. Confirm the event landed for each bot, using the `snapshot_timestamp` recorded in step 1 (do **not** introduce a new timestamp variable):
 
    ```bash
-   sleep 5  # heuristic wait for event surfacing; on harnesses that block sleep, the check runs immediately
+   sleep 5 || true  # heuristic wait for event surfacing; tolerate failure on harnesses that block sleep — the check then runs immediately
    verified_bots=()
    for bot_reviewer in "${bot_reviewers[@]}"; do
      event_count=$(gh api "repos/{owner}/{repo}/issues/{pr_number}/events" --paginate \
@@ -56,8 +56,8 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
    ```
 
    **Caveats:**
-   - The 5-second sleep is heuristic. GitHub event emission is normally near-instant for bots that aren't in the silent-no-op case, so a false negative on very fast emissions is acceptable; the fallback message tells the user to click the UI re-request arrow, which is safe even on a false negative.
-   - On harnesses where `sleep` is blocked, the event check runs immediately (no wait) — at worst a false negative for very fast event emissions, with the same UI-fallback safety property.
+   - The 5-second sleep is heuristic. GitHub event emission is normally near-instant for bots that aren't in the silent-no-op case; the wait exists to absorb occasional slow/delayed event surfacing. A false negative is still possible if emission lags more than 5 seconds, but the fallback message tells the user to click the UI re-request arrow, which is safe even on a false negative.
+   - On harnesses where `sleep` is blocked, the event check runs immediately (no wait) — increasing the chance of a false negative on slow/delayed emissions, with the same UI-fallback safety property.
 
    After the loop, `bot_reviewers` contains only the bots whose `review_requested` event actually fired. **If the rewritten array is empty (every bot's event count was 0), skip the Shared polling loop entirely and proceed to Step 14** — there is nothing to poll for. Otherwise proceed to step 5.
 
@@ -302,7 +302,7 @@ Use the full login (including any `[bot]` suffix) for the actual API calls.
 
 ## Known limitations: silent no-op POST for re-reviewed bots
 
-GitHub's REST `POST /repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers` returns HTTP 201 and updates the `requested_reviewers` list even when the request is a functional no-op — specifically when the bot has already reviewed this PR at least once. In that case no `review_requested` webhook event is emitted, the bot's review pipeline is never triggered, and the polling loop will time out without any signal.
+GitHub's REST `POST /repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers` returns HTTP 201 and updates the `requested_reviewers` list even when the request is a functional no-op — specifically when the bot has already reviewed this PR at least once. In that case no `review_requested` entry appears in the PR's `/issues/{pr_number}/events` timeline. Observed downstream behavior: the bot's review pipeline is never triggered, and the polling loop will time out without any signal.
 
 This is independent of which login form is used (`Copilot` short form vs `copilot-pull-request-reviewer[bot]` canonical form — both return 201, both produce no event).
 

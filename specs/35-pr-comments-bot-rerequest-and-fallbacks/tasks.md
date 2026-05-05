@@ -103,8 +103,8 @@
 
 ## Phase 5: Ship
 
-- [ ] **5.1** Commit all changes on branch `spec-35-pr-comments-bot-rerequest-and-fallbacks`.
-- [ ] **5.2** Push and open a PR with `Closes #141`, `Closes #144`, `Closes #145` in the PR body.
+- [x] **5.1** Commit all changes on branch `spec-35-pr-comments-bot-rerequest-and-fallbacks`.
+- [x] **5.2** Push and open a PR with `Closes #141`, `Closes #144`, `Closes #145` in the PR body. → PR #147
 - [ ] **5.3** Run `/pr-comments {pr_number}` immediately after PR creation per project convention.
 - [ ] **5.4** Loop `/pr-comments` until no new bot feedback.
 - [ ] **5.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
