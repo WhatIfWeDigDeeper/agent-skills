@@ -6,18 +6,19 @@ asserting expected outcomes on representative config bodies.
 
 Logic under test:
 - A "mirror-rule" line matches one of: ``keep .* in sync``, ``mirror .* to``,
-  ``apply the equivalent change``.
+  ``apply the equivalent change to``.
 - An "always both" phrase matches:
   ``(always (update|apply) (to )?both|apply to both|without asking|do not prompt)``.
-- Auto-skip fires only when EVERY detected config contains a mirror-rule AND an
-  "always both" phrase within 5 lines of that mirror-rule.
+- Auto-skip fires only when EVERY detected Markdown config contains a mirror-rule
+  whose ±5-line window (1) names at least one other detected Markdown config and
+  (2) contains an "always both" phrase.
 """
 
 import re
 
 # Patterns mirror SKILL.md Step 1a (mirror-rule) and Step 1b (always-both).
 MIRROR_RULE_RE = re.compile(
-    r"(keep .* in sync|mirror .* to|apply the equivalent change)",
+    r"(keep .* in sync|mirror .* to|apply the equivalent change to)",
     re.IGNORECASE,
 )
 ALWAYS_BOTH_RE = re.compile(
@@ -27,25 +28,48 @@ ALWAYS_BOTH_RE = re.compile(
 PROXIMITY_LINES = 5
 
 
-def has_mirror_with_always_both(text: str) -> bool:
-    """Return True iff at least one mirror-rule has an "always both" phrase
-    within ``PROXIMITY_LINES`` lines (in either direction)."""
+def _windows_around_mirrors(text: str) -> list[str]:
+    """Return the ±PROXIMITY_LINES windows around each mirror-rule match."""
     lines = text.splitlines()
-    mirror_indices = [i for i, line in enumerate(lines) if MIRROR_RULE_RE.search(line)]
-    for idx in mirror_indices:
-        lo = max(0, idx - PROXIMITY_LINES)
-        hi = min(len(lines), idx + PROXIMITY_LINES + 1)
-        window = "\n".join(lines[lo:hi])
-        if ALWAYS_BOTH_RE.search(window):
+    windows: list[str] = []
+    for i, line in enumerate(lines):
+        if MIRROR_RULE_RE.search(line):
+            lo = max(0, i - PROXIMITY_LINES)
+            hi = min(len(lines), i + PROXIMITY_LINES + 1)
+            windows.append("\n".join(lines[lo:hi]))
+    return windows
+
+
+def has_mirror_naming_other_with_always_both(text: str, other_names: list[str]) -> bool:
+    """Return True iff at least one mirror-rule's ±PROXIMITY_LINES window contains
+    both an "always both" phrase and a reference to one of ``other_names``.
+
+    ``other_names`` is the list of *other* detected Markdown config filenames —
+    i.e., the eligible-Markdown set minus the config whose body is being checked.
+    """
+    if not other_names:
+        return False
+    for window in _windows_around_mirrors(text):
+        if not ALWAYS_BOTH_RE.search(window):
+            continue
+        if any(name in window for name in other_names):
             return True
     return False
 
 
 def should_auto_skip(configs: dict[str, str]) -> bool:
-    """Return True iff every config qualifies for the reciprocal auto-skip."""
+    """Return True iff every detected Markdown config qualifies for auto-skip:
+    its mirror-rule names at least one other detected Markdown config AND has
+    an "always both" phrase within the same ±5-line window.
+    """
     if len(configs) < 2:
         return False
-    return all(has_mirror_with_always_both(body) for body in configs.values())
+    names = list(configs.keys())
+    for name, body in configs.items():
+        others = [n for n in names if n != name]
+        if not has_mirror_naming_other_with_always_both(body, others):
+            return False
+    return True
 
 
 # Representative config bodies — kept inline so the tests are self-documenting.
@@ -127,34 +151,68 @@ For /learn: always update both without asking — also far from its mirror rule.
 """
 
 
-class TestHasMirrorWithAlwaysBoth:
-    """Per-config helper: mirror-rule + 'always both' within proximity."""
+CLAUDE_PAIR_OTHERS = [".github/copilot-instructions.md"]
+COPILOT_PAIR_OTHERS = ["CLAUDE.md"]
+
+
+class TestHasMirrorNamingOtherWithAlwaysBoth:
+    """Per-config helper: mirror-rule whose ±5-line window names another
+    detected config AND contains an "always both" phrase."""
 
     def test_reciprocal_pair_matches(self):
-        assert has_mirror_with_always_both(CLAUDE_RECIPROCAL) is True
-        assert has_mirror_with_always_both(COPILOT_RECIPROCAL) is True
+        assert (
+            has_mirror_naming_other_with_always_both(CLAUDE_RECIPROCAL, CLAUDE_PAIR_OTHERS)
+            is True
+        )
+        assert (
+            has_mirror_naming_other_with_always_both(COPILOT_RECIPROCAL, COPILOT_PAIR_OTHERS)
+            is True
+        )
 
     def test_mirror_without_always_both_does_not_match(self):
-        assert has_mirror_with_always_both(CLAUDE_ONE_SIDED) is False
+        assert (
+            has_mirror_naming_other_with_always_both(CLAUDE_ONE_SIDED, CLAUDE_PAIR_OTHERS)
+            is False
+        )
 
     def test_no_mirror_rule_does_not_match(self):
-        assert has_mirror_with_always_both(COPILOT_NO_MIRROR) is False
+        assert (
+            has_mirror_naming_other_with_always_both(COPILOT_NO_MIRROR, COPILOT_PAIR_OTHERS)
+            is False
+        )
 
     def test_weak_wording_does_not_match(self):
-        assert has_mirror_with_always_both(CLAUDE_WEAK) is False
-        assert has_mirror_with_always_both(COPILOT_WEAK) is False
+        assert has_mirror_naming_other_with_always_both(CLAUDE_WEAK, CLAUDE_PAIR_OTHERS) is False
+        assert has_mirror_naming_other_with_always_both(COPILOT_WEAK, COPILOT_PAIR_OTHERS) is False
 
     def test_always_both_far_from_mirror_does_not_match(self):
-        assert has_mirror_with_always_both(CLAUDE_FAR) is False
-        assert has_mirror_with_always_both(COPILOT_FAR) is False
+        assert has_mirror_naming_other_with_always_both(CLAUDE_FAR, CLAUDE_PAIR_OTHERS) is False
+        assert has_mirror_naming_other_with_always_both(COPILOT_FAR, COPILOT_PAIR_OTHERS) is False
 
-    def test_apply_to_both_phrase_matches(self):
-        text = "Mirror changes to the other config. Apply to both files automatically."
-        assert has_mirror_with_always_both(text) is True
+    def test_apply_to_both_with_named_other_matches(self):
+        text = (
+            "Keep CLAUDE.md in sync: mirror changes to the other config. "
+            "Apply to both files automatically."
+        )
+        assert has_mirror_naming_other_with_always_both(text, ["CLAUDE.md"]) is True
 
-    def test_do_not_prompt_phrase_matches(self):
-        text = "Keep both configs in sync — do not prompt the user."
-        assert has_mirror_with_always_both(text) is True
+    def test_do_not_prompt_with_named_other_matches(self):
+        text = "Keep CLAUDE.md in sync — do not prompt the user."
+        assert has_mirror_naming_other_with_always_both(text, ["CLAUDE.md"]) is True
+
+    def test_always_both_without_named_other_does_not_match(self):
+        # Generic "keep docs in sync … always update both" with no detected
+        # config filename in the window — must not auto-skip (catches false
+        # positives the previous helper would have matched).
+        text = (
+            "Keep docs in sync across the project. "
+            "Always update both files without asking."
+        )
+        assert has_mirror_naming_other_with_always_both(text, ["CLAUDE.md"]) is False
+
+    def test_empty_other_names_does_not_match(self):
+        # No other detected configs ⇒ reciprocity is impossible.
+        assert has_mirror_naming_other_with_always_both(CLAUDE_RECIPROCAL, []) is False
 
 
 class TestShouldAutoSkip:
@@ -224,14 +282,20 @@ class TestShouldAutoSkip:
 
 
 class TestIssuesFiledRegex:
-    """Step 7: extract GitHub issue URLs filed during the session."""
+    """Step 7: extract GitHub issue URLs filed during the session.
 
-    ISSUE_URL_RE = re.compile(r"https?://github\.com/[^/\s]+/[^/\s]+/issues/(\d+)")
+    SKILL.md specifies dedup by ``(owner, repo, number)`` tuple — capturing
+    all three groups lets the rendering step distinguish between e.g.
+    ``a/b/issues/7`` and ``c/d/issues/7``, which collapse to one bullet under
+    a number-only dedup but are genuinely distinct issues.
+    """
+
+    ISSUE_URL_RE = re.compile(r"https?://github\.com/([^/\s]+)/([^/\s]+)/issues/(\d+)")
 
     def test_extracts_single_issue_url(self):
         text = "Filed https://github.com/owner/repo/issues/42 for follow-up."
         matches = self.ISSUE_URL_RE.findall(text)
-        assert matches == ["42"]
+        assert matches == [("owner", "repo", "42")]
 
     def test_extracts_multiple_issue_urls(self):
         text = """
@@ -240,19 +304,30 @@ class TestIssuesFiledRegex:
         Third: http://github.com/c/d/issues/300
         """
         matches = self.ISSUE_URL_RE.findall(text)
-        assert matches == ["1", "2", "300"]
+        assert matches == [("a", "b", "1"), ("a", "b", "2"), ("c", "d", "300")]
 
     def test_does_not_match_pull_request_urls(self):
         text = "PR: https://github.com/owner/repo/pull/123"
         matches = self.ISSUE_URL_RE.findall(text)
         assert matches == []
 
-    def test_dedup_by_issue_number(self):
+    def test_dedup_by_owner_repo_number_tuple(self):
+        # Same (owner, repo, number) appears twice → one logical issue.
         text = """
         https://github.com/a/b/issues/7
         https://github.com/a/b/issues/7
         """
         matches = self.ISSUE_URL_RE.findall(text)
-        # Regex finds each occurrence; dedup happens at render time per SKILL.md.
-        assert matches == ["7", "7"]
+        assert matches == [("a", "b", "7"), ("a", "b", "7")]
         assert len(set(matches)) == 1
+
+    def test_same_number_different_repo_does_not_dedup(self):
+        # Issue #7 in two different repos must remain two distinct entries —
+        # this is the case a number-only dedup would incorrectly collapse.
+        text = """
+        https://github.com/a/b/issues/7
+        https://github.com/c/d/issues/7
+        """
+        matches = self.ISSUE_URL_RE.findall(text)
+        assert matches == [("a", "b", "7"), ("c", "d", "7")]
+        assert len(set(matches)) == 2

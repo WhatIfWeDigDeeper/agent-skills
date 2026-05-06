@@ -49,17 +49,19 @@ find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
 - Single config found → use it
 - Multiple configs found → check for a reciprocal "always both" rule first; if absent, prompt:
 
-  **Step 1a — Mirror-rule detection.** `rg` each detected config for the Step 4 mirror-rule patterns (`keep .* in sync`, `mirror .* to`, `apply the equivalent change`). Record which configs contain a mirror-rule that names at least one other detected config.
+  **Scope.** Steps 1a and 1b apply only to the Step 4 Markdown scope (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`, `.github/copilot-instructions.md`, `.cursorrules`, `.windsurf/rules/rules.md`). Non-Markdown configs (`.continuerc.json`, `.cursor/rules/*.mdc`) do not participate in the auto-skip evaluation: their absence of a parsed mirror-rule never blocks auto-skip, and their presence never triggers it. When the eligible-Markdown set auto-skips, any non-Markdown configs detected on the same project go through Step 1c's prompt path.
 
-  **Step 1b — Reciprocal "always both" auto-skip.** Within ~5 lines of each detected mirror-rule, search for unambiguous fan-out intent using:
+  **Step 1a — Mirror-rule detection.** `rg` each detected Markdown config for the Step 4 mirror-rule patterns (`keep .* in sync`, `mirror .* to`, `apply the equivalent change to`). For each match, record both the matching line and a `±5`-line window around it. A mirror-rule **names another detected Markdown config** when that other config's filename (e.g. `CLAUDE.md`, `.github/copilot-instructions.md`) appears anywhere in that window. Record, per detected Markdown config, the set of other detected Markdown configs it names — and require that set to be non-empty for the auto-skip check.
+
+  **Step 1b — Reciprocal "always both" auto-skip.** Within the same `±5`-line window of each detected mirror-rule, search for unambiguous fan-out intent using:
   ```
   (always (update|apply) (to )?both|apply to both|without asking|do not prompt)
   ```
-  If **every** detected config contains both (1) a mirror-rule that names the others **and** (2) an "always both" phrase within ~5 lines of that mirror-rule, skip the prompt. Print a one-line notice on its own line and proceed as if the user had answered `all`:
+  Auto-skip fires only when **every** detected Markdown config has both (1) a mirror-rule whose `±5`-line window names at least one other detected Markdown config (Step 1a) **and** (2) an "always both" phrase within that same window. For three or more configs, each config's mirror-rule must name at least one other detected Markdown config — not necessarily all of them; the union of "names" links across the set is what makes the rule reciprocal. When the condition holds, print a one-line notice on its own line and proceed as if the user had answered `all`:
   ```
   Detected reciprocal "always both" rule across <config1> and <config2> — applying to all without prompting.
   ```
-  Any miss, one-sided declaration, or weaker wording (e.g. `consider mirroring`, `may want to mirror`) → keep the prompt behavior in Step 1c.
+  Any miss, one-sided declaration, mirror-rule that names no other detected config, or weaker wording (e.g. `consider mirroring`, `may want to mirror`) → keep the prompt behavior in Step 1c.
 
   **Step 1c — Prompt.** When the auto-skip condition is not met, stop and ask:
   ```
@@ -69,7 +71,7 @@ find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
 
   Which should I update? (enter number, or "all")
   ```
-  If one config contains a mirror-rule naming another (from Step 1a) without the "always both" phrase, surface that in the prompt as informational context — but the user's choice still binds. An explicit user answer at this prompt always overrides Step 1b's auto-skip; if the user later expresses a narrower scope at the Step 5 confirmation, that also binds.
+  If one config contains a mirror-rule naming another (from Step 1a) without the "always both" phrase, surface that in the prompt as informational context — but the user's answer always binds, regardless of any partial mirror-rule signal. If the user later expresses a narrower scope at the Step 5 confirmation, that also binds.
 - No configs found → **MANDATORY: read [`references/assistant-configs.md`](references/assistant-configs.md) in full** to show init commands, then exit. Do NOT load `refactoring.md` or `options.md` at this step.
 
 **Size thresholds** for any config file:
@@ -172,7 +174,7 @@ List files modified with before/after line counts, sections updated or created, 
   https://github.com/owner/repo/issues/301
 ```
 
-Omit the subheading entirely if none were filed. Deduplicate by issue number (different URLs that resolve to the same issue collapse to one bullet). The title may not always be recoverable from session output — when missing, omit the `— <title>` segment and keep the URL.
+Omit the subheading entirely if none were filed. Deduplicate by the `(owner, repo, number)` tuple (or equivalently the canonical issue URL) — sessions that touch multiple repos can produce the same issue number under different `owner/repo` paths, so number-only dedup would incorrectly merge unrelated entries. The title may not always be recoverable from session output — when missing, omit the `— <title>` segment and keep the URL.
 
 ## Principles
 
