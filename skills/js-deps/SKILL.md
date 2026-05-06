@@ -45,7 +45,7 @@ BRANCH_NAME="js-deps-$TIMESTAMP"
 # Prefer a sibling directory to the project root; fall back to $TMPDIR if that's not writable
 WORKTREE_PATH="$(dirname "$(git rev-parse --show-toplevel)")/$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME" 2>/dev/null || {
-  WORKTREE_PATH="${TMPDIR:-/tmp}/$BRANCH_NAME"
+  WORKTREE_PATH="${TMPDIR:-/private/tmp}/$BRANCH_NAME"
   git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 }
 ```
