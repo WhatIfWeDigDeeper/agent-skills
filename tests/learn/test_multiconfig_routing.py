@@ -6,12 +6,14 @@ asserting expected outcomes on representative config bodies.
 
 Logic under test:
 - A "mirror-rule" line matches one of: ``keep .* in sync``, ``mirror .* to``,
-  ``apply the equivalent change to``.
-- An "always both" phrase matches:
+  ``apply the equivalent change to`` (case-insensitive).
+- An "always both" phrase matches (case-insensitive):
   ``(always (update|apply) (to )?both|apply to both|without asking|do not prompt)``.
 - Auto-skip fires only when EVERY detected Markdown config contains a mirror-rule
   whose ±5-line window (1) names at least one other detected Markdown config and
-  (2) contains an "always both" phrase.
+  (2) contains an "always both" phrase, AND the "names" relationships form a
+  single connected component spanning every detected Markdown config (so 4-config
+  splits like {A↔B} and {C↔D} fall through to the prompt).
 """
 
 import re
@@ -40,36 +42,85 @@ def _windows_around_mirrors(text: str) -> list[str]:
     return windows
 
 
-def has_mirror_naming_other_with_always_both(text: str, other_names: list[str]) -> bool:
-    """Return True iff at least one mirror-rule's ±PROXIMITY_LINES window contains
-    both an "always both" phrase and a reference to one of ``other_names``.
+def names_in_always_both_windows(text: str, other_names: list[str]) -> set[str]:
+    """Return the subset of ``other_names`` that appear in at least one
+    ±PROXIMITY_LINES window around a mirror-rule that also contains an
+    "always both" phrase. Filename matching is case-insensitive to align
+    with SKILL.md Step 1a.
 
-    ``other_names`` is the list of *other* detected Markdown config filenames —
-    i.e., the eligible-Markdown set minus the config whose body is being checked.
+    Returning the *set* rather than a bool lets ``should_auto_skip`` build
+    the connectivity graph required by SKILL.md Step 1b condition 2.
     """
     if not other_names:
-        return False
+        return set()
+    found: set[str] = set()
     for window in _windows_around_mirrors(text):
         if not ALWAYS_BOTH_RE.search(window):
             continue
-        if any(name in window for name in other_names):
-            return True
-    return False
+        window_lower = window.lower()
+        for name in other_names:
+            if name.lower() in window_lower:
+                found.add(name)
+    return found
+
+
+def has_mirror_naming_other_with_always_both(text: str, other_names: list[str]) -> bool:
+    """Per-config gate (SKILL.md Step 1b condition 1): at least one mirror-rule's
+    ±PROXIMITY_LINES window contains both an "always both" phrase and a reference
+    to one of ``other_names``.
+    """
+    return bool(names_in_always_both_windows(text, other_names))
+
+
+def _is_connected(nodes: list[str], edges: set[tuple[str, str]]) -> bool:
+    """Return True iff the undirected graph ``(nodes, edges)`` is one component.
+
+    Edges are stored as unordered tuples; the caller must normalize ordering
+    (or insert both orderings) — this helper treats them as already-undirected.
+    """
+    if not nodes:
+        return False
+    if len(nodes) == 1:
+        return True
+    adj: dict[str, set[str]] = {n: set() for n in nodes}
+    for a, b in edges:
+        if a in adj and b in adj:
+            adj[a].add(b)
+            adj[b].add(a)
+    seen: set[str] = set()
+    stack = [nodes[0]]
+    while stack:
+        n = stack.pop()
+        if n in seen:
+            continue
+        seen.add(n)
+        stack.extend(adj[n] - seen)
+    return seen == set(nodes)
 
 
 def should_auto_skip(configs: dict[str, str]) -> bool:
-    """Return True iff every detected Markdown config qualifies for auto-skip:
-    its mirror-rule names at least one other detected Markdown config AND has
-    an "always both" phrase within the same ±5-line window.
+    """Return True iff the detected Markdown configs all qualify for auto-skip
+    per SKILL.md Step 1b:
+
+    1. Every config has a mirror-rule that names ≥1 other detected config AND
+       contains an "always both" phrase within the same ±5-line window.
+    2. The "names" relationships form a single connected component spanning
+       every detected Markdown config — so a 4-config split into {A↔B} and
+       {C↔D} (with no cross-naming) does NOT auto-skip.
     """
     if len(configs) < 2:
         return False
     names = list(configs.keys())
+    edges: set[tuple[str, str]] = set()
     for name, body in configs.items():
         others = [n for n in names if n != name]
-        if not has_mirror_naming_other_with_always_both(body, others):
-            return False
-    return True
+        named = names_in_always_both_windows(body, others)
+        if not named:
+            return False  # Condition 1 fails for this config.
+        for other in named:
+            edge = tuple(sorted((name, other)))
+            edges.add(edge)
+    return _is_connected(names, edges)
 
 
 # Representative config bodies — kept inline so the tests are self-documenting.
@@ -279,6 +330,66 @@ class TestShouldAutoSkip:
 
     def test_empty_configs_does_not_auto_skip(self):
         assert should_auto_skip({}) is False
+
+    def test_four_config_disconnected_groups_do_not_auto_skip(self):
+        # Two reciprocal pairs with no cross-naming: {CLAUDE ↔ Copilot} and
+        # {AGENTS ↔ GEMINI}. Each config satisfies the per-config gate, but
+        # the "names" graph splits into two components — `all` is not implied,
+        # so SKILL.md Step 1b condition 2 must block auto-skip.
+        configs = {
+            "CLAUDE.md": (
+                "Keep .github/copilot-instructions.md in sync — "
+                "always update both without asking.\n"
+            ),
+            ".github/copilot-instructions.md": (
+                "Keep CLAUDE.md in sync — always update both without asking.\n"
+            ),
+            "AGENTS.md": (
+                "Keep GEMINI.md in sync — always update both without asking.\n"
+            ),
+            "GEMINI.md": (
+                "Keep AGENTS.md in sync — always update both without asking.\n"
+            ),
+        }
+        assert should_auto_skip(configs) is False
+
+    def test_four_config_connected_chain_auto_skips(self):
+        # Same four configs, but a single chain links them all: CLAUDE ↔
+        # Copilot ↔ AGENTS ↔ GEMINI. Connected component covers every node,
+        # so auto-skip fires.
+        configs = {
+            "CLAUDE.md": (
+                "Keep .github/copilot-instructions.md in sync — "
+                "always update both without asking.\n"
+            ),
+            ".github/copilot-instructions.md": (
+                "Keep CLAUDE.md and AGENTS.md in sync — "
+                "always update both without asking.\n"
+            ),
+            "AGENTS.md": (
+                "Keep .github/copilot-instructions.md and GEMINI.md in sync — "
+                "always update both without asking.\n"
+            ),
+            "GEMINI.md": (
+                "Keep AGENTS.md in sync — always update both without asking.\n"
+            ),
+        }
+        assert should_auto_skip(configs) is True
+
+    def test_case_insensitive_filename_match(self):
+        # SKILL.md Step 1a says filename matching is case-insensitive. Use a
+        # body where the named config appears in a different case than the
+        # dict key, and confirm auto-skip still fires.
+        configs = {
+            "CLAUDE.md": (
+                "Keep .github/Copilot-Instructions.md in sync — "
+                "always update both without asking.\n"
+            ),
+            ".github/copilot-instructions.md": (
+                "Keep claude.md in sync — always update both without asking.\n"
+            ),
+        }
+        assert should_auto_skip(configs) is True
 
 
 class TestIssuesFiledRegex:
