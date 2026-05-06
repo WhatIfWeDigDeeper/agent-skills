@@ -9,7 +9,7 @@ compatibility: Requires git and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.5"
+  version: "0.6"
 ---
 
 # Ship: Branch, Commit, Push & PR
@@ -155,7 +155,7 @@ EOF
 **If the heredoc fails** ("can't create temp file"), write the body to a temp file and use `--body-file` instead:
 
 ```bash
-PR_BODY_FILE=$(mktemp)
+PR_BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/ship-it-pr-body-XXXXXX")
 cat > "$PR_BODY_FILE" << 'EOF'
 ## Summary
 - [2-3 bullet points describing the changes]
@@ -187,4 +187,4 @@ Output:
 
 - Never commit files that look like secrets (.env, credentials, keys, tokens, private keys, build artifacts)
 - **Keyring/credential access required**: `gh` and `git push` need access to the OS keyring and credential helpers. If your assistant runs in a sandbox, ensure it has keyring and credential helper access.
-- **Temp files**: Use `mktemp` (not a hardcoded `/tmp/` path) when creating temp files — `/tmp/` may not be writable in sandboxed environments.
+- **Temp files**: Use `mktemp "${TMPDIR:-/private/tmp}/<prefix>-XXXXXX"` when creating temp files. Bare `mktemp` defaults to `/var/folders/...` on macOS, which is outside the sandbox's write allowlist on assistants that sandbox bash (e.g. Claude Code); an explicit template under `$TMPDIR` lands in the sandbox-writable directory.

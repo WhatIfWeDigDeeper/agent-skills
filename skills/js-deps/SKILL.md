@@ -14,7 +14,7 @@ compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or b
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.9"
+  version: "1.0"
 ---
 
 # JS Deps
@@ -175,3 +175,7 @@ fi
     (cd "$DIR" && npm install)
   fi
   ```
+
+## Notes
+
+- **Temp files**: Use `mktemp "${TMPDIR:-/private/tmp}/<prefix>-XXXXXX"` when creating temp files. Bare `mktemp` defaults to `/var/folders/...` on macOS, which is outside the sandbox's write allowlist on assistants that sandbox bash (e.g. Claude Code); an explicit template under `$TMPDIR` lands in the sandbox-writable directory.

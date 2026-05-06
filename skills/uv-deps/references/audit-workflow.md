@@ -86,7 +86,7 @@ Map to severity by looking up the GHSA alias from each vulnerability entry. Coll
 ```bash
 # Extract GHSA IDs from vulnerability JSON, look up severity for each
 # Use a temp file — `| while read` runs in a subshell and cannot set parent variables
-SEVERITY_MAP_FILE=$(mktemp)
+SEVERITY_MAP_FILE=$(mktemp "${TMPDIR:-/private/tmp}/uv-deps-severity-map-XXXXXX")
 echo "$VULN_JSON" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
@@ -122,7 +122,7 @@ Write the filter script to a temp file once — it's reused in the Post-Audit Sc
 # multiSelect answers in interactive-help.md (e.g. "critical high" or "moderate").
 # Leave empty (unset) to include all severities — do not set it when "All vulnerabilities" is selected.
 # Valid values match the normalized GitHub API severities: critical, high, moderate (includes low).
-SEVERITY_FILTER_BASE=$(mktemp -t severity_filter.XXXXXX)
+SEVERITY_FILTER_BASE=$(mktemp "${TMPDIR:-/private/tmp}/uv-deps-severity-filter-XXXXXX")
 SEVERITY_FILTER="${SEVERITY_FILTER_BASE}.py"
 mv "$SEVERITY_FILTER_BASE" "$SEVERITY_FILTER"
 trap "rm -f '$SEVERITY_FILTER'" EXIT
@@ -258,7 +258,7 @@ fi
    ```
 4. Create PR using gh CLI. Write the PR body to a temp file first (subshell heredocs `$(cat <<'EOF'...)` fail in sandbox):
    ```bash
-   BODY_FILE=$(mktemp)
+   BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/uv-deps-audit-body-XXXXXX")
    cat > "$BODY_FILE" << 'PREOF'
    ## Summary
    - Vulnerabilities fixed: [count]

@@ -141,7 +141,7 @@ Report a clean/vulnerable summary (e.g. "0 vulnerabilities" or "2 vulnerabilitie
    If an open PR exists for this branch, update it with `gh pr edit` instead of creating a new one.
 4. Create PR using gh CLI. Write the PR body to a temp file first (subshell heredocs `$(cat <<'EOF'...)` fail in sandbox):
    ```bash
-   BODY_FILE=$(mktemp)
+   BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/uv-deps-update-body-XXXXXX")
    cat > "$BODY_FILE" << 'PREOF'
    ## Summary
    - Updated packages: [list with old → new versions]

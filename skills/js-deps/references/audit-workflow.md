@@ -123,7 +123,7 @@ Compare before/after vulnerability counts per directory.
    ```
 4. Create PR using gh CLI. Write the PR body to a temp file first (heredocs may fail in sandboxed environments):
    ```bash
-   BODY_FILE=$(mktemp)
+   BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/js-deps-audit-body-XXXXXX")
    cat > "$BODY_FILE" << 'PREOF'
    ## Summary
    - Vulnerabilities fixed: [count]
