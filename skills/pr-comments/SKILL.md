@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.39"
+  version: "1.40"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -450,7 +450,7 @@ Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
 
 After the POST below, follow the shared polling flow in `references/bot-polling.md`. See the Step 14 Entry gate for valid exits from Step 13b.
 
-**Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit` uses the GraphQL `requestReviewsByLogin` endpoint which rejects bot accounts — and a bot in the list will cause the entire `gh pr edit` call to fail, blocking human re-requests too.
+**Bot reviewers** (e.g. `copilot-pull-request-reviewer[bot]`): `gh pr edit --add-reviewer` uses the GraphQL `requestReviewsByLogin` endpoint, which rejects bot accounts. Failure mode varies by form: a list containing a bot fails the whole call (blocking human re-requests too); a single-bot call may exit 0 and print the PR URL while silently no-op'ing. Never use `gh pr edit` for any bot login — always use the REST endpoint below.
 
 **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it cannot be re-requested via API. Check the `anthropics/claude-code-action` workflow trigger: `on: pull_request` re-triggers on push; if it uses `on: workflow_dispatch`, first identify the workflow by searching `.github/workflows/` for `anthropics/claude-code-action` and use the matching workflow filename, or run `gh workflow list` and use the workflow name or ID it returns, then run `gh workflow run <workflow> -f pr_number={pr_number}` with that filename. Do not include it in the polling offer; re-invoke the skill when its review arrives.
 
@@ -475,11 +475,12 @@ After the POST:
 
 1. Confirm the pre-POST snapshot was recorded (timestamp + unresolved thread IDs)
 2. Confirm the POST re-request was sent for each bot reviewer
-3. **Resume the shared bot-polling flow in `references/bot-polling.md` after its setup section** — do not restart the setup section (snapshot and POST are already done), but still follow any manual-mode poll-offer / stop-and-wait behavior before the signal-checking and loop-exit logic
+3. **Verify a `review_requested` event was actually emitted** — see `references/bot-polling.md` → **Entry from Step 13b**, step 4. GitHub silently no-ops the POST (HTTP 201, no event) for bots that have previously reviewed this PR. The check is global (any post-snapshot `review_requested` event), not per-bot.
+4. **Resume the shared bot-polling flow in `references/bot-polling.md` after its setup section** — do not restart the setup section (snapshot and POST are already done), but still follow any manual-mode poll-offer / stop-and-wait behavior before the signal-checking and loop-exit logic
 
 ### 14. Report
 
-> **Entry gate:** Reach Step 14 via one of: Step 13 found no reviewers (empty list); the user declined the Step 13 push/re-request prompt (manual mode); the shared polling loop in `references/bot-polling.md` reached one of its documented exit conditions; or the user declined the manual-mode poll offer in `references/bot-polling.md`. If you just completed Step 13b with bot reviewers re-requested and the user has **not** declined polling, you are **not here yet** — return to Step 13b item 3 and resume the shared polling flow's signal-checking/exit logic first.
+> **Entry gate:** Reach Step 14 via one of: Step 13 found no reviewers (empty list); the user declined the Step 13 push/re-request prompt (manual mode); the Step 13b verification gate found zero `review_requested` events fired for any bot, so the polling loop was skipped entirely (every bot's POST silently no-op'd — see `references/bot-polling.md` → **Entry from Step 13b**, step 4); the shared polling loop in `references/bot-polling.md` reached one of its documented exit conditions; or the user declined the manual-mode poll offer in `references/bot-polling.md`. If you just completed Step 13b with bot reviewers re-requested, the verification gate confirmed at least one event fired, and the user has **not** declined polling, you are **not here yet** — return to Step 13b items 3 and 4 — verify the `review_requested` event fired, then resume the shared polling flow's signal-checking/exit logic.
 
 **You MUST read `references/report-templates.md` before writing a single word of any skill-closing summary — including auto-loop iteration summaries, zero-change iterations, and messages framed as status updates.** No ad-hoc summary or condensed version may substitute. The closing `<PR URL>` line is never optional.
 

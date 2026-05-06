@@ -37,7 +37,33 @@ The `snapshot_timestamp` value differs per entry point and is set in each entry'
    ```
    **HTTP 422 is non-fatal** — the bot may still self-trigger. Other exits (auth, rate-limit, network) must surface rather than silently let polling proceed with no re-request actually sent.
 
-4. Proceed to the **Shared polling loop** below.
+4. **Verify a `review_requested` event was actually emitted.** GitHub silently treats POST `/requested_reviewers` as a no-op when the requested reviewer is a bot that has previously reviewed this PR — the REST endpoint returns 201 and updates `requested_reviewers`, but no `review_requested` entry appears in the PR's `/issues/{pr_number}/events` timeline. Observed downstream behavior is that the bot's review pipeline is never triggered, so polling times out with no signal. Confirm at least one `review_requested` event landed after `snapshot_timestamp` (recorded in step 1; do **not** introduce a new timestamp variable). The check is global, not per-bot — see the "Multi-bot precision" caveat below for why.
+
+   ```bash
+   # Heuristic 5-second wait for event surfacing. Run the snippet outside `set -e` —
+   # if the harness blocks or kills `sleep`, execution proceeds to the event check
+   # immediately, which is the documented intent. Do not suppress with `|| true`
+   # (skills/CLAUDE.md: "|| true is too broad for a specific expected error").
+   sleep 5
+   event_count=$(gh api "repos/{owner}/{repo}/issues/{pr_number}/events" --paginate \
+     | jq -s --arg ts "$snapshot_timestamp" \
+       '[.[] | .[] | select(.event == "review_requested" and .created_at >= $ts)] | length')
+   if [ "$event_count" -eq 0 ]; then
+     for bot_reviewer in "${bot_reviewers[@]}"; do
+       printf '@%s was added to requested_reviewers but no review_requested event fired. GitHub may silently skip event emission for previously-reviewed bots. Click the "Re-request review" arrow next to @%s in the PR sidebar, then re-invoke pr-comments to poll for the response.\n' "$bot_reviewer" "$bot_reviewer"
+     done
+     bot_reviewers=()
+   fi
+   ```
+
+   **Caveats:**
+   - The 5-second sleep is heuristic — GitHub event emission is normally near-instant; the wait absorbs occasional slow surfacing. A false negative is still possible if emission lags more than 5 seconds, but the UI-fallback message remains safe in that case.
+   - On harnesses where `sleep` is blocked, the event check runs immediately (no wait) — increasing the chance of a false negative on slow/delayed emissions, with the same UI-fallback safety property.
+   - **Multi-bot precision:** the check counts all `review_requested` events after the snapshot, not per-bot. The login form returned by `/issues/{n}/events` (e.g., `Copilot`) often differs from the canonical login carried in `bot_reviewers` (e.g., `copilot-pull-request-reviewer[bot]`), so a per-bot equality predicate would false-negative. The gate's primary target is the single-bot silent-no-op case (issue #144), where this counts correctly. In a multi-bot call where one bot's event fires and another's silently no-op'd, the gate cannot tell them apart and proceeds to poll for both — the silently-no-op'd bot's polling will time out unproductively, which is the same behavior as without the gate.
+
+   **If `event_count` is 0**, every bot's POST silently no-op'd: `bot_reviewers` has been emptied, the UI-fallback message has been emitted for each, and you must skip the Shared polling loop entirely and proceed to Step 14. Otherwise (`event_count > 0`) proceed to step 5 — `bot_reviewers` is unchanged.
+
+5. Proceed to the **Shared polling loop** below.
 
 ---
 
@@ -275,3 +301,20 @@ When building display prompts for bot accounts (e.g., the push/re-request prompt
 3. Otherwise, keep the remaining login as-is (e.g. `renovate[bot]` → `renovate`).
 
 Use the full login (including any `[bot]` suffix) for the actual API calls.
+
+## Known limitations: silent no-op POST for re-reviewed bots
+
+`POST /repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers` returns HTTP 201 with no `review_requested` event when the bot has already reviewed this PR. The verification gate in **Entry from Step 13b**, step 4 detects this at runtime; the notes below cover what's not in that step.
+
+This is independent of login form (`Copilot` short vs `copilot-pull-request-reviewer[bot]` canonical — both 201, both no event).
+
+The only known reliable workaround is the PR sidebar's "Re-request review" arrow — clicking it reliably results in a `review_requested` entry appearing in the `/issues/{pr_number}/events` timeline, where the equivalent REST POST does not. The underlying mechanism is not documented; treat this as observed behavior.
+
+Diagnostic command (run after the fact, with `<timestamp_before_post>` set to an ISO 8601 UTC time recorded immediately before the original POST):
+
+```bash
+gh api "repos/{owner}/{repo}/issues/{pr_number}/events" --paginate \
+  | jq -s --arg ts "<timestamp_before_post>" \
+    '[.[] | .[] | select(.event == "review_requested" and .created_at >= $ts)]'
+# → []  means GitHub silently dropped the event despite the 201 response.
+```
