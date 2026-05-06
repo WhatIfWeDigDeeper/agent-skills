@@ -16,7 +16,7 @@ compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Learn from Conversation
@@ -47,7 +47,21 @@ find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
 
 **Config detection:**
 - Single config found → use it
-- Multiple configs found → stop and ask before proceeding:
+- Multiple configs found → check for a reciprocal "always both" rule first; if absent, prompt:
+
+  **Step 1a — Mirror-rule detection.** `rg` each detected config for the Step 4 mirror-rule patterns (`keep .* in sync`, `mirror .* to`, `apply the equivalent change`). Record which configs contain a mirror-rule that names at least one other detected config.
+
+  **Step 1b — Reciprocal "always both" auto-skip.** Within ~5 lines of each detected mirror-rule, search for unambiguous fan-out intent using:
+  ```
+  (always (update|apply) (to )?both|apply to both|without asking|do not prompt)
+  ```
+  If **every** detected config contains both (1) a mirror-rule that names the others **and** (2) an "always both" phrase within ~5 lines of that mirror-rule, skip the prompt. Print a one-line notice on its own line and proceed as if the user had answered `all`:
+  ```
+  Detected reciprocal "always both" rule across <config1> and <config2> — applying to all without prompting.
+  ```
+  Any miss, one-sided declaration, or weaker wording (e.g. `consider mirroring`, `may want to mirror`) → keep the prompt behavior in Step 1c.
+
+  **Step 1c — Prompt.** When the auto-skip condition is not met, stop and ask:
   ```
   Found multiple config files:
   1. CLAUDE.md (142 lines)
@@ -55,7 +69,7 @@ find . -name "SKILL.md" -type f 2>/dev/null | grep -v node_modules | \
 
   Which should I update? (enter number, or "all")
   ```
-  Before showing the prompt, `rg` each detected config for the Step 4 mirror-rule patterns (`keep .* in sync`, `mirror .* to`, `apply the equivalent change`). If one config contains a mirror-rule naming another, surface that in the prompt as informational context — but the user's choice still binds.
+  If one config contains a mirror-rule naming another (from Step 1a) without the "always both" phrase, surface that in the prompt as informational context — but the user's choice still binds. An explicit user answer at this prompt always overrides Step 1b's auto-skip; if the user later expresses a narrower scope at the Step 5 confirmation, that also binds.
 - No configs found → **MANDATORY: read [`references/assistant-configs.md`](references/assistant-configs.md) in full** to show init commands, then exit. Do NOT load `refactoring.md` or `options.md` at this step.
 
 **Size thresholds** for any config file:
@@ -149,6 +163,16 @@ description: [WHAT it does + WHEN to use it + trigger keywords]
 ### 7. Summarize
 
 List files modified with before/after line counts, sections updated or created, and any skills created with their names. If a contradiction was resolved, name it explicitly — which rule conflicted with which, and which version was kept. If cross-config sync rules were honored (preserved or reciprocated), mention that too.
+
+**Issues filed this session.** Scan the session's tool-call history for `gh issue create` invocations and for any URLs matching `https?://github\.com/[^/]+/[^/]+/issues/\d+` produced during the session. If any were filed, render them under an **Issues filed this session** subheading, one bullet per issue:
+
+```
+### Issues filed this session
+- #301 — CI: split verify-pr.yaml into per-stack workflows
+  https://github.com/owner/repo/issues/301
+```
+
+Omit the subheading entirely if none were filed. Deduplicate by issue number (different URLs that resolve to the same issue collapse to one bullet). The title may not always be recoverable from session output — when missing, omit the `— <title>` segment and keep the URL.
 
 ## Principles
 
