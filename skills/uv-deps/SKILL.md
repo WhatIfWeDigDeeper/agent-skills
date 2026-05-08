@@ -156,4 +156,4 @@ fi
 
 ## Notes
 
-- **Temp files**: Use `mktemp "${TMPDIR:-/private/tmp}/<prefix>-XXXXXX"` when creating temp files. Bare `mktemp` defaults to `/var/folders/...` on macOS, which is outside the sandbox's write allowlist on assistants that sandbox bash (e.g. Claude Code); an explicit template under `$TMPDIR` lands in the sandbox-writable directory.
+- **Temp files**: Use `mktemp "${TMPDIR:-/private/tmp}/<prefix>-XXXXXX"`. Bare `mktemp` defaults to `/var/folders/...` on macOS, outside the sandbox-writable area on assistants that sandbox bash (e.g. Claude Code).

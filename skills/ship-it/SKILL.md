@@ -187,4 +187,4 @@ Output:
 
 - Never commit files that look like secrets (.env, credentials, keys, tokens, private keys, build artifacts)
 - **Keyring/credential access required**: `gh` and `git push` need access to the OS keyring and credential helpers. If your assistant runs in a sandbox, ensure it has keyring and credential helper access.
-- **Temp files**: Use `mktemp "${TMPDIR:-/private/tmp}/<prefix>-XXXXXX"` when creating temp files. Bare `mktemp` defaults to `/var/folders/...` on macOS, which is outside the sandbox's write allowlist on assistants that sandbox bash (e.g. Claude Code); an explicit template under `$TMPDIR` lands in the sandbox-writable directory.
+- **Temp files**: Use `mktemp "${TMPDIR:-/private/tmp}/<prefix>-XXXXXX"`. Bare `mktemp` defaults to `/var/folders/...` on macOS, outside the sandbox-writable area on assistants that sandbox bash (e.g. Claude Code).
