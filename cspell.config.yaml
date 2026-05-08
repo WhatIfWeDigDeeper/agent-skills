@@ -55,6 +55,7 @@ words:
   - metaprogramming
   - mktemp
   - mongosh
+  - multiconfig
   - myapp
   - myorg
   - mypy
