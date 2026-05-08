@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to `CLAUDE.md`. The two files serve different assistants (Copilot vs. Claude Code) but should encode the same project conventions. When running `/learn` in this project, always update **both** `CLAUDE.md` and `.github/copilot-instructions.md` without asking which to update.
+**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to the appropriate `CLAUDE.md` — the root `CLAUDE.md` for repo-wide rules, or a subdirectory `CLAUDE.md` (e.g. `skills/CLAUDE.md`, `evals/CLAUDE.md`, `tests/CLAUDE.md`) for context-specific rules (skill authoring, eval benchmarks, test conventions). Claude Code auto-loads subdirectory `CLAUDE.md` files when working in those directories; Copilot has only one instructions file, so all rules — including those whose canonical home is a subdirectory `CLAUDE.md` — must also appear here. The two assistants (Copilot vs. Claude Code) should encode the same project conventions. When running `/learn` in this project, always update **both** the appropriate `CLAUDE.md` and `.github/copilot-instructions.md` without asking which to update. The `instruction-sync` CI check enforces this pairing for any `CLAUDE.md` path in the repo.
 
 ## Project Overview
 
