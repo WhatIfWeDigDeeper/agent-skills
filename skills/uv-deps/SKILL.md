@@ -6,7 +6,7 @@ compatibility: Requires git, uv, python3, and network access to PyPI
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.6"
+  version: "0.7"
 ---
 
 # UV Deps
@@ -153,3 +153,7 @@ fi
 - **Push failure**: If `git push -u origin "$BRANCH_NAME"` fails, report the branch name and latest commit hash so the user can push manually. Do not delete the worktree branch — preserve it for the user.
 - **Worktree isolation**: Limits blast radius for the untrusted-data concerns in Step 3 — all changes happen on a disposable branch.
 - **Non-semver versions**: If a package uses CalVer (`2024.1.0`), pre-releases (`3.0a1`), or post-releases (`1.0.post1`), version tuple comparisons will not work reliably. Skip version-scope filtering for these packages and include them as-is if they appear outdated.
+
+## Notes
+
+- **Temp files**: Use `mktemp "${TMPDIR:-/private/tmp}/<prefix>-XXXXXX"`. Bare `mktemp` defaults to `/var/folders/...` on macOS, outside the sandbox-writable area on assistants that sandbox bash (e.g. Claude Code).

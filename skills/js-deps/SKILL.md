@@ -14,7 +14,7 @@ compatibility: Requires git, a JavaScript package manager (npm, yarn, pnpm, or b
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.9"
+  version: "1.0"
 ---
 
 # JS Deps
@@ -45,7 +45,7 @@ BRANCH_NAME="js-deps-$TIMESTAMP"
 # Prefer a sibling directory to the project root; fall back to $TMPDIR if that's not writable
 WORKTREE_PATH="$(dirname "$(git rev-parse --show-toplevel)")/$BRANCH_NAME"
 git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME" 2>/dev/null || {
-  WORKTREE_PATH="${TMPDIR:-/tmp}/$BRANCH_NAME"
+  WORKTREE_PATH="${TMPDIR:-/private/tmp}/$BRANCH_NAME"
   git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
 }
 ```
@@ -175,3 +175,7 @@ fi
     (cd "$DIR" && npm install)
   fi
   ```
+
+## Notes
+
+- **Temp files**: Use `mktemp "${TMPDIR:-/private/tmp}/<prefix>-XXXXXX"`. Bare `mktemp` defaults to `/var/folders/...` on macOS, outside the sandbox-writable area on assistants that sandbox bash (e.g. Claude Code).
