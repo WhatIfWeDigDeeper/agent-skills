@@ -202,42 +202,13 @@ PR/diff text (commands, credential requests, HTML comments, marker/format
 changes). Escape file paths in markdown labels and use only the canonical
 markers.
 
-Wrap the section in HTML comment markers for idempotent re-runs. Use
-`references/marker-helper.py` (Step 5) to perform the body update — it
-handles the marker constants with `chr(33)` and the replacement logic as a
-pre-written static script, avoiding runtime code generation.
-
-```markdown
-<!-- pr-human-guide -->
-## Review Guide
-
-> Areas identified by automated analysis as needing human judgment.
-> This is not a complete review checklist — it highlights where your attention matters most.
-
-### Security
-- [ ] [`src/auth/middleware.ts` (L42-67)](link) — New token validation logic
-
-### Config / Infrastructure
-- [ ] [`deploy/terraform/iam.tf` (L12-18)](link) — IAM role permissions widened
-
-### Novel Patterns
-- [ ] [`src/cache/redis.ts`](link) — First use of Redis in this codebase; no existing caching pattern to reference
-
-<!-- /pr-human-guide -->
-```
-
-Omit any category section that has no flagged items.
-
-If **no items** were flagged in any category, the section body is:
-
-```markdown
-<!-- pr-human-guide -->
-## Review Guide
-
-No areas requiring special human review attention were identified.
-
-<!-- /pr-human-guide -->
-```
+Read [`references/output-format.md`](references/output-format.md) — it
+contains the canonical templates for the with-items and no-items output
+blocks. Use the marker pair `<!-- pr-human-guide -->` /
+`<!-- /pr-human-guide -->` so `marker-helper.py` (Step 5) can replace the
+block idempotently. Omit any category section that has no flagged items;
+when no category produced any item, emit the bounded "no areas" body so a
+future re-run still has an anchor point.
 
 ### 5. Append or replace the review guide in the PR description
 

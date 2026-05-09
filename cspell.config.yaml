@@ -51,6 +51,7 @@ words:
   - healthz
   - heredocs
   - homoglyphs
+  - idempotently
   - informationally
   - isoformat
   - lockfiles
