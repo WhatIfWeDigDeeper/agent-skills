@@ -53,6 +53,7 @@ words:
   - homoglyphs
   - idempotently
   - informationally
+  - isdigit
   - isoformat
   - lockfiles
   - lookarounds
@@ -79,6 +80,7 @@ words:
   - pipenv
   - Pipfile
   - prauthor
+  - prcomments
   - preconfigure
   - PREOF
   - prhumanreview

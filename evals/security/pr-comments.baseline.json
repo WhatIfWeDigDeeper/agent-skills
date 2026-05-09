@@ -2,10 +2,10 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "pr-comments",
-  "skill_version": "1.40",
+  "skill_version": "1.41",
   "findings": [
-    {"id": "W011", "severity": "medium"}
+    {"id": "W011", "severity": "high"}
   ],
   "captured_at": "2026-05-09",
-  "notes": "BASELINE NEEDS USER VERIFICATION. Inferred from skills.sh page (Snyk W011, severity MEDIUM, risk score 0.90). Run `bash evals/security/scan.sh --update-baselines --confirm` after the harness lands to capture the real local scanner output and replace this placeholder."
+  "notes": "Refreshed in spec 39 (pr-comments hardening v2). The W011 severity rose from medium to high between baseline capture and this rerun against the v1.41 SKILL.md; the underlying mitigations (untrusted_comment_body framing, 64 KB body size guard, diff-context validation gate, screening-independence note, argument validators) are documented in the new ## Security model section. Snyk's W011 fires on the presence of `gh api .../comments` ingestion patterns regardless of mitigations — the human-in-the-loop Step 7 confirmation gate plus the diff-context validation gate in Step 6 are the substantive defenses."
 }
