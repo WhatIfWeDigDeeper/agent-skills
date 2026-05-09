@@ -1,0 +1,9 @@
+{
+  "scanner": "snyk-agent-scan",
+  "scanner_version": "0.5.1",
+  "skill": "pr-human-guide",
+  "skill_version": "0.8",
+  "findings": [],
+  "captured_at": "2026-05-09",
+  "notes": "BASELINE NEEDS USER VERIFICATION. The skills.sh findings for pr-human-guide came from Gen Agent Trust Hub (a different scanner) and reported three HIGHs (shell injection, prompt injection, runtime codegen). Snyk Agent Scan output for pr-human-guide has not been captured yet; run `bash evals/security/scan.sh --update-baselines --confirm` after the harness lands to populate this file. Spec 37 addresses the Agent Trust Hub findings directly via SKILL.md changes; this baseline tracks Snyk specifically."
+}

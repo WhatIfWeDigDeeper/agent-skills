@@ -1,0 +1,52 @@
+name: security-scan
+
+# Runs the snyk-agent-scan baseline check on PRs that touch flagged-skill
+# SKILL.md files or the security-scan harness itself. The script exits 1 only
+# on regressions (new findings or severity escalations); pre-existing findings
+# are accepted by the baseline. See evals/security/CLAUDE.md.
+#
+# This workflow is read-only with respect to GitHub event payloads — it does
+# NOT interpolate any `${{ github.event.* }}` value into a `run:` step, so the
+# common workflow-injection vector does not apply here.
+
+on:
+  pull_request:
+    paths:
+      - 'skills/**/SKILL.md'
+      - 'evals/security/**'
+      - '.github/workflows/security-scan.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Cache uvx-installed scanner
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-snyk-agent-scan-0.5.1
+          restore-keys: |
+            uv-snyk-agent-scan-
+
+      - name: Run security scan
+        run: bash evals/security/scan.sh
+
+      - name: Print scan output on failure
+        if: failure()
+        run: bash evals/security/scan.sh --scan-only || true
