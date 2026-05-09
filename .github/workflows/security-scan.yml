@@ -33,9 +33,15 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
 
+      # Explicit cache step keyed on the scanner version pinned in
+      # evals/security/scan.sh (SCANNER_PKG). We deliberately do not use
+      # setup-uv's built-in cache (enable-cache: true), because its key is
+      # tied to lockfile/pyproject hashes — neither of which reflect the
+      # SCANNER_PKG pin that actually determines what gets installed.
+      # Keying the cache on the scanner version means a SCANNER_PKG bump
+      # invalidates the cache cleanly; otherwise stale `uvx` artifacts
+      # could mask version-dependent behavior changes.
       - name: Cache uvx-installed scanner
         uses: actions/cache@v4
         with:

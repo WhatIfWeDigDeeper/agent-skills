@@ -12,7 +12,7 @@
 
 For each of the four flagged skills, run the scanner once and capture the current finding set into a baseline file.
 
-- [x] **1.1** Run `uvx snyk-agent-scan@latest --skills skills/peer-review/SKILL.md` and record the printed findings (confirmed locally: W011 high, W012 high). Write `evals/security/peer-review.baseline.json` per the schema in plan.md "Deliverable A".
+- [x] **1.1** Run `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` and record the printed findings (confirmed locally: W011 high, W012 high). Write `evals/security/peer-review.baseline.json` per the schema in plan.md "Deliverable A".
 - [x] **1.2** Same for `skills/ship-it/SKILL.md` — placeholder baseline drafted with `notes: "BASELINE NEEDS USER VERIFICATION"`. Refresh via `bash evals/security/scan.sh --update-baselines --confirm` once the harness lands.
 - [x] **1.3** Same for `skills/pr-comments/SKILL.md` — placeholder baseline drafted (same caveat).
 - [x] **1.4** Same for `skills/pr-human-guide/SKILL.md` — placeholder baseline drafted with empty findings (same caveat). Agent Trust Hub findings are addressed in spec 37, not this baseline.
