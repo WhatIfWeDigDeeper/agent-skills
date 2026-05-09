@@ -7,5 +7,5 @@
     {"id": "W011", "severity": "high"}
   ],
   "captured_at": "2026-05-09",
-  "notes": "Spec 38 promoted the inline security note into a top-level `## Security model` section per the spec 36 template and wrapped `gh pr view --json url,title,body` output in `<untrusted_pr_body>` boundary tags. W011 is heuristic on `gh pr view` and persists regardless of mitigations; severity matches the current scanner output."
+  "notes": "Spec 38 promoted the inline security note into a top-level `## Security model` section per the spec 36 template, wrapped `gh pr view --json url,title,body` output in `<untrusted_pr_body>` boundary tags, and switched both `gh pr create` and `gh pr edit` to `--body-file` so PR body content never reaches argv. W011 is heuristic on `gh pr view` and persists regardless of mitigations. Severity is provisional: the local scanner was not run for this PR (`SNYK_TOKEN` not available; CI ran in skip mode per `evals/security/CLAUDE.md`). Maintainer to refresh with `bash evals/security/scan.sh --update-baselines --confirm` before merge per the `evals/security/CLAUDE.md` rule."
 }

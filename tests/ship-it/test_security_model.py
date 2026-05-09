@@ -66,23 +66,26 @@ class TestUntrustedPrBodyMarker:
         )
 
     def test_untrusted_pr_body_wraps_gh_pr_view_block(self, skill_content):
-        """The `gh pr view --json url,title,body` call and the `<untrusted_pr_body>`
-        framing must appear within the same Step 6 region (within ~80 lines of
-        each other), so a reader connects the wrapping to the flagged command.
+        """The `<untrusted_pr_body>` framing must appear inside the Step 6 region,
+        adjacent to the `gh pr view --json url,title,body` call — not just somewhere
+        in the file. Scoping the search to Step 6 ensures the test fails if the
+        wrapping is removed from the ingestion site, even if the marker still
+        appears earlier in the Security model section.
         """
-        gh_match = re.search(r"gh pr view --json url,title,body", skill_content)
-        marker_match = re.search(r"<untrusted_pr_body>", skill_content)
-        assert gh_match and marker_match
-        # Count lines between the two anchors — they must be co-located in Step 6.
-        between = skill_content[
-            min(gh_match.start(), marker_match.start()) : max(
-                gh_match.end(), marker_match.end()
-            )
-        ]
-        line_distance = between.count("\n")
-        assert line_distance <= 80, (
-            "`<untrusted_pr_body>` framing must sit close to the "
-            "`gh pr view --json url,title,body` call (within ~80 lines)."
+        step6_match = re.search(
+            r"(?m)^### 6\. Create Pull Request\s*$", skill_content
+        )
+        step7_match = re.search(r"(?m)^### 7\. Report\s*$", skill_content)
+        assert step6_match, "Missing `### 6. Create Pull Request` heading"
+        assert step7_match, "Missing `### 7. Report` heading"
+        step6_region = skill_content[step6_match.start() : step7_match.start()]
+        assert "gh pr view --json url,title,body" in step6_region, (
+            "`gh pr view --json url,title,body` must appear inside Step 6."
+        )
+        assert "<untrusted_pr_body>" in step6_region, (
+            "`<untrusted_pr_body>` framing must appear inside Step 6, adjacent "
+            "to the `gh pr view --json url,title,body` call — not only in the "
+            "Security model section."
         )
 
     def test_regenerate_from_commit_log_preserved(self, skill_content):
