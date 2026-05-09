@@ -2,10 +2,10 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "ship-it",
-  "skill_version": "0.6",
+  "skill_version": "0.7",
   "findings": [
     {"id": "W011", "severity": "medium"}
   ],
   "captured_at": "2026-05-09",
-  "notes": "BASELINE NEEDS USER VERIFICATION. Inferred from skills.sh page (Snyk W011, severity MEDIUM, risk score 0.80). Run `bash evals/security/scan.sh --update-baselines --confirm` after the harness lands to capture the real local scanner output and replace this placeholder."
+  "notes": "Spec 38 promoted the inline security note into a top-level `## Security model` section per the spec 36 template and wrapped `gh pr view --json url,title,body` output in `<untrusted_pr_body>` boundary tags. W011 is heuristic on `gh pr view` and persists regardless of mitigations. BASELINE NEEDS USER VERIFICATION — run `bash evals/security/scan.sh --update-baselines --confirm` (requires SNYK_TOKEN) to capture the real local scanner output."
 }
