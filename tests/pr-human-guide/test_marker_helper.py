@@ -1,9 +1,10 @@
 """Tests for skills/pr-human-guide/references/marker-helper.py.
 
 Imports the helper's pure functions and exercises append, replace, anchored
-selection, and stray-marker stripping. Mirrors the in-tests reference logic
-in conftest.py so divergence between the script and the documented behavior
-is caught.
+selection, stray-marker stripping, CRLF anchoring, and incomplete-marker
+fallback. Note: marker-helper.py adds stray-marker stripping that the
+in-tests reference logic in conftest.py does not, so this suite asserts
+the helper's documented behavior directly rather than parity with conftest.
 """
 
 import importlib.util
