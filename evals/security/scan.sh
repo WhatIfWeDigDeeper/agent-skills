@@ -25,6 +25,22 @@ SKILLS=(peer-review ship-it pr-comments pr-human-guide)
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BASELINE_DIR="${REPO_ROOT}/evals/security"
 
+# The scanner requires a Snyk API token. When the token is missing (e.g., CI on
+# a fork PR where the secret is not exposed), skip the scan with a clear notice
+# rather than failing the gate — local maintainers and the post-merge baseline
+# refresh still catch regressions; CI just loses its automated check on that
+# run. Set SECURITY_SCAN_REQUIRE_TOKEN=1 to make missing-token a hard failure.
+if [[ -z "${SNYK_TOKEN:-}" ]]; then
+  echo "security-scan: SNYK_TOKEN is not set; scanner cannot authenticate." >&2
+  echo "  Skipping scan. Set the SNYK_TOKEN repository secret to enable the CI gate," >&2
+  echo "  or run \`bash evals/security/scan.sh --update-baselines --confirm\` locally" >&2
+  echo "  to refresh baselines before merge." >&2
+  if [[ "${SECURITY_SCAN_REQUIRE_TOKEN:-0}" == "1" ]]; then
+    exit 2
+  fi
+  exit 0
+fi
+
 SCAN_ONLY=0
 UPDATE_BASELINES=0
 CONFIRM=0

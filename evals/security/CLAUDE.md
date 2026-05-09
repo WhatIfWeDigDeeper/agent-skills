@@ -21,7 +21,11 @@ This file provides guidance when working in `evals/security/`. It auto-loads in 
 
 ## Running locally
 
+The scanner requires `SNYK_TOKEN` to authenticate against Snyk's API. Get one at <https://app.snyk.io/account>. Export it before running:
+
 ```bash
+export SNYK_TOKEN=...
+
 # CI mode — diff scan output against baseline; exit 1 on regression
 bash evals/security/scan.sh
 
@@ -33,6 +37,8 @@ bash evals/security/scan.sh --update-baselines --confirm
 ```
 
 The first run of `uvx snyk-agent-scan` in a fresh environment downloads the package and can take 20–30s. Subsequent runs use the cached version.
+
+**Missing token behavior**: when `SNYK_TOKEN` is unset, `scan.sh` prints a notice and exits 0 — CI does not fail, but the gate is effectively skipped that run. To require the token (e.g. in trusted-branch CI), set `SECURITY_SCAN_REQUIRE_TOKEN=1`. The CI workflow at `.github/workflows/security-scan.yml` reads `SNYK_TOKEN` from a repository secret of the same name; if the secret isn't configured, the gate runs in skip mode and the maintainer is responsible for refreshing baselines locally before merge.
 
 ## Out of scope
 

@@ -45,8 +45,12 @@ jobs:
             uv-snyk-agent-scan-
 
       - name: Run security scan
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: bash evals/security/scan.sh
 
       - name: Print scan output on failure
         if: failure()
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: bash evals/security/scan.sh --scan-only || true

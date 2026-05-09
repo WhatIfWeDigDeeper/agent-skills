@@ -62,7 +62,7 @@ Placed immediately above the first untrusted-input ingestion step in each skill.
 
 ### Deliverable D — `.github/workflows/security-scan.yml`
 
-CI workflow that runs `evals/security/scan.sh` on PRs that touch `skills/**/SKILL.md` or `evals/security/**`. Caches `~/.cache/uv`. Posts a clear failure annotation if the scan introduces new findings. Job name: `security-scan`. Uses `ubuntu-latest`.
+CI workflow that runs `evals/security/scan.sh` on PRs that touch `skills/**/SKILL.md` or `evals/security/**`. Caches `~/.cache/uv`. Posts a clear failure annotation if the scan introduces new findings. Job name: `security-scan`. Uses `ubuntu-latest`. Reads `SNYK_TOKEN` from a repository secret of the same name and exposes it to the scan step's environment; when the secret is unset, `scan.sh` prints a notice and exits 0 (the gate is skipped that run rather than failing CI). Local maintainers can require the token by exporting `SECURITY_SCAN_REQUIRE_TOKEN=1`.
 
 ### Deliverable E — `tests/_helpers/argument_injection.py`
 
