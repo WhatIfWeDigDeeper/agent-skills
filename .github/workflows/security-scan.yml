@@ -1,8 +1,12 @@
 name: security-scan
 
-# Runs the snyk-agent-scan baseline check on PRs that touch flagged-skill
-# SKILL.md files or the security-scan harness itself. The script exits 1 only
-# on regressions (new findings or severity escalations); pre-existing findings
+# Runs the snyk-agent-scan baseline check on PRs that touch any
+# skills/**/SKILL.md or the security-scan harness itself. The harness
+# itself iterates the four currently-flagged skills (peer-review, ship-it,
+# pr-comments, pr-human-guide) — see SKILLS in evals/security/scan.sh — but
+# the trigger fires on every SKILL.md so a new flagged skill added later
+# only requires updating SKILLS, not this file. The script exits 1 only on
+# regressions (new findings or severity escalations); pre-existing findings
 # are accepted by the baseline. See evals/security/CLAUDE.md.
 #
 # This workflow is read-only with respect to GitHub event payloads — it does
@@ -11,6 +15,7 @@ name: security-scan
 
 on:
   pull_request:
+    branches: [main]
     paths:
       - 'skills/**/SKILL.md'
       - 'evals/security/**'
@@ -24,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,7 +37,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v7
 
       # Explicit cache step keyed on the scanner version pinned in
       # evals/security/scan.sh (SCANNER_PKG). We deliberately do not use

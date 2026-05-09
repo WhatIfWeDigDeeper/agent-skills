@@ -47,7 +47,7 @@ For each of the four flagged skills, run the scanner once and capture the curren
 
 ## Phase 5: CI workflow
 
-- [x] **5.1** Create `.github/workflows/security-scan.yml` per "Deliverable D". Trigger: `pull_request` with `paths: [skills/**/SKILL.md, evals/security/**, .github/workflows/security-scan.yml]`. Job: `security-scan` on `ubuntu-latest`. Steps: checkout, set up Python 3.12, install `uv` via `astral-sh/setup-uv@v3`, restore `~/.cache/uv` cache keyed on the scanner version, run `bash evals/security/scan.sh`, print scan output on failure for debugging.
+- [x] **5.1** Create `.github/workflows/security-scan.yml` per "Deliverable D". Trigger: `pull_request` with `branches: [main]` and `paths: [skills/**/SKILL.md, evals/security/**, .github/workflows/security-scan.yml]`. Job: `security-scan` on `ubuntu-latest`. Steps: checkout (`actions/checkout@v6`), set up Python 3.12, install `uv` via `astral-sh/setup-uv@v7`, restore `~/.cache/uv` cache keyed on the scanner version, run `bash evals/security/scan.sh`, print scan output on failure for debugging.
 - [x] **5.2** Workflow named `security-scan` so reviewers see a clear status check name on PRs.
 
 ---

@@ -181,10 +181,22 @@ write_baseline() {
   local skill_version
   skill_version="$(grep -E '^  version:' "${REPO_ROOT}/skills/${skill}/SKILL.md" | head -1 | sed -E 's/.*"([^"]+)".*/\1/')"
   python3 - "$skill" "$skill_version" "$scanned_json" "$file" "$SCANNER_PKG" <<'PYEOF'
-import json,sys,datetime
+import json,os,sys,datetime
 skill, version, scanned_json, file, scanner_pkg = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
 scanner_version = scanner_pkg.split("==", 1)[1] if "==" in scanner_pkg else "unknown"
 findings = json.loads(scanned_json)
+# Preserve `notes` (and any other reviewer-relevant provenance fields) from
+# the prior baseline if present — `--update-baselines` is a refresh, not a
+# reset, and erasing notes would silently drop the justifications attached
+# to accepted findings. Only the machine-generated fields are overwritten.
+prior_notes = None
+if os.path.exists(file):
+    try:
+        with open(file) as f:
+            prior = json.load(f)
+        prior_notes = prior.get("notes")
+    except (OSError, json.JSONDecodeError):
+        prior_notes = None
 out = {
     "scanner": "snyk-agent-scan",
     "scanner_version": scanner_version,
@@ -193,6 +205,8 @@ out = {
     "findings": findings,
     "captured_at": datetime.date.today().isoformat(),
 }
+if prior_notes is not None:
+    out["notes"] = prior_notes
 with open(file, "w") as f:
     json.dump(out, f, indent=2)
     f.write("\n")
