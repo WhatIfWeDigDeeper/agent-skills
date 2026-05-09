@@ -15,7 +15,7 @@ compatibility: Requires git; requires GitHub CLI (gh) for PR targets
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.10"
+  version: "1.11"
 ---
 
 # Peer Review
@@ -88,6 +88,10 @@ Residual risks:
 - **Secret-scan false negatives** — the regex set is heuristic; novel or obfuscated secrets can pass through. Treat the prompt as a defense layer, not a guarantee. Inspect content before sending sensitive code to an external CLI.
 - **Reviewer trust** — even on the self/claude-* path, the reviewer subagent still consumes untrusted diff content; rely on the boundary markers and the "do NOT modify any files" instruction.
 
+### Why W011 and W012 still appear
+
+Local scanners (e.g. `snyk-agent-scan`) flag this skill with `W011` (untrusted external command output ingested via `gh pr view` / `gh pr diff`) and `W012` (external-CLI handoff to copilot/codex/gemini) heuristically — based on the *presence* of those patterns, not on absence of mitigation. The current SKILL.md mitigates the underlying risks via the **Untrusted-content boundary markers**, **Stdin transport for external CLIs**, and **Argument validation** items above (allowlisted regex on `--pr` / `--branch` arguments before any command runs). The findings are pinned in `evals/security/peer-review.baseline.json` so CI gates on regressions, not the existing baseline. Removing the flags would require removing the PR-target and external-CLI features themselves, not adding hardening.
+
 ## Process
 
 ### 1. Parse Arguments
@@ -101,6 +105,8 @@ Parse `$ARGUMENTS` per the Arguments section above. Set `model` to `self` if not
 - `$FOCUS` (from `--focus TOPIC`): if `--focus` was provided, require the topic to be non-empty. If empty or whitespace-only, error: `--focus requires a non-empty topic` and stop.
 
 ### 2. Collect Content
+
+> See [Security model](#security-model) for the threat model, mitigations, and residual risks.
 
 Execute the appropriate collection command:
 

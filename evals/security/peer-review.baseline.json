@@ -2,7 +2,7 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "peer-review",
-  "skill_version": "1.10",
+  "skill_version": "1.11",
   "findings": [
     {"id": "W011", "severity": "high"},
     {"id": "W012", "severity": "high"}
