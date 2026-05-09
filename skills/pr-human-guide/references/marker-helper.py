@@ -13,7 +13,6 @@ this script is generated or invoked from an interactive zsh session.
 
 import argparse
 import re
-import sys
 
 OPEN = "<" + chr(33) + "-- pr-human-guide -->"
 CLOSE = "<" + chr(33) + "-- /pr-human-guide -->"
