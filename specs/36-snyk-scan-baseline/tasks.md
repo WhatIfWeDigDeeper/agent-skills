@@ -13,9 +13,9 @@
 For each of the four flagged skills, run the scanner once and capture the current finding set into a baseline file.
 
 - [x] **1.1** Run `uvx snyk-agent-scan@latest --skills skills/peer-review/SKILL.md` and record the printed findings (confirmed locally: W011 high, W012 high). Write `evals/security/peer-review.baseline.json` per the schema in plan.md "Deliverable A".
-- [ ] **1.2** Same for `skills/ship-it/SKILL.md` — placeholder baseline drafted with `notes: "BASELINE NEEDS USER VERIFICATION"`. Refresh via `bash evals/security/scan.sh --update-baselines --confirm` once the harness lands.
-- [ ] **1.3** Same for `skills/pr-comments/SKILL.md` — placeholder baseline drafted (same caveat).
-- [ ] **1.4** Same for `skills/pr-human-guide/SKILL.md` — placeholder baseline drafted with empty findings (same caveat). Agent Trust Hub findings are addressed in spec 37, not this baseline.
+- [x] **1.2** Same for `skills/ship-it/SKILL.md` — placeholder baseline drafted with `notes: "BASELINE NEEDS USER VERIFICATION"`. Refresh via `bash evals/security/scan.sh --update-baselines --confirm` once the harness lands.
+- [x] **1.3** Same for `skills/pr-comments/SKILL.md` — placeholder baseline drafted (same caveat).
+- [x] **1.4** Same for `skills/pr-human-guide/SKILL.md` — placeholder baseline drafted with empty findings (same caveat). Agent Trust Hub findings are addressed in spec 37, not this baseline.
 - [x] **1.5** Validate every JSON file parses: `python3 -c 'import json; [json.load(open(f"evals/security/{s}.baseline.json")) for s in ["peer-review","ship-it","pr-comments","pr-human-guide"]]'` — passes.
 
 ---
@@ -78,14 +78,14 @@ For each of the four flagged skills, run the scanner once and capture the curren
 
 *Fresh-context consistency pass before ship.*
 
-- [ ] **8.1** Commit Phases 1–7 on branch `security-baseline`: `feat(security): scanner baseline + harness + Security model template (spec 36)`.
+- [x] **8.1** Commit Phases 1–7 on branch `security-baseline`: `feat(security): scanner baseline + harness + Security model template (spec 36)`.
 - [ ] **8.2** Run `/peer-review --branch security-baseline`. Apply valid findings. Loop until zero valid findings or iteration cap 4. Record per-iteration summary inline.
 
 ---
 
 ## Phase 9: Ship
 
-- [ ] **9.1** Push branch (`git push -u origin HEAD`), open PR.
+- [x] **9.1** Push branch (`git push -u origin HEAD`), open PR.
 - [ ] **9.2** Immediately invoke `/pr-comments {pr_number}` per project convention. Loop until clean.
 - [ ] **9.3** Run `/pr-human-guide` to annotate the PR for human reviewers.
 - [ ] **9.4** Verify CI green via `gh pr checks {pr_number}`. Confirm `security-scan` job passed.
