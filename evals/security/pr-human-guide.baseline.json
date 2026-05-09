@@ -2,8 +2,8 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "pr-human-guide",
-  "skill_version": "0.8",
+  "skill_version": "0.9",
   "findings": [],
   "captured_at": "2026-05-09",
-  "notes": "BASELINE NEEDS USER VERIFICATION. The skills.sh findings for pr-human-guide came from Gen Agent Trust Hub (a different scanner) and reported three HIGHs (shell injection, prompt injection, runtime codegen). Snyk Agent Scan output for pr-human-guide has not been captured yet; run `bash evals/security/scan.sh --update-baselines --confirm` after the harness lands to populate this file. Spec 37 addresses the Agent Trust Hub findings directly via SKILL.md changes; this baseline tracks Snyk specifically."
+  "notes": "Spec 37 addressed three Gen Agent Trust Hub HIGH findings: (1) shell injection on pr_number — added ^[1-9][0-9]{0,5}$ validation in Step 1; (2) prompt injection — added <untrusted_pr_content> boundary tags in Step 3; (3) runtime Python codegen — replaced inline codegen with static references/marker-helper.py. Snyk Agent Scan output has not been captured yet; run `bash evals/security/scan.sh --update-baselines --confirm` to populate from actual scanner output. W011 findings may appear (heuristic on gh pr view/diff) — add them here when confirmed."
 }

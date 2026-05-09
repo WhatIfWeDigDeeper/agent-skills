@@ -74,6 +74,7 @@ words:
   - parameterizes
   - parentheticals
   - PCRE
+  - pipefail
   - pipenv
   - Pipfile
   - prauthor
@@ -94,6 +95,7 @@ words:
   - rescan
   - runbooks
   - sandboxed
+  - SIGPIPE
   - skillname
   - skillshortname
   - snyk
