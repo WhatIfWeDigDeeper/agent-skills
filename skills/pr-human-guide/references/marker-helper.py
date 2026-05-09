@@ -7,9 +7,9 @@ Usage:
 Reads the current PR body from --body-file, the new guide block from
 --guide-file, writes the updated body to --out.
 
-Marker constants use chr(33) for '!' so this committed source file remains
-free of literal '<!--' tokens, which zsh history expansion would otherwise
-corrupt during edits or copies in an interactive shell.
+Marker constants use chr(33) for '!' so the OPEN/CLOSE strings are not
+present as literal tokens in the source — zsh history expansion would
+otherwise corrupt them during edits or copies in an interactive shell.
 """
 
 import argparse
