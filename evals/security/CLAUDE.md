@@ -8,7 +8,7 @@ This file provides guidance when working in `evals/security/`. It auto-loads in 
 
 ## Files
 
-- `scan.sh` — runs `uvx snyk-agent-scan@latest --skills <path>` per flagged skill, parses findings, diffs against the baseline. Exits 1 on regression.
+- `scan.sh` — runs `uvx snyk-agent-scan==0.5.1 --skills <path>` per flagged skill (the version is pinned in `scan.sh` via `SCANNER_PKG`; bump deliberately in a PR that also refreshes baselines), parses findings, diffs against the baseline. Exits 1 on regression.
 - `<skill>.baseline.json` — one per flagged skill. Schema: `scanner`, `scanner_version`, `skill`, `skill_version`, `findings: [{id, severity}]`, `captured_at`, optional `notes`.
 
 ## Rules

@@ -42,7 +42,7 @@ Findings are tracked by `id` + `severity` only — we deliberately do not pin th
 Bash script that:
 
 1. Iterates the four flagged skills (or `skills/*/SKILL.md` if extended later).
-2. Runs `uvx snyk-agent-scan@latest --skills <path>` per skill and parses the output for `[W### severity]:` lines.
+2. Runs `uvx snyk-agent-scan==0.5.1 --skills <path>` per skill (version pinned in `scan.sh` via `SCANNER_PKG`) and parses the output for `[W### severity]:` lines.
 3. Compares parsed `(id, severity)` pairs against `evals/security/<skill>.baseline.json`.
 4. Exits 0 when the parsed set is a subset of the baseline (no new findings, no severity escalation).
 5. Exits 1 with a clear diff when a *new* finding appears OR when an existing finding escalates severity. Pre-existing baseline findings that disappear are reported but do **not** fail (improvements are good).

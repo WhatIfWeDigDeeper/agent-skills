@@ -32,7 +32,6 @@ words:
   - EBADPLATFORM
   - EISDIR
   - elif
-  - Emain
   - endswith
   - ensurepip
   - EPERM

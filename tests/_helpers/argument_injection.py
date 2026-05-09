@@ -64,9 +64,12 @@ ADVERSARIAL_TEXT_ARGS = [
     # Path-traversal-flavored
     "../../etc/passwd",
     "$HOME/.ssh/id_rsa",
-    # Unicode / homoglyphs (escape form, see note above)
-    "main\u200B",    # zero-width space
-    "\u202Emain",    # RTL override prefix
+    # Unicode / homoglyphs (escape form, see note above). Letters that follow
+    # a `\uXXXX` escape are concatenated separately so spellcheckers do not see
+    # a single "escape + letters" token (cspell would otherwise flag the
+    # joined identifier as an unknown word).
+    "main" + "\u200B",    # zero-width space
+    "\u202E" + "main",    # RTL override prefix
     # Empty / whitespace-only
     "",
     "  ",

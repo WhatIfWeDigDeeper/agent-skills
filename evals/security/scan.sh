@@ -100,12 +100,18 @@ print(json.dumps(unique))
 }
 
 # Read baseline finding-set as a sorted JSON array.
+# A missing baseline is a hard error: every flagged skill must have an explicit
+# baseline file (even when findings are empty) so an accidentally deleted or
+# renamed baseline cannot silently pass the gate.
 read_baseline() {
   local skill="$1"
   local file="${BASELINE_DIR}/${skill}.baseline.json"
   if [[ ! -f "$file" ]]; then
-    echo "[]"
-    return
+    echo "missing baseline file: $file" >&2
+    echo "  Every flagged skill must have an explicit baseline. Run" >&2
+    echo "  \`bash evals/security/scan.sh --update-baselines --confirm\` to create one" >&2
+    echo "  (write \"findings\": [] for zero-finding skills) and commit it in this PR." >&2
+    return 2
   fi
   python3 - "$file" <<'PYEOF'
 import json, sys
@@ -208,7 +214,7 @@ for skill in "${SKILLS[@]}"; do
     continue
   fi
 
-  baseline="$(read_baseline "$skill")"
+  baseline="$(read_baseline "$skill")" || { EXIT_CODE=2; continue; }
   if ! diff_findings "$skill" "$scanned" "$baseline"; then
     EXIT_CODE=1
   fi
