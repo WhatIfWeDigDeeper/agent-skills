@@ -1,0 +1,82 @@
+name: security-scan
+
+# Runs the snyk-agent-scan baseline check on PRs that touch any
+# skills/**/SKILL.md or the security-scan harness itself. The harness
+# itself iterates the four currently-flagged skills (peer-review, ship-it,
+# pr-comments, pr-human-guide) — see SKILLS in evals/security/scan.sh — but
+# the trigger fires on every SKILL.md so a new flagged skill added later
+# only requires updating SKILLS, not this file. The script exits 1 only on
+# regressions (new findings or severity escalations); pre-existing findings
+# are accepted by the baseline. See evals/security/CLAUDE.md.
+#
+# This workflow is read-only with respect to GitHub event payloads — it does
+# NOT interpolate any `${{ github.event.* }}` value into a `run:` step, so the
+# common workflow-injection vector does not apply here.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/**/SKILL.md'
+      - 'evals/security/**'
+      - '.github/workflows/security-scan.yml'
+
+permissions:
+  contents: read
+  actions: write  # actions/cache@v4 needs read for restore + write for save
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      # Extract the scanner version from evals/security/scan.sh so the cache
+      # key derives from the single source of truth (SCANNER_PKG). Bumping
+      # SCANNER_PKG in scan.sh automatically invalidates the cache here —
+      # no parallel edit to this workflow file is required.
+      - name: Extract scanner version
+        id: scanner-version
+        run: |
+          version=$(grep -E '^SCANNER_PKG=' evals/security/scan.sh | sed -E 's/.*"snyk-agent-scan==([^"]+)".*/\1/')
+          if [[ -z "$version" ]]; then
+            echo "failed to extract scanner version from evals/security/scan.sh" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # Explicit cache step keyed on the scanner version pinned in
+      # evals/security/scan.sh (SCANNER_PKG). We deliberately do not use
+      # setup-uv's built-in cache (enable-cache: true), because its key is
+      # tied to lockfile/pyproject hashes — neither of which reflect the
+      # SCANNER_PKG pin that actually determines what gets installed.
+      # Keying the cache on the scanner version means a SCANNER_PKG bump
+      # invalidates the cache cleanly; otherwise stale `uvx` artifacts
+      # could mask version-dependent behavior changes.
+      - name: Cache uvx-installed scanner
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-snyk-agent-scan-${{ steps.scanner-version.outputs.version }}
+          restore-keys: |
+            uv-snyk-agent-scan-
+
+      - name: Run security scan
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: bash evals/security/scan.sh
+
+      - name: Print scan output on failure
+        if: failure()
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: bash evals/security/scan.sh --scan-only || true

@@ -1,0 +1,11 @@
+{
+  "scanner": "snyk-agent-scan",
+  "scanner_version": "0.5.1",
+  "skill": "pr-comments",
+  "skill_version": "1.40",
+  "findings": [
+    {"id": "W011", "severity": "medium"}
+  ],
+  "captured_at": "2026-05-09",
+  "notes": "BASELINE NEEDS USER VERIFICATION. Inferred from skills.sh page (Snyk W011, severity MEDIUM, risk score 0.90). Run `bash evals/security/scan.sh --update-baselines --confirm` after the harness lands to capture the real local scanner output and replace this placeholder."
+}

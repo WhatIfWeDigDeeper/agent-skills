@@ -1,0 +1,12 @@
+{
+  "scanner": "snyk-agent-scan",
+  "scanner_version": "0.5.1",
+  "skill": "peer-review",
+  "skill_version": "1.10",
+  "findings": [
+    {"id": "W011", "severity": "high"},
+    {"id": "W012", "severity": "high"}
+  ],
+  "captured_at": "2026-05-09",
+  "notes": "Confirmed via local `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` on 2026-05-09. Both findings persist despite spec 30 + spec 34 hardening; the scanner is heuristic on `gh pr view`/`gh pr diff` (W011) and external-CLI handoff (W012). Mitigations are documented in skills/peer-review/SKILL.md `## Security model`."
+}

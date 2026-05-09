@@ -16,6 +16,7 @@ words:
   - blockquotes
   - bunx
   - cmdline
+  - codegen
   - codepoints
   - commenters
   - conftest
@@ -38,7 +39,9 @@ words:
   - evals
   - exfiltration
   - fastapi
+  - finditer
   - frontmatter
+  - fullwidth
   - geminicli
   - GHSA
   - githubcopilot
@@ -47,7 +50,9 @@ words:
   - hardlink
   - healthz
   - heredocs
+  - homoglyphs
   - informationally
+  - isoformat
   - lockfiles
   - lookarounds
   - metacharacter
@@ -66,6 +71,7 @@ words:
   - oneline
   - opusplan
   - osascript
+  - parameterizes
   - parentheticals
   - PCRE
   - pipenv
@@ -90,12 +96,14 @@ words:
   - sandboxed
   - skillname
   - skillshortname
+  - snyk
   - splitlines
   - startswith
   - stddev
   - stddevs
   - stdev
   - submodel
+  - subsetted
   - subshell
   - substeps
   - tfvars

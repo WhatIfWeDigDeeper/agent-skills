@@ -90,6 +90,15 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 
 **Do not pipe `npx cspell` through `grep -v`** — if the npm cache has an EPERM error, filtering output with `grep -v "npm error"` silently swallows the failure, making it appear as "No matches found" when cspell never ran. Report the failure explicitly and tell the user to run `! npx cspell <files>` directly to fix the cache first.
 
+## Security scanning
+
+`evals/security/` pins per-skill `snyk-agent-scan` output so CI catches *new* findings without forcing pre-existing ones to be fixed first. See `evals/security/CLAUDE.md` for directory rules.
+
+- **Refresh the baseline in the same PR as a security-relevant skill change.** Run `bash evals/security/scan.sh --update-baselines --confirm` and commit the updated `evals/security/<skill>.baseline.json`. Drifted baselines silently mask future regressions.
+- **Removing a finding from a baseline requires a PR-comment justification** explaining why the underlying mitigation actually closed it (vs. the scanner moved on between versions).
+- **Severity escalations are regressions** — `medium` → `high` fails CI even when the finding ID is unchanged.
+- The shared `## Security model` section template lives at `specs/36-snyk-scan-baseline/template.md` — mirror it into the SKILL.md of any skill that ingests untrusted content, placed immediately above the first ingestion step.
+
 ## Code Review
 
 - **Before raising PR feedback, read existing review threads and replies on the touched code.** Do not restate issues that were already answered, intentionally accepted, or deferred to a linked follow-up issue unless later commits materially changed the code or invalidated the earlier resolution.
