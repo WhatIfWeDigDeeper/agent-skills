@@ -189,6 +189,15 @@ findings = json.loads(scanned_json)
 # the prior baseline if present — `--update-baselines` is a refresh, not a
 # reset, and erasing notes would silently drop the justifications attached
 # to accepted findings. Only the machine-generated fields are overwritten.
+#
+# Exception: the `BASELINE NEEDS USER VERIFICATION` sentinel marks
+# placeholder baselines that were inferred from skills.sh rather than
+# captured from a real local scan. Once `--update-baselines` runs against
+# real scanner output, the placeholder is satisfied — drop it so the
+# baseline doesn't display as unverified indefinitely. Any reviewer note
+# without that sentinel is treated as a deliberate justification and
+# carried forward unchanged.
+PLACEHOLDER_SENTINEL = "BASELINE NEEDS USER VERIFICATION"
 prior_notes = None
 if os.path.exists(file):
     try:
@@ -197,6 +206,8 @@ if os.path.exists(file):
         prior_notes = prior.get("notes")
     except (OSError, json.JSONDecodeError):
         prior_notes = None
+if prior_notes is not None and PLACEHOLDER_SENTINEL in prior_notes:
+    prior_notes = None
 out = {
     "scanner": "snyk-agent-scan",
     "scanner_version": scanner_version,
