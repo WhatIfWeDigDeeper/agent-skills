@@ -179,7 +179,11 @@ write_baseline() {
   local scanned_json="$2"
   local file="${BASELINE_DIR}/${skill}.baseline.json"
   local skill_version
-  skill_version="$(grep -E '^  version:' "${REPO_ROOT}/skills/${skill}/SKILL.md" | head -1 | sed -E 's/.*"([^"]+)".*/\1/')"
+  skill_version="$(grep -m1 -E '^  version:' "${REPO_ROOT}/skills/${skill}/SKILL.md" | sed -E 's/.*"([^"]+)".*/\1/')"
+  if [[ -z "$skill_version" ]]; then
+    echo "failed to extract version from skills/${skill}/SKILL.md" >&2
+    exit 1
+  fi
   python3 - "$skill" "$skill_version" "$scanned_json" "$file" "$SCANNER_PKG" <<'PYEOF'
 import json,os,sys,datetime
 skill, version, scanned_json, file, scanner_pkg = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]

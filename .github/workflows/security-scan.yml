@@ -23,6 +23,7 @@ on:
 
 permissions:
   contents: read
+  actions: write  # actions/cache@v4 needs read for restore + write for save
 
 jobs:
   security-scan:
