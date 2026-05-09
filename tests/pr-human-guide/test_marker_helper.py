@@ -116,7 +116,10 @@ class TestStrayMarkerStripping:
         assert new_guide in result
         # Append path leaves the smuggled OPEN in the prefix; this documents the
         # current behavior — strays are stripped only when canonical exists.
+        # The OPEN count of 2 (smuggled prefix + new_guide) enforces this — if
+        # append-path stripping is added later, this assertion will fail.
         assert result.endswith(new_guide)
+        assert result.count(OPEN) == 2
 
 
 class TestCRLFAnchoring:
