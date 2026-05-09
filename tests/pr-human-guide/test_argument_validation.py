@@ -21,10 +21,10 @@ PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}$")
 def validate_pr_number(value: str) -> bool:
     """Return True if value is a valid PR number per SKILL.md Step 1.
 
-    Strips a single leading '#' (so both '42' and '#42' are accepted), then
-    matches the cleaned value against PR_NUMBER_RE.
+    Strips surrounding whitespace, then a single leading '#' (so '42',
+    '#42', and '  42  ' all accepted), then matches against PR_NUMBER_RE.
     """
-    cleaned = str(value).removeprefix("#")
+    cleaned = str(value).strip().removeprefix("#")
     return bool(PR_NUMBER_RE.match(cleaned))
 
 
@@ -35,6 +35,10 @@ class TestValidPRNumbers:
 
     @pytest.mark.parametrize("value", ["#1", "#42", "#999"])
     def test_hash_prefix_accepted(self, value: str) -> None:
+        assert validate_pr_number(value) is True
+
+    @pytest.mark.parametrize("value", ["  42", "42  ", "  42  ", "  #42  "])
+    def test_surrounding_whitespace_stripped(self, value: str) -> None:
         assert validate_pr_number(value) is True
 
 
