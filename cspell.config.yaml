@@ -32,6 +32,7 @@ words:
   - EBADPLATFORM
   - EISDIR
   - elif
+  - Emain
   - endswith
   - ensurepip
   - EPERM
@@ -39,6 +40,7 @@ words:
   - evals
   - exfiltration
   - fastapi
+  - finditer
   - frontmatter
   - fullwidth
   - geminicli

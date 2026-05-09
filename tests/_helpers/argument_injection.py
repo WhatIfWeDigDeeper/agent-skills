@@ -29,7 +29,7 @@ ADVERSARIAL_ARGS = [
     "  ",
     "\t",
     "",
-    # Non-numeric
+    # Disallowed numeric values / formats (regex must reject each)
     "abc",
     "--malicious",
     "-1",
@@ -37,11 +37,12 @@ ADVERSARIAL_ARGS = [
     "1.5",
     "1e10",
     "0x1",
-    # Unicode / homoglyphs
-    "１",            # fullwidth digit one (U+FF11)
-    "1​",       # trailing zero-width space
-    "1–",       # en-dash splice
-    "‮1",       # RTL override prefix
+    # Unicode / homoglyphs (use \uXXXX escapes; raw glyphs render invisibly in
+    # most editors and cspell/lint tooling, so the escape form is unambiguous).
+    "\uFF11",        # fullwidth digit one
+    "1\u200B",       # trailing zero-width space
+    "1\u2013",       # en-dash splice
+    "\u202E1",       # RTL override prefix
     # Oversized
     "1" * 10_000,
 ]
@@ -63,9 +64,9 @@ ADVERSARIAL_TEXT_ARGS = [
     # Path-traversal-flavored
     "../../etc/passwd",
     "$HOME/.ssh/id_rsa",
-    # Unicode / homoglyphs
-    "main​",
-    "‮main",
+    # Unicode / homoglyphs (escape form, see note above)
+    "main\u200B",    # zero-width space
+    "\u202Emain",    # RTL override prefix
     # Empty / whitespace-only
     "",
     "  ",

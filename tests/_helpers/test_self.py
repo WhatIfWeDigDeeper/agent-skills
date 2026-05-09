@@ -36,8 +36,10 @@ def test_text_args_metacharacter_coverage():
 
 def test_unicode_homoglyph_coverage():
     joined = "".join(ADVERSARIAL_ARGS) + "".join(ADVERSARIAL_TEXT_ARGS)
-    # Fullwidth digit, zero-width space, en-dash, RTL override
-    assert "１" in joined
-    assert "​" in joined
-    assert "–" in joined
-    assert "‮" in joined
+    # Fullwidth digit one, zero-width space, en-dash, RTL override.
+    # Use \uXXXX escapes here for the same readability reason as in
+    # argument_injection.py — raw glyphs render invisibly in most editors.
+    assert "\uFF11" in joined
+    assert "\u200B" in joined
+    assert "\u2013" in joined
+    assert "\u202E" in joined

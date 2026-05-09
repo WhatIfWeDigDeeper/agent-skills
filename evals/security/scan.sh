@@ -77,10 +77,26 @@ scan_skill() {
   # Parse lines of the form "  ● [W011 high]: ..." or "  ● [W007 medium]: ..."
   # The scanner indents the bullet with whitespace; the bracketed token is
   # always [W### severity] where severity is one of low/medium/high/critical.
-  printf '%s\n' "$raw" \
-    | grep -oE '\[W[0-9]{3} (low|medium|high|critical)\]' \
-    | sed -E 's/\[(W[0-9]{3}) (low|medium|high|critical)\]/{"id":"\1","severity":"\2"}/' \
-    | python3 -c 'import json,sys; print(json.dumps(sorted([json.loads(line) for line in sys.stdin if line.strip()], key=lambda f:(f["id"],f["severity"]))))'
+  # Parsing happens in Python so a zero-finding scan (no regex matches) is a
+  # valid outcome rather than a `set -e` abort from grep returning exit 1.
+  printf '%s\n' "$raw" | python3 -c '
+import json, re, sys
+pattern = re.compile(r"\[(W[0-9]{3}) (low|medium|high|critical)\]")
+findings = sorted(
+    ({"id": m.group(1), "severity": m.group(2)} for m in pattern.finditer(sys.stdin.read())),
+    key=lambda f: (f["id"], f["severity"]),
+)
+# Deduplicate identical (id, severity) pairs that appear multiple times in scan output.
+seen = set()
+unique = []
+for f in findings:
+    key = (f["id"], f["severity"])
+    if key in seen:
+        continue
+    seen.add(key)
+    unique.append(f)
+print(json.dumps(unique))
+'
 }
 
 # Read baseline finding-set as a sorted JSON array.
@@ -91,12 +107,17 @@ read_baseline() {
     echo "[]"
     return
   fi
-  python3 -c "
-import json,sys
-d=json.load(open('${file}'))
-findings=d.get('findings',[])
-print(json.dumps(sorted([{'id':f['id'],'severity':f['severity']} for f in findings], key=lambda f:(f['id'],f['severity']))))
-"
+  python3 - "$file" <<'PYEOF'
+import json, sys
+file = sys.argv[1]
+with open(file) as fh:
+    d = json.load(fh)
+findings = d.get("findings", [])
+print(json.dumps(sorted(
+    [{"id": f["id"], "severity": f["severity"]} for f in findings],
+    key=lambda f: (f["id"], f["severity"]),
+)))
+PYEOF
 }
 
 # Compare two sorted JSON arrays of {id, severity}; print regressions/improvements.
