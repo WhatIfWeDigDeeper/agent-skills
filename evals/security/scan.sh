@@ -33,8 +33,9 @@ BASELINE_DIR="${REPO_ROOT}/evals/security"
 if [[ -z "${SNYK_TOKEN:-}" ]]; then
   echo "security-scan: SNYK_TOKEN is not set; scanner cannot authenticate." >&2
   echo "  Skipping scan. Set the SNYK_TOKEN repository secret to enable the CI gate," >&2
-  echo "  or run \`bash evals/security/scan.sh --update-baselines --confirm\` locally" >&2
-  echo "  to refresh baselines before merge." >&2
+  echo "  or export SNYK_TOKEN locally and run" >&2
+  echo "  \`bash evals/security/scan.sh --update-baselines --confirm\` to refresh baselines" >&2
+  echo "  before merge (without the token exported, the local run will skip the same way)." >&2
   if [[ "${SECURITY_SCAN_REQUIRE_TOKEN:-0}" == "1" ]]; then
     exit 2
   fi
@@ -199,6 +200,10 @@ print(f"  wrote {file}")
 PYEOF
 }
 
+# EXIT_CODE preserves precedence: 2 (operational failure) > 1 (regression) > 0 (clean).
+# A regression set after an operational failure must not downgrade the exit code,
+# otherwise CI would surface a soft "regression detected" message when the real
+# problem is that the scan never produced trustworthy output.
 EXIT_CODE=0
 for skill in "${SKILLS[@]}"; do
   echo "=== ${skill} ==="
@@ -216,12 +221,15 @@ for skill in "${SKILLS[@]}"; do
 
   baseline="$(read_baseline "$skill")" || { EXIT_CODE=2; continue; }
   if ! diff_findings "$skill" "$scanned" "$baseline"; then
-    EXIT_CODE=1
+    [[ "$EXIT_CODE" -eq 0 ]] && EXIT_CODE=1
   fi
 done
 
-if [[ "$EXIT_CODE" -ne 0 ]]; then
+if [[ "$EXIT_CODE" -eq 1 ]]; then
   echo "" >&2
   echo "security-scan: regression(s) detected. Either fix the regression or update the baseline with a PR-comment justification (per evals/security/CLAUDE.md)." >&2
+elif [[ "$EXIT_CODE" -eq 2 ]]; then
+  echo "" >&2
+  echo "security-scan: scanner failure or missing baseline (see errors above). The gate did not run to completion; address the operational error and rerun before relying on the result." >&2
 fi
 exit "$EXIT_CODE"

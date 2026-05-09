@@ -57,7 +57,7 @@ For each of the four flagged skills, run the scanner once and capture the curren
 - [x] **6.1** Create `evals/security/CLAUDE.md` per "Deliverable F". Uses the existing `# <Name>` + auto-load preamble pattern from `evals/CLAUDE.md` and `tests/CLAUDE.md`.
 - [x] **6.2** Add `## Security scanning` section to root `CLAUDE.md` between `## Spell Checking` and `## Code Review`.
 - [x] **6.3** Mirror the same section into `.github/copilot-instructions.md`.
-- [ ] **6.4** Update root `README.md` — add `evals/security/` to the repo-structure tree.
+- [x] **6.4** _Deferred — `README.md` has no repo-structure tree to update._ The current `README.md` is a skill-catalog table and prose, not a tree/ASCII layout. If one is added later, mirror `evals/security/` into it then; tracked here so plan.md and tasks.md stay aligned.
 - [x] **6.5** `cspell.config.yaml` — add new tokens introduced by this PR alphabetically (`snyk`, `codegen`, `fullwidth`, `homoglyphs`, `parameterizes`, `subsetted`, `isoformat`).
 
 ---

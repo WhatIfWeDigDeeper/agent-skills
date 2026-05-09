@@ -112,7 +112,7 @@ Add `snyk`, plus any new tokens introduced by this PR (e.g., `untrusted_pr_body`
 | `CLAUDE.md` | update — add `## Security scanning` section |
 | `.github/copilot-instructions.md` | update — mirror the new section |
 | `cspell.config.yaml` | update — add `snyk` (and any other flagged tokens) |
-| `README.md` | update — note `evals/security/` in the repo-structure diagram |
+| `README.md` | _no change in this spec_ — the repo's `README.md` does not currently include a repo-structure diagram, so there is nothing to update. If a tree/layout block is added later, mirror `evals/security/` into it then. |
 
 ## Out of Scope
 

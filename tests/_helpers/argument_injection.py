@@ -1,8 +1,9 @@
 """Adversarial argument fixtures shared across security-hardening test suites.
 
-Each `tests/<skill>/test_argument_validation.py` imports the constants here and
-parameterizes its validation assertions across them. New attack vectors should
-be added to the appropriate constant rather than duplicated per skill.
+Downstream `tests/<skill>/test_argument_validation.py` test suites (added by
+specs 37–40) will import the constants here and parameterize their validation
+assertions across them. New attack vectors should be added to the appropriate
+constant rather than duplicated per skill.
 """
 
 # Adversarial values to feed where a NUMERIC argument is expected
