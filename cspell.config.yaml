@@ -51,6 +51,7 @@ words:
   - healthz
   - heredocs
   - homoglyphs
+  - idempotently
   - informationally
   - isoformat
   - lockfiles
@@ -74,6 +75,7 @@ words:
   - parameterizes
   - parentheticals
   - PCRE
+  - pipefail
   - pipenv
   - Pipfile
   - prauthor
@@ -92,8 +94,10 @@ words:
   - repolls
   - rerequest
   - rescan
+  - rootdir
   - runbooks
   - sandboxed
+  - SIGPIPE
   - skillname
   - skillshortname
   - snyk
