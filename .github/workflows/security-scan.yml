@@ -39,6 +39,20 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
+      # Extract the scanner version from evals/security/scan.sh so the cache
+      # key derives from the single source of truth (SCANNER_PKG). Bumping
+      # SCANNER_PKG in scan.sh automatically invalidates the cache here —
+      # no parallel edit to this workflow file is required.
+      - name: Extract scanner version
+        id: scanner-version
+        run: |
+          version=$(grep -E '^SCANNER_PKG=' evals/security/scan.sh | sed -E 's/.*"snyk-agent-scan==([^"]+)".*/\1/')
+          if [[ -z "$version" ]]; then
+            echo "failed to extract scanner version from evals/security/scan.sh" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       # Explicit cache step keyed on the scanner version pinned in
       # evals/security/scan.sh (SCANNER_PKG). We deliberately do not use
       # setup-uv's built-in cache (enable-cache: true), because its key is
@@ -51,7 +65,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/uv
-          key: uv-snyk-agent-scan-0.5.1
+          key: uv-snyk-agent-scan-${{ steps.scanner-version.outputs.version }}
           restore-keys: |
             uv-snyk-agent-scan-
 
