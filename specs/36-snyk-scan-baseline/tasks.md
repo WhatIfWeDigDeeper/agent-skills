@@ -27,7 +27,7 @@ For each of the four flagged skills, run the scanner once and capture the curren
 - [x] **2.3** `--scan-only` flag prints parsed scanner output without diffing.
 - [x] **2.4** `--update-baselines` flag rewrites baselines; refuses without `--confirm`.
 - [ ] **2.5** Locally: run `bash evals/security/scan.sh` — verify exits 0, then edit a baseline to delete one entry, rerun — verify exits 1. Revert. (Deferred — runs in CI and during the user's `--update-baselines --confirm` step in Phase 1.)
-- [ ] **2.6** Document running with `bash evals/security/scan.sh` rather than relying on the executable bit (sandbox mode may not allow `chmod +x`).
+- [x] **2.6** Document running with `bash evals/security/scan.sh` rather than relying on the executable bit (sandbox mode may not allow `chmod +x`).
 
 ---
 
@@ -86,7 +86,7 @@ For each of the four flagged skills, run the scanner once and capture the curren
 ## Phase 9: Ship
 
 - [x] **9.1** Push branch (`git push -u origin HEAD`), open PR.
-- [ ] **9.2** Immediately invoke `/pr-comments {pr_number}` per project convention. Loop until clean.
+- [x] **9.2** Immediately invoke `/pr-comments {pr_number}` per project convention. Loop until clean.
 - [ ] **9.3** Run `/pr-human-guide` to annotate the PR for human reviewers.
 - [ ] **9.4** Verify CI green via `gh pr checks {pr_number}`. Confirm `security-scan` job passed.
 - [ ] **9.5** A human reviewer must approve before merge — bot approval alone is not a substitute (per root `CLAUDE.md`).

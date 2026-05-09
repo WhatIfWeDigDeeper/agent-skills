@@ -93,6 +93,8 @@ uv run --with pytest pytest tests/
 - **Refresh the baseline in the same PR as a security-relevant skill change.** Run `bash evals/security/scan.sh --update-baselines --confirm` and commit the updated `evals/security/<skill>.baseline.json`. Drifted baselines silently mask future regressions.
 - **Removing a finding from a baseline requires a PR-comment justification** explaining why the underlying mitigation actually closed it (vs. the scanner moved on between versions).
 - **Severity escalations are regressions** — `medium` → `high` fails CI even when the finding ID is unchanged.
+- **Adding a new skill that ingests untrusted content** — add a baseline file in the same PR. Use the same schema. Even if the scan returns zero findings, write `"findings": []` so the harness knows about the skill.
+- **Bumping the scanner version** — pin the new version in `scan.sh` (e.g., `SCANNER_PKG="snyk-agent-scan==0.6.0"`), refresh all baselines, and call out the version change in the PR description. Heuristics may shift between scanner releases; expect baseline churn.
 - The shared `## Security model` section template lives at `specs/36-snyk-scan-baseline/template.md` — mirror it into the SKILL.md of any skill that ingests untrusted content, placed immediately above the first ingestion step.
 
 ## Code Review
