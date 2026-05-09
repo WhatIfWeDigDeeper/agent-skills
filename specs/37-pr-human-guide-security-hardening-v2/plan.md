@@ -19,11 +19,11 @@ This spec fixes all three findings and refreshes the baseline.
 
 ### A. `skills/pr-human-guide/SKILL.md` changes
 
-1. **Step 1 — Argument validation**: after detecting `pr_number` (whether from `$ARGUMENTS` or from `gh pr view`), require it matches `^[1-9][0-9]*$`. Reject with error message before any shell call:
+1. **Step 1 — Argument validation**: when `pr_number` is supplied explicitly via `$ARGUMENTS`, strip a single leading `#` (so `#42` is accepted) and require the cleaned value to match `^[1-9][0-9]{0,5}$` (capped at 6 digits to bound DoS-via-oversized-input from `ADVERSARIAL_ARGS`). Reject with error message before any shell call:
    ```
    Invalid PR number: <value>. Must be a positive integer.
    ```
-   Pattern is identical to `skills/peer-review/SKILL.md` Step 1 validation.
+   PR numbers returned by `gh pr view --json number` are GitHub-issued integers and are not re-validated. Pattern is identical to `skills/peer-review/SKILL.md` Step 1 validation.
 
 2. **`## Security model` section**: new top-level section placed between `## Arguments` and `## Process`. Follows `specs/36-snyk-scan-baseline/template.md` structure:
    - `### Threat model` — PR metadata, diff/file paths, fake markers, shell metacharacters in supplied PR number
@@ -56,15 +56,20 @@ Logic:
 
 ### C. `tests/pr-human-guide/test_argument_validation.py` (new)
 
-Uses `tests/_helpers/argument_injection.py`:
+Uses `tests/_helpers/argument_injection.py`. Pytest's rootdir auto-discovery
+puts each test file's parent directory on `sys.path` but not sibling
+directories, so the test inserts `tests/_helpers/` explicitly to mirror the
+`from argument_injection import ...` pattern used in
+`tests/_helpers/test_self.py`:
 
 ```python
-from tests._helpers.argument_injection import ADVERSARIAL_ARGS
+sys.path.insert(0, str(Path(__file__).parent.parent / "_helpers"))
+from argument_injection import ADVERSARIAL_ARGS
 ```
 
-Asserts that a `validate_pr_number(value)` function (defined in conftest or inline, using `^[1-9][0-9]*$`) returns `False` for every entry in `ADVERSARIAL_ARGS`.
+Asserts that a `validate_pr_number(value)` function (defined inline, stripping a single leading `#` then matching `^[1-9][0-9]{0,5}$`) returns `False` for every entry in `ADVERSARIAL_ARGS`.
 
-Also asserts that valid values (`"1"`, `"42"`, `"999"`) return `True`.
+Also asserts that valid values (`"1"`, `"42"`, `"999"`, `"#42"`) return `True`.
 
 ### D. `evals/security/pr-human-guide.baseline.json`
 

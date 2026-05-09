@@ -93,6 +93,7 @@ words:
   - repolls
   - rerequest
   - rescan
+  - rootdir
   - runbooks
   - sandboxed
   - SIGPIPE

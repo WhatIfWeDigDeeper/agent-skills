@@ -7,8 +7,9 @@ Usage:
 Reads the current PR body from --body-file, the new guide block from
 --guide-file, writes the updated body to --out.
 
-Marker constants use chr(33) for '!' to avoid zsh history expansion when
-this script is generated or invoked from an interactive zsh session.
+Marker constants use chr(33) for '!' so this committed source file remains
+free of literal '<!--' tokens, which zsh history expansion would otherwise
+corrupt during edits or copies in an interactive shell.
 """
 
 import argparse
@@ -36,8 +37,8 @@ def _find_replacement_bounds(body: str) -> tuple[int, int] | None:
         if close_pos == -1 or close_pos >= next_open:
             continue
         end = close_pos + len(CLOSE)
-        after_open = body[start + len(OPEN):].lstrip("\n")
-        if after_open.startswith("## Review Guide"):
+        after_open = body[start + len(OPEN):]
+        if re.match(r"\r?\n## Review Guide", after_open):
             anchored.append((start, end))
         complete.append((start, end))
 
@@ -60,9 +61,10 @@ def update_body(body: str, guide: str) -> str:
         after = after.replace(OPEN, "").replace(CLOSE, "")
         before = before.replace(OPEN, "").replace(CLOSE, "")
         return before + guide + after
-    # No existing block — append with a blank-line separator.
-    separator = "\n\n" if body and not body.endswith("\n\n") else ""
-    return body + separator + guide
+    # No existing block — append with a single blank-line separator.
+    if not body or not body.strip():
+        return guide
+    return body.rstrip("\n") + "\n\n" + guide
 
 
 def main() -> None:
