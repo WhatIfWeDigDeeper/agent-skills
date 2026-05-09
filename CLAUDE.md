@@ -92,7 +92,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 
 ## Security scanning
 
-`evals/security/` pins per-skill output of `snyk-agent-scan` so CI catches *new* findings without forcing every existing finding to be fixed first. Many findings (Snyk W011/W012) are scanner heuristics that fire on patterns the skill genuinely needs (`gh pr view`, external CLI handoff). The baseline approach lets us ship well-mitigated skills while preventing silent expansion of the finding surface. See `evals/security/CLAUDE.md` for the full directory rules.
+`evals/security/` pins per-skill `snyk-agent-scan` output so CI catches *new* findings without forcing pre-existing ones to be fixed first. See `evals/security/CLAUDE.md` for directory rules.
 
 - **Refresh the baseline in the same PR as a security-relevant skill change.** Run `bash evals/security/scan.sh --update-baselines --confirm` and commit the updated `evals/security/<skill>.baseline.json`. Drifted baselines silently mask future regressions.
 - **Removing a finding from a baseline requires a PR-comment justification** explaining why the underlying mitigation actually closed it (vs. the scanner moved on between versions).
