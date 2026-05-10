@@ -1,0 +1,36 @@
+name: Test Ship It Skill
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/ship-it/**'
+      - 'tests/ship-it/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/ship-it/**'
+      - 'tests/ship-it/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Run tests
+        run: uv run --with pytest pytest tests/ship-it/ -v
+
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-fixtures
+          path: tests/ship-it/fixtures/
+          retention-days: 5
