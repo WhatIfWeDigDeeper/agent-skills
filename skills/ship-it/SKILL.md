@@ -195,7 +195,7 @@ If a PR already exists:
 
 ```bash
 PR_BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/ship-it-pr-body-XXXXXX")
-trap 'rm -f "$PR_BODY_FILE"' EXIT INT TERM
+trap 'rm -f "$PR_BODY_FILE" "${PR_VIEW_STDERR:-}"' EXIT INT TERM
 cat > "$PR_BODY_FILE" <<'EOF'
 <new body>
 EOF
@@ -210,7 +210,7 @@ Otherwise, create the PR. Always pass the body via `--body-file` (never `--body`
 
 ```bash
 PR_BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/ship-it-pr-body-XXXXXX")
-trap 'rm -f "$PR_BODY_FILE"' EXIT INT TERM
+trap 'rm -f "$PR_BODY_FILE" "${PR_VIEW_STDERR:-}"' EXIT INT TERM
 cat > "$PR_BODY_FILE" <<'EOF'
 ## Summary
 - [2-3 bullet points describing the changes]
