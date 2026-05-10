@@ -11,6 +11,12 @@ SKILL_MD = SKILL_DIR / "SKILL.md"
 
 @pytest.fixture(scope="module")
 def skill_content() -> str:
+    if not SKILL_MD.exists():
+        pytest.fail(
+            f"Missing {SKILL_MD} — fixture cannot read SKILL.md. "
+            "If the path or layout changed, update SKILL_DIR/SKILL_MD at "
+            "the top of this file."
+        )
     return SKILL_MD.read_text()
 
 
@@ -50,6 +56,32 @@ class TestSecurityModelSection:
         assert sec_match.start() < gh_match.start(), (
             "`## Security model` must appear before the first "
             "`gh pr view --json url,title,body` ingestion."
+        )
+
+    def test_security_model_immediately_above_step6(self, skill_content):
+        """`## Security model` must sit immediately above Step 6.
+
+        Ordering alone (the prior test) would still pass if the section drifted
+        far earlier in the file or if other top-level sections were inserted
+        between Security model and Step 6. Tightening: between
+        `## Security model` and `### 6. Create Pull Request`, the only level-2
+        heading allowed is `## Process (continued)` — the section header that
+        wraps Step 6 itself. Any other intervening `## ` heading is a regression.
+        """
+        sec_match = re.search(r"(?m)^## Security model\s*$", skill_content)
+        step6_match = re.search(
+            r"(?m)^### 6\. Create Pull Request\s*$", skill_content
+        )
+        assert sec_match, "Missing `## Security model` heading"
+        assert step6_match, "Missing `### 6. Create Pull Request` heading"
+        between = skill_content[sec_match.end() : step6_match.start()]
+        intervening_h2 = re.findall(r"(?m)^## (?!Security model$).+$", between)
+        allowed = {"## Process (continued)"}
+        unexpected = [h for h in intervening_h2 if h not in allowed]
+        assert not unexpected, (
+            "`## Security model` must sit immediately above Step 6 "
+            "(only `## Process (continued)` is allowed between them); "
+            f"unexpected intervening level-2 heading(s): {unexpected}"
         )
 
 
