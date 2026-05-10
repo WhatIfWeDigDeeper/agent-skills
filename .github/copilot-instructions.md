@@ -96,6 +96,7 @@ uv run --with pytest pytest tests/
 - **Adding a new skill that ingests untrusted content** — add a baseline file in the same PR. Use the same schema. Even if the scan returns zero findings, write `"findings": []` so the harness knows about the skill.
 - **Bumping the scanner version** — pin the new version in `scan.sh` (e.g., `SCANNER_PKG="snyk-agent-scan==0.6.0"`), refresh all baselines, and call out the version change in the PR description. Heuristics may shift between scanner releases; expect baseline churn.
 - The shared `## Security model` section template lives at `specs/36-snyk-scan-baseline/template.md` — mirror it into the SKILL.md of any skill that ingests untrusted content, placed immediately above the first ingestion step.
+- **Pin doc-example tool invocations to the same version as the CI-pinned counterpart** (e.g., `uvx snyk-agent-scan==0.5.1` rather than `@latest`) when CI compares output against a baseline. `@latest` drifts from CI.
 
 ## Code Review
 
@@ -160,6 +161,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - **GitHub Actions `workflow_dispatch` inputs**: never use `${{ inputs.field }}` directly in `run:` (injection risk) — pass via `env: VAR: ${{ inputs.field }}` and reference `"$VAR"`. Sanitize before using in git refs.
 - **Don't `SendMessage`-retry a transient-failed `Agent` launch** — the resume path silently inherits the parent's model, not the Agent's `model:` parameter. Re-spawn instead. Verify with `message.model` in the agent's JSONL.
 - **Subagent JSONL transcripts at `~/.claude/projects/.../subagents/agent-*.jsonl` record every turn's `message.model`, `message.usage`, tool blocks, and timestamps** — per-subagent time/tokens/tool_calls/errors are recoverable; parse the JSONL rather than recording them as `null`.
+- **`gh run list --workflow=...` reports `headSha` from the dispatching ref** (e.g., `main`), not from `refs/pull/<n>/head` even when that's what the workflow checks out. Correlate runs by `createdAt` + the `pr_number` input.
 
 ## Available Skills
 
