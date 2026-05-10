@@ -9,7 +9,7 @@ compatibility: Requires git and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.7"
+  version: "0.8"
 ---
 
 # Ship: Branch, Commit, Push & PR
@@ -106,7 +106,7 @@ git push -u origin <branch-name>
 ```
 
 **If push fails:**
-- `rejected (non-fast-forward)` → the remote branch has commits locally missing. Run `git pull --rebase origin <branch-name>` then retry.
+- `rejected (non-fast-forward)` → the remote branch has commits locally missing. Run `git pull --rebase origin <branch-name>` then retry. If a PR with review comments already exists for this branch, use `git fetch origin && git merge origin/<branch-name>` instead — `--rebase` rewrites history and detaches inline review comments.
 - `permission denied` / `403` → the user lacks push access to this repo. Report and stop.
 - `remote: Repository not found` → the remote URL may be wrong or the repo doesn't exist. Report and stop.
 

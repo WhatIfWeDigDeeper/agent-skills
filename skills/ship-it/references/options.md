@@ -26,6 +26,6 @@ Use `multiSelect: true`. These can be combined. Skip this question if the user s
 
 When options are selected, apply them by adjusting the workflow:
 - **Commit only**: Stop after Step 3 (Stage & Commit). Skip push and PR creation.
-- **Push only**: Stop after Step 4 (Push). Skip PR creation.
+- **Push only**: Stop after Step 5 (Push). Skip PR creation.
 - **Draft PR**: Add `--draft` flag to `gh pr create`.
-- **Self-merge**: After creating the PR, run `gh pr merge --merge` and delete the branch.
+- **Self-merge**: After creating the PR, run `gh pr merge --squash --delete-branch`. Repos with merge-commit or rebase-merge policies should swap `--squash` for `--merge` or `--rebase` accordingly.
