@@ -5,15 +5,22 @@ Verifies the SKILL.md Step 1 / Arguments section requirements:
 - Any explicitly-supplied PR number must match ``^[1-9][0-9]{0,5}$`` (after
   stripping a single optional leading ``#`` and surrounding whitespace) before
   any shell call.
-- Any ``--max N`` (and backward-compatible ``--auto N``) value must match
-  ``^[1-9][0-9]{0,3}$`` before any shell call.
+- In **auto mode**, any ``--max N`` (and backward-compatible ``--auto N``)
+  value must match ``^[1-9][0-9]{0,3}$`` before the loop cap is applied;
+  ``parse_auto_flag`` raises ``ValueError`` on anything else. In ``--manual``
+  mode the supplied ``--max`` / ``--auto N`` value is consumed but discarded
+  without use (manual mode has no auto-loop to cap), so it never reaches a
+  shell call or a loop bound and is neither validated nor an error — the
+  ``validate_max_value`` regex itself is unconditional, but the *enforcement*
+  is auto-mode-scoped, matching SKILL.md.
 
-Both validators are exercised against the shared adversarial fixture list at
+The ``validate_pr_number`` / ``validate_max_value`` regexes are exercised
+against the shared adversarial fixture list at
 ``tests/_helpers/argument_injection.py`` (landed in spec 36). The validators
-themselves live in ``tests/pr-comments/conftest.py`` (``validate_pr_number`` /
-``validate_max_value``) so the rest of the suite — ``is_pr_number`` /
-``parse_pr_argument`` / ``parse_auto_flag`` — models the same spec-39 regexes
-and cannot drift back to the looser ``isdigit()`` behavior.
+themselves live in ``tests/pr-comments/conftest.py`` so the rest of the suite —
+``is_pr_number`` / ``parse_pr_argument`` / ``parse_auto_flag`` — models the
+same spec-39 regexes and cannot drift back to the looser ``isdigit()``
+behavior.
 """
 
 import sys
