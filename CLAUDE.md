@@ -78,6 +78,7 @@ Evals live under `evals/` at the repo root, not inside `skills/` — they are de
 - **GitHub Actions `workflow_dispatch` inputs**: never use `${{ inputs.field }}` directly in `run:` (injection risk) — pass via `env: VAR: ${{ inputs.field }}` and reference `"$VAR"`. Sanitize before using in git refs.
 - **Don't `SendMessage`-retry a transient-failed `Agent` launch** — the resume path silently inherits the parent's model, not the Agent's `model:` parameter. Re-spawn instead. Verify with `message.model` in the agent's JSONL.
 - **Subagent JSONL transcripts at `~/.claude/projects/.../subagents/agent-*.jsonl` record every turn's `message.model`, `message.usage`, tool blocks, and timestamps** — per-subagent time/tokens/tool_calls/errors are recoverable; parse the JSONL rather than recording them as `null`.
+- **`gh run list --workflow=...` reports `headSha` from the dispatching ref** (e.g., `main`), not from `refs/pull/<n>/head` even when that's what the workflow checks out. Correlate runs by `createdAt` + the `pr_number` input.
 
 ## Spell Checking
 
@@ -99,6 +100,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - **Removing a finding from a baseline requires a PR-comment justification** explaining why the underlying mitigation actually closed it (vs. the scanner moved on between versions).
 - **Severity escalations are regressions** — `medium` → `high` fails CI even when the finding ID is unchanged.
 - The shared `## Security model` section template lives at `specs/36-snyk-scan-baseline/template.md` — mirror it into the SKILL.md of any skill that ingests untrusted content, placed immediately above the first ingestion step.
+- **Pin doc-example tool invocations to the same version as the CI-pinned counterpart** (e.g., `uvx snyk-agent-scan==0.5.1` rather than `@latest`) when CI compares output against a baseline. `@latest` drifts from CI.
 
 ## Code Review
 
@@ -107,7 +109,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 ## Git Workflow
 
 - **Never commit directly to `main`.** Always create a feature branch and open a PR for review.
-- **Never rewrite history on a PR that has review comments** (from humans or bots). This means no force push, no `git rebase`, no `git commit --amend` on pushed commits. Rewriting history detaches inline comments from their source lines and disrupts reviewers who have already pulled the branch. If commits need fixing after comments exist, add a new commit instead. Squash happens at merge time.
+- **Never rewrite history on a PR that has review comments** (from humans or bots). This means no force push, no `git rebase`, no `git commit --amend` on pushed commits. Rewriting history hides inline comments from the current diff and disrupts reviewers who have already pulled the branch. If commits need fixing after comments exist, add a new commit instead. Squash happens at merge time.
 - **When a PR branch has merge conflicts and rebase is forbidden** (review comments exist), run `git fetch origin && git merge origin/main` — not rebase — to resolve them.
 - **`git merge` blocked by untracked files**: `git stash -u`, merge, then `git stash pop`. If pop reports "already exists" or conflicts, verify stash contents (`git stash show -p`) before `git stash drop` — pop may not have fully restored everything.
 - This repo only allows squash merges. Use `gh pr merge --squash --delete-branch` (or the GitHub UI). When merging via `gh pr merge`, a PostToolUse hook will automatically handle prompting for `/learn` on the merged changes; when merging via the GitHub UI or any other method, explicitly ask the user to run `/learn` on the merged PR (or on `main`) so the assistant can update its context. **PostToolUse hooks fire on pattern match, not success**: the grep-based hook triggers on every Bash call containing the pattern — write hook messages as "If [action] succeeded..." not "[action] happened..." to avoid misleading output on failed commands, `--help` calls, or partial matches.

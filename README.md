@@ -236,6 +236,16 @@ There are regression tests you can run for the skills.
 uv run --with pytest pytest tests/ -v
 ```
 
+There's also a per-skill security scan (uses [snyk/agent-scan](https://github.com/snyk/agent-scan)). It needs a personal access token from <https://app.snyk.io/account/personal-access-tokens>:
+
+```bash
+export SNYK_TOKEN=...
+bash evals/security/scan.sh                                    # diff against baselines (CI mode)
+uvx snyk-agent-scan==0.5.1 --skills skills/ship-it/SKILL.md    # ad-hoc single-skill scan (pin matches CI)
+```
+
+The ad-hoc command pins `0.5.1` to match the version in `evals/security/scan.sh` so local output lines up with CI; bump both together when upgrading. See [`evals/security/CLAUDE.md`](evals/security/CLAUDE.md) for baseline-refresh rules and `--scan-only` / `--update-baselines` flags.
+
 You may also use Anthropic's [skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) to review the existing skill.
 
 ```bash
