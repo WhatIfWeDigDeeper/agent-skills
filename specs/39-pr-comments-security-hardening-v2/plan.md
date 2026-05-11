@@ -152,8 +152,13 @@ anything else with `Invalid --max value: <value>. Must be a positive integer.`
 (unless that token is itself another `--` flag), so a non-digit-looking invalid
 value like `--max +10` reliably errors instead of silently behaving like "no
 `--max` supplied" and leaking the token on as a PR-number candidate; `--auto`'s
-value is optional, so it is recognized only when the following token is all
-digits. Scope this requirement to auto mode in the SKILL.md prose: in `--manual`
+value is optional, so a token following `--auto` is consumed only when it is all
+digits — and because a bare PR number is all digits, `--auto 42` is ambiguous
+and consumed as `--max 42` (leaving no PR-number token to detect from). Document
+that callers pair `--auto` with an explicit PR number via `42 --auto`,
+`--auto #42`, or `--max N 42`, and add an `/pr-comments --auto 42` invocation-
+table row showing the digit token is read as the cap. Scope this requirement to
+auto mode in the SKILL.md prose: in `--manual`
 mode the supplied `--max` / `--auto N` value is consumed but discarded without
 use (manual mode has no auto-loop to cap), so it never reaches a shell call or a
 loop bound and is neither validated nor an error. Add a parallel
@@ -196,11 +201,11 @@ fabrication.
    - Add `<untrusted_comment_body>` framing in Step 5 and Step 6.
    - Tighten Step 6 suggestion-accept gate with `diff_hunk` content check, including the rule to strip the leading diff marker (and skip `@@ … @@` / `--- a/` / `+++ b/` header lines) before matching against file content.
    - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex; reorder Step 1 so the validation prose precedes the `gh pr view` command block.
-   - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex, scoped to auto mode (in `--manual` mode the value is discarded unused, so it is not validated); note in the Arguments section that `--max` consumes the immediately-following token as its value-candidate (unless that token is itself a `--` flag) so an invalid value like `--max +10` errors rather than leaking on as a PR number; `--auto`'s value is recognized only when the following token is all digits.
+   - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex, scoped to auto mode (in `--manual` mode the value is discarded unused, so it is not validated); note in the Arguments section that `--max` consumes the immediately-following token as its value-candidate (unless that token is itself a `--` flag) so an invalid value like `--max +10` errors rather than leaking on as a PR number; `--auto`'s value is consumed only when the following token is all digits — so `--auto 42` is read as the iteration cap, not a PR number (document the `42 --auto` / `--auto #42` / `--max N 42` disambiguation patterns and add an `/pr-comments --auto 42` invocation-table row).
    - Clarify in the Arguments section that `--manual` is sticky — a later `--auto` (legacy no-op alias) never re-enables auto mode.
    - Bump `metadata.version` exactly once (`"1.40"` → `"1.41"`).
-2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file (imports the shared validators, `parse_auto_flag`, and `parse_pr_argument` from `conftest.py`); also asserts `parse_auto_flag` rejects non-digit-looking `--max` values in auto mode and `parse_pr_argument` returns `{"type": "invalid"}` for numeric-looking-but-invalid PR args.
-3. `tests/pr-comments/conftest.py` — add `validate_pr_number` / `validate_max_value` (plus `PR_NUMBER_RE` / `MAX_VALUE_RE`); have `is_pr_number` delegate to `validate_pr_number` and `parse_pr_argument` return `{"type": "invalid", "value": …}` for a numeric-looking arg that fails the regex (rather than `{"type": "detect"}`); have `parse_auto_flag` model the `--max N` / `--auto N` rules — `--max` consumes the immediately-following non-`--` token as its value-candidate, validates it via `validate_max_value`, raises `ValueError` on an invalid value in auto mode, consume-but-ignore in `--manual` mode — and make `--manual` sticky (track "manual seen", do not let a later `--auto` re-enable auto mode).
+2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file (imports the shared validators, `parse_auto_flag`, and `parse_pr_argument` from `conftest.py`); also asserts `parse_auto_flag` rejects non-digit-looking `--max` values in auto mode, that `--auto 42` is consumed as the cap (`remaining_args == ""`) while `42 --auto` / `--auto #42` keep the PR-number token, and `parse_pr_argument` returns `{"type": "invalid"}` for numeric-looking-but-invalid PR args.
+3. `tests/pr-comments/conftest.py` — add `validate_pr_number` / `validate_max_value` (plus `PR_NUMBER_RE` / `MAX_VALUE_RE`); have `is_pr_number` delegate to `validate_pr_number` and `parse_pr_argument` return `{"type": "invalid", "value": …}` for a numeric-looking arg that fails the regex (rather than `{"type": "detect"}`); have `parse_auto_flag` model the `--max N` / `--auto N` rules — `--max` consumes the immediately-following non-`--` token as its value-candidate, validates it via `validate_max_value`, raises `ValueError` on an invalid value in auto mode, consume-but-ignore in `--manual` mode; `--auto` consumes a following all-digit token as the cap (so `--auto 42` → cap 42, `remaining_args` empty) — and make `--manual` sticky (track "manual seen", do not let a later `--auto` re-enable auto mode).
 4. `evals/security/pr-comments.baseline.json` — refresh after scan if available.
 5. `cspell.config.yaml` — add `untrusted_comment_body` if cspell flags it.
 
@@ -216,6 +221,9 @@ fabrication.
   `parse_auto_flag` matches. Confirm `parse_pr_argument` returns
   `{"type": "invalid"}` (not `{"type": "detect"}`) for a numeric-looking arg
   that fails the PR-number regex.
+- Read the invocation table: confirm the `/pr-comments --auto 42` row shows the
+  digit token read as the iteration cap, not a PR number, and that the Arguments
+  prose documents the `42 --auto` / `--auto #42` / `--max N 42` disambiguation.
 - Read new `## Security model` section: confirm threat model + mitigations.
 - Read updated Step 5: confirm `<untrusted_comment_body>` framing wraps the
   screening pass.

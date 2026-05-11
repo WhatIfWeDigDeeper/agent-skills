@@ -82,9 +82,13 @@
       value-candidate (unless that token is itself another `--` flag), so a
       non-digit-looking invalid value like `--max +10` reliably errors in auto
       mode instead of silently behaving like "no `--max` supplied" and leaking
-      the token on as a PR-number candidate; `--auto`'s value is optional, so it
-      is recognized only when the following token is all digits — a bare
-      `--auto` before a PR number leaves the number for PR detection.
+      the token on as a PR-number candidate; `--auto`'s value is optional, so a
+      token following `--auto` is consumed only when it is all digits — and
+      because a bare PR number is all digits, `--auto 42` is ambiguous and
+      consumed as `--max 42` (leaving no PR-number token). State that callers
+      should disambiguate via `42 --auto`, `--auto #42`, or `--max N 42`, and
+      add a `/pr-comments --auto 42` row to the invocation table showing the
+      digit token is read as the cap.
 - [x] In the Arguments section, document that `--manual` is **sticky** — once
       it appears anywhere in the arguments the whole invocation is manual
       regardless of token order, and a later `--auto` (a no-op legacy alias)
@@ -109,7 +113,10 @@
       flag (so `--max +10` is caught by `validate_max_value` rather than leaking
       into `remaining_args` as a PR-number candidate); `--auto`'s value is
       optional, so it consumes a following token only when that token is all
-      digits. Also make `--manual` sticky: track "manual seen" rather than
+      digits — so `--auto 42` consumes `42` as the cap and leaves
+      `remaining_args` empty (the PR number must be given as `42 --auto`,
+      `--auto #42`, or via `--max N`). Also make `--manual` sticky: track
+      "manual seen" rather than
       last-write-wins so a later `--auto` does not re-enable auto mode (matches
       the Arguments-section precedence rule). Update `parse_pr_argument` to
       return `{"type": "invalid", "value": <stripped>}` for a numeric-looking
@@ -129,8 +136,11 @@
       `--max +10` / `--max 0x1` / `--max 1e10` / `--max -5` / `--max abc`),
       consume-but-ignore in manual mode (including `--max --manual` where the
       bare `--max` does not consume the `--manual` flag, and `--max +10
-      --manual` which never raises), and `--manual` stickiness against a later
-      `--auto` (any token order). Add a `TestNumericLookingInvalidPRArgument`
+      --manual` which never raises), `--manual` stickiness against a later
+      `--auto` (any token order), and the `--auto`/PR-number disambiguation
+      cases (`--auto 42` consumes `42` as the cap with `remaining_args == ""`;
+      `42 --auto` preserves `42` as the PR token; `--auto #42` preserves `#42`).
+      Add a `TestNumericLookingInvalidPRArgument`
       class asserting `parse_pr_argument` returns `{"type": "invalid", "value":
       …}` for `0` / `00` / `01` / `007` / `1000000` / `99999999999` / `#0` /
       `#01` (whitespace-trimmed), `{"type": "detect"}` for `##42` / `#` / `#abc`

@@ -183,6 +183,27 @@ class TestParseAutoFlagMaxHandling:
         with pytest.raises(ValueError, match=r"Invalid --max value: \+10\."):
             parse_auto_flag("--max +10 42")
 
+    def test_auto_with_digit_token_consumes_it_as_cap_not_pr(self) -> None:
+        """``--auto 42`` is ambiguous: the digit token is the cap, not a PR number."""
+        result = parse_auto_flag("--auto 42")
+        assert result["auto"] is True
+        assert result["max_iterations"] == 42
+        assert result["remaining_args"] == ""
+
+    def test_pr_number_before_auto_is_preserved(self) -> None:
+        """Putting the PR number before ``--auto`` keeps it as a PR-number token."""
+        result = parse_auto_flag("42 --auto")
+        assert result["auto"] is True
+        assert result["max_iterations"] == 10
+        assert result["remaining_args"] == "42"
+
+    def test_hash_prefixed_pr_number_after_auto_is_preserved(self) -> None:
+        """``--auto #42`` leaves ``#42`` (not all digits) as a PR-number token."""
+        result = parse_auto_flag("--auto #42")
+        assert result["auto"] is True
+        assert result["max_iterations"] == 10
+        assert result["remaining_args"] == "#42"
+
 
 class TestNumericLookingInvalidPRArgument:
     """A numeric-looking PR argument that fails validation is surfaced as ``invalid``.

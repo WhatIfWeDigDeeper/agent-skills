@@ -161,9 +161,11 @@ def parse_auto_flag(args: str) -> dict:
     is itself a ``--`` flag), so an invalid value like ``--max +10`` is caught
     by :func:`validate_max_value` below rather than leaking into
     ``remaining_args`` and being misread as a PR number; ``--auto``'s value is
-    optional, so a following token is consumed only when it is all digits (a
-    bare ``--auto`` followed by a PR number leaves the number in
-    ``remaining_args``).
+    optional, so a following token is consumed only when it is all digits — and
+    because a bare PR number is all digits, ``--auto 42`` is consumed as the
+    iteration cap (``remaining_args`` ends up empty), not left as a PR number.
+    Disambiguate by putting the number first (``42 --auto``), keeping its ``#``
+    prefix (``--auto #42``), or using ``--max N`` with the number.
 
     Mirrors the SKILL.md Step 1 / Arguments rules:
 
@@ -222,7 +224,10 @@ def parse_auto_flag(args: str) -> dict:
             # --auto is a no-op alias (auto is the default) and never re-enables
             # auto mode once --manual has been seen — manual is sticky. Its value
             # is optional, so consume a following token only when it is all
-            # digits; a non-digit token (PR number, another flag) is left alone.
+            # digits; a non-digit token (another flag, a "#"-prefixed or
+            # non-numeric PR argument) is left alone. A bare-digit PR number
+            # after --auto is instead consumed as the cap — see the docstring's
+            # disambiguation note.
             if i + 1 < len(tokens) and tokens[i + 1].isdigit():
                 requested_max = tokens[i + 1]
                 i += 2
