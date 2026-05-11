@@ -132,7 +132,14 @@ Add an explicit PR-number regex validator to Step 1. Mirror pr-human-guide's
 wording: cleaned value must match `^[1-9][0-9]{0,5}$`. Restructure Step 1 so the
 validation prose precedes the `gh pr view` command block — an agent reading the
 step top-to-bottom must see "validate before any shell call" *before* the
-command, not after it. The existing `is_pr_number` helper in `conftest.py`
+command, not after it — and write the parsing order as explicit numbered
+sub-steps so an agent does not regex-check the whole `$ARGUMENTS` string (or just
+its first token): (1) strip/consume the `--manual` / `--auto [N]` / `--max N`
+tokens first (the token following `--max`, and an all-digit token following
+`--auto`, is its value-candidate unless itself another `--` flag); (2) validate
+the remaining PR-number token (strip a single leading `#`, require the regex,
+hard-stop on numeric-looking-but-invalid, detect from branch if none remains);
+(3) validate the cap value in auto mode only. The existing `is_pr_number` helper in `conftest.py`
 requires only `isdigit()` on the cleaned value, so it accepts `0` and
 unbounded-length integers; introduce a shared `validate_pr_number` helper
 (backed by `PR_NUMBER_RE = ^[1-9][0-9]{0,5}$`) and have `is_pr_number` /
@@ -200,7 +207,7 @@ fabrication.
    - Add `## Security model` section between `## Tool choice rationale` and `## Process`; add a `> See [Security model](#security-model)` cross-reference under `### 2. Fetch Inline Review Comments`.
    - Add `<untrusted_comment_body>` framing in Step 5 and Step 6.
    - Tighten Step 6 suggestion-accept gate with `diff_hunk` content check, including the rule to strip the leading diff marker (and skip `@@ … @@` / `--- a/` / `+++ b/` header lines) before matching against file content.
-   - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex; reorder Step 1 so the validation prose precedes the `gh pr view` command block.
+   - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex; reorder Step 1 so the validation prose precedes the `gh pr view` command block; write the parsing order as numbered sub-steps (strip mode/cap flags → validate the remaining PR-number token → validate the cap value in auto mode only) so the regex check is not mistakenly applied to the whole `$ARGUMENTS` string.
    - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex, scoped to auto mode (in `--manual` mode the value is discarded unused, so it is not validated); note in the Arguments section that `--max` consumes the immediately-following token as its value-candidate (unless that token is itself a `--` flag) so an invalid value like `--max +10` errors rather than leaking on as a PR number; `--auto`'s value is consumed only when the following token is all digits — so `--auto 42` is read as the iteration cap, not a PR number (document the `42 --auto` / `--auto #42` / `--max N 42` disambiguation patterns and add an `/pr-comments --auto 42` invocation-table row).
    - Clarify in the Arguments section that `--manual` is sticky — a later `--auto` (legacy no-op alias) never re-enables auto mode.
    - Bump `metadata.version` exactly once (`"1.40"` → `"1.41"`).
@@ -211,8 +218,10 @@ fabrication.
 
 ## Verification
 
-- Read updated Step 1: confirm regex validators are present and the validation
-  prose precedes the `gh pr view` command block.
+- Read updated Step 1: confirm regex validators are present, the validation
+  prose precedes the `gh pr view` command block, and the parsing order is laid
+  out as numbered sub-steps (strip mode/cap flags → validate the remaining
+  PR-number token → validate the cap value in auto mode only).
 - Read the Arguments section: confirm `--manual` is documented as sticky and
   `--auto` as a no-op alias that never overrides it; confirm the `--max N`
   validation requirement is scoped to auto mode (in `--manual` mode the value

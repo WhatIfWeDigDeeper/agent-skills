@@ -70,6 +70,15 @@
       `gh pr view` command block (and the command block uses
       `${pr_number:+"${pr_number}"}`) — an agent reading the step in order must
       see "validate before any shell call" ahead of the first command.
+- [x] State the parsing order explicitly in Step 1 as numbered sub-steps: (1)
+      strip/consume the `--manual` / `--auto [N]` / `--max N` tokens first (the
+      token following `--max`, and an all-digit token following `--auto`, is
+      consumed as its value-candidate unless it is itself another `--` flag) —
+      do **not** regex-check the whole `$ARGUMENTS` string or just its first
+      token; (2) validate the remaining PR-number token (strip a single leading
+      `#`, require `^[1-9][0-9]{0,5}$`, hard-stop on numeric-looking-but-invalid,
+      detect from branch if no token remains); (3) validate the cap value in
+      auto mode only.
 - [x] In the Arguments section, add a parallel `--max N` validator **scoped to
       auto mode**: in auto mode the cleaned value must match `^[1-9][0-9]{0,3}$`
       before the loop cap is applied (error message: `Invalid --max value:

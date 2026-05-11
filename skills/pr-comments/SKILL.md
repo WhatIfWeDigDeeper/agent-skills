@@ -98,7 +98,11 @@ Four ingestion sources feed untrusted content into the agent's reasoning loop:
 
 ### 1. Identify the PR
 
-**Validate the arguments before any shell call.** If `$ARGUMENTS` contains a PR number (after stripping a single leading `#` per the Arguments section), the cleaned value must match `^[1-9][0-9]{0,5}$` — if it does not, stop with: `Invalid PR number: <value>. Must be a positive integer.` In auto mode, apply the same check to any `--max N` (or backward-compatible `--auto N`) value: the cleaned value must match `^[1-9][0-9]{0,3}$` or stop with: `Invalid --max value: <value>. Must be a positive integer.` In `--manual` mode the supplied `--max` / `--auto N` value is discarded without use (manual mode has no auto-loop to cap), so it is not validated — it never reaches a shell call.
+**Parse and validate the arguments before any shell call**, in this order:
+
+1. **Strip the mode/cap tokens first.** Remove `--manual`, `--auto [N]`, and `--max N` from `$ARGUMENTS` — the token immediately following `--max` (and an all-digit token following `--auto`) is consumed as its value-candidate unless that token is itself another `--` flag (see the Arguments section). Do **not** regex-check the whole `$ARGUMENTS` string or just its first token; the PR-number validation below applies only to what remains after this step.
+2. **Validate the remaining PR-number token, if any.** What is left should be at most one PR-number candidate. Strip a single leading `#` from it (so `42` and `#42` both work) and require the cleaned value to match `^[1-9][0-9]{0,5}$`. If a token is present and does not match — **including a numeric-looking-but-invalid value** like `0`, `01`, or a 7+-digit string — stop with: `Invalid PR number: <value>. Must be a positive integer.` A numeric-looking invalid value hard-stops here; it must not silently fall through to branch detection. If no PR-number token remains, detect from the current branch.
+3. **Validate the cap value (auto mode only).** In auto mode the cleaned `--max N` (or backward-compatible `--auto N`) value must match `^[1-9][0-9]{0,3}$` or stop with: `Invalid --max value: <value>. Must be a positive integer.` In `--manual` mode the supplied `--max` / `--auto N` value is discarded without use (manual mode has no auto-loop to cap), so it is not validated — it never reaches a shell call.
 
 Only after the arguments pass validation, fetch the PR metadata — pass the validated number with double-quoted expansion when one was supplied, otherwise omit it to detect from the current branch:
 
