@@ -7,12 +7,22 @@ Verifies the SKILL.md Step 1 / Arguments section requirements:
   any shell call.
 - In **auto mode**, any ``--max N`` (and backward-compatible ``--auto N``)
   value must match ``^[1-9][0-9]{0,3}$`` before the loop cap is applied;
-  ``parse_auto_flag`` raises ``ValueError`` on anything else. In ``--manual``
-  mode the supplied ``--max`` / ``--auto N`` value is consumed but discarded
-  without use (manual mode has no auto-loop to cap), so it never reaches a
-  shell call or a loop bound and is neither validated nor an error — the
-  ``validate_max_value`` regex itself is unconditional, but the *enforcement*
-  is auto-mode-scoped, matching SKILL.md.
+  ``parse_auto_flag`` raises ``ValueError`` on anything else. ``--max`` consumes
+  the token immediately following it as its value-candidate (unless that token
+  is itself a ``--`` flag), so non-digit-looking invalid values (``--max +10``,
+  ``--max 0x1``, ``--max 1e10``, ``--max -5``) reliably error rather than
+  silently behaving like "no max supplied". In ``--manual`` mode the supplied
+  ``--max`` / ``--auto N`` value is consumed but discarded without use (manual
+  mode has no auto-loop to cap), so it never reaches a shell call or a loop
+  bound and is neither validated nor an error — the ``validate_max_value``
+  regex itself is unconditional, but the *enforcement* is auto-mode-scoped,
+  matching SKILL.md.
+- A numeric-looking PR argument that fails ``validate_pr_number`` (``"0"``,
+  ``"01"``, a 7+-digit string, ``"#0"``) is surfaced by ``parse_pr_argument``
+  as ``{"type": "invalid"}`` rather than falling through to ``{"type":
+  "detect"}`` — SKILL.md Step 1 stops with ``Invalid PR number: <value>.``
+  there. Non-numeric text (``"##42"``, bare ``"#"``, a branch name) still
+  detects from the branch.
 
 The ``validate_pr_number`` / ``validate_max_value`` regexes are exercised
 against the shared adversarial fixture list at
@@ -28,7 +38,12 @@ from pathlib import Path
 
 import pytest
 
-from conftest import parse_auto_flag, validate_max_value, validate_pr_number
+from conftest import (
+    parse_auto_flag,
+    parse_pr_argument,
+    validate_max_value,
+    validate_pr_number,
+)
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "_helpers"))
 from argument_injection import ADVERSARIAL_ARGS
@@ -105,7 +120,14 @@ class TestParseAutoFlagMaxHandling:
 
     @pytest.mark.parametrize(
         "args",
-        ["--max 0", "--max 01", "--max 10000", "--auto 0", "--auto 99999", "--auto 01"],
+        [
+            "--max 0", "--max 01", "--max 10000",
+            "--auto 0", "--auto 99999", "--auto 01",
+            # Non-digit-looking values: --max consumes the following token and
+            # validate_max_value rejects it, so it errors rather than silently
+            # behaving like "no --max supplied".
+            "--max +10", "--max 0x1", "--max 1e10", "--max -5", "--max abc",
+        ],
     )
     def test_invalid_max_rejected_in_auto_mode(self, args: str) -> None:
         with pytest.raises(ValueError, match=r"Invalid --max value:"):
@@ -129,14 +151,16 @@ class TestParseAutoFlagMaxHandling:
     @pytest.mark.parametrize(
         "args",
         [
-            "--manual --max 0",      # invalid value, but ignored in manual mode → no error
-            "--max 0 --manual",      # order does not matter
-            "--manual --max 5",      # valid value, still ignored in manual mode
+            "--manual --max 0",        # invalid value, but ignored in manual mode → no error
+            "--max 0 --manual",        # order does not matter
+            "--manual --max 5",        # valid value, still ignored in manual mode
             "--max 5 --manual",
-            "--auto 5 --manual",     # --manual wins; --auto 5 ignored
-            "--manual --auto",       # --manual is sticky; trailing --auto is a no-op
-            "--manual --auto 99999", # value would fail validation, but manual mode never raises
-            "--auto 99999 --manual", # same, regardless of order
+            "--max --manual",          # bare --max does not consume the --manual flag
+            "--max +10 --manual",      # even a non-digit invalid value never raises in manual mode
+            "--auto 5 --manual",       # --manual wins; --auto 5 ignored
+            "--manual --auto",         # --manual is sticky; trailing --auto is a no-op
+            "--manual --auto 99999",   # value would fail validation, but manual mode never raises
+            "--auto 99999 --manual",   # same, regardless of order
         ],
     )
     def test_max_ignored_in_manual_mode(self, args: str) -> None:
@@ -153,3 +177,41 @@ class TestParseAutoFlagMaxHandling:
         """A digit-like invalid value is consumed by --max (raises), never reaching remaining_args."""
         with pytest.raises(ValueError):
             parse_auto_flag("--max 0 42")
+
+    def test_non_digit_invalid_max_value_token_not_leaked_to_remaining_args(self) -> None:
+        """A non-digit invalid value is still consumed by --max (raises) rather than leaking on."""
+        with pytest.raises(ValueError, match=r"Invalid --max value: \+10\."):
+            parse_auto_flag("--max +10 42")
+
+
+class TestNumericLookingInvalidPRArgument:
+    """A numeric-looking PR argument that fails validation is surfaced as ``invalid``.
+
+    SKILL.md Step 1 stops with ``Invalid PR number: <value>. Must be a positive
+    integer.`` for these — ``parse_pr_argument`` must not let them fall through
+    to ``{"type": "detect"}`` (which would silently switch to branch detection).
+    """
+
+    @pytest.mark.parametrize(
+        "value", ["0", "00", "01", "007", "1000000", "99999999999", "#0", "#01"]
+    )
+    def test_numeric_looking_invalid_is_flagged(self, value: str) -> None:
+        result = parse_pr_argument(value)
+        assert result["type"] == "invalid"
+        assert result["value"] == value
+
+    @pytest.mark.parametrize("value", ["  0  ", " 01 ", " #0 "])
+    def test_value_is_whitespace_trimmed(self, value: str) -> None:
+        assert parse_pr_argument(value) == {"type": "invalid", "value": value.strip()}
+
+    @pytest.mark.parametrize(
+        "value", ["##42", "#", "#abc", "main", "some-branch", "42a", "-1", "1.5"]
+    )
+    def test_non_numeric_text_still_detects(self, value: str) -> None:
+        assert parse_pr_argument(value) == {"type": "detect"}
+
+    @pytest.mark.parametrize("value", ["1", "42", "#42", " 123 ", "999999"])
+    def test_valid_pr_numbers_unaffected(self, value: str) -> None:
+        result = parse_pr_argument(value)
+        assert result["type"] == "pr_number"
+        assert result["number"] == int(value.strip().removeprefix("#"))

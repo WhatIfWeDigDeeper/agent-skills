@@ -57,8 +57,14 @@ def parse_pr_argument(args: str) -> dict:
 
     Returns:
         {"type": "help"} if help trigger
-        {"type": "pr_number", "number": int} if numeric
-        {"type": "detect"} if empty/whitespace (detect from branch)
+        {"type": "pr_number", "number": int} if a valid PR number
+        {"type": "invalid", "value": str} if the argument looks like a PR
+            number (all ASCII digits, optionally with a single leading ``#``)
+            but fails :func:`validate_pr_number` — SKILL.md Step 1 stops with
+            ``Invalid PR number: <value>. Must be a positive integer.`` here
+            rather than silently treating it as branch detection
+        {"type": "detect"} if empty/whitespace, or any other non-numeric text
+            (detect from branch)
     """
     if not args or not args.strip():
         return {"type": "detect"}
@@ -68,6 +74,12 @@ def parse_pr_argument(args: str) -> dict:
     if is_pr_number(stripped):
         cleaned = stripped.removeprefix("#")
         return {"type": "pr_number", "number": int(cleaned)}
+    # A numeric-looking PR argument that failed validation (e.g. "0", "01", a
+    # 7+-digit string, "#0") is surfaced as invalid rather than silently
+    # falling through to branch detection — "##42", bare "#", and non-numeric
+    # text still detect from the branch.
+    if re.fullmatch(r"[0-9]+", stripped.removeprefix("#")):
+        return {"type": "invalid", "value": stripped}
     return {"type": "detect"}
 
 
@@ -144,9 +156,14 @@ def parse_auto_flag(args: str) -> dict:
     back (``--auto`` is a no-op alias retained only for legacy callers, since
     auto is already the default).
     ``--max N`` sets the iteration cap; ``--auto [N]`` is accepted for backward
-    compatibility (``--auto N`` is treated as ``--max N``). A following integer
-    token is consumed by ``--max`` / ``--auto`` so it cannot leak into
-    ``remaining_args`` (e.g., ``"0"`` being misparsed as PR #0).
+    compatibility (``--auto N`` is treated as ``--max N``). ``--max`` consumes
+    the token immediately following it as its value-candidate (unless that token
+    is itself a ``--`` flag), so an invalid value like ``--max +10`` is caught
+    by :func:`validate_max_value` below rather than leaking into
+    ``remaining_args`` and being misread as a PR number; ``--auto``'s value is
+    optional, so a following token is consumed only when it is all digits (a
+    bare ``--auto`` followed by a PR number leaves the number in
+    ``remaining_args``).
 
     Mirrors the SKILL.md Step 1 / Arguments rules:
 
@@ -189,11 +206,23 @@ def parse_auto_flag(args: str) -> dict:
         if tokens[i] == "--manual":
             manual_seen = True
             i += 1
-        elif tokens[i] in ("--auto", "--max"):
+        elif tokens[i] == "--max":
+            # --max takes the immediately-following token as its value-candidate
+            # (unless that token is itself a --flag, e.g. "--max --manual"), so
+            # an invalid value ("+10", "0x1", "1e10", "-5") is caught by
+            # validate_max_value below rather than leaking into remaining_args
+            # and being misread as a PR number. Whether the value is *applied*
+            # (vs. ignored in manual mode) is decided after the loop.
+            if i + 1 < len(tokens) and not tokens[i + 1].startswith("--"):
+                requested_max = tokens[i + 1]
+                i += 2
+            else:
+                i += 1
+        elif tokens[i] == "--auto":
             # --auto is a no-op alias (auto is the default) and never re-enables
-            # auto mode once --manual has been seen — manual is sticky.
-            # Consume a following integer token so it cannot leak into
-            # remaining_args; whether it is *applied* is decided after the loop.
+            # auto mode once --manual has been seen — manual is sticky. Its value
+            # is optional, so consume a following token only when it is all
+            # digits; a non-digit token (PR number, another flag) is left alone.
             if i + 1 < len(tokens) and tokens[i + 1].isdigit():
                 requested_max = tokens[i + 1]
                 i += 2

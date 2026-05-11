@@ -104,14 +104,16 @@ range fall within the PR diff. The full check (in priority order):
 1. `comment.path` appears in the PR diff (existing check).
 2. `comment.line` / `comment.start_line` falls within a changed hunk in that
    file (existing check).
-3. **New**: extract the `diff_hunk` from the comment metadata, locate the
-   matching lines in the current file (the `' '` context lines and `'+'` added
-   lines from the hunk — together these are the bytes present in the head
-   version of the file the comment was authored against; the `'-'` removed
-   lines exist only in the base and were never in the head, so they are not
-   checked), and confirm the surrounding context
-   still appears verbatim in the current file at the comment's line range. If
-   the file has drifted such that the hunk's context lines are no longer
+3. **New**: extract the `diff_hunk` from the comment metadata. Skip the hunk
+   header line (`@@ … @@`) and any file-header lines (`--- a/…`, `+++ b/…`);
+   from the remaining lines take the `' '` context lines and `'+'` added lines
+   and **strip that single leading marker character from each** (the leading
+   ` `/`+`/`-` is unified-diff framing, not file content) — together these
+   stripped lines are the bytes present in the head version of the file the
+   comment was authored against; the `'-'` removed lines exist only in the base
+   and were never in the head, so they are not checked. Confirm those stripped
+   bytes still appear verbatim in the current file at the comment's line range.
+   If the file has drifted such that the hunk's context lines are no longer
    present, downgrade the action to `decline` with note: "Suggestion's
    `diff_hunk` no longer matches current file content — likely stale; refusing
    to apply." Diff-drift declines pause auto-mode (same as path/line declines
@@ -135,15 +137,25 @@ requires only `isdigit()` on the cleaned value, so it accepts `0` and
 unbounded-length integers; introduce a shared `validate_pr_number` helper
 (backed by `PR_NUMBER_RE = ^[1-9][0-9]{0,5}$`) and have `is_pr_number` /
 `parse_pr_argument` delegate to it so the rest of the suite cannot drift back to
-the looser behavior.
+the looser behavior. A *numeric-looking* PR argument that fails the regex
+(`0`, `01`, a 7+-digit string, `#0`) must be surfaced as invalid — SKILL.md
+Step 1 stops with `Invalid PR number: <value>.` there — so `parse_pr_argument`
+returns `{"type": "invalid", "value": …}` for these rather than silently
+falling through to `{"type": "detect"}` (branch detection); non-numeric text
+(`##42`, bare `#`, a branch name) still detects from the branch.
 
 Likewise validate `--max N` **in auto mode** — the cleaned value (after
 stripping the flag token) must match `^[1-9][0-9]{0,3}$` (1–9999 iterations is
 well above any realistic loop cap) before the loop cap is applied; reject
 anything else with `Invalid --max value: <value>. Must be a positive integer.`
-Scope this requirement to auto mode in the SKILL.md prose: in `--manual` mode
-the supplied `--max` / `--auto N` value is consumed but discarded without use
-(manual mode has no auto-loop to cap), so it never reaches a shell call or a
+`--max` consumes the token immediately following it as its value-candidate
+(unless that token is itself another `--` flag), so a non-digit-looking invalid
+value like `--max +10` reliably errors instead of silently behaving like "no
+`--max` supplied" and leaking the token on as a PR-number candidate; `--auto`'s
+value is optional, so it is recognized only when the following token is all
+digits. Scope this requirement to auto mode in the SKILL.md prose: in `--manual`
+mode the supplied `--max` / `--auto N` value is consumed but discarded without
+use (manual mode has no auto-loop to cap), so it never reaches a shell call or a
 loop bound and is neither validated nor an error. Add a parallel
 `validate_max_value` helper to `conftest.py` and teach `parse_auto_flag` to
 recognize `--max N` (and the deprecated `--auto N` alias) via that helper: in
@@ -182,13 +194,13 @@ fabrication.
 1. `skills/pr-comments/SKILL.md`
    - Add `## Security model` section between `## Tool choice rationale` and `## Process`; add a `> See [Security model](#security-model)` cross-reference under `### 2. Fetch Inline Review Comments`.
    - Add `<untrusted_comment_body>` framing in Step 5 and Step 6.
-   - Tighten Step 6 suggestion-accept gate with `diff_hunk` content check.
+   - Tighten Step 6 suggestion-accept gate with `diff_hunk` content check, including the rule to strip the leading diff marker (and skip `@@ … @@` / `--- a/` / `+++ b/` header lines) before matching against file content.
    - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex; reorder Step 1 so the validation prose precedes the `gh pr view` command block.
-   - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex, scoped to auto mode (in `--manual` mode the value is discarded unused, so it is not validated).
+   - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex, scoped to auto mode (in `--manual` mode the value is discarded unused, so it is not validated); note in the Arguments section that `--max` consumes the immediately-following token as its value-candidate (unless that token is itself a `--` flag) so an invalid value like `--max +10` errors rather than leaking on as a PR number; `--auto`'s value is recognized only when the following token is all digits.
    - Clarify in the Arguments section that `--manual` is sticky — a later `--auto` (legacy no-op alias) never re-enables auto mode.
    - Bump `metadata.version` exactly once (`"1.40"` → `"1.41"`).
-2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file (imports the shared validators and `parse_auto_flag` from `conftest.py`).
-3. `tests/pr-comments/conftest.py` — add `validate_pr_number` / `validate_max_value` (plus `PR_NUMBER_RE` / `MAX_VALUE_RE`); have `is_pr_number` delegate to `validate_pr_number` and `parse_auto_flag` model the `--max N` / `--auto N` rules (raise `ValueError` on an invalid value in auto mode; consume-but-ignore in `--manual` mode) via `validate_max_value`, and make `--manual` sticky (track "manual seen", do not let a later `--auto` re-enable auto mode).
+2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file (imports the shared validators, `parse_auto_flag`, and `parse_pr_argument` from `conftest.py`); also asserts `parse_auto_flag` rejects non-digit-looking `--max` values in auto mode and `parse_pr_argument` returns `{"type": "invalid"}` for numeric-looking-but-invalid PR args.
+3. `tests/pr-comments/conftest.py` — add `validate_pr_number` / `validate_max_value` (plus `PR_NUMBER_RE` / `MAX_VALUE_RE`); have `is_pr_number` delegate to `validate_pr_number` and `parse_pr_argument` return `{"type": "invalid", "value": …}` for a numeric-looking arg that fails the regex (rather than `{"type": "detect"}`); have `parse_auto_flag` model the `--max N` / `--auto N` rules — `--max` consumes the immediately-following non-`--` token as its value-candidate, validates it via `validate_max_value`, raises `ValueError` on an invalid value in auto mode, consume-but-ignore in `--manual` mode — and make `--manual` sticky (track "manual seen", do not let a later `--auto` re-enable auto mode).
 4. `evals/security/pr-comments.baseline.json` — refresh after scan if available.
 5. `cspell.config.yaml` — add `untrusted_comment_body` if cspell flags it.
 
@@ -199,12 +211,17 @@ fabrication.
 - Read the Arguments section: confirm `--manual` is documented as sticky and
   `--auto` as a no-op alias that never overrides it; confirm the `--max N`
   validation requirement is scoped to auto mode (in `--manual` mode the value
-  is discarded unused, not validated); `parse_auto_flag` matches.
+  is discarded unused, not validated) and that `--max` is documented as
+  consuming the immediately-following non-`--` token as its value-candidate;
+  `parse_auto_flag` matches. Confirm `parse_pr_argument` returns
+  `{"type": "invalid"}` (not `{"type": "detect"}`) for a numeric-looking arg
+  that fails the PR-number regex.
 - Read new `## Security model` section: confirm threat model + mitigations.
 - Read updated Step 5: confirm `<untrusted_comment_body>` framing wraps the
   screening pass.
-- Read updated Step 6: confirm `diff_hunk` content check is present alongside
-  the existing path/line check.
+- Read updated Step 6: confirm the `diff_hunk` content check is present
+  alongside the existing path/line check, including the leading-marker-strip
+  and header-skip rules.
 - `uv run --with pytest pytest tests/pr-comments/` — all tests pass, including
   the new argument-validation suite.
 - `npx cspell skills/pr-comments/SKILL.md tests/pr-comments/test_prcomments_argument_validation.py`
