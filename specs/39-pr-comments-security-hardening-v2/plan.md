@@ -147,6 +147,14 @@ raises `ValueError` (not a silent no-op), and in `--manual` mode `--max` /
 `--auto N` are consumed but ignored (manual mode has no auto-loop to cap), so
 the helper models the SKILL.md behavior rather than just stripping the token.
 
+Also clarify the mode-flag precedence in the Arguments section and model it in
+`parse_auto_flag`: `--manual` is **sticky** — once it appears anywhere in the
+arguments the whole invocation is manual regardless of token order, and a later
+`--auto` does not flip it back (`--auto` is a no-op legacy alias, since auto is
+already the default). The harness tracks "manual seen" rather than last-write-
+wins so the documented confirmation-gate mitigation cannot be silently bypassed
+by appending `--auto`.
+
 Add `tests/pr-comments/test_prcomments_argument_validation.py` that imports
 `ADVERSARIAL_ARGS` from `tests/_helpers/argument_injection.py` and the shared
 `validate_pr_number` / `validate_max_value` helpers from
@@ -173,9 +181,10 @@ fabrication.
    - Tighten Step 6 suggestion-accept gate with `diff_hunk` content check.
    - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex; reorder Step 1 so the validation prose precedes the `gh pr view` command block.
    - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex.
+   - Clarify in the Arguments section that `--manual` is sticky — a later `--auto` (legacy no-op alias) never re-enables auto mode.
    - Bump `metadata.version` exactly once (`"1.40"` → `"1.41"`).
 2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file (imports the shared validators and `parse_auto_flag` from `conftest.py`).
-3. `tests/pr-comments/conftest.py` — add `validate_pr_number` / `validate_max_value` (plus `PR_NUMBER_RE` / `MAX_VALUE_RE`); have `is_pr_number` delegate to `validate_pr_number` and `parse_auto_flag` model the `--max N` / `--auto N` rules (raise `ValueError` on an invalid value in auto mode; consume-but-ignore in `--manual` mode) via `validate_max_value`.
+3. `tests/pr-comments/conftest.py` — add `validate_pr_number` / `validate_max_value` (plus `PR_NUMBER_RE` / `MAX_VALUE_RE`); have `is_pr_number` delegate to `validate_pr_number` and `parse_auto_flag` model the `--max N` / `--auto N` rules (raise `ValueError` on an invalid value in auto mode; consume-but-ignore in `--manual` mode) via `validate_max_value`, and make `--manual` sticky (track "manual seen", do not let a later `--auto` re-enable auto mode).
 4. `evals/security/pr-comments.baseline.json` — refresh after scan if available.
 5. `cspell.config.yaml` — add `untrusted_comment_body` if cspell flags it.
 
@@ -183,6 +192,8 @@ fabrication.
 
 - Read updated Step 1: confirm regex validators are present and the validation
   prose precedes the `gh pr view` command block.
+- Read the Arguments section: confirm `--manual` is documented as sticky and
+  `--auto` as a no-op alias that never overrides it; `parse_auto_flag` matches.
 - Read new `## Security model` section: confirm threat model + mitigations.
 - Read updated Step 5: confirm `<untrusted_comment_body>` framing wraps the
   screening pass.

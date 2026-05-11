@@ -138,16 +138,22 @@ def should_offer_poll(bot_reviewers: list[str]) -> bool:
 def parse_auto_flag(args: str) -> dict:
     """Parse mode flags from arguments per SKILL.md.
 
-    Auto mode is the default. ``--manual`` restores the confirmation gate.
+    Auto mode is the default. ``--manual`` restores the confirmation gate, and
+    is **sticky** — once ``--manual`` appears anywhere in the arguments the
+    invocation is manual regardless of token order; ``--auto`` never flips it
+    back (``--auto`` is a no-op alias retained only for legacy callers, since
+    auto is already the default).
     ``--max N`` sets the iteration cap; ``--auto [N]`` is accepted for backward
     compatibility (``--auto N`` is treated as ``--max N``). A following integer
     token is consumed by ``--max`` / ``--auto`` so it cannot leak into
     ``remaining_args`` (e.g., ``"0"`` being misparsed as PR #0).
 
-    Mirrors the SKILL.md Step 1 / Arguments rules for the cap value:
+    Mirrors the SKILL.md Step 1 / Arguments rules:
 
+    - ``--manual`` wins whenever present; ``--auto`` does not override it.
     - ``--max`` / ``--auto N`` are **ignored in manual mode** — manual mode has
-      no auto-loop to cap, so a supplied value is consumed but never applied.
+      no auto-loop to cap, so a supplied value is consumed but never applied
+      (and a value that would fail validation does not raise in manual mode).
     - In auto mode a supplied integer value must pass :func:`validate_max_value`
       (1–9999); anything else (``--max 0``, ``--max 01``, ``--max 10000``)
       raises ``ValueError`` rather than being silently dropped, matching the
@@ -170,7 +176,7 @@ def parse_auto_flag(args: str) -> dict:
         return {"auto": True, "max_iterations": 10, "remaining_args": ""}
 
     tokens = args.strip().split()
-    auto = True  # default: auto mode
+    manual_seen = False  # --manual is sticky for the whole invocation
     max_iterations = 10
     requested_max: str | None = None  # last --max / --auto numeric value seen
     remaining_tokens: list[str] = []
@@ -178,11 +184,11 @@ def parse_auto_flag(args: str) -> dict:
     i = 0
     while i < len(tokens):
         if tokens[i] == "--manual":
-            auto = False
+            manual_seen = True
             i += 1
         elif tokens[i] in ("--auto", "--max"):
-            if tokens[i] == "--auto":
-                auto = True
+            # --auto is a no-op alias (auto is the default) and never re-enables
+            # auto mode once --manual has been seen — manual is sticky.
             # Consume a following integer token so it cannot leak into
             # remaining_args; whether it is *applied* is decided after the loop.
             if i + 1 < len(tokens) and tokens[i + 1].isdigit():
@@ -194,6 +200,7 @@ def parse_auto_flag(args: str) -> dict:
             remaining_tokens.append(tokens[i])
             i += 1
 
+    auto = not manual_seen
     # --max / --auto N are ignored in manual mode; in auto mode an invalid
     # value is a hard error rather than a silent no-op.
     if auto and requested_max is not None:

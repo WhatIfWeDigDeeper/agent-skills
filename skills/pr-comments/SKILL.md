@@ -31,9 +31,9 @@ Strip a single leading `#` from `$ARGUMENTS` before checking whether it is a num
 
 **Auto mode is the default.** The Step 7 confirmation prompt and the Step 13 push/re-request prompt are skipped automatically — the plan table is shown each iteration for observability, but no user approval is required.
 
-Optional `--manual` flag restores the confirmation gates: the skill pauses at Step 7 with a `Proceed? [y/N/auto]` prompt before applying any changes and pauses again at Step 13 before pushing or re-requesting review.
+Optional `--manual` flag restores the confirmation gates: the skill pauses at Step 7 with a `Proceed? [y/N/auto]` prompt before applying any changes and pauses again at Step 13 before pushing or re-requesting review. `--manual` is **sticky** — once it appears anywhere in the arguments the whole invocation is manual, regardless of token order; a later `--auto` does not flip it back to auto mode.
 
-Optional `--max N` flag sets the maximum number of bot-review loop iterations (`N`, default: 10). `--max` is ignored when `--manual` is present — manual mode has no auto-loop to cap. Strip and process `--max N`, `--auto [N]`, and `--manual` tokens before checking remaining tokens for a PR number. `--auto` alone is accepted for backward compatibility; auto mode is already the default so it has no additional effect. `--auto N` (with a number) is treated as `--max N` for backward compatibility and is likewise ignored when `--manual` is present; emit a deprecation note in auto mode: "`--auto N` is deprecated; use `--max N`".
+Optional `--max N` flag sets the maximum number of bot-review loop iterations (`N`, default: 10). `--max` is ignored when `--manual` is present — manual mode has no auto-loop to cap. Strip and process `--max N`, `--auto [N]`, and `--manual` tokens before checking remaining tokens for a PR number. `--auto` alone is a no-op alias retained only for legacy callers — auto mode is already the default, so `--auto` has no effect and (per the stickiness rule above) never overrides `--manual`. `--auto N` (with a number) is treated as `--max N` for backward compatibility and is likewise ignored when `--manual` is present; emit a deprecation note in auto mode: "`--auto N` is deprecated; use `--max N`".
 
 The cleaned `--max N` (and `--auto N`) value must match `^[1-9][0-9]{0,3}$` before any shell call — reject anything else with: `Invalid --max value: <value>. Must be a positive integer.` (1–9999 is well above any realistic loop cap.) See [Security model](#security-model) for the threat model behind this validation.
 
@@ -45,6 +45,7 @@ The cleaned `--max N` (and `--auto N`) value must match `^[1-9][0-9]{0,3}$` befo
 | `/pr-comments --max 1` | auto | 1 (one pass, no looping) |
 | `/pr-comments --manual` | manual | n/a |
 | `/pr-comments --manual 42` | manual | n/a |
+| `/pr-comments --manual --auto` | manual | n/a (`--manual` is sticky) |
 | `/pr-comments --max 5 42` | auto | 5 |
 
 ## Tool choice rationale

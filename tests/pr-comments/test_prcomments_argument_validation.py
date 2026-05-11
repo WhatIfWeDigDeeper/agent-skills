@@ -122,17 +122,25 @@ class TestParseAutoFlagMaxHandling:
     @pytest.mark.parametrize(
         "args",
         [
-            "--manual --max 0",   # invalid value, but ignored in manual mode → no error
-            "--max 0 --manual",   # order does not matter
-            "--manual --max 5",   # valid value, still ignored in manual mode
+            "--manual --max 0",      # invalid value, but ignored in manual mode → no error
+            "--max 0 --manual",      # order does not matter
+            "--manual --max 5",      # valid value, still ignored in manual mode
             "--max 5 --manual",
-            "--auto 5 --manual",  # --manual wins (last write); --auto 5 ignored
+            "--auto 5 --manual",     # --manual wins; --auto 5 ignored
+            "--manual --auto",       # --manual is sticky; trailing --auto is a no-op
+            "--manual --auto 99999", # value would fail validation, but manual mode never raises
+            "--auto 99999 --manual", # same, regardless of order
         ],
     )
     def test_max_ignored_in_manual_mode(self, args: str) -> None:
         result = parse_auto_flag(args)
         assert result["auto"] is False
         assert result["max_iterations"] == 10  # default; supplied value ignored
+
+    @pytest.mark.parametrize("args", ["--manual --auto", "--auto --manual", "--manual --auto 5"])
+    def test_manual_is_sticky_against_auto(self, args: str) -> None:
+        """Once --manual appears, --auto never re-enables auto mode (any token order)."""
+        assert parse_auto_flag(args)["auto"] is False
 
     def test_invalid_max_value_token_not_leaked_to_remaining_args(self) -> None:
         """A digit-like invalid value is consumed by --max (raises), never reaching remaining_args."""

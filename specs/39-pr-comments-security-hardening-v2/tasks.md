@@ -67,6 +67,11 @@
 - [x] In the Arguments section, add a parallel `--max N` validator: cleaned
       value must match `^[1-9][0-9]{0,3}$`. Error message: `Invalid --max
       value: <value>. Must be a positive integer.`
+- [x] In the Arguments section, document that `--manual` is **sticky** — once
+      it appears anywhere in the arguments the whole invocation is manual
+      regardless of token order, and a later `--auto` (a no-op legacy alias)
+      does not flip it back to auto mode. Add a `/pr-comments --manual --auto`
+      row to the invocation table.
 - [x] Bump frontmatter `metadata.version` exactly once: `"1.40"` → `"1.41"`.
 
 ## Task 5: Add adversarial argument-validation tests
@@ -81,7 +86,9 @@
       raise `ValueError` on an invalid value in auto mode rather than silently
       dropping it, and consume-but-ignore the value in `--manual` mode (manual
       mode has no auto-loop to cap) — so the rest of the suite cannot drift back
-      to the looser `isdigit()` behavior.
+      to the looser `isdigit()` behavior. Also make `--manual` sticky: track
+      "manual seen" rather than last-write-wins so a later `--auto` does not
+      re-enable auto mode (matches the Arguments-section precedence rule).
 - [x] In the new test file, import `ADVERSARIAL_ARGS` from
       `tests/_helpers/argument_injection.py` and `validate_pr_number` /
       `validate_max_value` / `parse_auto_flag` from `conftest.py` (do not
@@ -91,9 +98,12 @@
       validators.
 - [x] Add positive cases for valid PR numbers (`1`, `42`, `999999`) and `--max`
       values (`1`, `5`, `10`, `100`, `9999`); add `parse_auto_flag` cases for
-      invalid-value rejection in auto mode and consume-but-ignore in manual
-      mode. Update `test_pr_argument_parsing.py::test_auto_zero_*` to expect the
-      `ValueError` rejection instead of a silent no-op.
+      invalid-value rejection in auto mode, consume-but-ignore in manual mode,
+      and `--manual` stickiness against a later `--auto` (any token order).
+      Update `test_pr_argument_parsing.py::test_auto_zero_*` to expect the
+      `ValueError` rejection instead of a silent no-op, and rename
+      `test_auto_overrides_manual` → `test_manual_is_sticky_against_later_auto`
+      (now asserting `auto is False`).
 
 ## Task 6: Refresh security baseline
 

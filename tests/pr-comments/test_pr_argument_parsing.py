@@ -161,10 +161,10 @@ class TestManualFlagParsing:
         result = parse_auto_flag("--auto --manual")
         assert result["auto"] is False
 
-    def test_auto_overrides_manual(self):
-        """--auto after --manual sets mode back to auto."""
+    def test_manual_is_sticky_against_later_auto(self):
+        """--manual is sticky: a later --auto does NOT re-enable auto mode."""
         result = parse_auto_flag("--manual --auto")
-        assert result["auto"] is True
+        assert result["auto"] is False
 
     def test_manual_does_not_consume_following_number(self):
         """--manual does not consume a following PR number as an iteration cap."""
