@@ -12,13 +12,13 @@ PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}$")
 MAX_VALUE_RE = re.compile(r"^[1-9][0-9]{0,3}$")
 
 
-def validate_pr_number(value: str) -> bool:
+def validate_pr_number(value: str | None) -> bool:
     """Return True if value is a valid PR number per SKILL.md Step 1.
 
     Strips surrounding whitespace, then a single leading ``#`` (so ``42``,
     ``#42``, and ``  42  `` are all accepted), then matches against
     ``PR_NUMBER_RE`` (``^[1-9][0-9]{0,5}$`` — rejects ``0`` and
-    unbounded-length digit strings).
+    unbounded-length digit strings). ``None`` (no PR-number token) is rejected.
     """
     if value is None:
         return False
@@ -26,11 +26,12 @@ def validate_pr_number(value: str) -> bool:
     return bool(PR_NUMBER_RE.match(cleaned))
 
 
-def validate_max_value(value: str) -> bool:
+def validate_max_value(value: str | None) -> bool:
     """Return True if value is a valid ``--max N`` (or ``--auto N``) per SKILL.md.
 
     Strips surrounding whitespace, then matches against ``MAX_VALUE_RE``
     (``^[1-9][0-9]{0,3}$`` — 1–9999, well above any realistic loop cap).
+    ``None`` (no value supplied) is rejected.
     """
     if value is None:
         return False
