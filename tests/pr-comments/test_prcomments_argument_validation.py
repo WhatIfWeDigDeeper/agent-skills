@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import validate_max_value, validate_pr_number
+from conftest import parse_auto_flag, validate_max_value, validate_pr_number
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "_helpers"))
 from argument_injection import ADVERSARIAL_ARGS
@@ -91,3 +91,50 @@ class TestMaxValueBoundaryRejections:
     )
     def test_boundary_values_rejected(self, value: str) -> None:
         assert validate_max_value(value) is False
+
+
+class TestParseAutoFlagMaxHandling:
+    """parse_auto_flag must mirror the SKILL.md cap-value rules, not just consume."""
+
+    @pytest.mark.parametrize(
+        "args",
+        ["--max 0", "--max 01", "--max 10000", "--auto 0", "--auto 99999", "--auto 01"],
+    )
+    def test_invalid_max_rejected_in_auto_mode(self, args: str) -> None:
+        with pytest.raises(ValueError, match=r"Invalid --max value:"):
+            parse_auto_flag(args)
+
+    @pytest.mark.parametrize(
+        ("args", "expected"),
+        [
+            ("--max 1", 1),
+            ("--max 5", 5),
+            ("--max 9999", 9999),
+            ("--auto 7", 7),
+            ("--max 5 42", 5),
+        ],
+    )
+    def test_valid_max_applied_in_auto_mode(self, args: str, expected: int) -> None:
+        result = parse_auto_flag(args)
+        assert result["auto"] is True
+        assert result["max_iterations"] == expected
+
+    @pytest.mark.parametrize(
+        "args",
+        [
+            "--manual --max 0",   # invalid value, but ignored in manual mode → no error
+            "--max 0 --manual",   # order does not matter
+            "--manual --max 5",   # valid value, still ignored in manual mode
+            "--max 5 --manual",
+            "--auto 5 --manual",  # --manual wins (last write); --auto 5 ignored
+        ],
+    )
+    def test_max_ignored_in_manual_mode(self, args: str) -> None:
+        result = parse_auto_flag(args)
+        assert result["auto"] is False
+        assert result["max_iterations"] == 10  # default; supplied value ignored
+
+    def test_invalid_max_value_token_not_leaked_to_remaining_args(self) -> None:
+        """A digit-like invalid value is consumed by --max (raises), never reaching remaining_args."""
+        with pytest.raises(ValueError):
+            parse_auto_flag("--max 0 42")

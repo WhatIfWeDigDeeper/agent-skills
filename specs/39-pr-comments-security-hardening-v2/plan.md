@@ -127,19 +127,25 @@ inline-comment gate cannot run — it is likewise handled as `fix`, not
 ### Item 4: Argument validation and tests
 
 Add an explicit PR-number regex validator to Step 1. Mirror pr-human-guide's
-wording: cleaned value must match `^[1-9][0-9]{0,5}$`. The existing
-`is_pr_number` helper in `conftest.py` requires only `isdigit()` on the cleaned
-value, so it accepts `0` and unbounded-length integers; introduce a shared
-`validate_pr_number` helper (backed by `PR_NUMBER_RE = ^[1-9][0-9]{0,5}$`) and
-have `is_pr_number` / `parse_pr_argument` delegate to it so the rest of the
-suite cannot drift back to the looser behavior.
+wording: cleaned value must match `^[1-9][0-9]{0,5}$`. Restructure Step 1 so the
+validation prose precedes the `gh pr view` command block — an agent reading the
+step top-to-bottom must see "validate before any shell call" *before* the
+command, not after it. The existing `is_pr_number` helper in `conftest.py`
+requires only `isdigit()` on the cleaned value, so it accepts `0` and
+unbounded-length integers; introduce a shared `validate_pr_number` helper
+(backed by `PR_NUMBER_RE = ^[1-9][0-9]{0,5}$`) and have `is_pr_number` /
+`parse_pr_argument` delegate to it so the rest of the suite cannot drift back to
+the looser behavior.
 
 Likewise validate `--max N` — the cleaned value (after stripping the flag
 token) must match `^[1-9][0-9]{0,3}$` (1–9999 iterations is well above any
 realistic loop cap). Reject anything else with `Invalid --max value: <value>.
 Must be a positive integer.` Add a parallel `validate_max_value` helper to
 `conftest.py` and teach `parse_auto_flag` to recognize `--max N` (and the
-deprecated `--auto N` alias) via that helper.
+deprecated `--auto N` alias) via that helper: in auto mode an invalid value
+raises `ValueError` (not a silent no-op), and in `--manual` mode `--max` /
+`--auto N` are consumed but ignored (manual mode has no auto-loop to cap), so
+the helper models the SKILL.md behavior rather than just stripping the token.
 
 Add `tests/pr-comments/test_prcomments_argument_validation.py` that imports
 `ADVERSARIAL_ARGS` from `tests/_helpers/argument_injection.py` and the shared
@@ -165,17 +171,18 @@ fabrication.
    - Add `## Security model` section between `## Tool choice rationale` and `## Process`; add a `> See [Security model](#security-model)` cross-reference under `### 2. Fetch Inline Review Comments`.
    - Add `<untrusted_comment_body>` framing in Step 5 and Step 6.
    - Tighten Step 6 suggestion-accept gate with `diff_hunk` content check.
-   - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex.
+   - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex; reorder Step 1 so the validation prose precedes the `gh pr view` command block.
    - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex.
    - Bump `metadata.version` exactly once (`"1.40"` → `"1.41"`).
-2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file (imports the shared validators from `conftest.py`).
-3. `tests/pr-comments/conftest.py` — add `validate_pr_number` / `validate_max_value` (plus `PR_NUMBER_RE` / `MAX_VALUE_RE`); have `is_pr_number` delegate to `validate_pr_number` and `parse_auto_flag` recognize `--max N` via `validate_max_value`.
+2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file (imports the shared validators and `parse_auto_flag` from `conftest.py`).
+3. `tests/pr-comments/conftest.py` — add `validate_pr_number` / `validate_max_value` (plus `PR_NUMBER_RE` / `MAX_VALUE_RE`); have `is_pr_number` delegate to `validate_pr_number` and `parse_auto_flag` model the `--max N` / `--auto N` rules (raise `ValueError` on an invalid value in auto mode; consume-but-ignore in `--manual` mode) via `validate_max_value`.
 4. `evals/security/pr-comments.baseline.json` — refresh after scan if available.
 5. `cspell.config.yaml` — add `untrusted_comment_body` if cspell flags it.
 
 ## Verification
 
-- Read updated Step 1: confirm regex validators are present.
+- Read updated Step 1: confirm regex validators are present and the validation
+  prose precedes the `gh pr view` command block.
 - Read new `## Security model` section: confirm threat model + mitigations.
 - Read updated Step 5: confirm `<untrusted_comment_body>` framing wraps the
   screening pass.

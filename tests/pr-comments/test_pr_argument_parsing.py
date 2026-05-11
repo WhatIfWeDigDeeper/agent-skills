@@ -126,10 +126,10 @@ class TestAutoFlagParsing:
         result = parse_auto_flag("42")
         assert result == {"auto": True, "max_iterations": 10, "remaining_args": "42"}
 
-    def test_auto_zero_not_treated_as_count(self):
-        """--auto 0 is not a valid positive count; 0 is consumed (not leaked to remaining_args)."""
-        result = parse_auto_flag("--auto 0")
-        assert result == {"auto": True, "max_iterations": 10, "remaining_args": ""}
+    def test_auto_zero_rejected_in_auto_mode(self):
+        """--auto 0 is treated as --max 0; 0 fails ^[1-9][0-9]{0,3}$ → rejected, not silently dropped."""
+        with pytest.raises(ValueError, match=r"Invalid --max value: 0\."):
+            parse_auto_flag("--auto 0")
 
     def test_auto_negative_not_treated_as_count(self):
         """Negative numbers are not consumed as count; land in remaining_args."""

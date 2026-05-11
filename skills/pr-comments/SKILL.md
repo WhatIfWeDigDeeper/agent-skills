@@ -93,13 +93,17 @@ This skill processes potentially untrusted content from four sources that enter 
 
 ### 1. Identify the PR
 
+**Validate the arguments before any shell call.** If `$ARGUMENTS` contains a PR number (after stripping a single leading `#` per the Arguments section), the cleaned value must match `^[1-9][0-9]{0,5}$` — if it does not, stop with: `Invalid PR number: <value>. Must be a positive integer.` Apply the same check to any `--max N` (or backward-compatible `--auto N`) value: the cleaned value must match `^[1-9][0-9]{0,3}$` or stop with: `Invalid --max value: <value>. Must be a positive integer.`
+
+Only after the arguments pass validation, fetch the PR metadata — pass the validated number with double-quoted expansion when one was supplied, otherwise omit it to detect from the current branch:
+
 ```bash
-gh pr view --json number,url,title,baseRefName,headRefName,author
+# Explicit PR (pr_number validated above): gh pr view "${pr_number}" --json ...
+# Auto-detect from branch:                  gh pr view --json ...
+gh pr view ${pr_number:+"${pr_number}"} --json number,url,title,baseRefName,headRefName,author
 ```
 
-If `$ARGUMENTS` contains a PR number (after stripping a single leading `#` per the Arguments section), validate the cleaned value against `^[1-9][0-9]{0,5}$` before any shell call. If validation fails, stop with: `Invalid PR number: <value>. Must be a positive integer.` Otherwise pass the validated number with double-quoted expansion: `gh pr view "${pr_number}" --json ...`. If `$ARGUMENTS` has no explicit number, detect from the current branch. If no PR is found, tell the user and exit.
-
-Apply the same validation to any `--max N` (or backward-compatible `--auto N`) value: cleaned value must match `^[1-9][0-9]{0,3}$` or stop with: `Invalid --max value: <value>. Must be a positive integer.`
+If no PR is found, tell the user and exit.
 
 Save `author.login` — used in Step 6 to identify existing PR author replies.
 

@@ -142,8 +142,16 @@ def parse_auto_flag(args: str) -> dict:
     ``--max N`` sets the iteration cap; ``--auto [N]`` is accepted for backward
     compatibility (``--auto N`` is treated as ``--max N``). A following integer
     token is consumed by ``--max`` / ``--auto`` so it cannot leak into
-    ``remaining_args`` (e.g., ``"0"`` being misparsed as PR #0); only a value
-    that passes :func:`validate_max_value` (1–9999) actually changes the cap.
+    ``remaining_args`` (e.g., ``"0"`` being misparsed as PR #0).
+
+    Mirrors the SKILL.md Step 1 / Arguments rules for the cap value:
+
+    - ``--max`` / ``--auto N`` are **ignored in manual mode** — manual mode has
+      no auto-loop to cap, so a supplied value is consumed but never applied.
+    - In auto mode a supplied integer value must pass :func:`validate_max_value`
+      (1–9999); anything else (``--max 0``, ``--max 01``, ``--max 10000``)
+      raises ``ValueError`` rather than being silently dropped, matching the
+      doc's ``Invalid --max value: <value>. Must be a positive integer.`` stop.
 
     Returns:
         {
@@ -153,6 +161,10 @@ def parse_auto_flag(args: str) -> dict:
         }
     where auto defaults to True, max_iterations defaults to 10,
     and remaining_args is the original args with any mode flag tokens removed.
+
+    Raises:
+        ValueError: if an invalid ``--max`` / ``--auto N`` value is supplied
+            in auto mode.
     """
     if not args or not args.strip():
         return {"auto": True, "max_iterations": 10, "remaining_args": ""}
@@ -160,6 +172,7 @@ def parse_auto_flag(args: str) -> dict:
     tokens = args.strip().split()
     auto = True  # default: auto mode
     max_iterations = 10
+    requested_max: str | None = None  # last --max / --auto numeric value seen
     remaining_tokens: list[str] = []
 
     i = 0
@@ -170,9 +183,10 @@ def parse_auto_flag(args: str) -> dict:
         elif tokens[i] in ("--auto", "--max"):
             if tokens[i] == "--auto":
                 auto = True
+            # Consume a following integer token so it cannot leak into
+            # remaining_args; whether it is *applied* is decided after the loop.
             if i + 1 < len(tokens) and tokens[i + 1].isdigit():
-                if validate_max_value(tokens[i + 1]):
-                    max_iterations = int(tokens[i + 1])
+                requested_max = tokens[i + 1]
                 i += 2
             else:
                 i += 1
@@ -180,11 +194,19 @@ def parse_auto_flag(args: str) -> dict:
             remaining_tokens.append(tokens[i])
             i += 1
 
-    remaining_args = " ".join(remaining_tokens)
+    # --max / --auto N are ignored in manual mode; in auto mode an invalid
+    # value is a hard error rather than a silent no-op.
+    if auto and requested_max is not None:
+        if not validate_max_value(requested_max):
+            raise ValueError(
+                f"Invalid --max value: {requested_max}. Must be a positive integer."
+            )
+        max_iterations = int(requested_max)
+
     return {
         "auto": auto,
         "max_iterations": max_iterations,
-        "remaining_args": remaining_args,
+        "remaining_args": " ".join(remaining_tokens),
     }
 
 

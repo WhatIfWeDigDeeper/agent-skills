@@ -60,6 +60,10 @@
       validate the PR number against `^[1-9][0-9]{0,5}$` before any shell
       call. Error message: `Invalid PR number: <value>. Must be a positive
       integer.`
+- [x] Reorder Step 1 so the argument-validation prose appears *before* the
+      `gh pr view` command block (and the command block uses
+      `${pr_number:+"${pr_number}"}`) — an agent reading the step in order must
+      see "validate before any shell call" ahead of the first command.
 - [x] In the Arguments section, add a parallel `--max N` validator: cleaned
       value must match `^[1-9][0-9]{0,3}$`. Error message: `Invalid --max
       value: <value>. Must be a positive integer.`
@@ -72,18 +76,24 @@
 
 - [x] In `conftest.py`, add `PR_NUMBER_RE` / `MAX_VALUE_RE` and shared
       `validate_pr_number` / `validate_max_value` helpers; have `is_pr_number`
-      delegate to `validate_pr_number` and teach `parse_auto_flag` to recognize
-      `--max N` (and the deprecated `--auto N` alias) via `validate_max_value`,
-      so the rest of the suite cannot drift back to the looser `isdigit()`
-      behavior.
+      delegate to `validate_pr_number` and teach `parse_auto_flag` to model the
+      `--max N` (and deprecated `--auto N`) rules via `validate_max_value` —
+      raise `ValueError` on an invalid value in auto mode rather than silently
+      dropping it, and consume-but-ignore the value in `--manual` mode (manual
+      mode has no auto-loop to cap) — so the rest of the suite cannot drift back
+      to the looser `isdigit()` behavior.
 - [x] In the new test file, import `ADVERSARIAL_ARGS` from
       `tests/_helpers/argument_injection.py` and `validate_pr_number` /
-      `validate_max_value` from `conftest.py` (do not redefine them); mirror
+      `validate_max_value` / `parse_auto_flag` from `conftest.py` (do not
+      redefine the validators); mirror
       `tests/pr-human-guide/test_argument_validation.py`.
 - [x] Parametrize over `ADVERSARIAL_ARGS` and assert each is rejected by both
       validators.
 - [x] Add positive cases for valid PR numbers (`1`, `42`, `999999`) and `--max`
-      values (`1`, `5`, `10`, `100`, `9999`).
+      values (`1`, `5`, `10`, `100`, `9999`); add `parse_auto_flag` cases for
+      invalid-value rejection in auto mode and consume-but-ignore in manual
+      mode. Update `test_pr_argument_parsing.py::test_auto_zero_*` to expect the
+      `ValueError` rejection instead of a silent no-op.
 
 ## Task 6: Refresh security baseline
 
