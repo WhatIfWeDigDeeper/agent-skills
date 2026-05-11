@@ -152,12 +152,15 @@ def parse_auto_flag(args: str) -> dict:
 
     - ``--manual`` wins whenever present; ``--auto`` does not override it.
     - ``--max`` / ``--auto N`` are **ignored in manual mode** — manual mode has
-      no auto-loop to cap, so a supplied value is consumed but never applied
-      (and a value that would fail validation does not raise in manual mode).
+      no auto-loop to cap, so a supplied value is consumed but discarded without
+      use; it never reaches a shell call or a loop bound, so it is neither
+      validated nor an error (SKILL.md scopes the ``--max`` validation
+      requirement to auto mode for exactly this reason).
     - In auto mode a supplied integer value must pass :func:`validate_max_value`
-      (1–9999); anything else (``--max 0``, ``--max 01``, ``--max 10000``)
-      raises ``ValueError`` rather than being silently dropped, matching the
-      doc's ``Invalid --max value: <value>. Must be a positive integer.`` stop.
+      (1–9999) before the loop cap is applied; anything else (``--max 0``,
+      ``--max 01``, ``--max 10000``) raises ``ValueError`` rather than being
+      silently dropped, matching the doc's ``Invalid --max value: <value>.
+      Must be a positive integer.`` stop.
 
     Returns:
         {

@@ -137,15 +137,19 @@ unbounded-length integers; introduce a shared `validate_pr_number` helper
 `parse_pr_argument` delegate to it so the rest of the suite cannot drift back to
 the looser behavior.
 
-Likewise validate `--max N` — the cleaned value (after stripping the flag
-token) must match `^[1-9][0-9]{0,3}$` (1–9999 iterations is well above any
-realistic loop cap). Reject anything else with `Invalid --max value: <value>.
-Must be a positive integer.` Add a parallel `validate_max_value` helper to
-`conftest.py` and teach `parse_auto_flag` to recognize `--max N` (and the
-deprecated `--auto N` alias) via that helper: in auto mode an invalid value
-raises `ValueError` (not a silent no-op), and in `--manual` mode `--max` /
-`--auto N` are consumed but ignored (manual mode has no auto-loop to cap), so
-the helper models the SKILL.md behavior rather than just stripping the token.
+Likewise validate `--max N` **in auto mode** — the cleaned value (after
+stripping the flag token) must match `^[1-9][0-9]{0,3}$` (1–9999 iterations is
+well above any realistic loop cap) before the loop cap is applied; reject
+anything else with `Invalid --max value: <value>. Must be a positive integer.`
+Scope this requirement to auto mode in the SKILL.md prose: in `--manual` mode
+the supplied `--max` / `--auto N` value is consumed but discarded without use
+(manual mode has no auto-loop to cap), so it never reaches a shell call or a
+loop bound and is neither validated nor an error. Add a parallel
+`validate_max_value` helper to `conftest.py` and teach `parse_auto_flag` to
+recognize `--max N` (and the deprecated `--auto N` alias) via that helper: in
+auto mode an invalid value raises `ValueError` (not a silent no-op), and in
+`--manual` mode `--max` / `--auto N` are consumed but ignored, so the helper
+models the SKILL.md behavior rather than just stripping the token.
 
 Also clarify the mode-flag precedence in the Arguments section and model it in
 `parse_auto_flag`: `--manual` is **sticky** — once it appears anywhere in the
@@ -180,7 +184,7 @@ fabrication.
    - Add `<untrusted_comment_body>` framing in Step 5 and Step 6.
    - Tighten Step 6 suggestion-accept gate with `diff_hunk` content check.
    - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex; reorder Step 1 so the validation prose precedes the `gh pr view` command block.
-   - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex.
+   - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex, scoped to auto mode (in `--manual` mode the value is discarded unused, so it is not validated).
    - Clarify in the Arguments section that `--manual` is sticky — a later `--auto` (legacy no-op alias) never re-enables auto mode.
    - Bump `metadata.version` exactly once (`"1.40"` → `"1.41"`).
 2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file (imports the shared validators and `parse_auto_flag` from `conftest.py`).
@@ -193,7 +197,9 @@ fabrication.
 - Read updated Step 1: confirm regex validators are present and the validation
   prose precedes the `gh pr view` command block.
 - Read the Arguments section: confirm `--manual` is documented as sticky and
-  `--auto` as a no-op alias that never overrides it; `parse_auto_flag` matches.
+  `--auto` as a no-op alias that never overrides it; confirm the `--max N`
+  validation requirement is scoped to auto mode (in `--manual` mode the value
+  is discarded unused, not validated); `parse_auto_flag` matches.
 - Read new `## Security model` section: confirm threat model + mitigations.
 - Read updated Step 5: confirm `<untrusted_comment_body>` framing wraps the
   screening pass.

@@ -64,9 +64,14 @@
       `gh pr view` command block (and the command block uses
       `${pr_number:+"${pr_number}"}`) — an agent reading the step in order must
       see "validate before any shell call" ahead of the first command.
-- [x] In the Arguments section, add a parallel `--max N` validator: cleaned
-      value must match `^[1-9][0-9]{0,3}$`. Error message: `Invalid --max
-      value: <value>. Must be a positive integer.`
+- [x] In the Arguments section, add a parallel `--max N` validator **scoped to
+      auto mode**: in auto mode the cleaned value must match `^[1-9][0-9]{0,3}$`
+      before the loop cap is applied (error message: `Invalid --max value:
+      <value>. Must be a positive integer.`); in `--manual` mode the supplied
+      `--max` / `--auto N` value is consumed but discarded without use (manual
+      mode has no auto-loop to cap), so it never reaches a shell call or a loop
+      bound and is neither validated nor an error. State this scoping explicitly
+      in Step 1 and the Security model's "Argument validation" mitigation.
 - [x] In the Arguments section, document that `--manual` is **sticky** — once
       it appears anywhere in the arguments the whole invocation is manual
       regardless of token order, and a later `--auto` (a no-op legacy alias)
