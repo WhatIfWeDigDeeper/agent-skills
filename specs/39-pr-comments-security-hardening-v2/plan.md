@@ -45,10 +45,17 @@ section from earlier hardening passes.
 ### Item 1: Promote scattered mitigations into `## Security model`
 
 Add a top-level `## Security model` section to `skills/pr-comments/SKILL.md`
-following `specs/36-snyk-scan-baseline/template.md`. Place it immediately above
-the `### 2. Fetch Inline Review Comments` heading — that is the first step that
-ingests untrusted content, and the template's adjacency rule wants the section
-within ~30 rendered lines of the first flagged ingestion command.
+following `specs/36-snyk-scan-baseline/template.md`. Place it as a `##`-level
+section between `## Tool choice rationale` and `## Process` — matching the
+established structure in `skills/peer-review/SKILL.md` and
+`skills/pr-human-guide/SKILL.md`. (Moving the `##` heading down between the
+`### N.` process steps so it physically precedes `### 2.` would make every
+later step render as a subsection of Security model in the document outline,
+so the section stays a peer of `## Process`.) `### 2. Fetch Inline Review
+Comments` is the first step that ingests untrusted content, so add a
+`> See [Security model](#security-model)` cross-reference immediately under
+that heading to keep the mitigations adjacent to the first flagged ingestion
+command per the template's adjacency rule.
 
 The section enumerates four threat sources (inline review comment bodies,
 review body comments, timeline comments, suggestion fenced blocks), the
@@ -98,9 +105,11 @@ range fall within the PR diff. The full check (in priority order):
 2. `comment.line` / `comment.start_line` falls within a changed hunk in that
    file (existing check).
 3. **New**: extract the `diff_hunk` from the comment metadata, locate the
-   matching context lines in the current file (the `' '` and `'-'` lines from
-   the hunk, ignoring leading `+` lines that represent reviewer additions
-   relative to the comment author's view), and confirm the surrounding context
+   matching lines in the current file (the `' '` context lines and `'+'` added
+   lines from the hunk — together these are the bytes present in the head
+   version of the file the comment was authored against; the `'-'` removed
+   lines exist only in the base and were never in the head, so they are not
+   checked), and confirm the surrounding context
    still appears verbatim in the current file at the comment's line range. If
    the file has drifted such that the hunk's context lines are no longer
    present, downgrade the action to `decline` with note: "Suggestion's
@@ -143,7 +152,7 @@ fabrication.
 ## Files to Modify
 
 1. `skills/pr-comments/SKILL.md`
-   - Add `## Security model` section above `### 2. Fetch Inline Review Comments`.
+   - Add `## Security model` section between `## Tool choice rationale` and `## Process`; add a `> See [Security model](#security-model)` cross-reference under `### 2. Fetch Inline Review Comments`.
    - Add `<untrusted_comment_body>` framing in Step 5 and Step 6.
    - Tighten Step 6 suggestion-accept gate with `diff_hunk` content check.
    - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex.

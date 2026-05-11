@@ -6,8 +6,13 @@
 
 - [x] Add a top-level `## Security model` section using the template at
       `specs/36-snyk-scan-baseline/template.md`.
-- [x] Place it immediately above the heading `### 2. Fetch Inline Review
-      Comments` — the first step that ingests untrusted content.
+- [x] Place it as a `##`-level section between `## Tool choice rationale` and
+      `## Process` (matching `skills/peer-review/SKILL.md` and
+      `skills/pr-human-guide/SKILL.md`); a `##` heading between the `### N.`
+      process steps would make later steps render as subsections of Security
+      model. Add a `> See [Security model](#security-model)` cross-reference
+      immediately under `### 2. Fetch Inline Review Comments` — the first step
+      that ingests untrusted content — to keep the mitigations adjacent to it.
 - [x] Cover four threat sources: inline review comments, review body comments,
       timeline comments, and suggestion fenced blocks.
 - [x] Enumerate mitigations: argument validation, `<untrusted_comment_body>`
@@ -36,9 +41,10 @@
 **File:** `skills/pr-comments/SKILL.md` — Step 6 (decide)
 
 - [x] Add a `diff_hunk` content check after the existing path/line check:
-      verify the comment's `diff_hunk` context lines (the `' '` and `'-'`
-      prefixed lines) appear verbatim in the current file at the comment's
-      line range.
+      verify the comment's `diff_hunk` lines that exist in the head version —
+      the `' '` context lines and `'+'` added lines (not the `'-'` removed
+      lines, which exist only in the base) — appear verbatim in the current
+      file at the comment's line range.
 - [x] If the context no longer matches, downgrade to `decline` with note:
       "Suggestion's `diff_hunk` no longer matches current file content —
       likely stale; refusing to apply."
