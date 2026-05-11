@@ -117,8 +117,12 @@ range fall within the PR diff. The full check (in priority order):
    to apply." Diff-drift declines pause auto-mode (same as path/line declines
    from spec 04).
 
-If the `diff_hunk` field is absent or empty (some review-body suggestion blocks
-lack one), downgrade to `fix` (manual edit) rather than auto-applying.
+If the inline comment carries no `diff_hunk` field (e.g. a file-level comment,
+or one whose anchor GitHub could not compute), downgrade to `fix` (manual edit)
+rather than auto-applying. A `suggestion` block in a review body or timeline
+comment has no `comment.path`/`comment.line`/`diff_hunk` at all, so the
+inline-comment gate cannot run — it is likewise handled as `fix`, not
+`accept suggestion`.
 
 ### Item 4: Argument validation and tests
 
