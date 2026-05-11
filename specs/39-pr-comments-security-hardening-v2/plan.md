@@ -128,18 +128,24 @@ inline-comment gate cannot run — it is likewise handled as `fix`, not
 
 Add an explicit PR-number regex validator to Step 1. Mirror pr-human-guide's
 wording: cleaned value must match `^[1-9][0-9]{0,5}$`. The existing
-`is_pr_number` helper in `conftest.py` rejects most adversarial inputs already
-(it requires `isdigit()` on the cleaned value), but it currently accepts `0`
-and unbounded-length integers. The new regex tightens both bounds.
+`is_pr_number` helper in `conftest.py` requires only `isdigit()` on the cleaned
+value, so it accepts `0` and unbounded-length integers; introduce a shared
+`validate_pr_number` helper (backed by `PR_NUMBER_RE = ^[1-9][0-9]{0,5}$`) and
+have `is_pr_number` / `parse_pr_argument` delegate to it so the rest of the
+suite cannot drift back to the looser behavior.
 
 Likewise validate `--max N` — the cleaned value (after stripping the flag
 token) must match `^[1-9][0-9]{0,3}$` (1–9999 iterations is well above any
 realistic loop cap). Reject anything else with `Invalid --max value: <value>.
-Must be a positive integer.`
+Must be a positive integer.` Add a parallel `validate_max_value` helper to
+`conftest.py` and teach `parse_auto_flag` to recognize `--max N` (and the
+deprecated `--auto N` alias) via that helper.
 
 Add `tests/pr-comments/test_prcomments_argument_validation.py` that imports
-`ADVERSARIAL_ARGS` from `tests/_helpers/argument_injection.py` and asserts the
-new validator rejects every entry. Keep symmetry with
+`ADVERSARIAL_ARGS` from `tests/_helpers/argument_injection.py` and the shared
+`validate_pr_number` / `validate_max_value` helpers from
+`tests/pr-comments/conftest.py` (rather than redefining them), and asserts both
+validators reject every entry. Keep symmetry with
 `tests/pr-human-guide/test_argument_validation.py`.
 
 ### Item 5: Refresh the security baseline
@@ -162,9 +168,10 @@ fabrication.
    - Tighten Step 1 PR-number validation with `^[1-9][0-9]{0,5}$` regex.
    - Tighten `--max N` validation with `^[1-9][0-9]{0,3}$` regex.
    - Bump `metadata.version` exactly once (`"1.40"` → `"1.41"`).
-2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file.
-3. `evals/security/pr-comments.baseline.json` — refresh after scan if available.
-4. `cspell.config.yaml` — add `untrusted_comment_body` if cspell flags it.
+2. `tests/pr-comments/test_prcomments_argument_validation.py` — new file (imports the shared validators from `conftest.py`).
+3. `tests/pr-comments/conftest.py` — add `validate_pr_number` / `validate_max_value` (plus `PR_NUMBER_RE` / `MAX_VALUE_RE`); have `is_pr_number` delegate to `validate_pr_number` and `parse_auto_flag` recognize `--max N` via `validate_max_value`.
+4. `evals/security/pr-comments.baseline.json` — refresh after scan if available.
+5. `cspell.config.yaml` — add `untrusted_comment_body` if cspell flags it.
 
 ## Verification
 

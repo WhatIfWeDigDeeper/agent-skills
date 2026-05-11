@@ -67,13 +67,21 @@
 
 ## Task 5: Add adversarial argument-validation tests
 
-**File:** `tests/pr-comments/test_prcomments_argument_validation.py` (new)
+**Files:** `tests/pr-comments/test_prcomments_argument_validation.py` (new),
+`tests/pr-comments/conftest.py`
 
-- [x] Import `ADVERSARIAL_ARGS` from `tests/_helpers/argument_injection.py`.
-- [x] Add a `validate_pr_number` helper mirroring
+- [x] In `conftest.py`, add `PR_NUMBER_RE` / `MAX_VALUE_RE` and shared
+      `validate_pr_number` / `validate_max_value` helpers; have `is_pr_number`
+      delegate to `validate_pr_number` and teach `parse_auto_flag` to recognize
+      `--max N` (and the deprecated `--auto N` alias) via `validate_max_value`,
+      so the rest of the suite cannot drift back to the looser `isdigit()`
+      behavior.
+- [x] In the new test file, import `ADVERSARIAL_ARGS` from
+      `tests/_helpers/argument_injection.py` and `validate_pr_number` /
+      `validate_max_value` from `conftest.py` (do not redefine them); mirror
       `tests/pr-human-guide/test_argument_validation.py`.
-- [x] Add a `validate_max_value` helper for `--max N` validation.
-- [x] Parametrize over `ADVERSARIAL_ARGS` and assert each is rejected.
+- [x] Parametrize over `ADVERSARIAL_ARGS` and assert each is rejected by both
+      validators.
 - [x] Add positive cases for valid PR numbers (`1`, `42`, `999999`) and `--max`
       values (`1`, `5`, `10`, `100`, `9999`).
 

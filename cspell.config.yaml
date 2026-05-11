@@ -61,6 +61,7 @@ words:
   - metacharacter
   - metacharacters
   - metaprogramming
+  - misparsed
   - mktemp
   - mongosh
   - multiconfig
@@ -69,6 +70,7 @@ words:
   - mypy
   - myrepo
   - narratively
+  - nonwhitespace
   - noxfile
   - nuxt
   - oneline

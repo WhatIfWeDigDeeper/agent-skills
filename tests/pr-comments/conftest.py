@@ -4,6 +4,38 @@ import re
 
 HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 
+# SKILL.md Step 1 / Arguments validation regexes (spec 39):
+# - explicitly-supplied PR number (after stripping a single leading '#' and
+#   surrounding whitespace) must match PR_NUMBER_RE before any shell call;
+# - any --max N (and backward-compatible --auto N) value must match MAX_VALUE_RE.
+PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}$")
+MAX_VALUE_RE = re.compile(r"^[1-9][0-9]{0,3}$")
+
+
+def validate_pr_number(value: str) -> bool:
+    """Return True if value is a valid PR number per SKILL.md Step 1.
+
+    Strips surrounding whitespace, then a single leading ``#`` (so ``42``,
+    ``#42``, and ``  42  `` are all accepted), then matches against
+    ``PR_NUMBER_RE`` (``^[1-9][0-9]{0,5}$`` — rejects ``0`` and
+    unbounded-length digit strings).
+    """
+    if value is None:
+        return False
+    cleaned = str(value).strip().removeprefix("#")
+    return bool(PR_NUMBER_RE.match(cleaned))
+
+
+def validate_max_value(value: str) -> bool:
+    """Return True if value is a valid ``--max N`` (or ``--auto N``) per SKILL.md.
+
+    Strips surrounding whitespace, then matches against ``MAX_VALUE_RE``
+    (``^[1-9][0-9]{0,3}$`` — 1–9999, well above any realistic loop cap).
+    """
+    if value is None:
+        return False
+    return bool(MAX_VALUE_RE.match(str(value).strip()))
+
 
 def is_help_request(args: str) -> bool:
     """Check if arguments are a help request per SKILL.md."""
@@ -13,12 +45,11 @@ def is_help_request(args: str) -> bool:
 def is_pr_number(args: str) -> bool:
     """Check if arguments are a PR number per SKILL.md.
 
-    Strips a leading '#' before checking (e.g. '#42' → '42').
+    Strips a leading '#' before checking (e.g. '#42' → '42'). Delegates to
+    :func:`validate_pr_number` so the suite models the spec-39 regex
+    (``^[1-9][0-9]{0,5}$``) rather than the looser ``isdigit()`` check.
     """
-    if not args:
-        return False
-    stripped = args.strip().removeprefix("#")
-    return bool(stripped and stripped.isdigit())
+    return bool(args) and validate_pr_number(args)
 
 
 def parse_pr_argument(args: str) -> dict:
@@ -107,8 +138,12 @@ def should_offer_poll(bot_reviewers: list[str]) -> bool:
 def parse_auto_flag(args: str) -> dict:
     """Parse mode flags from arguments per SKILL.md.
 
-    Auto mode is the default. --manual restores the confirmation gate.
-    --auto [N] is accepted for backward compatibility and to set the iteration cap.
+    Auto mode is the default. ``--manual`` restores the confirmation gate.
+    ``--max N`` sets the iteration cap; ``--auto [N]`` is accepted for backward
+    compatibility (``--auto N`` is treated as ``--max N``). A following integer
+    token is consumed by ``--max`` / ``--auto`` so it cannot leak into
+    ``remaining_args`` (e.g., ``"0"`` being misparsed as PR #0); only a value
+    that passes :func:`validate_max_value` (1–9999) actually changes the cap.
 
     Returns:
         {
@@ -132,13 +167,11 @@ def parse_auto_flag(args: str) -> dict:
         if tokens[i] == "--manual":
             auto = False
             i += 1
-        elif tokens[i] == "--auto":
-            auto = True
-            # Consume any non-negative integer following --auto to prevent it
-            # from leaking into remaining_args (e.g., "0" being misparsed as PR #0).
-            # Only positive values are used as the iteration cap.
+        elif tokens[i] in ("--auto", "--max"):
+            if tokens[i] == "--auto":
+                auto = True
             if i + 1 < len(tokens) and tokens[i + 1].isdigit():
-                if int(tokens[i + 1]) > 0:
+                if validate_max_value(tokens[i + 1]):
                     max_iterations = int(tokens[i + 1])
                 i += 2
             else:
