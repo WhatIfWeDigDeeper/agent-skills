@@ -22,6 +22,7 @@ words:
   - conftest
   - continuerc
   - cursorrules
+  - dedented
   - dedup
   - DOABC
   - Dockerfiles
