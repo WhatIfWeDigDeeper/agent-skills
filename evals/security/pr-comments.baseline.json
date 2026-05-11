@@ -4,8 +4,8 @@
   "skill": "pr-comments",
   "skill_version": "1.40",
   "findings": [
-    {"id": "W011", "severity": "medium"}
+    {"id": "W011", "severity": "high"}
   ],
   "captured_at": "2026-05-09",
-  "notes": "BASELINE NEEDS USER VERIFICATION. Inferred from skills.sh page (Snyk W011, severity MEDIUM, risk score 0.90). Run `bash evals/security/scan.sh --update-baselines --confirm` after the harness lands to capture the real local scanner output and replace this placeholder."
+  "notes": "W011 is heuristic on `gh pr view`/external CLI handoff and persists regardless of mitigations. Severity `high` was confirmed by CI on commit `f21c5fd` (the same scanner run that validated `ship-it`'s W011 escalation — see commit message); this PR's bump is the coordination half of a cross-PR cycle so PR #155 and PR #156 do not block each other on the security-scan gate. Without this bump, PR #155 would fail the scan with a `medium` → `high` escalation regression because the pr-comments baseline on `main` still records `medium`. Spec 39 (PR #156) ships the full Security model description for pr-comments and is the canonical owner of these notes."
 }

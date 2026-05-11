@@ -96,6 +96,7 @@ uv run --with pytest pytest tests/
 - **Adding a new skill that ingests untrusted content** — add a baseline file in the same PR. Use the same schema. Even if the scan returns zero findings, write `"findings": []` so the harness knows about the skill.
 - **Bumping the scanner version** — pin the new version in `scan.sh` (e.g., `SCANNER_PKG="snyk-agent-scan==0.6.0"`), refresh all baselines, and call out the version change in the PR description. Heuristics may shift between scanner releases; expect baseline churn.
 - The shared `## Security model` section template lives at `specs/36-snyk-scan-baseline/template.md` — mirror it into the SKILL.md of any skill that ingests untrusted content, placed immediately above the first ingestion step.
+- **Pin doc-example tool invocations to the same version as the CI-pinned counterpart** (e.g., `uvx snyk-agent-scan==0.5.1` rather than `@latest`) when CI compares output against a baseline. `@latest` drifts from CI.
 
 ## Code Review
 
@@ -160,6 +161,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 - **GitHub Actions `workflow_dispatch` inputs**: never use `${{ inputs.field }}` directly in `run:` (injection risk) — pass via `env: VAR: ${{ inputs.field }}` and reference `"$VAR"`. Sanitize before using in git refs.
 - **Don't `SendMessage`-retry a transient-failed `Agent` launch** — the resume path silently inherits the parent's model, not the Agent's `model:` parameter. Re-spawn instead. Verify with `message.model` in the agent's JSONL.
 - **Subagent JSONL transcripts at `~/.claude/projects/.../subagents/agent-*.jsonl` record every turn's `message.model`, `message.usage`, tool blocks, and timestamps** — per-subagent time/tokens/tool_calls/errors are recoverable; parse the JSONL rather than recording them as `null`.
+- **`gh run list --workflow=...` reports `headSha` from the dispatching ref** (e.g., `main`), not from `refs/pull/<n>/head` even when that's what the workflow checks out. Correlate runs by `createdAt` + the `pr_number` input.
 
 ## Available Skills
 
@@ -182,6 +184,7 @@ When the user's request matches a skill's trigger phrases, read the skill file a
 - **Disjuncts and tie-breakers in classification rules are load-bearing**: in a rule like "include X only when it has a concrete risk **or** judgment call" or "when in doubt, flag only when...", each disjunct and tie-breaker is a distinct case — not a redundant adjective. Cutting one narrows classifier behavior even when the prose looks tighter.
 - When a SKILL.md step does setup work (snapshot, POST, etc.) before delegating to a reference file that has its own entry/setup section covering the same actions, the delegation sentence must name the target section and list what not to re-run — otherwise agents re-enter the setup section and duplicate actions already done in SKILL.md.
 - When a SKILL.md step creates a temp file with `mktemp` and uses it within the same tool call, document `trap 'rm -f "$FILE"' EXIT INT TERM` immediately after the `mktemp` call — a manual `rm -f` at the end of the block is skipped on error or interruption. When the temp file must persist across multiple tool calls, use a named path without `trap` instead (see the `trap` cleanup bullet above).
+- **Sequential `trap` snippets clobber earlier traps in the same shell**: bash supports one EXIT trap per shell — a later `trap 'rm -f "$B"' EXIT INT TERM` replaces the earlier `trap 'rm -f "$A"' EXIT INT TERM` and leaks `$A`. When a SKILL.md chains snippets that may run in one shell, combine cleanup in one trap and apply `${VAR:-}` defaults to **every** variable so `set -u` does not abort the trap when one is unset at exit time: `trap 'rm -f "${BODY_FILE:-}" "${PR_VIEW_STDERR:-}"' EXIT INT TERM`.
 - **Repo-specific paths need portability notes**: When a skill step references a layout-specific path (e.g., `skills/*/SKILL.md`), add `(adjust prefix to match your repo's skill directory structure)` — downstream consumers with a different layout silently miss the trigger.
 - **Cite reference files by full path** (`skills/learn/references/refactoring.md`, not `refactoring.md`) — bare names are ambiguous outside the home skill.
 - Bash snippets that assign CLI output to a variable should include `2>&1` so error messages flow into the captured variable and reach fallback/error handling paths (e.g., `REVIEW_OUTPUT=$(cli ... 2>&1)`).
