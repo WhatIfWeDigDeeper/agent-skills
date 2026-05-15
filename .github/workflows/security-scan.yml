@@ -23,7 +23,7 @@ on:
 
 permissions:
   contents: read
-  actions: write  # actions/cache@v4 needs read for restore + write for save
+  actions: write  # actions/cache@v5 needs read for restore + write for save
 
 jobs:
   security-scan:
@@ -63,7 +63,7 @@ jobs:
       # invalidates the cache cleanly; otherwise stale `uvx` artifacts
       # could mask version-dependent behavior changes.
       - name: Cache uvx-installed scanner
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/uv
           key: uv-snyk-agent-scan-${{ steps.scanner-version.outputs.version }}
