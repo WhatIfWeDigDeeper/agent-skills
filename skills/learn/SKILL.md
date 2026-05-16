@@ -16,7 +16,7 @@ compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Learn from Conversation
@@ -97,6 +97,8 @@ Within the Markdown scope, when multiple configs are present:
 **Why:** The mirror-rule is load-bearing — it is how future sessions know to keep configs in sync. Silently updating one config without the other, or deleting the mirror-rule during a rewrite, lets the configs drift and the rule die. User choice still binds because narrower scoping is often legitimate.
 
 ### 5. Present Plan and Wait for Confirmation
+
+Before showing the plan, **deduplicate candidates by underlying observation.** If two candidates describe the same fact under different routings (e.g., a CLAUDE.md bullet vs. a skill reference rule, or a kept candidate plus a "rejected alternative routing" of the same observation), pick exactly one route and drop the others — do not list rejected alternative routes for the same fact as separate items in the plan or rejection list. One observation, one row.
 
 Before showing the plan, **audit each drafted rule body against the Principles' "Minimum viable rule text" check** — apply "is this the min chars necessary?" to every clause and cut any clause you can't defend (incident narratives, multi-clause rationales, explanatory prose beyond a concrete example). First-draft text routinely needs trimming; the audit is not optional.
 
