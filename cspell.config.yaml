@@ -54,12 +54,14 @@ words:
   - homoglyphs
   - idempotently
   - informationally
+  - isdigit
   - isoformat
   - lockfiles
   - lookarounds
   - metacharacter
   - metacharacters
   - metaprogramming
+  - misparsed
   - mktemp
   - mongosh
   - multiconfig
@@ -68,6 +70,7 @@ words:
   - mypy
   - myrepo
   - narratively
+  - nonwhitespace
   - noxfile
   - nuxt
   - oneline
@@ -80,6 +83,7 @@ words:
   - pipenv
   - Pipfile
   - prauthor
+  - prcomments
   - preconfigure
   - PREOF
   - prhumanreview

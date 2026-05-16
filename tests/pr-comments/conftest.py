@@ -4,6 +4,39 @@ import re
 
 HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 
+# SKILL.md Step 1 / Arguments validation regexes (spec 39):
+# - explicitly-supplied PR number (after stripping a single leading '#' and
+#   surrounding whitespace) must match PR_NUMBER_RE before any shell call;
+# - any --max N (and backward-compatible --auto N) value must match MAX_VALUE_RE.
+PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}$")
+MAX_VALUE_RE = re.compile(r"^[1-9][0-9]{0,3}$")
+
+
+def validate_pr_number(value: str | None) -> bool:
+    """Return True if value is a valid PR number per SKILL.md Step 1.
+
+    Strips surrounding whitespace, then a single leading ``#`` (so ``42``,
+    ``#42``, and ``  42  `` are all accepted), then matches against
+    ``PR_NUMBER_RE`` (``^[1-9][0-9]{0,5}$`` — rejects ``0`` and
+    unbounded-length digit strings). ``None`` (no PR-number token) is rejected.
+    """
+    if value is None:
+        return False
+    cleaned = str(value).strip().removeprefix("#")
+    return bool(PR_NUMBER_RE.match(cleaned))
+
+
+def validate_max_value(value: str | None) -> bool:
+    """Return True if value is a valid ``--max N`` (or ``--auto N``) per SKILL.md.
+
+    Strips surrounding whitespace, then matches against ``MAX_VALUE_RE``
+    (``^[1-9][0-9]{0,3}$`` — 1–9999, well above any realistic loop cap).
+    ``None`` (no value supplied) is rejected.
+    """
+    if value is None:
+        return False
+    return bool(MAX_VALUE_RE.match(str(value).strip()))
+
 
 def is_help_request(args: str) -> bool:
     """Check if arguments are a help request per SKILL.md."""
@@ -13,12 +46,11 @@ def is_help_request(args: str) -> bool:
 def is_pr_number(args: str) -> bool:
     """Check if arguments are a PR number per SKILL.md.
 
-    Strips a leading '#' before checking (e.g. '#42' → '42').
+    Strips a leading '#' before checking (e.g. '#42' → '42'). Delegates to
+    :func:`validate_pr_number` so the suite models the spec-39 regex
+    (``^[1-9][0-9]{0,5}$``) rather than the looser ``isdigit()`` check.
     """
-    if not args:
-        return False
-    stripped = args.strip().removeprefix("#")
-    return bool(stripped and stripped.isdigit())
+    return bool(args) and validate_pr_number(args)
 
 
 def parse_pr_argument(args: str) -> dict:
@@ -26,8 +58,14 @@ def parse_pr_argument(args: str) -> dict:
 
     Returns:
         {"type": "help"} if help trigger
-        {"type": "pr_number", "number": int} if numeric
-        {"type": "detect"} if empty/whitespace (detect from branch)
+        {"type": "pr_number", "number": int} if a valid PR number
+        {"type": "invalid", "value": str} if the argument looks like a PR
+            number (all ASCII digits, optionally with a single leading ``#``)
+            but fails :func:`validate_pr_number` — SKILL.md Step 1 stops with
+            ``Invalid PR number: <value>. Must be a positive integer.`` here
+            rather than silently treating it as branch detection
+        {"type": "detect"} if empty/whitespace, or any other non-numeric text
+            (detect from branch)
     """
     if not args or not args.strip():
         return {"type": "detect"}
@@ -37,6 +75,12 @@ def parse_pr_argument(args: str) -> dict:
     if is_pr_number(stripped):
         cleaned = stripped.removeprefix("#")
         return {"type": "pr_number", "number": int(cleaned)}
+    # A numeric-looking PR argument that failed validation (e.g. "0", "01", a
+    # 7+-digit string, "#0") is surfaced as invalid rather than silently
+    # falling through to branch detection — "##42", bare "#", and non-numeric
+    # text still detect from the branch.
+    if re.fullmatch(r"[0-9]+", stripped.removeprefix("#")):
+        return {"type": "invalid", "value": stripped}
     return {"type": "detect"}
 
 
@@ -107,8 +151,36 @@ def should_offer_poll(bot_reviewers: list[str]) -> bool:
 def parse_auto_flag(args: str) -> dict:
     """Parse mode flags from arguments per SKILL.md.
 
-    Auto mode is the default. --manual restores the confirmation gate.
-    --auto [N] is accepted for backward compatibility and to set the iteration cap.
+    Auto mode is the default. ``--manual`` restores the confirmation gate, and
+    is **sticky** — once ``--manual`` appears anywhere in the arguments the
+    invocation is manual regardless of token order; ``--auto`` never flips it
+    back (``--auto`` is a no-op alias retained only for legacy callers, since
+    auto is already the default).
+    ``--max N`` sets the iteration cap; ``--auto [N]`` is accepted for backward
+    compatibility (``--auto N`` is treated as ``--max N``). ``--max`` consumes
+    the token immediately following it as its value-candidate (unless that token
+    is itself a ``--`` flag), so an invalid value like ``--max +10`` is caught
+    by :func:`validate_max_value` below rather than leaking into
+    ``remaining_args`` and being misread as a PR number; ``--auto``'s value is
+    optional, so a following token is consumed only when it is all digits — and
+    because a bare PR number is all digits, ``--auto 42`` is consumed as the
+    iteration cap (``remaining_args`` ends up empty), not left as a PR number.
+    Disambiguate by putting the number first (``42 --auto``), keeping its ``#``
+    prefix (``--auto #42``), or using ``--max N`` with the number.
+
+    Mirrors the SKILL.md Step 1 / Arguments rules:
+
+    - ``--manual`` wins whenever present; ``--auto`` does not override it.
+    - ``--max`` / ``--auto N`` are **ignored in manual mode** — manual mode has
+      no auto-loop to cap, so a supplied value is consumed but discarded without
+      use; it never reaches a shell call or a loop bound, so it is neither
+      validated nor an error (SKILL.md scopes the ``--max`` validation
+      requirement to auto mode for exactly this reason).
+    - In auto mode a supplied integer value must pass :func:`validate_max_value`
+      (1–9999) before the loop cap is applied; anything else (``--max 0``,
+      ``--max 01``, ``--max 10000``) raises ``ValueError`` rather than being
+      silently dropped, matching the doc's ``Invalid --max value: <value>.
+      Must be a positive integer.`` stop.
 
     Returns:
         {
@@ -118,28 +190,47 @@ def parse_auto_flag(args: str) -> dict:
         }
     where auto defaults to True, max_iterations defaults to 10,
     and remaining_args is the original args with any mode flag tokens removed.
+
+    Raises:
+        ValueError: if an invalid ``--max`` / ``--auto N`` value is supplied
+            in auto mode.
     """
     if not args or not args.strip():
         return {"auto": True, "max_iterations": 10, "remaining_args": ""}
 
     tokens = args.strip().split()
-    auto = True  # default: auto mode
+    manual_seen = False  # --manual is sticky for the whole invocation
     max_iterations = 10
+    requested_max: str | None = None  # last --max / --auto numeric value seen
     remaining_tokens: list[str] = []
 
     i = 0
     while i < len(tokens):
         if tokens[i] == "--manual":
-            auto = False
+            manual_seen = True
             i += 1
+        elif tokens[i] == "--max":
+            # --max takes the immediately-following token as its value-candidate
+            # (unless that token is itself a --flag, e.g. "--max --manual"), so
+            # an invalid value ("+10", "0x1", "1e10", "-5") is caught by
+            # validate_max_value below rather than leaking into remaining_args
+            # and being misread as a PR number. Whether the value is *applied*
+            # (vs. ignored in manual mode) is decided after the loop.
+            if i + 1 < len(tokens) and not tokens[i + 1].startswith("--"):
+                requested_max = tokens[i + 1]
+                i += 2
+            else:
+                i += 1
         elif tokens[i] == "--auto":
-            auto = True
-            # Consume any non-negative integer following --auto to prevent it
-            # from leaking into remaining_args (e.g., "0" being misparsed as PR #0).
-            # Only positive values are used as the iteration cap.
+            # --auto is a no-op alias (auto is the default) and never re-enables
+            # auto mode once --manual has been seen — manual is sticky. Its value
+            # is optional, so consume a following token only when it is all
+            # digits; a non-digit token (another flag, a "#"-prefixed or
+            # non-numeric PR argument) is left alone. A bare-digit PR number
+            # after --auto is instead consumed as the cap — see the docstring's
+            # disambiguation note.
             if i + 1 < len(tokens) and tokens[i + 1].isdigit():
-                if int(tokens[i + 1]) > 0:
-                    max_iterations = int(tokens[i + 1])
+                requested_max = tokens[i + 1]
                 i += 2
             else:
                 i += 1
@@ -147,11 +238,20 @@ def parse_auto_flag(args: str) -> dict:
             remaining_tokens.append(tokens[i])
             i += 1
 
-    remaining_args = " ".join(remaining_tokens)
+    auto = not manual_seen
+    # --max / --auto N are ignored in manual mode; in auto mode an invalid
+    # value is a hard error rather than a silent no-op.
+    if auto and requested_max is not None:
+        if not validate_max_value(requested_max):
+            raise ValueError(
+                f"Invalid --max value: {requested_max}. Must be a positive integer."
+            )
+        max_iterations = int(requested_max)
+
     return {
         "auto": auto,
         "max_iterations": max_iterations,
-        "remaining_args": remaining_args,
+        "remaining_args": " ".join(remaining_tokens),
     }
 
 
