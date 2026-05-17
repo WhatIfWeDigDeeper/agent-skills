@@ -72,7 +72,7 @@ Decision: do **not** move the whole Security model section between `## Review Mo
 
 ### Item 5: Security model section refresh
 
-Append four bullets to the Mitigations list (PR-content screening pass, Screening-independence invariant, PR-content size guard, Security-note adjacency). Append five bullets to the Residual risks list (screening-regex heuristic, Cyrillic-adjacency false positives, no `--no-screen` escape hatch, Secret-scan path asymmetry W007, File-modification surface W013). Rewrite the now-`### Why W007, W011, W012, and W013 still appear` subsection to name the new mitigations, cover all four findings, and reaffirm the baseline-pinning rationale.
+Append four bullets to the Mitigations list (PR-content screening pass, Screening-independence invariant, PR-content size guard, Security-note adjacency). Append four bullets to the Residual risks list (screening-regex heuristic, Cyrillic-adjacency false positives, no `--no-screen` escape hatch, Secret-scan path asymmetry W007). Rewrite the now-`### Why W007, W011, and W012 still appear` subsection to name the new mitigations, cover all three pinned findings, narrate the W013 add→clear arc (added in I-iteration when the cleanup-index pattern was introduced, cleared in J-iteration when it was replaced by per-invocation `mktemp -d` at mode 700), and reaffirm the baseline-pinning rationale for the remaining three.
 
 ### Item 6: Test coverage
 
@@ -91,7 +91,7 @@ Bump `metadata.version` from `"1.11"` to `"1.12"` (single bump for the PR; minor
 Update `evals/security/peer-review.baseline.json`:
 - `skill_version`: `1.11` → `1.12`
 - `captured_at`: `2026-05-09` → `2026-05-17`
-- `notes`: rewrite to name spec 40 and the new mitigations (screening pass, size guard, adjacency banner). All four findings (W007, W011, W012, W013) pinned at high — see baseline notes for the heuristic origins of each.
+- `notes`: rewrite to name spec 40 and the new mitigations (screening pass, size guard, adjacency banner). Three findings (W007, W011, W012) pinned at high; W013 was cleared during the J-iteration when the cleanup-index pattern was replaced by per-invocation `mktemp -d` at mode 700, removing the fixed-path side-effect the scanner heuristic was matching against. See baseline notes for the heuristic origins of each remaining finding.
 
 ## Files to Modify
 

@@ -77,17 +77,22 @@ def parse_pr_argument(args: str) -> dict:
     """
     if not args or not args.strip():
         return {"type": "detect"}
-    stripped = args.strip()
+    # Strip only ASCII space and tab — newline / carriage-return at the
+    # boundary (e.g. "1\n") must survive so the regex below catches it as a
+    # numeric-looking-but-invalid PR attempt rather than args.strip() silently
+    # normalizing it to "1" and routing to {"type": "pr_number"}.
+    stripped = args.strip(" \t")
     if is_help_request(stripped):
         return {"type": "help"}
     if is_pr_number(stripped):
         cleaned = stripped.removeprefix("#")
         return {"type": "pr_number", "number": int(cleaned)}
     # A numeric-looking PR argument that failed validation (e.g. "0", "01", a
-    # 7+-digit string, "#0") is surfaced as invalid rather than silently
+    # 7+-digit string, "#0", or a value with a smuggled trailing newline /
+    # carriage-return like "1\n") is surfaced as invalid rather than silently
     # falling through to branch detection — "##42", bare "#", and non-numeric
     # text still detect from the branch.
-    if re.fullmatch(r"[0-9]+", stripped.removeprefix("#")):
+    if re.fullmatch(r"[0-9]+\s*", stripped.removeprefix("#")):
         return {"type": "invalid", "value": stripped}
     return {"type": "detect"}
 

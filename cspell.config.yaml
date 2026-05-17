@@ -132,6 +132,7 @@ words:
   - underspecified
   - unmatch
   - unredacted
+  - unsets
   - unsoftenable
   - untrusted_diff
   - untrusted_files

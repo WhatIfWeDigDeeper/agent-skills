@@ -266,6 +266,8 @@ Set mode to **consistency**.
 
 **Size guard.** Cap `$PR_CONTENT_FILE` at **256 KB for screening only** (`SCREEN_LIMIT=262144`). The GitHub PR description limit is 65 KB; typical PR diffs are 1–50 KB; 256 KB covers ~95% of real PRs with headroom while keeping the 10 regex passes (7 case-sensitive + 1 case-insensitive + 2 unicode/adjacency byte scans) well under one second. If `$PR_CONTENT_FILE` exceeds the limit, truncate it for the screening loop only — the reviewer in Step 3 still sees the full unmodified content — and set `OVERSIZED=1` so the confirmation pause fires regardless of whether a pattern matched. Burying signal in a 10 MB PR body is itself an attack and requires explicit user consent.
 
+> **MANDATORY single-tool-call execution.** Every fenced ` ```bash ` block from this point through the Step 2b confirmation pause (the size-guard `mktemp` + `trap`, both `patterns_*` heredocs, the `screen_context()` definition, and the per-pattern screening loop) **must run inside the same Bash tool call**. The `trap 'rm -f "$PR_CONTENT_FILE" "$PR_SCREEN_RAW_FILE" "$PR_SCREEN_FILE"' EXIT INT TERM` registered below fires when the enclosing Bash tool call exits — splitting these blocks into separate calls deletes the screening temp files (and unsets `$SCREEN_LIMIT` / `$OVERSIZED` / the heredoc variables) before the pattern loop runs, so the screen silently scans nothing and gates no review. Assistant runtimes that force each fenced bash block into its own tool call cannot use this skill safely on the `--pr N` path; route those callers to `--branch NAME` or `--staged` instead, both of which skip Step 2b entirely.
+
 ```bash
 SCREEN_LIMIT=262144
 # Byte-count semantics, not character count. In a UTF-8 locale, `${#var}`
@@ -590,7 +592,7 @@ Pass the completed prompt (template + collected content) to a fresh instance of 
 
 **If `model` starts with `claude-`:**
 
-The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. In Claude Code, spawn a subagent with the specified model. Other assistants use their own equivalent mechanism. **If the current assistant cannot select the requested `claude-*` model, treat it as unsupported and stop:** "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]."
+The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. In Claude Code, spawn a subagent with the specified model. Other assistants use their own equivalent mechanism. **If the current assistant cannot select the requested `claude-*` model, treat it as unsupported and stop:** "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel], gemini[:submodel]." If the target was `--pr N`, **run the Step 4h cleanup snippet first** — the per-invocation `mktemp -d` directory written in Step 2 must not outlive the aborted run — and append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 
 The reviewer's only job is to return findings. It must not modify any files.
 
@@ -604,7 +606,7 @@ Determine the CLI binary and optional sub-model from the `--model` value. If `--
 | `codex` | `codex` | `--model SUBMODEL` |
 | `gemini` | `gemini` | `-m SUBMODEL` |
 
-If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel], gemini[:submodel]."
+If the prefix does not match `copilot`, `codex`, or `gemini`, error and stop: "Unsupported --model value: [value]. Supported values: self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel], gemini[:submodel]." If the target was `--pr N`, **run the Step 4h cleanup snippet first** — the per-invocation `mktemp -d` directory written in Step 2 must not outlive the aborted run — and append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 
 **4a. Check binary availability:**
 
@@ -617,7 +619,7 @@ Install hints:
 - `codex`: `npm install -g @openai/codex`
 - `gemini`: `npm install -g @google/gemini-cli`
 
-If the binary is not found, output the error message and stop. Do not proceed to Step 5.
+If the binary is not found, output the error message and stop. Do not proceed to Step 5. If the target was `--pr N`, **run the Step 4h cleanup snippet first** — the per-invocation `mktemp -d` directory written in Step 2 must not outlive the aborted run — and append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 
 **4b. Pre-flight secret scan (external CLI path only):**
 
@@ -844,7 +846,7 @@ For copilot: output is JSON with schema `{ summary, overall_risk, findings: [{ s
 
 For codex and gemini: output is markdown or plain text. First check if output is exactly `NO FINDINGS` — if so, treat as no issues. Otherwise parse severity from lines matching patterns like `[HIGH]`, `**Critical**`, `severity: high` (case-insensitive). Extract title, file, problem, and fix from surrounding lines. If no structured severity pattern is found, present the full output as a single `major` finding.
 
-If parsing fails for any CLI: output raw text with the prefix "Could not parse structured findings; showing raw output." Then stop — this is a terminal output. Do not proceed to triage (Step 4f) or apply (Step 6); the raw text is presented directly to the user, who can re-run the skill or invoke the CLI manually if they need structured findings.
+If parsing fails for any CLI: output raw text with the prefix "Could not parse structured findings; showing raw output." Then stop — this is a terminal output. Do not proceed to triage (Step 4f) or apply (Step 6); the raw text is presented directly to the user, who can re-run the skill or invoke the CLI manually if they need structured findings. If the target was `--pr N`, **run the Step 4h cleanup snippet first** — the per-invocation `mktemp -d` directory written in Step 2 must not outlive the aborted run — and append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 
 **Severity normalization** (apply case-insensitively for all CLIs):
 
@@ -912,6 +914,9 @@ Run this snippet on **every exit path** that follows Step 2's PR fetch:
 - Normal completion: between Step 4g and Step 5 (the self/claude path skips Step 4a–4g and runs this snippet directly before Step 5).
 - Step 2b abort branch (confirmation declined): run before emitting the `Aborted — review the PR content carefully…` line.
 - Step 4b abort branch (secret-scan confirmation declined): run before emitting the `Aborted — redact secrets and re-run.` line.
+- Step 4 unsupported `--model` value (the `claude-*` model could not be selected, or the prefix did not match `copilot` / `codex` / `gemini`): run before emitting the `Unsupported --model value: …` line.
+- Step 4a missing external CLI binary (`command -v <binary>` failed): run before emitting the `<binary> CLI not found.` line.
+- Step 4e raw-output / parse-failure terminal exit (`Could not parse structured findings; showing raw output.`): run before emitting the raw text.
 
 Skipping any one of these paths leaves the full PR body/diff (potentially containing secrets, prompt-injection payloads, or both) in mode-700 / mode-600 temp files indefinitely under `$TMPDIR`. The mode-700 directory perms reduce blast radius to the invoking user but do not substitute for cleanup.
 
