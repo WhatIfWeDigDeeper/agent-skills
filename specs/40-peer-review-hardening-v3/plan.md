@@ -106,9 +106,9 @@ Update `evals/security/peer-review.baseline.json`:
 ## Verification
 
 - Read updated Step 2b end-to-end; confirm patterns are POSIX ERE only (no `(?i)`, no `\s`, no lookarounds).
-- Read updated Security model; confirm four new Mitigations bullets and five new Residual risks bullets, plus the rewritten `### Why W007, W011, W012, and W013 still appear` subsection.
+- Read updated Security model; confirm four new Mitigations bullets and five new Residual risks bullets, plus the rewritten `### Why W007, W011, and W012 still appear` subsection.
 - `uv run --with pytest pytest tests/peer-review/ -v` — all green, including the new `test_pr_screening.py` and the appended adversarial-args block.
-- `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` — reports W007 + W011 + W012 + W013 at `high` (the four findings pinned in the refreshed baseline; no regression, no escalation, no new IDs).
+- `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` — reports W007 + W011 + W012 at `high` (the three findings pinned in the refreshed baseline; no regression, no escalation, no new IDs). W013 was cleared during J-iteration by switching to a per-invocation `mktemp -d` directory with mode-700 perms and is therefore not pinned.
 - `bash evals/security/scan.sh` (no `--update-baselines`) — exits 0; baseline matches.
 - `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/40-peer-review-hardening-v3/plan.md specs/40-peer-review-hardening-v3/tasks.md` — no unknown words.
 - `uv run python -m evals.runner peer-review` — pass rate within ±3% of the current `benchmark.json` baseline. Step 2b adds no reviewer-prompt content on the self/claude-* path, so behavioral evals should be unchanged.
@@ -119,4 +119,4 @@ Update `evals/security/peer-review.baseline.json`:
 - **HTML-comment false positives** on Markdown PRs using `<!--` for TOCs or hidden TODO blocks. Same trade-off; same documentation.
 - **No `--no-screen` escape hatch in v1.12** — introducing it would create a one-flag bypass that injected content could be crafted to request ("rerun with `--no-screen`"). For trusted internal PRs the operator can use `--branch NAME` or `--staged` instead. Deferred to a follow-up spec if friction proves unacceptable.
 - **10 regex passes** on every `--pr N` invocation (7 case-sensitive + 1 case-insensitive + 2 unicode/adjacency byte scans). With a 256 KB cap, ~100–200 ms total — negligible compared to `gh pr view` + reviewer spawn.
-- **W007, W011, W012, and W013 remain at `high`** — no amount of additional mitigation will move the heuristics, per the rewritten `### Why W007, W011, W012, and W013 still appear` subsection. All four findings are pinned in the baseline.
+- **W007, W011, and W012 remain at `high`** — no amount of additional mitigation will move the heuristics, per the rewritten `### Why W007, W011, and W012 still appear` subsection. All three findings are pinned in the baseline. W013 was cleared during J-iteration (per-invocation `mktemp -d`, mode-700) and is therefore not pinned.

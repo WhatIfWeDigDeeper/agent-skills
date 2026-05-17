@@ -234,7 +234,7 @@ class TestArgumentValidation:
         assert "--pr requires a positive integer" in result["error"]
 
     def test_pr_invalid_seven_digits_error_mentions_cap(self):
-        # 7-digit PR numbers are rejected by the ^[1-9][0-9]{0,5}$ cap; the
+        # 7-digit PR numbers are rejected by the ^[1-9][0-9]{0,5}\Z cap; the
         # error message must surface the length bound so callers can tell why
         # a numeric-looking value was rejected.
         result = parse_arguments("--pr 1000000")

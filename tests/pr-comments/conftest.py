@@ -17,8 +17,10 @@ def validate_pr_number(value: str | None) -> bool:
 
     Strips surrounding spaces/tabs, then a single leading ``#`` (so ``42``,
     ``#42``, and ``  42  `` are all accepted), then matches against
-    ``PR_NUMBER_RE`` (``^[1-9][0-9]{0,5}$`` — rejects ``0`` and
-    unbounded-length digit strings). ``None`` (no PR-number token) is rejected.
+    ``PR_NUMBER_RE`` (``^[1-9][0-9]{0,5}\\Z`` — rejects ``0`` and
+    unbounded-length digit strings, and unlike ``$`` also rejects values
+    with a trailing newline such as ``"1\\n"``). ``None`` (no PR-number
+    token) is rejected.
 
     Strip is limited to ASCII space and tab so newline / carriage-return
     smuggled at the boundary (e.g. ``"1\\n"``) is not silently normalized away
@@ -35,8 +37,9 @@ def validate_max_value(value: str | None) -> bool:
 
     Strips surrounding spaces/tabs (newline / CR not stripped — see
     :func:`validate_pr_number` for the rationale), then matches against
-    ``MAX_VALUE_RE`` (``^[1-9][0-9]{0,3}$`` — 1–9999, well above any realistic
-    loop cap). ``None`` (no value supplied) is rejected.
+    ``MAX_VALUE_RE`` (``^[1-9][0-9]{0,3}\\Z`` — 1–9999, well above any
+    realistic loop cap; ``\\Z`` rather than ``$`` so a smuggled trailing
+    newline cannot pass the regex). ``None`` (no value supplied) is rejected.
     """
     if value is None:
         return False
@@ -53,7 +56,7 @@ def is_pr_number(args: str) -> bool:
 
     Strips a leading '#' before checking (e.g. '#42' → '42'). Delegates to
     :func:`validate_pr_number` so the suite models the spec-39 regex
-    (``^[1-9][0-9]{0,5}$``) rather than the looser ``isdigit()`` check.
+    (``^[1-9][0-9]{0,5}\\Z``) rather than the looser ``isdigit()`` check.
     """
     return bool(args) and validate_pr_number(args)
 

@@ -73,8 +73,8 @@
 - [x] Update `evals/security/peer-review.baseline.json`:
   - `skill_version` → `"1.12"`.
   - `captured_at` → `"2026-05-17"`.
-  - `findings` → `W007`, `W011`, `W012`, `W013` (all high). All four findings are reported deterministically by `snyk-agent-scan==0.5.1` against the current SKILL.md; they are accepted as the current scanner heuristic baseline. `scan.sh diff_findings()` gates only on new IDs or severity escalations — baselined findings are accepted as expected, so pinning a currently-firing finding documents the heuristic baseline without masking anything.
-  - `notes` → expanded prose naming spec 40, the new screening pass, byte-accurate size guard (mode-600 `mktemp` + pipeline-free `head -c FILE`), whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, the Bash-3-compatible `while IFS= read -r line; do arr+=("$line"); done < <(...)` first-match selection inside `screen_context()`, and the rationale for pinning all four heuristic findings.
+  - `findings` → `W007`, `W011`, `W012` (all high). W013 was cleared during J-iteration by switching to a per-invocation `mktemp -d` directory with mode-700 perms; it no longer fires under `snyk-agent-scan==0.5.1` and is therefore not pinned. The remaining three findings are reported deterministically against the current SKILL.md and accepted as the current scanner heuristic baseline. `scan.sh diff_findings()` gates only on new IDs or severity escalations — baselined findings are accepted as expected, so pinning a currently-firing finding documents the heuristic baseline without masking anything.
+  - `notes` → expanded prose naming spec 40, the new screening pass, byte-accurate size guard (mode-600 `mktemp` + pipeline-free `head -c FILE`), whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, the Bash-3-compatible `while IFS= read -r line; do arr+=("$line"); done < <(...)` first-match selection inside `screen_context()`, and the rationale for pinning the three heuristic findings (W007/W011/W012) that still fire after spec-40 hardening.
 
 ## Phase 5 — Spellcheck and CI hygiene
 
