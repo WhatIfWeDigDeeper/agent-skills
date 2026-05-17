@@ -336,9 +336,12 @@ _SCREEN_PATTERNS_CASE_INSENSITIVE = [
 # Step 2b are checked via `LC_ALL=C grep -E`; Python regex against the decoded
 # string can use the actual codepoints directly.
 _ZWS_BIDI_CHARS = (
-    "​‌‍"  # zero-width space / non-joiner / joiner
-    "‪‫‬‭‮"  # bidi overrides (LRE/RLE/PDF/LRO/RLO)
-    "⁦⁧⁨⁩"  # bidi isolates (LRI/RLI/FSI/PDI)
+    # Use `\uXXXX` escapes rather than raw glyphs — raw zero-width / bidi
+    # control chars render invisibly in most editors and tooling. Mirrors
+    # the convention used in tests/_helpers/argument_injection.py.
+    "\u200B\u200C\u200D"            # zero-width space / non-joiner / joiner
+    "\u202A\u202B\u202C\u202D\u202E"  # bidi overrides (LRE/RLE/PDF/LRO/RLO)
+    "\u2066\u2067\u2068\u2069"        # bidi isolates (LRI/RLI/FSI/PDI)
 )
 _ZWS_BIDI_RE = re.compile(f"[{_ZWS_BIDI_CHARS}]")
 

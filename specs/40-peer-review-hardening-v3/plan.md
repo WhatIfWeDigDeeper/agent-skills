@@ -52,13 +52,13 @@ Case-insensitive group:
 
 Unicode codepoint group (byte-level scan via `LC_ALL=C grep -E`):
 - Zero-width / bidi-control: U+200B–U+200D, U+202A–U+202E, U+2066–U+2069 (`\xE2\x80[\x8B-\x8D\xAA-\xAE]|\xE2\x81[\xA6-\xA9]`).
-- Cyrillic homoglyph adjacency: any Cyrillic codepoint U+0400–U+04FF within 8 chars of ASCII `ignore`, `instructions`, `system`, `prompt`, `assistant`, or `disregard`.
+- Cyrillic homoglyph adjacency: any Cyrillic codepoint U+0400–U+04FF within 8 bytes (per `LC_ALL=C grep -E`'s `.{0,8}` byte window — Cyrillic codepoints are 2 bytes in UTF-8, so the effective adjacency is up to ~4 Cyrillic characters or 8 ASCII characters) of ASCII `ignore`, `instructions`, `system`, `prompt`, `assistant`, or `disregard`.
 
 ### Item 2: 256 KB PR-content size guard
 
 Cap `$PR_CONTENT` at `SCREEN_LIMIT=262144` bytes for the regex pass only. The reviewer in Step 3 still sees the full unmodified content. Overflow triggers the same confirmation pause as a flagged pattern — burying signal in a 10 MB PR body is itself an attack.
 
-Ceiling rationale: GitHub PR description limit is 65 KB; typical PR diffs are 1–50 KB; large refactor PRs reach 100–500 KB but are unusual. 256 KB covers ~95% of real PRs with headroom while keeping the eight regex passes under one second on cold caches.
+Ceiling rationale: GitHub PR description limit is 65 KB; typical PR diffs are 1–50 KB; large refactor PRs reach 100–500 KB but are unusual. 256 KB covers ~95% of real PRs with headroom while keeping the 10 regex passes (7 case-sensitive + 1 case-insensitive + 2 unicode/adjacency byte scans) under one second on cold caches.
 
 ### Item 3: Screening-independence invariant
 
@@ -72,7 +72,7 @@ Decision: do **not** move the whole Security model section between `## Review Mo
 
 ### Item 5: Security model section refresh
 
-Append four bullets to the Mitigations list (PR-content screening pass, Screening-independence invariant, PR-content size guard, Security-note adjacency). Append three bullets to the Residual risks list (screening-regex heuristic, Cyrillic-adjacency false positives, no `--no-screen` escape hatch). Expand the `### Why W011 and W012 still appear` subsection to name the new mitigations and reaffirm the baseline-pinning rationale.
+Append four bullets to the Mitigations list (PR-content screening pass, Screening-independence invariant, PR-content size guard, Security-note adjacency). Append five bullets to the Residual risks list (screening-regex heuristic, Cyrillic-adjacency false positives, no `--no-screen` escape hatch, Secret-scan path asymmetry W007, File-modification surface W013). Rewrite the now-`### Why W007, W011, W012, and W013 still appear` subsection to name the new mitigations, cover all four findings, and reaffirm the baseline-pinning rationale.
 
 ### Item 6: Test coverage
 
@@ -106,9 +106,9 @@ Update `evals/security/peer-review.baseline.json`:
 ## Verification
 
 - Read updated Step 2b end-to-end; confirm patterns are POSIX ERE only (no `(?i)`, no `\s`, no lookarounds).
-- Read updated Security model; confirm four new Mitigations bullets and three new Residual risks bullets, plus the expanded `### Why W011 and W012 still appear` subsection.
+- Read updated Security model; confirm four new Mitigations bullets and five new Residual risks bullets, plus the rewritten `### Why W007, W011, W012, and W013 still appear` subsection.
 - `uv run --with pytest pytest tests/peer-review/ -v` — all green, including the new `test_pr_screening.py` and the appended adversarial-args block.
-- `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` — still reports W011 + W012 at `high` (no regression, no escalation).
+- `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` — reports W007 + W011 + W012 + W013 at `high` (the four findings pinned in the refreshed baseline; no regression, no escalation, no new IDs).
 - `bash evals/security/scan.sh` (no `--update-baselines`) — exits 0; baseline matches.
 - `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/40-peer-review-hardening-v3/plan.md specs/40-peer-review-hardening-v3/tasks.md` — no unknown words.
 - `uv run python -m evals.runner peer-review` — pass rate within ±3% of the current `benchmark.json` baseline. Step 2b adds no reviewer-prompt content on the self/claude-* path, so behavioral evals should be unchanged.
@@ -118,5 +118,5 @@ Update `evals/security/peer-review.baseline.json`:
 - **Cyrillic-adjacency false positives** on legitimate Russian/Ukrainian/etc. PRs discussing prompt engineering or AI assistants in Cyrillic-script languages. Deliberate trade-off — one extra `y` is cheap; missing a homoglyph injection is not. Documented as a residual risk.
 - **HTML-comment false positives** on Markdown PRs using `<!--` for TOCs or hidden TODO blocks. Same trade-off; same documentation.
 - **No `--no-screen` escape hatch in v1.12** — introducing it would create a one-flag bypass that injected content could be crafted to request ("rerun with `--no-screen`"). For trusted internal PRs the operator can use `--branch NAME` or `--staged` instead. Deferred to a follow-up spec if friction proves unacceptable.
-- **Eight regex passes** on every `--pr N` invocation. With a 256 KB cap, ~80–160 ms total — negligible compared to `gh pr view` + reviewer spawn.
-- **W011 and W012 remain at `high`** — no amount of mitigation will move the heuristic, per the existing `### Why W011 and W012 still appear` subsection.
+- **10 regex passes** on every `--pr N` invocation (7 case-sensitive + 1 case-insensitive + 2 unicode/adjacency byte scans). With a 256 KB cap, ~100–200 ms total — negligible compared to `gh pr view` + reviewer spawn.
+- **W007, W011, W012, and W013 remain at `high`** — no amount of additional mitigation will move the heuristics, per the rewritten `### Why W007, W011, W012, and W013 still appear` subsection. All four findings are pinned in the baseline.

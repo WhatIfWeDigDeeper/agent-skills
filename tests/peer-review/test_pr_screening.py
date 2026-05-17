@@ -174,11 +174,15 @@ def test_base64_short_run_negative():
 @pytest.mark.parametrize(
     "content",
     [
-        "ignore​this",      # zero-width space
-        "system‌prompt",     # zero-width non-joiner
-        "system‍prompt",     # zero-width joiner
-        "‮secret‬",     # RTL override + PDF
-        "⁦payload⁩",    # LRI / PDI bidi isolates
+        # Raw zero-width / bidi glyphs render invisibly in most editors and
+        # tooling, so use `\uXXXX` escapes and concatenate letters separately
+        # so cspell does not see a single "escape + letters" token. Mirrors
+        # the convention already used in tests/_helpers/argument_injection.py.
+        "ignore" + "\u200B" + "this",        # zero-width space
+        "system" + "\u200C" + "prompt",      # zero-width non-joiner
+        "system" + "\u200D" + "prompt",      # zero-width joiner
+        "\u202E" + "secret" + "\u202C",     # RTL override + PDF
+        "\u2066" + "payload" + "\u2069",    # LRI / PDI bidi isolates
     ],
 )
 def test_zero_width_bidi_positive(content):
@@ -350,7 +354,7 @@ def test_multi_line_zero_width_detected():
     Same rationale as the Cyrillic case: SKILL.md normalizes whitespace
     before the zero-width grep pass, so Python must do the same.
     """
-    hits = pr_screen("ignore\n​payload")
+    hits = pr_screen("ignore\n" + "\u200B" + "payload")  # zero-width space
     assert "Zero-width / bidi-control codepoint" in [name for name, _ in hits]
 
 

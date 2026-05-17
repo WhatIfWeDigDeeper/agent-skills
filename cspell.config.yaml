@@ -60,6 +60,7 @@ words:
   - isoformat
   - lockfiles
   - lookarounds
+  - mapfile
   - metachar
   - metacharacter
   - metacharacters

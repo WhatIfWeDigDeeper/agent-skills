@@ -58,7 +58,7 @@
 - [x] Create `tests/peer-review/test_pr_screening.py`:
   - Dispatch by target type (4 tests): staged/branch/path → False; pr → True.
   - Per-pattern positive cases for each of the 10 families.
-  - Per-pattern negative cases for false-positive-prone patterns (override imperative on benign English, sk- inside `risk-`/`task-`/`disk-`, base64 length threshold, Cyrillic without adjacency word, etc.).
+  - Per-pattern negative cases for false-positive-prone patterns (override imperative on benign English, base64 length threshold below the 200-char bar, role-impersonation against benign phrasing, Cyrillic codepoint without an adjacency word, HTML comment opener inside fenced code, etc.).
   - Multi-pattern combined input → all hits reported.
   - Size guard: under limit (passthrough), exactly limit (passthrough), over limit (truncated + flagged).
   - Confirmation routing: `y`/`Y`/` y `/`y\n` → proceed; `n`/`no`/`yes`/empty/None → abort.
@@ -74,7 +74,7 @@
   - `skill_version` → `"1.12"`.
   - `captured_at` → `"2026-05-17"`.
   - `findings` → `W007`, `W011`, `W012`, `W013` (all high). All four findings are reported deterministically by `snyk-agent-scan==0.5.1` against the current SKILL.md; they are accepted as the current scanner heuristic baseline. `scan.sh diff_findings()` gates only on new IDs or severity escalations — baselined findings are accepted as expected, so pinning a currently-firing finding documents the heuristic baseline without masking anything.
-  - `notes` → expanded prose naming spec 40, the new screening pass, byte-accurate size guard, whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, the `head -n 1` window guard in `screen_context()`, and the rationale for pinning all four heuristic findings.
+  - `notes` → expanded prose naming spec 40, the new screening pass, byte-accurate size guard (mode-600 `mktemp` + pipeline-free `head -c FILE`), whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, the Bash-3-compatible `while IFS= read -r line; do arr+=("$line"); done < <(...)` first-match selection inside `screen_context()`, and the rationale for pinning all four heuristic findings.
 
 ## Phase 5 — Spellcheck and CI hygiene
 
