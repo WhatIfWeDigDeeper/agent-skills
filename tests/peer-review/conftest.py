@@ -92,7 +92,7 @@ def parse_arguments(args: str | list[str] | None) -> dict:
             result["target_type"] = "pr"
             result["pr_number"] = tokens[i + 1]
             if not _PR_RE.match(result["pr_number"]):
-                result["error"] = f"--pr requires a positive integer, got: {result['pr_number']}"
+                result["error"] = f"--pr requires a positive integer with at most 6 digits (1–999999), got: {result['pr_number']}"
                 return result
             i += 2
 

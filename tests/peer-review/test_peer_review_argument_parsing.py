@@ -233,6 +233,15 @@ class TestArgumentValidation:
         assert result["error"] is not None
         assert "--pr requires a positive integer" in result["error"]
 
+    def test_pr_invalid_seven_digits_error_mentions_cap(self):
+        # 7-digit PR numbers are rejected by the ^[1-9][0-9]{0,5}$ cap; the
+        # error message must surface the length bound so callers can tell why
+        # a numeric-looking value was rejected.
+        result = parse_arguments("--pr 1000000")
+        assert result["error"] is not None
+        assert "at most 6 digits" in result["error"]
+        assert "1000000" in result["error"]
+
     def test_branch_valid_simple(self):
         result = parse_arguments("--branch main")
         assert result["error"] is None
