@@ -228,26 +228,33 @@ gh pr diff "$PR" > "$PR_DIFF_FILE" \
 # can `rm -rf` the temp dir. Format strings do NOT start with `-` — bash's
 # builtin `printf` parses leading `-` arguments as options, so
 # `printf '--- title ---'` would error out before screening completes.
-# The PR title is deliberately NOT printed here even though `$PR_TITLE` is
-# already populated: the screening-independence invariant requires that no
-# third-party-author-controlled PR content (title, body, or diff) reach the
-# assistant context before Step 2b's regex pass decides whether to pause.
-# Printing the title to tool output would put it in the assistant's reasoning
-# trace and the user's terminal regardless of the later screening outcome,
-# defeating the gate. Step 3 reads the title from `$PR_META_FILE` after the
-# screening pause has either passed cleanly or been explicitly accepted by
-# the user. (`$PR_URL` / `$PR_HEAD` / `$PR_BASE` are surfaced here because
-# they originate from GitHub structure / repo maintainer-controlled refs and
-# the `--branch`-style ref-name regex constrains the head ref's shape — not
-# author-controlled prose like the title.)
+# The PR title and PR head ref are deliberately NOT printed here even though
+# `$PR_TITLE` and `$PR_HEAD` are already populated: the screening-independence
+# invariant requires that no third-party-author-controlled PR content (title,
+# body, diff, or head ref) reach the assistant context before Step 2b's regex
+# pass decides whether to pause. The head ref comes from `gh pr view`'s
+# `headRefName`, which the PR author chooses freely — ref names like
+# `ignore-previous-instructions` or `forget-prior-rules` satisfy git's own
+# ref-name rules and would slip past the `--branch`-style regex that constrains
+# operator-supplied branch names. The earlier comment block claimed the head
+# ref's shape was constrained by that regex; that claim was wrong because the
+# regex is enforced only on the `--branch NAME` argument path, not on
+# `headRefName` values returned by `gh pr view`. Printing the title or head
+# ref to tool output would put author-controlled prose in the assistant's
+# reasoning trace and the user's terminal regardless of the later screening
+# outcome, defeating the gate. Step 3 reads the title and head ref from
+# `$PR_META_FILE` after the screening pause has either passed cleanly or
+# been explicitly accepted by the user. (`$PR_URL` / `$PR_BASE` are surfaced
+# here because they originate from GitHub structure / repo maintainer-
+# controlled refs — the URL format is GitHub-determined and the base ref is
+# the maintainer's choice, neither flowing from the PR author.)
 printf 'PR URL: %s\n' "$PR_URL"
-printf 'PR head ref: %s\n' "$PR_HEAD"
 printf 'PR base ref: %s\n' "$PR_BASE"
 printf 'PR temp dir: %s\n' "$PR_TEMP_DIR"
 printf 'PR body file: %s\n' "$PR_BODY_FILE"
 printf 'PR diff file: %s\n' "$PR_DIFF_FILE"
 ```
-(`$PR` is the validated integer from `--pr N`.) If the PR is not found, error and exit. **Step 3 reads `$PR_META_FILE`, `$PR_BODY_FILE`, and `$PR_DIFF_FILE` directly** — the full unmodified title (extracted from the meta file's `title` JSON field), body, and diff are inserted inside the `<untrusted_diff>` block (with `PR title:` followed by the title from `$PR_META_FILE` as the opening line and `PR body:` followed by the body-file contents next), so the reviewer sees the same content the screening pass evaluated. Reading the title from the meta file rather than receiving it via the Step 2 printf preserves the screening-independence invariant: the title only enters the assistant context after Step 2b's pause has been resolved. Variables `$PR_URL` / `$PR_HEAD` / `$PR_BASE` are surfaced for Step 6's terminal output and the apply-step branch comparison.
+(`$PR` is the validated integer from `--pr N`.) If the PR is not found, error and exit. **Step 3 reads `$PR_META_FILE`, `$PR_BODY_FILE`, and `$PR_DIFF_FILE` directly** — the full unmodified title (extracted from the meta file's `title` JSON field), head ref (extracted from `headRefName`), body, and diff are inserted inside the `<untrusted_diff>` block (with `PR title:` followed by the title from `$PR_META_FILE` as the opening line and `PR body:` followed by the body-file contents next), so the reviewer sees the same content the screening pass evaluated. Reading the title and head ref from the meta file rather than receiving them via the Step 2 printf preserves the screening-independence invariant: author-controlled fields only enter the assistant context after Step 2b's pause has been resolved. Variables `$PR_URL` / `$PR_BASE` are surfaced for Step 6's terminal output and the apply-step branch comparison; the head ref is read from `$PR_META_FILE` at that point.
 
 **Path** (file or directory):
 
@@ -935,20 +942,24 @@ Skipping any one of these paths leaves the full PR body/diff (potentially contai
 # PR_TEMP_DIR=<literal path printed by Step 2's `PR temp dir:` line>
 # Refuse to act on an unset, empty, or root-shaped value: an empty PR_TEMP_DIR
 # would expand `rm -rf "$PR_TEMP_DIR"` to `rm -rf ""` (a no-op), but a value of
-# `/` or `.` would not. Also require the prefix to be a real mktemp -d
-# directory under $TMPDIR / /private/tmp so a stray substitution can't wipe an
-# arbitrary directory. The non-PR target branches (--staged, --branch, path)
-# never set $PR_TEMP_DIR, so the first guard short-circuits the rest.
+# `/` or `.` would not. Also require the directory's basename to match the
+# `peer-review-pr-*` pattern produced by `mktemp -d ".../peer-review-pr-XXXXXX"`
+# in Step 2, so a stray substitution can't wipe an arbitrary directory. The
+# basename check (rather than a prefix match against $TMPDIR or /private/tmp)
+# tolerates $TMPDIR drift between Step 2 and Step 4h — sandbox mode shifts
+# $TMPDIR between `/tmp/claude-501/` and `/var/folders/.../T/`, and this skill
+# may lift sandbox restrictions for external CLIs before Step 4h. The non-PR
+# target branches (--staged, --branch, path) never set $PR_TEMP_DIR, so the
+# first guard short-circuits the rest.
 if [ -n "${PR_TEMP_DIR:-}" ] && [ "$PR_TEMP_DIR" != "/" ] && [ "$PR_TEMP_DIR" != "." ]; then
-  prefix_ok=0
-  if [ -n "${TMPDIR:-}" ] && [ "${PR_TEMP_DIR#"$TMPDIR"/peer-review-pr-}" != "$PR_TEMP_DIR" ]; then
-    prefix_ok=1
-  elif [ "${PR_TEMP_DIR#/private/tmp/peer-review-pr-}" != "$PR_TEMP_DIR" ]; then
-    prefix_ok=1
-  fi
-  if [ "$prefix_ok" = "1" ] && [ -d "$PR_TEMP_DIR" ]; then
-    rm -rf "$PR_TEMP_DIR"
-  fi
+  base=$(basename "$PR_TEMP_DIR")
+  case "$base" in
+    peer-review-pr-*)
+      if [ -d "$PR_TEMP_DIR" ]; then
+        rm -rf "$PR_TEMP_DIR"
+      fi
+      ;;
+  esac
 fi
 ```
 
