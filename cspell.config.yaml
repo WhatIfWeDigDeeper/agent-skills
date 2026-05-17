@@ -13,10 +13,12 @@ words:
   - baprs
   - baselined
   - basenames
+  - bidi
   - blockquotes
   - bunx
   - cmdline
   - codegen
+  - codepoint
   - codepoints
   - commenters
   - conftest
@@ -58,6 +60,8 @@ words:
   - isoformat
   - lockfiles
   - lookarounds
+  - mapfile
+  - metachar
   - metacharacter
   - metacharacters
   - metaprogramming
@@ -93,12 +97,15 @@ words:
   - pyproject
   - PYSEC
   - pytest
+  - readarray
   - REAUDIT
+  - reframings
   - reinvocation
   - repoll
   - repolls
   - rerequest
   - rescan
+  - roleplay
   - rootdir
   - runbooks
   - sandboxed
@@ -119,6 +126,7 @@ words:
   - TOCTOU
   - toplevel
   - ugrep
+  - unbaselined
   - undercounted
   - underspecification
   - underspecified
@@ -142,5 +150,6 @@ words:
   - xoxp
   - xoxr
   - xoxs
+  - zalgo
 ignoreWords: []
 import: []

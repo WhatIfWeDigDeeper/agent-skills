@@ -4,8 +4,8 @@ import re
 
 HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 
-_PR_RE = re.compile(r'^[1-9][0-9]*$')
-_BRANCH_RE = re.compile(r'^[A-Za-z0-9._/-]+$')
+_PR_RE = re.compile(r'^[1-9][0-9]{0,5}$')
+_BRANCH_RE = re.compile(r'^[A-Za-z0-9._/-]{1,255}$')
 
 
 def is_help_request(args: str | None) -> bool:
@@ -92,7 +92,7 @@ def parse_arguments(args: str | list[str] | None) -> dict:
             result["target_type"] = "pr"
             result["pr_number"] = tokens[i + 1]
             if not _PR_RE.match(result["pr_number"]):
-                result["error"] = f"--pr requires a positive integer, got: {result['pr_number']}"
+                result["error"] = f"--pr requires a positive integer with at most 6 digits (1–999999), got: {result['pr_number']}"
                 return result
             i += 2
 
@@ -106,8 +106,8 @@ def parse_arguments(args: str | list[str] | None) -> dict:
                 return result
             result["target_type"] = "branch"
             result["branch_name"] = tokens[i + 1]
-            if not _BRANCH_RE.match(result["branch_name"]):
-                result["error"] = f"--branch requires a git ref name (letters, digits, ., _, /, -), got: {result['branch_name']}"
+            if not _BRANCH_RE.match(result["branch_name"]) or ".." in result["branch_name"]:
+                result["error"] = f"--branch requires a git ref name (letters, digits, ., _, /, -; no consecutive dots; <=255 chars), got: {result['branch_name']}"
                 return result
             i += 2
 
@@ -280,6 +280,178 @@ def route_confirmation_response(response: str | None) -> str:
     empty input)" clause. The check is exact-match on `y` (case-insensitive,
     stripped) — `y`, `Y`, ` y `, `Y\n` proceed; `yes`, `yep`, `n`, `no`,
     `maybe`, `` ``, and `None` all abort.
+    """
+    if response is None:
+        return "abort"
+    cleaned = response.strip().lower()
+    if cleaned == "y":
+        return "proceed"
+    return "abort"
+
+
+# Step 2b — PR-content prompt-injection screening pass (PR target only).
+#
+# Patterns mirror the SKILL.md Step 2b "Case-sensitive group", "Case-insensitive
+# group", and "Unicode codepoint group" lists — POSIX ERE in the spec,
+# translated to Python regex here. Same translation rules as
+# `_SECRET_PATTERNS_*` above: explicit `[ \t]` over `\s`, ASCII character
+# classes over Unicode shortcuts. Line-by-line iteration matches `grep -E`
+# semantics in `pr_screen()` below.
+_SCREEN_PATTERNS_CASE_SENSITIVE = [
+    (
+        "Override imperative",
+        re.compile(
+            r"(ignore|disregard|forget)[ \t]+(all[ \t]+)?(previous|prior|above)[ \t]+(instructions|directives|rules|prompts?)"
+        ),
+    ),
+    (
+        "Role-override opener",
+        re.compile(r"you[ \t]+are[ \t]+now[ \t]+(a[ \t]+|an[ \t]+)?[A-Za-z]"),
+    ),
+    (
+        "Claimed system role",
+        re.compile(r"(system|developer)[ \t]+(prompt|message|instruction)"),
+    ),
+    ("HTML comment opener", re.compile(r"<!--")),
+    ("Collapsed details block", re.compile(r"<details[^>]*>")),
+    ("Hex escape run", re.compile(r"(\\x[0-9A-Fa-f]{2}){4,}")),
+    ("Long base64-shaped run", re.compile(r"[A-Za-z0-9+/]{200,}={0,2}")),
+]
+
+# `re.ASCII` constrains `IGNORECASE` case-folding to ASCII bytes only, mirroring
+# the SKILL.md byte-level `grep -Eqi`. Without it, Python folds Unicode case
+# pairs (e.g. Cyrillic А ↔ а) that BSD grep with `LC_ALL=C` does not, drifting
+# the test suite away from the bash semantics.
+_SCREEN_PATTERNS_CASE_INSENSITIVE = [
+    (
+        "Role-impersonation request",
+        re.compile(
+            r"(act[ \t]+as|pretend[ \t]+to[ \t]+be|roleplay[ \t]+as)[ \t]+(the|an|a)?[ \t]*(admin|root|system|developer|assistant|agent)",
+            re.IGNORECASE | re.ASCII,
+        ),
+    ),
+]
+
+# Zero-width and bidi-control codepoints — UTF-8 byte equivalents in SKILL.md
+# Step 2b are checked via `LC_ALL=C grep -E`; Python regex against the decoded
+# string can use the actual codepoints directly.
+_ZWS_BIDI_CHARS = (
+    # Use `\uXXXX` escapes rather than raw glyphs — raw zero-width / bidi
+    # control chars render invisibly in most editors and tooling. Mirrors
+    # the convention used in tests/_helpers/argument_injection.py.
+    "\u200B\u200C\u200D"            # zero-width space / non-joiner / joiner
+    "\u202A\u202B\u202C\u202D\u202E"  # bidi overrides (LRE/RLE/PDF/LRO/RLO)
+    "\u2066\u2067\u2068\u2069"        # bidi isolates (LRI/RLI/FSI/PDI)
+)
+_ZWS_BIDI_RE = re.compile(f"[{_ZWS_BIDI_CHARS}]")
+
+_CYRILLIC_INSTRUCTION_WORDS = ("ignore", "instructions", "system", "prompt", "assistant", "disregard")
+# Byte-level regex to match SKILL.md Step 2b's `LC_ALL=C grep -Eqi` byte-window.
+# Bash interprets `.{0,8}` over UTF-8 bytes (Cyrillic codepoints take 2 bytes
+# each), so the window is "up to 8 bytes" — not "up to 8 codepoints". Running
+# this regex against `content.encode("utf-8")` makes Python see the same
+# byte-distance semantics; `re.IGNORECASE` on a bytes pattern folds ASCII only,
+# matching BSD grep with `LC_ALL=C`.
+_CYRILLIC_INSTRUCTION_WORDS_BYTES = b"|".join(w.encode("ascii") for w in _CYRILLIC_INSTRUCTION_WORDS)
+_CYRILLIC_ADJACENCY_RE = re.compile(
+    rb"(?:"
+    + rb"(?:" + _CYRILLIC_INSTRUCTION_WORDS_BYTES + rb").{0,8}[\xD0-\xD3][\x80-\xBF]"
+    + rb"|"
+    + rb"[\xD0-\xD3][\x80-\xBF].{0,8}(?:" + _CYRILLIC_INSTRUCTION_WORDS_BYTES + rb")"
+    + rb")",
+    re.IGNORECASE,
+)
+
+
+def should_run_pr_screening(target_type: str | None) -> bool:
+    """SKILL.md Step 2b runs only when the target is `--pr N`.
+
+    `--staged`, `--branch`, and path targets are not third-party-author-controlled
+    (own working tree / own branch refs / own local files) and skip the screen.
+    None and any unknown target type also skip — there is no third-party content
+    to scan.
+    """
+    return target_type == "pr"
+
+
+_ASCII_WHITESPACE_RUN_RE = re.compile(r"[ \t\r\n\f\v]+")
+
+
+def pr_screen(content: str) -> list[tuple[str, str]]:
+    """Run all Step 2b pattern groups against `content`.
+
+    Returns a list of `(pattern_name, matched_substring)` tuples — empty when
+    no pattern fires. A match in any group counts; all groups are run
+    independently per the spec's per-pattern iteration requirement.
+
+    Whitespace runs are collapsed to a single space before scanning, mirroring
+    the SKILL.md `tr -s '[:space:]' ' '` normalization step. Without that
+    pass, `grep -E`'s line-oriented default lets a multi-token pattern (e.g.
+    the override imperative) be evaded by inserting a literal newline between
+    tokens. All four groups (case-sensitive, case-insensitive, zero-width /
+    bidi, Cyrillic adjacency) run against the normalized string, matching
+    SKILL.md Step 2b where every `grep` invocation reads `$PR_CONTENT_FOR_SCREEN`
+    after `tr -s '[:space:]' ' '`. The Cyrillic-adjacency check operates on
+    the UTF-8 byte encoding of the normalized string so the byte-class regex
+    matches the SKILL.md `LC_ALL=C grep` byte-window semantics. ASCII
+    whitespace runs (` `, `\t`, `\r`, `\n`, `\f`, `\v`) do not overlap the
+    zero-width / bidi codepoints (all in U+200B-U+2069) or the Cyrillic
+    UTF-8 byte ranges (0xD0-0xD3 prefix), so normalization is lossless for
+    those two checks.
+    """
+    matches: list[tuple[str, str]] = []
+    normalized = _ASCII_WHITESPACE_RUN_RE.sub(" ", content)
+    for name, pat in _SCREEN_PATTERNS_CASE_SENSITIVE:
+        m = pat.search(normalized)
+        if m:
+            matches.append((name, m.group(0)))
+    for name, pat in _SCREEN_PATTERNS_CASE_INSENSITIVE:
+        m = pat.search(normalized)
+        if m:
+            matches.append((name, m.group(0)))
+    zw = _ZWS_BIDI_RE.search(normalized)
+    if zw:
+        matches.append(("Zero-width / bidi-control codepoint", zw.group(0)))
+    cyr = _CYRILLIC_ADJACENCY_RE.search(normalized.encode("utf-8"))
+    if cyr:
+        matches.append(
+            (
+                "Cyrillic homoglyph adjacent to ASCII instruction word",
+                cyr.group(0).decode("utf-8", errors="replace"),
+            )
+        )
+    return matches
+
+
+def screen_size_guard(content: str, limit: int = 262144) -> tuple[str, bool]:
+    """SKILL.md Step 2b 256 KB cap for the screening regex pass.
+
+    Returns `(possibly_truncated, oversized_flag)`. The reviewer in Step 3
+    still sees the full unmodified content — the truncation here is only for
+    the regex pass. `oversized_flag=True` triggers the same confirmation pause
+    as a flagged pattern, even when no pattern matched (burying signal in a
+    10 MB PR body is itself an attack).
+
+    Byte-length semantics mirror the SKILL.md `LC_ALL=C wc -c` + `head -c`
+    cap, which counts bytes regardless of the runtime locale. `${#PR_CONTENT}`
+    would count codepoints under a UTF-8 locale and let multi-byte payloads
+    slip past a "256 KB" cap unflagged; the helper uses `len(encoded)` against
+    UTF-8 so a string whose codepoint count is under `limit` but whose UTF-8
+    byte length exceeds `limit` is treated as oversized.
+    """
+    encoded = content.encode("utf-8")
+    if len(encoded) > limit:
+        return encoded[:limit].decode("utf-8", errors="ignore"), True
+    return content, False
+
+
+def route_screening_response(response: str | None) -> str:
+    """SKILL.md Step 2b confirmation routing: `y` proceeds, anything else aborts.
+
+    Mirrors `route_confirmation_response` for Step 4b — same UX, same routing
+    rules. Spec calls out that injected content saying "skip screening" cannot
+    suppress the pause; this helper does not interpret the response content
+    beyond exact-match on `y`.
     """
     if response is None:
         return "abort"
