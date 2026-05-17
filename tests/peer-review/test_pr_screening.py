@@ -336,7 +336,7 @@ def test_multi_line_cyrillic_adjacency_detected():
     """Cyrillic adjacency must be detected even when split across newlines.
 
     SKILL.md Step 2b runs every `grep` invocation against
-    `$PR_CONTENT_FOR_SCREEN` after `tr -s '[:space:]' ' '`, so the bash
+    `$PR_SCREEN_FILE` after `tr -s '[:space:]' ' '`, so the bash
     Cyrillic regex matches when a `\\n` separates the ASCII instruction word
     from the Cyrillic payload. Without normalizing the string before the
     Cyrillic check on the Python side, the byte regex

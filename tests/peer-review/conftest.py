@@ -391,7 +391,7 @@ def pr_screen(content: str) -> list[tuple[str, str]]:
     the override imperative) be evaded by inserting a literal newline between
     tokens. All four groups (case-sensitive, case-insensitive, zero-width /
     bidi, Cyrillic adjacency) run against the normalized string, matching
-    SKILL.md Step 2b where every `grep` invocation reads `$PR_CONTENT_FOR_SCREEN`
+    SKILL.md Step 2b where every `grep` invocation reads `$PR_SCREEN_FILE`
     after `tr -s '[:space:]' ' '`. The Cyrillic-adjacency check operates on
     the UTF-8 byte encoding of the normalized string so the byte-class regex
     matches the SKILL.md `LC_ALL=C grep` byte-window semantics. ASCII
