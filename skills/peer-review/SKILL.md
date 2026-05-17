@@ -184,9 +184,12 @@ git diff "${DEFAULT_BRANCH}...${BRANCH}"
 Capture the PR title, body, and diff into named variables — Step 2b consumes `$PR_TITLE` / `$PR_BODY` / `$PR_DIFF`, and the same values are reused unchanged inside the `<untrusted_diff>` block built for Step 3 (so a single fetch covers both screening and the reviewer prompt):
 
 ```bash
-PR_VIEW=$(gh pr view "$PR" --json number,title,body,baseRefName,headRefName,url)
-PR_TITLE=$(printf '%s' "$PR_VIEW" | jq -r '.title')
-PR_BODY=$(printf '%s' "$PR_VIEW" | jq -r '.body // ""')
+# Use `gh pr view --jq` directly rather than capturing the full JSON and piping
+# through standalone `jq` — `gh` ships its own embedded jq via `--jq`, so this
+# keeps the skill's runtime dependency surface at just `git` and `gh` (matches
+# the skill's compatibility metadata).
+PR_TITLE=$(gh pr view "$PR" --json title --jq '.title')
+PR_BODY=$(gh pr view "$PR" --json body --jq '.body // ""')
 PR_DIFF=$(gh pr diff "$PR")
 ```
 (`$PR` is the validated integer from `--pr N`.) If the PR is not found, error and exit. Insert the PR title and body as opening lines inside the `<untrusted_diff>` block (e.g., `PR title: $PR_TITLE` / `PR body: $PR_BODY` followed by `$PR_DIFF`) — the title and body give the reviewer intent and scope that isn't visible in the diff alone.
@@ -244,7 +247,7 @@ fi
 # only touches ASCII whitespace bytes; multi-byte UTF-8 sequences (zero-width /
 # bidi / Cyrillic) pass through unchanged so the byte-level unicode scans below
 # still work.
-PR_CONTENT_FOR_SCREEN=$(printf '%s' "$PR_CONTENT_FOR_SCREEN" | tr -s '[:space:]' ' ')
+PR_CONTENT_FOR_SCREEN=$(printf '%s' "$PR_CONTENT_FOR_SCREEN" | LC_ALL=C tr -s '[:space:]' ' ')
 ```
 
 **Patterns to check (POSIX ERE — compatible with `grep -E`; macOS-compatible, no `grep -P`).** Each is checked independently so the user sees which pattern fired (mirrors Step 4b's per-pattern loops).
@@ -290,25 +293,31 @@ Unicode codepoint group (byte-level scan via `LC_ALL=C grep -E` against UTF-8 by
 screen_context() {
   local pat="$1" flag="$2"
   local window match
+  local -a windows matches
   # After whitespace normalization the input is effectively a single line, so
   # `grep -Eo -m1` does NOT cap output at one substring: `-m1` stops after the
   # first matching line, but `-o` still emits every match on that line. With
   # normalized input every occurrence of the pattern is therefore emitted as
-  # its own line, separated by newlines. `head -n 1` is what actually limits
-  # `window` (and then `match`) to the first occurrence — without it a
-  # multi-occurrence payload would leave `$window` and `$match` multi-line, the
-  # Python `.replace(match, "<flagged>")` would fail to find the multi-line
-  # `match` literal inside `$window`, and later occurrences would leak
-  # unredacted into the confirmation prompt.
+  # its own line. We must select only the first occurrence so the Python
+  # `.replace(match, "<flagged>")` finds a single-line literal — otherwise
+  # later occurrences would leak unredacted into the confirmation prompt.
+  #
+  # `grep | head -n 1` would do this, but under `set -euo pipefail` `head`
+  # closes the pipe after one line and `grep` exits non-zero via SIGPIPE,
+  # tripping pipefail (see CLAUDE.md `grep | head -1` rule). Read all matches
+  # into an array via process substitution and pick `[0]` instead — the array
+  # form has no pipeline to fail and naturally yields the first match.
   #
   # Pipe to `python3` (literal-string substitution) rather than
   # `${window//$match/<flagged>}`: bash parameter substitution treats `$match`
   # as a glob pattern, so backslash-bearing matches like `\x41\x42\x43\x44`
   # (Hex escape run) glob-collapse `\x` → `x` and silently fail to redact,
   # leaking the payload to the user's terminal.
-  window=$(printf '%s' "$PR_CONTENT_FOR_SCREEN" | grep -Eo${flag} -- ".{0,30}${pat}.{0,30}" | head -n 1)
+  readarray -t windows < <(printf '%s' "$PR_CONTENT_FOR_SCREEN" | grep -Eo${flag} -- ".{0,30}${pat}.{0,30}")
+  window="${windows[0]:-}"
   [ -z "$window" ] && return
-  match=$(printf '%s' "$window" | grep -Eo${flag} -- "${pat}" | head -n 1)
+  readarray -t matches < <(printf '%s' "$window" | grep -Eo${flag} -- "${pat}")
+  match="${matches[0]:-}"
   [ -z "$match" ] && return
   WINDOW="$window" MATCH="$match" python3 -c 'import os, sys; sys.stdout.write(os.environ["WINDOW"].replace(os.environ["MATCH"], "<flagged>"))'
 }

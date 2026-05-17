@@ -96,6 +96,7 @@ words:
   - pyproject
   - PYSEC
   - pytest
+  - readarray
   - REAUDIT
   - reframings
   - reinvocation

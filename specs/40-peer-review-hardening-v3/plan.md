@@ -91,7 +91,7 @@ Bump `metadata.version` from `"1.11"` to `"1.12"` (single bump for the PR; minor
 Update `evals/security/peer-review.baseline.json`:
 - `skill_version`: `1.11` → `1.12`
 - `captured_at`: `2026-05-09` → `2026-05-17`
-- `notes`: rewrite to name spec 40 and the new mitigations (screening pass, size guard, adjacency banner). Same two findings at the same severity.
+- `notes`: rewrite to name spec 40 and the new mitigations (screening pass, size guard, adjacency banner). All four findings (W007, W011, W012, W013) pinned at high — see baseline notes for the heuristic origins of each.
 
 ## Files to Modify
 

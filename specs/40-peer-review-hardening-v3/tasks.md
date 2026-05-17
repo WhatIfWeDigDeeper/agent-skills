@@ -82,7 +82,7 @@
 
 ## Phase 6 — Verification
 
-- [x] `uv run --with pytest pytest tests/peer-review/ -v` — all green (287 passed, 1 skipped).
+- [x] `uv run --with pytest pytest tests/peer-review/ -v` — all green (295 passed).
 - [x] `bash evals/security/scan.sh` (no `--update-baselines`) — exits 0; baseline pins W007 + W011 + W012 + W013 (all high).
 - [x] `rg '^  version:' skills/peer-review/SKILL.md` → `version: "1.12"`.
 - [x] `git fetch origin && git diff origin/main -- skills/peer-review/SKILL.md | rg '^\+  version:' | wc -l` → exactly `1`.
