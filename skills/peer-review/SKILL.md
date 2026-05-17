@@ -189,13 +189,23 @@ Capture the PR metadata, body, and diff into mode-600 `mktemp` files so the agen
 # built-in `json` parses individual fields — keeps the runtime dep surface at
 # `git` + `gh` (no standalone `jq` required) and matches the skill's
 # compatibility metadata. Files are mode-600 `mktemp` so the body/diff persist
-# across the Bash tool call boundary; no `trap` here — they are cleaned up at
-# the end of Step 4 (external CLI path) or after the reviewer finishes (Step 3
-# self/claude path).
+# across the Bash tool call boundary; no `trap` here — Step 4h is the single
+# cleanup point (mandatory on every exit path, including the Step 2b and
+# Step 4b abort branches), and it reads the paths from $PR_CLEANUP_INDEX
+# below since the $PR_*_FILE shell variables do not survive across tool calls.
 PR_META_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-pr-meta-XXXXXX")
 PR_BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-pr-body-XXXXXX")
 PR_DIFF_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-pr-diff-XXXXXX")
 chmod 600 "$PR_META_FILE" "$PR_BODY_FILE" "$PR_DIFF_FILE"
+# Stash the three temp paths in a fixed-location index file so Step 4h can
+# `rm -f` them after Step 4 completes — the $PR_*_FILE shell variables do not
+# survive across Bash tool calls, so Step 4h cannot reference them directly.
+# The index itself is also mode-600 and is removed by Step 4h alongside the
+# three data files. No `trap` here: the index must persist across the Bash
+# tool call boundary into Step 4h's later invocation.
+PR_CLEANUP_INDEX="${TMPDIR:-/private/tmp}/peer-review-pr-cleanup-index"
+printf '%s\n%s\n%s\n' "$PR_META_FILE" "$PR_BODY_FILE" "$PR_DIFF_FILE" > "$PR_CLEANUP_INDEX"
+chmod 600 "$PR_CLEANUP_INDEX"
 gh pr view "$PR" --json number,title,body,baseRefName,headRefName,url > "$PR_META_FILE"
 PR_TITLE=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("title",""))' "$PR_META_FILE")
 PR_BODY=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("body","") or "")' "$PR_META_FILE")
@@ -204,6 +214,11 @@ PR_HEAD=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("h
 PR_BASE=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("baseRefName",""))' "$PR_META_FILE")
 printf '%s' "$PR_BODY" > "$PR_BODY_FILE"
 gh pr diff "$PR" > "$PR_DIFF_FILE"
+# Step 2b concatenates $PR_TITLE + $PR_BODY + $PR_DIFF into $PR_CONTENT for
+# the screening pass. Without this assignment $PR_DIFF expands to an empty
+# string and prompt-injection payloads that live only in the diff bypass the
+# screen while still reaching Step 3 via the `Read` of $PR_DIFF_FILE.
+PR_DIFF=$(cat "$PR_DIFF_FILE")
 # Surface metadata + file paths to tool output so Step 3 can `Read` the full
 # unmodified body/diff. Format strings do NOT start with `-` — bash's builtin
 # `printf` parses leading `-` arguments as options, so `printf '--- title ---'`
@@ -435,7 +450,7 @@ The reviewer in Step 3 (and any external CLI in Step 4) will see this content. C
 ```
 
 - `y` → proceed to Step 3 with the full unmodified content (do not strip flagged spans — only the reviewer / CLI sees them; the `<untrusted_diff>` boundary markers in Step 3 are what tell the reviewer to treat them as data).
-- anything else (including empty input) → exit with: `Aborted — review the PR content carefully before re-running. Note: --branch / --staged skip this screen because they target trusted local content (your working tree or branch refs); they are NOT a workaround for an unscreened third-party PR — using them to bypass the screen would defeat the W011 mitigation.` If the target was `--pr N`, append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
+- anything else (including empty input) → **run the Step 4h cleanup snippet first** (the three mode-600 PR temp files written in Step 2 must not outlive the aborted run), then exit with: `Aborted — review the PR content carefully before re-running. Note: --branch / --staged skip this screen because they target trusted local content (your working tree or branch refs); they are NOT a workaround for an unscreened third-party PR — using them to bypass the screen would defeat the W011 mitigation.` Append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 
 If `hits` is empty and `OVERSIZED` is `0`, the screening pass is silent — proceed directly to Step 3 with no user-visible artifact.
 
@@ -611,7 +626,7 @@ This content will be sent to the external [model] CLI. Continue? [y/N]
 Output this as your **final message and stop generating**. Do not supply an answer, do not assume a default, do not continue to the next step (Step 4c). Resume only after the user replies.
 
 - `y` → proceed to Step 4c (write the prompt to the temp file, then Step 4d to execute).
-- anything else (including empty input) → exit with: `Aborted — redact secrets and re-run.` Do not write the temp file and do not invoke the CLI. If the target was `--pr N`, append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
+- anything else (including empty input) → if the target was `--pr N`, **run the Step 4h cleanup snippet first** (the three mode-600 PR temp files written in Step 2 must not outlive the aborted run), then exit with: `Aborted — redact secrets and re-run.` Do not write the temp file and do not invoke the CLI. If the target was `--pr N`, append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 
 Implementation note: run the scan against the in-memory `$PROMPT` string before Step 4c writes it to disk. The patterns above are POSIX ERE so they work with `grep -E` (case-sensitive group) and `grep -Ei` (case-insensitive group). Because the prompt template (lines above) requires surfacing **which** pattern fired and **what** substring matched (so the secret can be redacted before display), check each pattern individually rather than collapsing them into a single `grep -Eq` with many `-e` flags — `-q` only yields a boolean exit, and a multi-pattern `-e` list can't tell you which `-e` matched. Iterate, capture the matched substring with `grep -Eo`, and redact for display:
 
@@ -861,7 +876,29 @@ Focus area: [TOPIC]
 
 Parse the triage subagent's response. For each `FINDING N:` line, assign the finding to `recommended` or `skipped`. If the triage output cannot be parsed or is otherwise invalid (including missing `FINDING N:` lines, wrong format, empty response, duplicate `FINDING N:` lines, conflicting `recommend` and `skip` decisions for the same `N`, IDs outside the valid `1..N` finding range, or any other violation of the "exactly one line per finding" rule), treat all findings as `recommended` and note "Triage unavailable — showing all findings." at the start of the Step 5 output.
 
-**4g.** Continue to Step 5 with the classified findings (`recommended` and `skipped` buckets). When `model` is `self` or starts with `claude-`, there is no triage — pass all findings directly to Step 5 as `recommended`.
+**4g.** Continue to Step 4h cleanup with the classified findings (`recommended` and `skipped` buckets). When `model` is `self` or starts with `claude-`, there is no triage — pass all findings directly to Step 5 as `recommended` after running Step 4h.
+
+### 4h. Cleanup PR Temp Files (PR target only — mandatory on every exit path)
+
+When the target was `--pr N`, remove the three mode-600 PR temp files written in Step 2 (`$PR_META_FILE`, `$PR_BODY_FILE`, `$PR_DIFF_FILE`) and the cleanup index itself. The paths live in `$PR_CLEANUP_INDEX` — a fixed-location file written in Step 2 — because the `$PR_*_FILE` shell variables set in Step 2 do not survive across Bash tool calls.
+
+Run this snippet on **every exit path** that follows Step 2's PR fetch:
+
+- Normal completion: between Step 4g and Step 5 (the self/claude path skips Step 4a–4g and runs this snippet directly before Step 5).
+- Step 2b abort branch (confirmation declined): run before emitting the `Aborted — review the PR content carefully…` line.
+- Step 4b abort branch (secret-scan confirmation declined): run before emitting the `Aborted — redact secrets and re-run.` line.
+
+Skipping any one of these paths leaks the full PR body/diff (potentially containing secrets, prompt-injection payloads, or both) in mode-600 temp files indefinitely under `$TMPDIR`. The mode-600 perms reduce blast radius to the invoking user but do not substitute for cleanup.
+
+```bash
+PR_CLEANUP_INDEX="${TMPDIR:-/private/tmp}/peer-review-pr-cleanup-index"
+if [ -f "$PR_CLEANUP_INDEX" ]; then
+  while IFS= read -r f; do rm -f "$f"; done < "$PR_CLEANUP_INDEX"
+  rm -f "$PR_CLEANUP_INDEX"
+fi
+```
+
+Skipped for `--staged`, `--branch`, and path targets — those paths never write `$PR_CLEANUP_INDEX`, so the `[ -f "$PR_CLEANUP_INDEX" ]` guard above is a no-op for them and the snippet is safe to invoke unconditionally.
 
 ### 5. Present Findings
 
