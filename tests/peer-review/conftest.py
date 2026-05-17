@@ -313,17 +313,21 @@ _SCREEN_PATTERNS_CASE_SENSITIVE = [
         re.compile(r"(system|developer)[ \t]+(prompt|message|instruction)"),
     ),
     ("HTML comment opener", re.compile(r"<!--")),
-    ("Collapsed details block", re.compile(r"<details[ \t]*[a-z]*>")),
+    ("Collapsed details block", re.compile(r"<details[^>]*>")),
     ("Hex escape run", re.compile(r"(\\x[0-9A-Fa-f]{2}){4,}")),
     ("Long base64-shaped run", re.compile(r"[A-Za-z0-9+/]{200,}={0,2}")),
 ]
 
+# `re.ASCII` constrains `IGNORECASE` case-folding to ASCII bytes only, mirroring
+# the SKILL.md byte-level `grep -Eqi`. Without it, Python folds Unicode case
+# pairs (e.g. Cyrillic А ↔ а) that BSD grep with `LC_ALL=C` does not, drifting
+# the test suite away from the bash semantics.
 _SCREEN_PATTERNS_CASE_INSENSITIVE = [
     (
         "Role-impersonation request",
         re.compile(
             r"(act[ \t]+as|pretend[ \t]+to[ \t]+be|roleplay[ \t]+as)[ \t]+(the|an|a)?[ \t]*(admin|root|system|developer|assistant|agent)",
-            re.IGNORECASE,
+            re.IGNORECASE | re.ASCII,
         ),
     ),
 ]
@@ -339,12 +343,19 @@ _ZWS_BIDI_CHARS = (
 _ZWS_BIDI_RE = re.compile(f"[{_ZWS_BIDI_CHARS}]")
 
 _CYRILLIC_INSTRUCTION_WORDS = ("ignore", "instructions", "system", "prompt", "assistant", "disregard")
+# Byte-level regex to match SKILL.md Step 2b's `LC_ALL=C grep -Eqi` byte-window.
+# Bash interprets `.{0,8}` over UTF-8 bytes (Cyrillic codepoints take 2 bytes
+# each), so the window is "up to 8 bytes" — not "up to 8 codepoints". Running
+# this regex against `content.encode("utf-8")` makes Python see the same
+# byte-distance semantics; `re.IGNORECASE` on a bytes pattern folds ASCII only,
+# matching BSD grep with `LC_ALL=C`.
+_CYRILLIC_INSTRUCTION_WORDS_BYTES = b"|".join(w.encode("ascii") for w in _CYRILLIC_INSTRUCTION_WORDS)
 _CYRILLIC_ADJACENCY_RE = re.compile(
-    r"(?:"
-    + r"(?:" + "|".join(_CYRILLIC_INSTRUCTION_WORDS) + r").{0,8}[Ѐ-ӿ]"
-    + r"|"
-    + r"[Ѐ-ӿ].{0,8}(?:" + "|".join(_CYRILLIC_INSTRUCTION_WORDS) + r")"
-    + r")",
+    rb"(?:"
+    + rb"(?:" + _CYRILLIC_INSTRUCTION_WORDS_BYTES + rb").{0,8}[\xD0-\xD3][\x80-\xBF]"
+    + rb"|"
+    + rb"[\xD0-\xD3][\x80-\xBF].{0,8}(?:" + _CYRILLIC_INSTRUCTION_WORDS_BYTES + rb")"
+    + rb")",
     re.IGNORECASE,
 )
 
@@ -360,6 +371,9 @@ def should_run_pr_screening(target_type: str | None) -> bool:
     return target_type == "pr"
 
 
+_ASCII_WHITESPACE_RUN_RE = re.compile(r"[ \t\r\n\f\v]+")
+
+
 def pr_screen(content: str) -> list[tuple[str, str]]:
     """Run all Step 2b pattern groups against `content`.
 
@@ -367,34 +381,42 @@ def pr_screen(content: str) -> list[tuple[str, str]]:
     no pattern fires. A match in any group counts; all groups are run
     independently per the spec's per-pattern iteration requirement.
 
-    Scanning is line-by-line for the ASCII regex groups to mirror `grep -E`
-    semantics (in Python `re`, `[ \\t]` would still let a multi-line input
-    leak across line boundaries via the `.{0,N}` constructs used elsewhere;
-    iterating splitlines keeps each pattern bounded to a single line).
-    Unicode/adjacency checks scan the full content as a single string because
-    they detect single-codepoint properties or short windows that may legally
-    cross whitespace that is not a newline.
+    Whitespace runs are collapsed to a single space before scanning, mirroring
+    the SKILL.md `tr -s '[:space:]' ' '` normalization step. Without that
+    pass, `grep -E`'s line-oriented default lets a multi-token pattern (e.g.
+    the override imperative) be evaded by inserting a literal newline between
+    tokens. All four groups (case-sensitive, case-insensitive, zero-width /
+    bidi, Cyrillic adjacency) run against the normalized string, matching
+    SKILL.md Step 2b where every `grep` invocation reads `$PR_CONTENT_FOR_SCREEN`
+    after `tr -s '[:space:]' ' '`. The Cyrillic-adjacency check operates on
+    the UTF-8 byte encoding of the normalized string so the byte-class regex
+    matches the SKILL.md `LC_ALL=C grep` byte-window semantics. ASCII
+    whitespace runs (` `, `\t`, `\r`, `\n`, `\f`, `\v`) do not overlap the
+    zero-width / bidi codepoints (all in U+200B-U+2069) or the Cyrillic
+    UTF-8 byte ranges (0xD0-0xD3 prefix), so normalization is lossless for
+    those two checks.
     """
     matches: list[tuple[str, str]] = []
-    lines = content.splitlines() or [content]
+    normalized = _ASCII_WHITESPACE_RUN_RE.sub(" ", content)
     for name, pat in _SCREEN_PATTERNS_CASE_SENSITIVE:
-        for line in lines:
-            m = pat.search(line)
-            if m:
-                matches.append((name, m.group(0)))
-                break
+        m = pat.search(normalized)
+        if m:
+            matches.append((name, m.group(0)))
     for name, pat in _SCREEN_PATTERNS_CASE_INSENSITIVE:
-        for line in lines:
-            m = pat.search(line)
-            if m:
-                matches.append((name, m.group(0)))
-                break
-    zw = _ZWS_BIDI_RE.search(content)
+        m = pat.search(normalized)
+        if m:
+            matches.append((name, m.group(0)))
+    zw = _ZWS_BIDI_RE.search(normalized)
     if zw:
         matches.append(("Zero-width / bidi-control codepoint", zw.group(0)))
-    cyr = _CYRILLIC_ADJACENCY_RE.search(content)
+    cyr = _CYRILLIC_ADJACENCY_RE.search(normalized.encode("utf-8"))
     if cyr:
-        matches.append(("Cyrillic homoglyph adjacent to ASCII instruction word", cyr.group(0)))
+        matches.append(
+            (
+                "Cyrillic homoglyph adjacent to ASCII instruction word",
+                cyr.group(0).decode("utf-8", errors="replace"),
+            )
+        )
     return matches
 
 
@@ -407,11 +429,12 @@ def screen_size_guard(content: str, limit: int = 262144) -> tuple[str, bool]:
     as a flagged pattern, even when no pattern matched (burying signal in a
     10 MB PR body is itself an attack).
 
-    Byte-length semantics mirror the SKILL.md `${#PR_CONTENT}` check, which in
-    bash counts bytes for byte-locale strings. The Python helper uses
-    `len(encoded)` against UTF-8 to keep cross-encoding behaviour predictable
-    — a string whose codepoint count is under `limit` but whose UTF-8 byte
-    length exceeds `limit` is treated as oversized.
+    Byte-length semantics mirror the SKILL.md `LC_ALL=C wc -c` + `head -c`
+    cap, which counts bytes regardless of the runtime locale. `${#PR_CONTENT}`
+    would count codepoints under a UTF-8 locale and let multi-byte payloads
+    slip past a "256 KB" cap unflagged; the helper uses `len(encoded)` against
+    UTF-8 so a string whose codepoint count is under `limit` but whose UTF-8
+    byte length exceeds `limit` is treated as oversized.
     """
     encoded = content.encode("utf-8")
     if len(encoded) > limit:

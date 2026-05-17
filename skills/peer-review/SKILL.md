@@ -211,14 +211,28 @@ PR_CONTENT=$(printf 'PR title: %s\nPR body:\n%s\n--- diff ---\n%s\n' "$PR_TITLE"
 
 ```bash
 SCREEN_LIMIT=262144
-PR_CONTENT_BYTES=${#PR_CONTENT}
+# Byte-count semantics, not character count. In a UTF-8 locale, `${#PR_CONTENT}`
+# counts codepoints and `${PR_CONTENT:0:N}` slices codepoints — a payload of
+# 200 KB ASCII + 200 KB CJK (~600 KB UTF-8) would slip under a 256 KB codepoint
+# cap. Use `wc -c` / `head -c` under `LC_ALL=C` so both sides operate on bytes.
+PR_CONTENT_BYTES=$(printf '%s' "$PR_CONTENT" | LC_ALL=C wc -c | tr -d ' ')
 OVERSIZED=0
 if [ "$PR_CONTENT_BYTES" -gt "$SCREEN_LIMIT" ]; then
   OVERSIZED=1
-  PR_CONTENT_FOR_SCREEN=${PR_CONTENT:0:$SCREEN_LIMIT}
+  PR_CONTENT_FOR_SCREEN=$(printf '%s' "$PR_CONTENT" | LC_ALL=C head -c "$SCREEN_LIMIT")
 else
   PR_CONTENT_FOR_SCREEN="$PR_CONTENT"
 fi
+# Collapse all runs of whitespace (spaces, tabs, newlines, etc.) into a single
+# space before pattern scanning. Reason: `grep -E` is line-oriented by default,
+# so a multi-token pattern like the override imperative
+# `(ignore|disregard|forget)[[:space:]]+...(previous|...)...(instructions|...)`
+# can be trivially evaded by inserting a literal newline between tokens
+# (`ignore\nprevious instructions` would not match without normalization). `tr`
+# only touches ASCII whitespace bytes; multi-byte UTF-8 sequences (zero-width /
+# bidi / Cyrillic) pass through unchanged so the byte-level unicode scans below
+# still work.
+PR_CONTENT_FOR_SCREEN=$(printf '%s' "$PR_CONTENT_FOR_SCREEN" | tr -s '[:space:]' ' ')
 ```
 
 **Patterns to check (POSIX ERE — compatible with `grep -E`; macOS-compatible, no `grep -P`).** Each is checked independently so the user sees which pattern fired (mirrors Step 4b's per-pattern loops).
@@ -231,7 +245,7 @@ Override imperative	(ignore|disregard|forget)[[:space:]]+(all[[:space:]]+)?(prev
 Role-override opener	you[[:space:]]+are[[:space:]]+now[[:space:]]+(a[[:space:]]+|an[[:space:]]+)?[A-Za-z]
 Claimed system role	(system|developer)[[:space:]]+(prompt|message|instruction)
 HTML comment opener	<!--
-Collapsed details block	<details[[:space:]]*[a-z]*>
+Collapsed details block	<details[^>]*>
 Hex escape run	(\\x[0-9A-Fa-f]{2}){4,}
 Long base64-shaped run	[A-Za-z0-9+/]{200,}={0,2}
 PATS
@@ -255,14 +269,27 @@ Unicode codepoint group (byte-level scan via `LC_ALL=C grep -E` against UTF-8 by
 **Screening loop.** Mirrors Step 4b's per-pattern iteration. `screen_context()` extracts a ~30-char window around the match and replaces the matched bytes with the literal string `<flagged>` so the offending payload is not pasted verbatim into the user's terminal.
 
 ```bash
+# Patterns passed to `screen_context()` must NOT be anchored: a leading `^` or
+# trailing `$` makes the windowed wrap `.{0,30}${pat}.{0,30}` impossible to
+# match (anchors no longer sit at line boundaries inside the wrap), so the
+# helper would silently emit an empty context. If a future pattern needs to be
+# anchored, strip the anchors before passing or use a different surfacing
+# helper.
 screen_context() {
   local pat="$1" flag="$2"
   local window match
-  window=$(printf '%s' "$PR_CONTENT_FOR_SCREEN" | grep -Eo${flag} -m1 -- ".{0,30}${pat}.{0,30}" | head -n1)
+  # `grep -Eo -m1` already returns at most one matched substring per run —
+  # `-m1` stops after the first matching line and `-o` emits the matched
+  # substring(s) from that line. Pipe to `python3` (literal-string substitution)
+  # rather than `${window//$match/<flagged>}`: bash parameter substitution
+  # treats `$match` as a glob pattern, so backslash-bearing matches like
+  # `\x41\x42\x43\x44` (Hex escape run) glob-collapse `\x` → `x` and silently
+  # fail to redact, leaking the payload to the user's terminal.
+  window=$(printf '%s' "$PR_CONTENT_FOR_SCREEN" | grep -Eo${flag} -m1 -- ".{0,30}${pat}.{0,30}")
   [ -z "$window" ] && return
-  match=$(printf '%s' "$window" | grep -Eo${flag} -m1 -- "${pat}" | head -n1)
+  match=$(printf '%s' "$window" | grep -Eo${flag} -m1 -- "${pat}")
   [ -z "$match" ] && return
-  printf '%s' "${window//$match/<flagged>}"
+  WINDOW="$window" MATCH="$match" python3 -c 'import os, sys; sys.stdout.write(os.environ["WINDOW"].replace(os.environ["MATCH"], "<flagged>"))'
 }
 
 hits=""
@@ -288,7 +315,10 @@ fi
 # Cyrillic homoglyph adjacent to ASCII instruction word.
 # Tuned loose — expect occasional false positives on legitimate non-English PR
 # content; documented as a residual risk in `## Security model`.
-if printf '%s' "$PR_CONTENT_FOR_SCREEN" | LC_ALL=C grep -Eqi -- '(ignore|instructions|system|prompt|assistant|disregard).{0,8}([\xD0-\xD3][\x80-\xBF])|([\xD0-\xD3][\x80-\xBF]).{0,8}(ignore|instructions|system|prompt|assistant|disregard)'; then
+# ANSI-C `$'…'` quoting (matching the zero-width / bidi line above) is required
+# so `\xD0` etc. expand to actual bytes — single-quoted `'\xD0'` would pass a
+# literal 4-byte sequence `\`,`x`,`D`,`0` to grep and the byte class never matches.
+if printf '%s' "$PR_CONTENT_FOR_SCREEN" | LC_ALL=C grep -Eqi -- $'(ignore|instructions|system|prompt|assistant|disregard).{0,8}[\xD0-\xD3][\x80-\xBF]|[\xD0-\xD3][\x80-\xBF].{0,8}(ignore|instructions|system|prompt|assistant|disregard)'; then
   hits="${hits}Cyrillic homoglyph adjacent to ASCII instruction word: <flagged>"$'\n'
 fi
 ```
@@ -306,7 +336,7 @@ The reviewer in Step 3 (and any external CLI in Step 4) will see this content. C
 ```
 
 - `y` → proceed to Step 3 with the full unmodified content (do not strip flagged spans — only the reviewer / CLI sees them; the `<untrusted_diff>` boundary markers in Step 3 are what tell the reviewer to treat them as data).
-- anything else (including empty input) → exit with: `Aborted — review the PR content and re-run, or pass --branch / path target to bypass screening.` If the target was `--pr N`, append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
+- anything else (including empty input) → exit with: `Aborted — review the PR content carefully before re-running. Note: --branch / --staged skip this screen because they target trusted local content (your working tree or branch refs); they are NOT a workaround for an unscreened third-party PR — using them to bypass the screen would defeat the W011 mitigation.` If the target was `--pr N`, append the PR URL as the last line per the Step 6 PR URL terminal-output rule.
 
 If `hits` is empty and `OVERSIZED` is `0`, the screening pass is silent — proceed directly to Step 3 with no user-visible artifact.
 
