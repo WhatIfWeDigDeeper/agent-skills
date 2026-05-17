@@ -37,12 +37,12 @@
   - **Screening-regex heuristic** — novel obfuscation can bypass.
   - **Cyrillic-adjacency false positives** — non-English PRs may trigger the pause.
   - **No `--no-screen` escape hatch** — `--branch` / `--staged` skip Step 2b instead.
-  - **Secret-scan path asymmetry (W007)** — Step 4b runs only on the external-CLI path; documents the structural gap that the `W007` heuristic surfaces and points to follow-up.
+  - **Secret-scan path asymmetry** — Step 4b runs only on the external-CLI path; documents the structural gap and notes that the related W007 heuristic currently clears but is intentionally not baselined (pinning a cleared finding would mask its recurrence per `scan.sh` `diff_findings()`).
 
-- [x] Rewrite the `### Why W007, W011, and W012 still appear` subsection to:
+- [x] Rewrite the `### Why W011 and W012 still appear` subsection to:
   - Name the new mitigations (screening pass, screening-independence, size guard, adjacency banner) alongside the existing ones (argument validation, boundary markers, stdin transport, secret scan, triage layer).
-  - Record that W007 reflects the existing structural asymmetry of Step 4b (external-CLI path only) and fired intermittently during spec 40 development; closing it fully requires a behavior change deferred to a follow-up spec.
-  - Reaffirm the baseline-pinning rationale for W007/W011/W012 and point to `evals/security/CLAUDE.md`.
+  - Note that W007 reflects an existing structural asymmetry of Step 4b (external-CLI path only) and has fired intermittently against earlier prose framings; explain that the gate accepts baselined findings as expected, so a currently-cleared W007 is intentionally **not** pinned (pinning would mask recurrence). Closing the asymmetry fully requires a behavior change deferred to a follow-up spec.
+  - Reaffirm the baseline-pinning rationale for W011/W012 and point to `evals/security/CLAUDE.md`.
 
 - [x] Tighten argument validation in Step 1: `--pr` regex bumped from `^[1-9][0-9]*$` to `^[1-9][0-9]{0,5}$` (6-digit cap); `--branch` regex bumped from `^[A-Za-z0-9._/-]+$` to `^[A-Za-z0-9._/-]{1,255}$` AND a `..`-sequence rejection (matches git's own ref-name rule). Error messages updated to reflect the new constraints.
 
@@ -72,8 +72,8 @@
 - [x] Update `evals/security/peer-review.baseline.json`:
   - `skill_version` → `"1.12"`.
   - `captured_at` → `"2026-05-17"`.
-  - `findings` → keep `W011` and `W012` (high) and pin `W007` (high) as a regression anchor. W007 fired intermittently during spec 40 development depending on how the `## Security model` prose framed the Step 4b asymmetry, and currently clears 20/20 against the post-peer-review-pass SKILL.md. Pinning anchors against re-emergence on future edits or scanner updates. Justification recorded in the baseline `notes` field.
-  - `notes` → expanded prose naming spec 40, the new screening pass, byte-accurate size guard, whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, and the W007 heuristic-anchor framing.
+  - `findings` → keep `W011` and `W012` (high). Do **not** baseline `W007`: it fired intermittently during spec 40 development depending on how the `## Security model` prose framed the Step 4b asymmetry, and clears 20/20 against the current SKILL.md; pinning a cleared finding would mask future recurrence because `scan.sh` `diff_findings()` accepts baselined findings as expected (it gates only on new IDs or severity escalations).
+  - `notes` → expanded prose naming spec 40, the new screening pass, byte-accurate size guard, whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, the `head -n 1` window guard in `screen_context()`, and the rationale for leaving W007 unbaselined.
 
 ## Phase 5 — Spellcheck and CI hygiene
 
@@ -82,7 +82,7 @@
 ## Phase 6 — Verification
 
 - [x] `uv run --with pytest pytest tests/peer-review/ -v` — all green (287 passed, 1 skipped).
-- [x] `bash evals/security/scan.sh` (no `--update-baselines`) — exits 0; baseline pins W007 + W011 + W012 (all high).
+- [x] `bash evals/security/scan.sh` (no `--update-baselines`) — exits 0; baseline pins W011 + W012 (both high). W007 is intentionally left unbaselined.
 - [x] `rg '^  version:' skills/peer-review/SKILL.md` → `version: "1.12"`.
 - [x] `git fetch origin && git diff origin/main -- skills/peer-review/SKILL.md | rg '^\+  version:' | wc -l` → exactly `1`.
 - [x] Baseline schema check: `python3 -c "import json; d=json.load(open('evals/security/peer-review.baseline.json')); assert d['skill_version']=='1.12' and d['captured_at']=='2026-05-17'; print('OK')"`.
