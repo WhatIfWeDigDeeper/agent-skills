@@ -4,8 +4,8 @@ import re
 
 HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 
-_PR_RE = re.compile(r'^[1-9][0-9]{0,5}$')
-_BRANCH_RE = re.compile(r'^[A-Za-z0-9._/-]{1,255}$')
+_PR_RE = re.compile(r'^[1-9][0-9]{0,5}\Z')
+_BRANCH_RE = re.compile(r'^[A-Za-z0-9._/-]{1,255}\Z')
 
 
 def is_help_request(args: str | None) -> bool:

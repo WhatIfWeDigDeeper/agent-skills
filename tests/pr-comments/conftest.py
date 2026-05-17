@@ -8,34 +8,39 @@ HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 # - explicitly-supplied PR number (after stripping a single leading '#' and
 #   surrounding whitespace) must match PR_NUMBER_RE before any shell call;
 # - any --max N (and backward-compatible --auto N) value must match MAX_VALUE_RE.
-PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}$")
-MAX_VALUE_RE = re.compile(r"^[1-9][0-9]{0,3}$")
+PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}\Z")
+MAX_VALUE_RE = re.compile(r"^[1-9][0-9]{0,3}\Z")
 
 
 def validate_pr_number(value: str | None) -> bool:
     """Return True if value is a valid PR number per SKILL.md Step 1.
 
-    Strips surrounding whitespace, then a single leading ``#`` (so ``42``,
+    Strips surrounding spaces/tabs, then a single leading ``#`` (so ``42``,
     ``#42``, and ``  42  `` are all accepted), then matches against
     ``PR_NUMBER_RE`` (``^[1-9][0-9]{0,5}$`` — rejects ``0`` and
     unbounded-length digit strings). ``None`` (no PR-number token) is rejected.
+
+    Strip is limited to ASCII space and tab so newline / carriage-return
+    smuggled at the boundary (e.g. ``"1\\n"``) is not silently normalized away
+    before the regex check — the ``\\Z`` anchor must do the final reject.
     """
     if value is None:
         return False
-    cleaned = str(value).strip().removeprefix("#")
+    cleaned = str(value).strip(" \t").removeprefix("#")
     return bool(PR_NUMBER_RE.match(cleaned))
 
 
 def validate_max_value(value: str | None) -> bool:
     """Return True if value is a valid ``--max N`` (or ``--auto N``) per SKILL.md.
 
-    Strips surrounding whitespace, then matches against ``MAX_VALUE_RE``
-    (``^[1-9][0-9]{0,3}$`` — 1–9999, well above any realistic loop cap).
-    ``None`` (no value supplied) is rejected.
+    Strips surrounding spaces/tabs (newline / CR not stripped — see
+    :func:`validate_pr_number` for the rationale), then matches against
+    ``MAX_VALUE_RE`` (``^[1-9][0-9]{0,3}$`` — 1–9999, well above any realistic
+    loop cap). ``None`` (no value supplied) is rejected.
     """
     if value is None:
         return False
-    return bool(MAX_VALUE_RE.match(str(value).strip()))
+    return bool(MAX_VALUE_RE.match(str(value).strip(" \t")))
 
 
 def is_help_request(args: str) -> bool:

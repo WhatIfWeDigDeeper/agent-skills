@@ -27,6 +27,12 @@ ADVERSARIAL_ARGS = [
     "1\nmalicious",
     "1\rmalicious",
     "1\tmalicious",
+    # Trailing-only whitespace — Python's `$` anchor accepts `\n` as
+    # end-of-string but bash `[[ =~ ^…$ ]]` does not, so the Python validator
+    # must use `\Z` to keep parity. A bare "1\n" / "1\r" exercises that
+    # divergence (longer prefixed forms are already covered above).
+    "1\n",
+    "1\r",
     "  ",
     "\t",
     "",

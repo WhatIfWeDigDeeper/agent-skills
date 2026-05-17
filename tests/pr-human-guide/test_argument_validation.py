@@ -15,16 +15,20 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "_helpers"))
 from argument_injection import ADVERSARIAL_ARGS
 
-PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}$")
+PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}\Z")
 
 
 def validate_pr_number(value: str) -> bool:
     """Return True if value is a valid PR number per SKILL.md Step 1.
 
-    Strips surrounding whitespace, then a single leading '#' (so '42',
+    Strips surrounding spaces/tabs, then a single leading '#' (so '42',
     '#42', and '  42  ' all accepted), then matches against PR_NUMBER_RE.
+
+    Strip is limited to ASCII space and tab so newline / carriage-return
+    smuggled at the boundary (e.g. "1\\n") is not silently normalized away
+    before the regex check — the ``\\Z`` anchor must do the final reject.
     """
-    cleaned = str(value).strip().removeprefix("#")
+    cleaned = str(value).strip(" \t").removeprefix("#")
     return bool(PR_NUMBER_RE.match(cleaned))
 
 
