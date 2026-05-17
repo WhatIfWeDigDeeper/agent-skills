@@ -13,10 +13,13 @@ words:
   - baprs
   - baselined
   - basenames
+  - behaviour
+  - bidi
   - blockquotes
   - bunx
   - cmdline
   - codegen
+  - codepoint
   - codepoints
   - commenters
   - conftest
@@ -58,6 +61,7 @@ words:
   - isoformat
   - lockfiles
   - lookarounds
+  - metachar
   - metacharacter
   - metacharacters
   - metaprogramming
@@ -99,6 +103,7 @@ words:
   - repolls
   - rerequest
   - rescan
+  - roleplay
   - rootdir
   - runbooks
   - sandboxed
@@ -142,5 +147,6 @@ words:
   - xoxp
   - xoxr
   - xoxs
+  - zalgo
 ignoreWords: []
 import: []

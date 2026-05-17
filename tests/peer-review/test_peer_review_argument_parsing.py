@@ -1,6 +1,14 @@
 """Tests for argument parsing in peer-review skill."""
 
+import sys
+from pathlib import Path
+
+import pytest
+
 from conftest import parse_arguments
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "_helpers"))
+from argument_injection import ADVERSARIAL_ARGS, ADVERSARIAL_TEXT_ARGS  # noqa: E402
 
 
 class TestNoArguments:
@@ -279,3 +287,22 @@ class TestArgumentValidation:
         result = parse_arguments(["--focus", "   "])
         assert result["error"] is not None
         assert "--focus requires a non-empty topic" in result["error"]
+
+
+class TestAdversarialArguments:
+    """Adversarial inputs from the shared fixture must all produce a validation error.
+
+    These complement the targeted cases in TestArgumentValidation and ensure
+    peer-review's --pr / --branch regexes reject the same attack vectors that
+    other security-hardening test suites pin against (specs 37-40).
+    """
+
+    @pytest.mark.parametrize("bad", ADVERSARIAL_ARGS)
+    def test_pr_rejects_adversarial_numeric(self, bad):
+        result = parse_arguments(["--pr", bad])
+        assert result["error"] is not None, f"--pr accepted adversarial value: {bad!r}"
+
+    @pytest.mark.parametrize("bad", ADVERSARIAL_TEXT_ARGS)
+    def test_branch_rejects_adversarial_text(self, bad):
+        result = parse_arguments(["--branch", bad])
+        assert result["error"] is not None, f"--branch accepted adversarial value: {bad!r}"

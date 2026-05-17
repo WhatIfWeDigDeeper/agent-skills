@@ -2,11 +2,12 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "peer-review",
-  "skill_version": "1.11",
+  "skill_version": "1.12",
   "findings": [
+    {"id": "W007", "severity": "high"},
     {"id": "W011", "severity": "high"},
     {"id": "W012", "severity": "high"}
   ],
-  "captured_at": "2026-05-09",
-  "notes": "Confirmed via local `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` on 2026-05-09. Both findings persist despite spec 30 + spec 34 hardening; the scanner is heuristic on `gh pr view`/`gh pr diff` (W011) and external-CLI handoff (W012). Mitigations are documented in skills/peer-review/SKILL.md `## Security model`."
+  "captured_at": "2026-05-17",
+  "notes": "Confirmed via local `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` on 2026-05-17. W011 and W012 persist despite spec 30 + spec 34 + spec 40 hardening; the scanner is heuristic on `gh pr view`/`gh pr diff` (W011) and external-CLI handoff (W012). W007 (insecure credential handling) is newly surfaced under v1.12 — it describes a pre-existing structural asymmetry: the Step 4b pre-flight secret scan runs only on the external-CLI reviewer path, not on the self/claude reviewer path, so PR diffs containing secrets reach the self/claude reviewer prompt without redaction. v1.12's improved security documentation (Step 2b screening, expanded Security model) made this asymmetry more legible to the heuristic scanner. Fully closing W007 would require hoisting the secret pre-scan to run before all reviewer dispatches (a behavior change deferred to a follow-up spec); it is acknowledged in `skills/peer-review/SKILL.md` `## Security model` Residual risks. Spec 40 added: Step 2b PR-content prompt-injection screening pass (8+ POSIX-ERE patterns covering override imperatives, claimed-role phrases, role-impersonation, HTML/details hidden content, hex/base64 payloads, zero-width / bidi unicode, Cyrillic homoglyph adjacency); 256 KB PR-content size guard with confirmation pause on overflow; screening-independence invariant; argument-validation length caps + `..` rejection on `--pr` / `--branch`; compact `> **Security note**` banner above the `gh pr view` sub-block for scanner adjacency."
 }
