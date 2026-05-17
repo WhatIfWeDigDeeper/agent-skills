@@ -107,6 +107,8 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 ## Code Review
 
 - **Before raising PR feedback, read existing review threads and replies on the touched code.** Do not restate issues that were already answered, intentionally accepted, or deferred to a linked follow-up issue unless later commits materially changed the code or invalidated the earlier resolution.
+- **Operationally: query the PR's `reviewThreads` and skip any whose concern your comment would repeat.** Fetch `reviewThreads { isResolved, comments { nodes { path, line, body } } }` via GraphQL. For each line you intend to comment on, scan unresolved threads whose `path`/`line` match. If an open thread already raises the same concern — same file, same rule, same fix direction — do not add a duplicate, even if no user reply exists yet. Applies to humans and bots equally.
+- **A reply citing a commit is a resolution signal — verify the commit before restating.** When a thread has a reply like "Fixed in `<sha>`", check `gh pr view --json commits` before commenting on the same concern. Restate only if the commit isn't on the PR head, or it's present but doesn't address the concern at the cited line.
 
 ## Git Workflow
 
