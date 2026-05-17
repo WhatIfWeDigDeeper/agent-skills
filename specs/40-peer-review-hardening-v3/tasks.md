@@ -58,7 +58,7 @@
 - [x] Create `tests/peer-review/test_pr_screening.py`:
   - Dispatch by target type (4 tests): staged/branch/path → False; pr → True.
   - Per-pattern positive cases for each of the 10 families.
-  - Per-pattern negative cases for false-positive-prone patterns (override imperative on benign English, base64 length threshold below the 200-char bar, role-impersonation against benign phrasing, Cyrillic codepoint without an adjacency word, HTML comment opener inside fenced code, etc.).
+  - Per-pattern negative cases for false-positive-prone patterns (override imperative on benign English, base64 length threshold below the 200-char bar, role-impersonation against benign phrasing, Cyrillic codepoint without an adjacency word, etc.).
   - Multi-pattern combined input → all hits reported.
   - Size guard: under limit (passthrough), exactly limit (passthrough), over limit (truncated + flagged).
   - Confirmation routing: `y`/`Y`/` y `/`y\n` → proceed; `n`/`no`/`yes`/empty/None → abort.
@@ -78,7 +78,7 @@
 
 ## Phase 5 — Spellcheck and CI hygiene
 
-- [x] Run `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/40-peer-review-hardening-v3/plan.md specs/40-peer-review-hardening-v3/tasks.md` and add any flagged words to `cspell.config.yaml` in alphabetical order. Added: `bidi`, `codepoint`, `metachar`, `roleplay`, `zalgo`. Cyrillic test-fixture strings carry `# cspell:disable-line` per project rule.
+- [x] Run `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/40-peer-review-hardening-v3/plan.md specs/40-peer-review-hardening-v3/tasks.md` and add any flagged words to `cspell.config.yaml` in alphabetical order. Added: `bidi`, `codepoint`, `mapfile`, `metachar`, `readarray`, `reframings`, `roleplay`, `unbaselined`, `zalgo`. Cyrillic test-fixture strings carry `# cspell:disable-line` per project rule.
 
 ## Phase 6 — Verification
 

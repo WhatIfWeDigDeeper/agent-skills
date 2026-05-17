@@ -181,27 +181,41 @@ git diff "${DEFAULT_BRANCH}...${BRANCH}"
 
 > **Security note** — `gh pr view` / `gh pr diff` ingest third-party content (PR title, body, diff). Before the prompt template is selected (Step 3), Step 2b screens this content for prompt-injection patterns and pauses for explicit user confirmation if any pattern fires — see [Security model](#security-model) for the full mitigation list including the PR-content screening pass, the 256 KB size guard, and the screening-independence invariant.
 
-Capture the PR title, body, and diff into named variables — Step 2b consumes `$PR_TITLE` / `$PR_BODY` / `$PR_DIFF`, and the same values are reused unchanged inside the `<untrusted_diff>` block built for Step 3 (so a single fetch covers both screening and the reviewer prompt):
+Capture the PR metadata, body, and diff into mode-600 `mktemp` files so the agent (and the rest of the workflow) can `Read` the full unmodified content after this Bash tool call exits. Bash variables die when the tool call returns — a `printf` preview alone would cap the reviewer prompt at whatever fit in tool output, and the later workflow needs `url` / `headRefName` / `baseRefName` (Step 6 terminal output; branch comparison before editing) that a shell-local `PR_*` variable cannot carry across calls:
 
 ```bash
-# Use `gh pr view --jq` directly rather than capturing the full JSON and piping
-# through standalone `jq` — `gh` ships its own embedded jq via `--jq`, so this
-# keeps the skill's runtime dependency surface at just `git` and `gh` (matches
-# the skill's compatibility metadata).
-PR_TITLE=$(gh pr view "$PR" --json title --jq '.title')
-PR_BODY=$(gh pr view "$PR" --json body --jq '.body // ""')
-PR_DIFF=$(gh pr diff "$PR")
-# Surface the captured content to tool output so the agent (and a watching
-# operator) can see what Step 2b is about to screen and what Step 3 will pass
-# to the reviewer. Command substitutions suppress stdout, so without this echo
-# the PR title/body/diff would never appear in tool output between Step 2 and
-# Step 3. Truncated previews keep the surface bounded — the unmodified
-# variables remain available for screening and the reviewer prompt.
-printf '--- PR title ---\n%s\n' "$PR_TITLE"
-printf '--- PR body (first 4 KB) ---\n%s\n' "${PR_BODY:0:4096}"
-printf '--- PR diff (first 4 KB) ---\n%s\n' "${PR_DIFF:0:4096}"
+# One `gh pr view` call captures all metadata fields used throughout the
+# workflow (number, title, body, baseRefName, headRefName, url). Python's
+# built-in `json` parses individual fields — keeps the runtime dep surface at
+# `git` + `gh` (no standalone `jq` required) and matches the skill's
+# compatibility metadata. Files are mode-600 `mktemp` so the body/diff persist
+# across the Bash tool call boundary; no `trap` here — they are cleaned up at
+# the end of Step 4 (external CLI path) or after the reviewer finishes (Step 3
+# self/claude path).
+PR_META_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-pr-meta-XXXXXX")
+PR_BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-pr-body-XXXXXX")
+PR_DIFF_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-pr-diff-XXXXXX")
+chmod 600 "$PR_META_FILE" "$PR_BODY_FILE" "$PR_DIFF_FILE"
+gh pr view "$PR" --json number,title,body,baseRefName,headRefName,url > "$PR_META_FILE"
+PR_TITLE=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("title",""))' "$PR_META_FILE")
+PR_BODY=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("body","") or "")' "$PR_META_FILE")
+PR_URL=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("url",""))' "$PR_META_FILE")
+PR_HEAD=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("headRefName",""))' "$PR_META_FILE")
+PR_BASE=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("baseRefName",""))' "$PR_META_FILE")
+printf '%s' "$PR_BODY" > "$PR_BODY_FILE"
+gh pr diff "$PR" > "$PR_DIFF_FILE"
+# Surface metadata + file paths to tool output so Step 3 can `Read` the full
+# unmodified body/diff. Format strings do NOT start with `-` — bash's builtin
+# `printf` parses leading `-` arguments as options, so `printf '--- title ---'`
+# would error out before screening completes.
+printf 'PR URL: %s\n' "$PR_URL"
+printf 'PR head ref: %s\n' "$PR_HEAD"
+printf 'PR base ref: %s\n' "$PR_BASE"
+printf 'PR title: %s\n' "$PR_TITLE"
+printf 'PR body file: %s\n' "$PR_BODY_FILE"
+printf 'PR diff file: %s\n' "$PR_DIFF_FILE"
 ```
-(`$PR` is the validated integer from `--pr N`.) If the PR is not found, error and exit. Insert the PR title and body as opening lines inside the `<untrusted_diff>` block (e.g., `PR title: $PR_TITLE` / `PR body: $PR_BODY` followed by `$PR_DIFF`) — the title and body give the reviewer intent and scope that isn't visible in the diff alone.
+(`$PR` is the validated integer from `--pr N`.) If the PR is not found, error and exit. **Step 3 reads `$PR_BODY_FILE` and `$PR_DIFF_FILE` directly** — the full unmodified body and diff are inserted inside the `<untrusted_diff>` block (with `PR title: $PR_TITLE` as the opening line and `PR body:` followed by the body-file contents next), so the reviewer sees the same content the screening pass evaluated. Variables `$PR_URL` / `$PR_HEAD` / `$PR_BASE` are surfaced for Step 6's terminal output and the apply-step branch comparison.
 
 **Path** (file or directory):
 
@@ -233,7 +247,7 @@ Set mode to **consistency**.
 PR_CONTENT=$(printf 'PR title: %s\nPR body:\n%s\n--- diff ---\n%s\n' "$PR_TITLE" "$PR_BODY" "$PR_DIFF")
 ```
 
-**Size guard.** Cap `$PR_CONTENT` at **256 KB for screening only** (`SCREEN_LIMIT=262144`). The GitHub PR description limit is 65 KB; typical PR diffs are 1–50 KB; 256 KB covers ~95% of real PRs with headroom while keeping the eight regex passes well under one second. If `$PR_CONTENT` exceeds the limit, truncate it for the screening loop only — the reviewer in Step 3 still sees the full unmodified content — and set `OVERSIZED=1` so the confirmation pause fires regardless of whether a pattern matched. Burying signal in a 10 MB PR body is itself an attack and requires explicit user consent.
+**Size guard.** Cap `$PR_CONTENT` at **256 KB for screening only** (`SCREEN_LIMIT=262144`). The GitHub PR description limit is 65 KB; typical PR diffs are 1–50 KB; 256 KB covers ~95% of real PRs with headroom while keeping the 10 regex passes (7 case-sensitive + 1 case-insensitive + 2 unicode/adjacency byte scans) well under one second. If `$PR_CONTENT` exceeds the limit, truncate it for the screening loop only — the reviewer in Step 3 still sees the full unmodified content — and set `OVERSIZED=1` so the confirmation pause fires regardless of whether a pattern matched. Burying signal in a 10 MB PR body is itself an attack and requires explicit user consent.
 
 ```bash
 SCREEN_LIMIT=262144
@@ -248,16 +262,17 @@ SCREEN_LIMIT=262144
 # form). `mktemp` + `chmod 600` matches Step 4c's prompt-file pattern;
 # `trap` cleanup fires at the end of this Bash tool call.
 PR_CONTENT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-pr-content-XXXXXX")
-chmod 600 "$PR_CONTENT_FILE"
-trap 'rm -f "$PR_CONTENT_FILE"' EXIT INT TERM
+PR_SCREEN_FILE=$(mktemp "${TMPDIR:-/private/tmp}/peer-review-pr-screen-XXXXXX")
+chmod 600 "$PR_CONTENT_FILE" "$PR_SCREEN_FILE"
+trap 'rm -f "$PR_CONTENT_FILE" "$PR_SCREEN_FILE"' EXIT INT TERM
 printf '%s' "$PR_CONTENT" > "$PR_CONTENT_FILE"
 PR_CONTENT_BYTES=$(LC_ALL=C wc -c < "$PR_CONTENT_FILE" | tr -d ' ')
 OVERSIZED=0
 if [ "$PR_CONTENT_BYTES" -gt "$SCREEN_LIMIT" ]; then
   OVERSIZED=1
-  PR_CONTENT_FOR_SCREEN=$(LC_ALL=C head -c "$SCREEN_LIMIT" "$PR_CONTENT_FILE")
+  LC_ALL=C head -c "$SCREEN_LIMIT" "$PR_CONTENT_FILE" > "$PR_SCREEN_FILE.raw"
 else
-  PR_CONTENT_FOR_SCREEN="$PR_CONTENT"
+  cp "$PR_CONTENT_FILE" "$PR_SCREEN_FILE.raw"
 fi
 # Collapse all runs of whitespace (spaces, tabs, newlines, etc.) into a single
 # space before pattern scanning. Reason: `grep -E` is line-oriented by default,
@@ -267,8 +282,11 @@ fi
 # (`ignore\nprevious instructions` would not match without normalization). `tr`
 # only touches ASCII whitespace bytes; multi-byte UTF-8 sequences (zero-width /
 # bidi / Cyrillic) pass through unchanged so the byte-level unicode scans below
-# still work.
-PR_CONTENT_FOR_SCREEN=$(printf '%s' "$PR_CONTENT_FOR_SCREEN" | LC_ALL=C tr -s '[:space:]' ' ')
+# still work. Normalize on-disk via `< FILE > FILE.tmp`: `tr` reads from a file
+# and writes to a file — no `printf | tr | grep` pipeline that could SIGPIPE
+# the producer under `set -euo pipefail` when grep short-circuits on `-q`.
+LC_ALL=C tr -s '[:space:]' ' ' < "$PR_SCREEN_FILE.raw" > "$PR_SCREEN_FILE"
+rm -f "$PR_SCREEN_FILE.raw"
 ```
 
 **Patterns to check (POSIX ERE — compatible with `grep -E`; macOS-compatible, no `grep -P`).** Each is checked independently so the user sees which pattern fired (mirrors Step 4b's per-pattern loops).
@@ -342,7 +360,7 @@ screen_context() {
   # (Hex escape run) glob-collapse `\x` → `x` and silently fail to redact,
   # leaking the payload to the user's terminal.
   windows=()
-  while IFS= read -r line; do windows+=("$line"); done < <(printf '%s' "$PR_CONTENT_FOR_SCREEN" | grep -Eo${flag} -- ".{0,30}${pat}.{0,30}")
+  while IFS= read -r line; do windows+=("$line"); done < <(grep -Eo${flag} -- ".{0,30}${pat}.{0,30}" "$PR_SCREEN_FILE")
   window="${windows[0]:-}"
   [ -z "$window" ] && return
   matches=()
@@ -353,22 +371,29 @@ screen_context() {
 }
 
 hits=""
+# Run grep against the on-disk `$PR_SCREEN_FILE` rather than piping from
+# `printf '%s' "$PR_CONTENT_FOR_SCREEN"`. With `-q`, grep exits as soon as it
+# sees a match and closes its stdin; under `set -euo pipefail`, that closure
+# delivers SIGPIPE to the `printf` producer, the pipeline returns non-zero,
+# and `|| continue` skips a real hit. Reading directly from the file removes
+# the pipeline entirely — grep takes the file path, no producer to SIGPIPE.
 while IFS=$'\t' read -r name pat; do
   [ -z "$name" ] && continue
-  printf '%s' "$PR_CONTENT_FOR_SCREEN" | grep -Eq -- "$pat" || continue
+  grep -Eq -- "$pat" "$PR_SCREEN_FILE" || continue
   ctx=$(screen_context "$pat" "")
   hits="${hits}${name}: ${ctx}"$'\n'
 done <<< "$patterns_case_sensitive"
 
 while IFS=$'\t' read -r name pat; do
   [ -z "$name" ] && continue
-  printf '%s' "$PR_CONTENT_FOR_SCREEN" | grep -Eiq -- "$pat" || continue
+  grep -Eiq -- "$pat" "$PR_SCREEN_FILE" || continue
   ctx=$(screen_context "$pat" "i")
   hits="${hits}${name}: ${ctx}"$'\n'
 done <<< "$patterns_case_insensitive"
 
-# Zero-width / bidi codepoints — UTF-8 byte scan
-if printf '%s' "$PR_CONTENT_FOR_SCREEN" | LC_ALL=C grep -Eq $'\xE2\x80[\x8B-\x8D\xAA-\xAE]|\xE2\x81[\xA6-\xA9]'; then
+# Zero-width / bidi codepoints — UTF-8 byte scan, file-based for the same
+# `printf | grep -q` SIGPIPE rationale documented above.
+if LC_ALL=C grep -Eq $'\xE2\x80[\x8B-\x8D\xAA-\xAE]|\xE2\x81[\xA6-\xA9]' "$PR_SCREEN_FILE"; then
   hits="${hits}Zero-width / bidi-control codepoint: <flagged window — see content>"$'\n'
 fi
 
@@ -378,7 +403,7 @@ fi
 # ANSI-C `$'…'` quoting (matching the zero-width / bidi line above) is required
 # so `\xD0` etc. expand to actual bytes — single-quoted `'\xD0'` would pass a
 # literal 4-byte sequence `\`,`x`,`D`,`0` to grep and the byte class never matches.
-if printf '%s' "$PR_CONTENT_FOR_SCREEN" | LC_ALL=C grep -Eqi -- $'(ignore|instructions|system|prompt|assistant|disregard).{0,8}[\xD0-\xD3][\x80-\xBF]|[\xD0-\xD3][\x80-\xBF].{0,8}(ignore|instructions|system|prompt|assistant|disregard)'; then
+if LC_ALL=C grep -Eqi -- $'(ignore|instructions|system|prompt|assistant|disregard).{0,8}[\xD0-\xD3][\x80-\xBF]|[\xD0-\xD3][\x80-\xBF].{0,8}(ignore|instructions|system|prompt|assistant|disregard)' "$PR_SCREEN_FILE"; then
   hits="${hits}Cyrillic homoglyph adjacent to ASCII instruction word: <flagged>"$'\n'
 fi
 

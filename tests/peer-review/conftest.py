@@ -295,8 +295,9 @@ def route_confirmation_response(response: str | None) -> str:
 # group", and "Unicode codepoint group" lists — POSIX ERE in the spec,
 # translated to Python regex here. Same translation rules as
 # `_SECRET_PATTERNS_*` above: explicit `[ \t]` over `\s`, ASCII character
-# classes over Unicode shortcuts. Line-by-line iteration matches `grep -E`
-# semantics in `pr_screen()` below.
+# classes over Unicode shortcuts. `pr_screen()` below normalizes runs of
+# whitespace to a single space (matching SKILL.md's `tr -s '[:space:]' ' '`)
+# and runs `pat.search()` once against the full normalized buffer per pattern.
 _SCREEN_PATTERNS_CASE_SENSITIVE = [
     (
         "Override imperative",
