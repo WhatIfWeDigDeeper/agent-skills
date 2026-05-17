@@ -224,19 +224,30 @@ gh pr diff "$PR" > "$PR_DIFF_FILE" \
 # truncation step runs, and large-diff PRs could OOM or fail the fetch step
 # before the screening pause has any chance to fire.
 # Surface metadata + file paths to tool output so Step 3 can `Read` the full
-# unmodified body/diff and Step 4h can `rm -rf` the temp dir. Format strings
-# do NOT start with `-` — bash's builtin `printf` parses leading `-` arguments
-# as options, so `printf '--- title ---'` would error out before screening
-# completes.
+# unmodified title/body/diff after the Step 2b screening pause and Step 4h
+# can `rm -rf` the temp dir. Format strings do NOT start with `-` — bash's
+# builtin `printf` parses leading `-` arguments as options, so
+# `printf '--- title ---'` would error out before screening completes.
+# The PR title is deliberately NOT printed here even though `$PR_TITLE` is
+# already populated: the screening-independence invariant requires that no
+# third-party-author-controlled PR content (title, body, or diff) reach the
+# assistant context before Step 2b's regex pass decides whether to pause.
+# Printing the title to tool output would put it in the assistant's reasoning
+# trace and the user's terminal regardless of the later screening outcome,
+# defeating the gate. Step 3 reads the title from `$PR_META_FILE` after the
+# screening pause has either passed cleanly or been explicitly accepted by
+# the user. (`$PR_URL` / `$PR_HEAD` / `$PR_BASE` are surfaced here because
+# they originate from GitHub structure / repo maintainer-controlled refs and
+# the `--branch`-style ref-name regex constrains the head ref's shape — not
+# author-controlled prose like the title.)
 printf 'PR URL: %s\n' "$PR_URL"
 printf 'PR head ref: %s\n' "$PR_HEAD"
 printf 'PR base ref: %s\n' "$PR_BASE"
-printf 'PR title: %s\n' "$PR_TITLE"
 printf 'PR temp dir: %s\n' "$PR_TEMP_DIR"
 printf 'PR body file: %s\n' "$PR_BODY_FILE"
 printf 'PR diff file: %s\n' "$PR_DIFF_FILE"
 ```
-(`$PR` is the validated integer from `--pr N`.) If the PR is not found, error and exit. **Step 3 reads `$PR_BODY_FILE` and `$PR_DIFF_FILE` directly** — the full unmodified body and diff are inserted inside the `<untrusted_diff>` block (with `PR title: $PR_TITLE` as the opening line and `PR body:` followed by the body-file contents next), so the reviewer sees the same content the screening pass evaluated. Variables `$PR_URL` / `$PR_HEAD` / `$PR_BASE` are surfaced for Step 6's terminal output and the apply-step branch comparison.
+(`$PR` is the validated integer from `--pr N`.) If the PR is not found, error and exit. **Step 3 reads `$PR_META_FILE`, `$PR_BODY_FILE`, and `$PR_DIFF_FILE` directly** — the full unmodified title (extracted from the meta file's `title` JSON field), body, and diff are inserted inside the `<untrusted_diff>` block (with `PR title:` followed by the title from `$PR_META_FILE` as the opening line and `PR body:` followed by the body-file contents next), so the reviewer sees the same content the screening pass evaluated. Reading the title from the meta file rather than receiving it via the Step 2 printf preserves the screening-independence invariant: the title only enters the assistant context after Step 2b's pause has been resolved. Variables `$PR_URL` / `$PR_HEAD` / `$PR_BASE` are surfaced for Step 6's terminal output and the apply-step branch comparison.
 
 **Path** (file or directory):
 

@@ -2,8 +2,8 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "pr-human-guide",
-  "skill_version": "0.9",
+  "skill_version": "1.0",
   "findings": [],
-  "captured_at": "2026-05-09",
-  "notes": "Spec 37 addressed three Gen Agent Trust Hub HIGH findings: (1) shell injection on pr_number — added ^[1-9][0-9]{0,5}$ validation in Step 1; (2) prompt injection — added <untrusted_pr_content> boundary tags in Step 3; (3) runtime Python codegen — replaced inline codegen with static references/marker-helper.py. Snyk Agent Scan output has not been captured yet; run `bash evals/security/scan.sh --update-baselines --confirm` to populate from actual scanner output. W011 findings may appear (heuristic on gh pr view/diff) — add them here when confirmed."
+  "captured_at": "2026-05-17",
+  "notes": "Spec 37 addressed three Gen Agent Trust Hub HIGH findings: (1) shell injection on pr_number — added ^[1-9][0-9]{0,5}$ validation in Step 1; (2) prompt injection — added <untrusted_pr_content> boundary tags in Step 3; (3) runtime Python codegen — replaced inline codegen with static references/marker-helper.py. Snyk Agent Scan output has not been captured yet; run `bash evals/security/scan.sh --update-baselines --confirm` to populate from actual scanner output. W011 findings may appear (heuristic on gh pr view/diff) — add them here when confirmed. v1.0 refresh on spec-40 PR: documentation-only update to the Step 1 Arguments prose and Security model 'Argument validation' bullet to describe the `.strip(\" \\t\")` + `\\Z` validation contract already enforced by `tests/pr-human-guide/test_argument_validation.py` since the K-iteration (no validation-surface change). Scanner still not re-run locally on 2026-05-17 — SNYK_TOKEN unavailable; the `findings: []` placeholder is unchanged and will be populated when a scan is captured."
 }
