@@ -97,6 +97,7 @@ words:
   - PYSEC
   - pytest
   - REAUDIT
+  - reframings
   - reinvocation
   - repoll
   - repolls

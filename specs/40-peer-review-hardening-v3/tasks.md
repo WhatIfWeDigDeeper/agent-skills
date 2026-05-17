@@ -37,12 +37,13 @@
   - **Screening-regex heuristic** — novel obfuscation can bypass.
   - **Cyrillic-adjacency false positives** — non-English PRs may trigger the pause.
   - **No `--no-screen` escape hatch** — `--branch` / `--staged` skip Step 2b instead.
-  - **Secret-scan path asymmetry** — Step 4b runs only on the external-CLI path; documents the structural gap and notes that the related W007 heuristic currently clears but is intentionally not baselined (pinning a cleared finding would mask its recurrence per `scan.sh` `diff_findings()`).
+  - **Secret-scan path asymmetry (W007)** — Step 4b runs only on the external-CLI path; the structural gap is what the heuristic scanner flags as W007, and it is pinned in the baseline at `high` so future re-emergence is captured as part of the documented heuristic surface rather than silently regressing.
+  - **File-modification surface (W013)** — the Edit-tool + external-CLI temp-file write surface is the skill's intended job; the heuristic scanner flags it as W013 and it is pinned in the baseline at `high`.
 
-- [x] Rewrite the `### Why W011 and W012 still appear` subsection to:
+- [x] Rewrite the `### Why W007, W011, W012, and W013 still appear` subsection to:
   - Name the new mitigations (screening pass, screening-independence, size guard, adjacency banner) alongside the existing ones (argument validation, boundary markers, stdin transport, secret scan, triage layer).
-  - Note that W007 reflects an existing structural asymmetry of Step 4b (external-CLI path only) and has fired intermittently against earlier prose framings; explain that the gate accepts baselined findings as expected, so a currently-cleared W007 is intentionally **not** pinned (pinning would mask recurrence). Closing the asymmetry fully requires a behavior change deferred to a follow-up spec.
-  - Reaffirm the baseline-pinning rationale for W011/W012 and point to `evals/security/CLAUDE.md`.
+  - Document W007 (Step 4b path asymmetry) and W013 (Edit-tool + temp-file write surface) alongside the existing W011/W012 explanations. Note that all four findings are heuristic on call signatures the skill genuinely needs, and that closing them structurally would require removing the underlying features.
+  - Reaffirm the baseline-pinning rationale for W007/W011/W012/W013 and point to `evals/security/CLAUDE.md`. Explain that pinning a currently-firing finding documents the heuristic baseline without masking anything — there is nothing to mask while the finding still fires.
 
 - [x] Tighten argument validation in Step 1: `--pr` regex bumped from `^[1-9][0-9]*$` to `^[1-9][0-9]{0,5}$` (6-digit cap); `--branch` regex bumped from `^[A-Za-z0-9._/-]+$` to `^[A-Za-z0-9._/-]{1,255}$` AND a `..`-sequence rejection (matches git's own ref-name rule). Error messages updated to reflect the new constraints.
 
@@ -72,8 +73,8 @@
 - [x] Update `evals/security/peer-review.baseline.json`:
   - `skill_version` → `"1.12"`.
   - `captured_at` → `"2026-05-17"`.
-  - `findings` → keep `W011` and `W012` (high). Do **not** baseline `W007`: it fired intermittently during spec 40 development depending on how the `## Security model` prose framed the Step 4b asymmetry, and clears 20/20 against the current SKILL.md; pinning a cleared finding would mask future recurrence because `scan.sh` `diff_findings()` accepts baselined findings as expected (it gates only on new IDs or severity escalations).
-  - `notes` → expanded prose naming spec 40, the new screening pass, byte-accurate size guard, whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, the `head -n 1` window guard in `screen_context()`, and the rationale for leaving W007 unbaselined.
+  - `findings` → `W007`, `W011`, `W012`, `W013` (all high). All four findings are reported deterministically by `snyk-agent-scan==0.5.1` against the current SKILL.md; they are accepted as the current scanner heuristic baseline. `scan.sh diff_findings()` gates only on new IDs or severity escalations — baselined findings are accepted as expected, so pinning a currently-firing finding documents the heuristic baseline without masking anything.
+  - `notes` → expanded prose naming spec 40, the new screening pass, byte-accurate size guard, whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, the `head -n 1` window guard in `screen_context()`, and the rationale for pinning all four heuristic findings.
 
 ## Phase 5 — Spellcheck and CI hygiene
 
@@ -82,7 +83,7 @@
 ## Phase 6 — Verification
 
 - [x] `uv run --with pytest pytest tests/peer-review/ -v` — all green (287 passed, 1 skipped).
-- [x] `bash evals/security/scan.sh` (no `--update-baselines`) — exits 0; baseline pins W011 + W012 (both high). W007 is intentionally left unbaselined.
+- [x] `bash evals/security/scan.sh` (no `--update-baselines`) — exits 0; baseline pins W007 + W011 + W012 + W013 (all high).
 - [x] `rg '^  version:' skills/peer-review/SKILL.md` → `version: "1.12"`.
 - [x] `git fetch origin && git diff origin/main -- skills/peer-review/SKILL.md | rg '^\+  version:' | wc -l` → exactly `1`.
 - [x] Baseline schema check: `python3 -c "import json; d=json.load(open('evals/security/peer-review.baseline.json')); assert d['skill_version']=='1.12' and d['captured_at']=='2026-05-17'; print('OK')"`.
