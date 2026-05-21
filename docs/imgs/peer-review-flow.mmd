@@ -3,7 +3,6 @@ sequenceDiagram
     actor User
     participant Skill as peer-review<br/>(skill)
     participant Git as git / gh
-    participant Screen as PR Screener<br/>(Step 2b)
     participant SecScan as Secret Scanner<br/>(Step 4b)
     participant Reviewer as Reviewer<br/>(self / claude-*)
     participant CLI as External CLI<br/>(copilot/codex/gemini)
@@ -28,21 +27,6 @@ sequenceDiagram
             Git-->>Skill: PR meta (title/body) + diff bytes
         else path
             Skill->>Skill: Read / Glob (no shell)<br/>collect file contents
-        end
-    end
-
-    %% Step 2b — PR injection screen
-    opt target is --pr N
-        rect rgb(255,245,235)
-            Note over Skill,Screen: Step 2b — PR injection screening (256 KB cap)
-            Skill->>Screen: regex pass on title+body+diff
-            alt pattern hit OR oversized
-                Screen-->>User: show flagged context,<br/>prompt [y/N]
-                User-->>Screen: y (or abort)
-                Note over Screen: invariant: pause decided<br/>on raw bytes, never suppressible
-            else clean
-                Screen-->>Skill: proceed
-            end
         end
     end
 
