@@ -73,6 +73,13 @@ cp -r skills/* ~/.claude/skills/
 - **Security model (v1.10+)**: external-CLI invocations use stdin transport (not argv) so prompt content does not leak via `ps` / `/proc/<pid>/cmdline`, and a pre-flight secret scan (Step 4b) checks the assembled prompt for common secret patterns (private keys, GitHub PATs, AWS keys, OpenAI-style keys, Slack tokens, generic `api_key`/`bearer`/`password` assignments) before any `--model copilot/codex/gemini` invocation, requiring explicit `y` confirmation on a hit. Existing mitigations (argument validation, untrusted-content boundary markers, triage layer, `chmod 600` temp file) plus residual-risk notes are consolidated into a top-level `## Security model` section in the SKILL.
 - **Eval cost**: on Sonnet 4.6, with-skill runs ~5.0 seconds faster and ~688 tokens heavier than baseline on average across the 7 measured evals (the remaining time/token entries are null due to simulated transcripts or excluded measurements) for +26% pass rate (13 of 27 paired evals discriminate; eval 26 nulled as contaminated). On Opus 4.7, +34% pass rate over 28 paired evals (eval 26 ran cleanly on Opus); time/token measurements are null at the parent level — observed wall-clock ~30–50s with-skill and ~10–25s without-skill from per-task notifications. 8 evals are non-discriminating on Opus (3, 11, 13, 14, 17, 20, 21, 27); evals 13 and 21 collapsed from discriminating on Sonnet, while 11 evals are newly discriminating or strengthened on Opus where Sonnet baseline coincidentally hit skill phrasing or was harness-masked. Opus is worse at literal-string compliance, and the eval suite is sensitive to that. ([details](evals/peer-review/benchmark.md))
 
+<details>
+<summary>Diagram</summary>
+
+![flow](docs/imgs/pr_human_guide_flow.svg)
+
+</details>
+
 ### `learn`
 
 - Use `/learn help` to choose where learnings go (auto-route, skills only, or config only) and whether to write to all detected assistant configs at once.
