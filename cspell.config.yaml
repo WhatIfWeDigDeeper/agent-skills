@@ -10,6 +10,7 @@ words:
   - anthropics
   - asyncio
   - asyncpg
+  - autonumber
   - baprs
   - baselined
   - basenames

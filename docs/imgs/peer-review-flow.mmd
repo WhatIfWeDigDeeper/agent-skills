@@ -1,0 +1,73 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant Skill as peer-review<br/>(skill)
+    participant Git as git / gh
+    participant SecScan as Secret Scanner<br/>(Step 4b)
+    participant Reviewer as Reviewer<br/>(self / claude-*)
+    participant CLI as External CLI<br/>(copilot/codex/gemini)
+    participant Triage as Triage Subagent<br/>(Step 4f)
+
+    User->>Skill: /peer-review [target] [--model M] [--focus T]
+
+    %% Step 1
+    Skill->>Skill: Parse & validate $ARGUMENTS<br/>(regex check $PR / $BRANCH / $FOCUS)
+
+    %% Step 2 — collect content
+    rect rgb(240,248,255)
+        Note over Skill,Git: Step 2 — Collect content
+        alt --staged / auto-detected staged
+            Skill->>Git: git diff --staged
+            Git-->>Skill: diff bytes
+        else --branch NAME
+            Skill->>Git: detect default branch, then<br/>git diff DEFAULT...BRANCH
+            Git-->>Skill: diff bytes
+        else --pr N
+            Skill->>Git: gh pr view --json ... + gh pr diff
+            Git-->>Skill: PR meta (title/body) + diff bytes
+        else path
+            Skill->>Skill: Read / Glob (no shell)<br/>collect file contents
+        end
+    end
+
+    %% Step 3 — template
+    Skill->>Skill: Select prompt template<br/>(diff vs consistency) + --focus
+
+    %% Step 4 — dispatch
+    rect rgb(245,255,245)
+        Note over Skill,Triage: Step 4 — Spawn reviewer
+        alt model = self or claude-*
+            Skill->>Reviewer: prompt + <untrusted_*> wrapped content
+            Reviewer-->>Skill: findings (or NO FINDINGS)
+        else external CLI (copilot/codex/gemini)
+            Skill->>SecScan: Step 4b — regex scan $PROMPT for secrets
+            alt secret pattern hit
+                SecScan-->>User: show redacted context,<br/>prompt [y/N]
+                User-->>SecScan: y (or abort → cleanup + exit)
+            end
+            Skill->>Skill: 4c — write prompt to mktemp file<br/>(mode 600, single bash call)
+            Skill->>CLI: 4d — invoke via stdin redirect<br/>(--allow-all-tools --deny-tool=write / etc.)
+            CLI-->>Skill: raw review output
+            Skill->>Skill: rm -f $PROMPT_FILE
+            Skill->>Skill: 4e — parse → normalized findings<br/>(severity map)
+            Skill->>Triage: 4f — classify each finding<br/>(recommend / skip)
+            Triage-->>Skill: per-finding decisions
+        end
+    end
+
+    %% Step 5 — present
+    Skill-->>User: ## Peer Review — [target] ([model])<br/>findings grouped by severity<br/>+ triage-skipped (S1, S2...)
+    Skill-->>User: Apply prompt [all/1,2/1,S1/skip]<br/>(final message, stop generating)
+
+    %% Step 6 — apply
+    User->>Skill: all | 1,3,S1 | skip
+    alt apply selection
+        Skill->>Skill: Edit files for chosen findings
+        Skill-->>User: per-change report
+    else skip
+        Skill-->>User: Skipped N findings. No changes made.
+    end
+
+    opt target was --pr N
+        Skill-->>User: PR URL (mandatory last line)
+    end
