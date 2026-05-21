@@ -73,13 +73,6 @@ cp -r skills/* ~/.claude/skills/
 - **Security model (v1.10+)**: external-CLI invocations use stdin transport (not argv) so prompt content does not leak via `ps` / `/proc/<pid>/cmdline`, and a pre-flight secret scan (Step 4b) checks the assembled prompt for common secret patterns (private keys, GitHub PATs, AWS keys, OpenAI-style keys, Slack tokens, generic `api_key`/`bearer`/`password` assignments) before any `--model copilot/codex/gemini` invocation, requiring explicit `y` confirmation on a hit. Existing mitigations (argument validation, untrusted-content boundary markers, triage layer, `chmod 600` temp file) plus residual-risk notes are consolidated into a top-level `## Security model` section in the SKILL.
 - **Eval cost**: on Sonnet 4.6, with-skill runs ~5.0 seconds faster and ~688 tokens heavier than baseline on average across the 7 measured evals (the remaining time/token entries are null due to simulated transcripts or excluded measurements) for +26% pass rate (13 of 27 paired evals discriminate; eval 26 nulled as contaminated). On Opus 4.7, +34% pass rate over 28 paired evals (eval 26 ran cleanly on Opus); time/token measurements are null at the parent level — observed wall-clock ~30–50s with-skill and ~10–25s without-skill from per-task notifications. 8 evals are non-discriminating on Opus (3, 11, 13, 14, 17, 20, 21, 27); evals 13 and 21 collapsed from discriminating on Sonnet, while 11 evals are newly discriminating or strengthened on Opus where Sonnet baseline coincidentally hit skill phrasing or was harness-masked. Opus is worse at literal-string compliance, and the eval suite is sensitive to that. ([details](evals/peer-review/benchmark.md))
 
-<details>
-<summary>Diagram</summary>
-
-![flow](docs/imgs/pr_human_guide_flow.svg)
-
-</details>
-
 ### `learn`
 
 - Use `/learn help` to choose where learnings go (auto-route, skills only, or config only) and whether to write to all detected assistant configs at once.
@@ -99,6 +92,13 @@ cp -r skills/* ~/.claude/skills/
 - **Prompt-injection hardening**: PR titles, descriptions, diffs, file paths, and sampled repository files are treated as untrusted data; they cannot override the guide format, target PR, categories, or write behavior.
 - **Complementary to other review skills**: `peer-review` does automated code review; `pr-human-guide` tells the human reviewer where to focus their own judgment.
 - **Eval cost**: last benchmarked at SKILL.md v0.7 (current v0.9 adds security hardening only — argument validation, prompt-injection markers, static `marker-helper.py` — and was not re-benchmarked because the eval set targets review-quality, not security). On Sonnet 4.6: +17.4 seconds, +835 tokens (input + output, the full-rate billing footprint; cache tokens — creation + reads — add ~+299k more but bill at 1.25–2× and 0.1× respectively and are tracked separately as `cache_tokens` in benchmark.md) for **+31% pass rate** over baseline — 6 of 8 evals discriminate (evals 2 and 6 non-discriminating because the Sonnet baseline coincidentally produces the structured Config/Infrastructure section and the exact "Review guide updated on PR #" phrase). On Opus 4.7: +11.6 seconds, +1,060 tokens for **+42% pass rate** — **all 8 evals discriminate** (Opus baseline reliably misses HTML markers, SHA-256 diff anchors, and exact phrasing). [Details](evals/pr-human-guide/benchmark.md).
+
+<details>
+<summary>Flow Chart</summary>
+
+![flow](docs/imgs/pr_human_guide_flow.svg)
+
+</details>
 
 ### `ship-it`
 

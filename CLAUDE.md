@@ -107,7 +107,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 ## Code Review
 
 - **Before raising PR feedback, read existing review threads and replies on the touched code.** Do not restate issues that were already answered, intentionally accepted, or deferred to a linked follow-up issue unless later commits materially changed the code or invalidated the earlier resolution.
-- **Operationally: query the PR's `reviewThreads` and skip any whose concern your comment would repeat.** Fetch `reviewThreads(first: 100) { nodes { isResolved, comments(first: 100) { nodes { path, line, body } } } }` via GraphQL. For each line you intend to comment on, scan unresolved threads whose `path`/`line` match. If an open thread already raises the same concern — same file, same rule, same fix direction — do not add a duplicate, even if no user reply exists yet. Applies to humans and bots equally.
+- **Operationally: query the PR's `reviewThreads` and skip any whose concern your comment would repeat.** Fetch all review threads via paginated GraphQL rather than a single `reviewThreads(first: 100)` page: include `pageInfo { hasNextPage endCursor }`, request subsequent pages with `after:`, and continue until `hasNextPage` is false (or use the existing paginated query pattern in `skills/pr-comments/references/graphql-queries.md`). Include `isOutdated` alongside `isResolved`, and fetch `comments(first: 100) { nodes { path, line, body } }`. For each line you intend to comment on, scan unresolved, non-outdated threads whose `path`/`line` match. If an open thread already raises the same concern — same file, same rule, same fix direction — do not add a duplicate, even if no user reply exists yet. Applies to humans and bots equally.
 
 ## Git Workflow
 
