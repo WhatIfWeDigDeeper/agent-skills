@@ -94,9 +94,9 @@ cp -r skills/* ~/.claude/skills/
 - **Eval cost**: last benchmarked at SKILL.md v0.7 (current v0.9 adds security hardening only — argument validation, prompt-injection markers, static `marker-helper.py` — and was not re-benchmarked because the eval set targets review-quality, not security). On Sonnet 4.6: +17.4 seconds, +835 tokens (input + output, the full-rate billing footprint; cache tokens — creation + reads — add ~+299k more but bill at 1.25–2× and 0.1× respectively and are tracked separately as `cache_tokens` in benchmark.md) for **+31% pass rate** over baseline — 6 of 8 evals discriminate (evals 2 and 6 non-discriminating because the Sonnet baseline coincidentally produces the structured Config/Infrastructure section and the exact "Review guide updated on PR #" phrase). On Opus 4.7: +11.6 seconds, +1,060 tokens for **+42% pass rate** — **all 8 evals discriminate** (Opus baseline reliably misses HTML markers, SHA-256 diff anchors, and exact phrasing). [Details](evals/pr-human-guide/benchmark.md).
 
 <details>
-<summary>Flow Chart</summary>
+<summary>pr-human-guide flow chart</summary>
 
-![flow](docs/imgs/pr_human_guide_flow.svg)
+![pr-human-guide skill flow diagram](docs/imgs/pr_human_guide_flow.svg)
 
 </details>
 

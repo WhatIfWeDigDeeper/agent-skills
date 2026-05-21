@@ -25,7 +25,7 @@ sequenceDiagram
             Git-->>Skill: diff bytes
         else --pr N
             Skill->>Git: gh pr view --json ... + gh pr diff
-            Git-->>Skill: meta.json / body / diff<br/>in mktemp -d (mode 700)
+            Git-->>Skill: PR meta (title/body) + diff bytes
         else path
             Skill->>Skill: Read / Glob (no shell)<br/>collect file contents
         end
@@ -69,11 +69,6 @@ sequenceDiagram
             Skill->>Triage: 4f — classify each finding<br/>(recommend / skip)
             Triage-->>Skill: per-finding decisions
         end
-    end
-
-    %% Step 4h — cleanup
-    opt target was --pr N
-        Skill->>Skill: 4h — rm -rf $PR_TEMP_DIR<br/>(mandatory on every exit path)
     end
 
     %% Step 5 — present
