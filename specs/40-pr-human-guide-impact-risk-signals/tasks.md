@@ -147,9 +147,9 @@
 
 - [x] **6.1** Commit all changes on branch `spec-40-pr-human-guide-impact-risk-signals`.
 - [x] **6.2** Push and open the PR. Record PR number inline once known. PR #168 — https://github.com/WhatIfWeDigDeeper/agent-skills/pull/168
-- [ ] **6.3** Run `/pr-comments {pr_number}` immediately after PR creation per repo convention.
-- [ ] **6.4** Loop `/pr-comments` until no new bot feedback.
-- [ ] **6.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
-- [ ] **6.6** Verify CI status with `gh pr checks {pr_number}`. All checks must pass (or report `"no checks reported"`).
+- [x] **6.3** Run `/pr-comments {pr_number}` immediately after PR creation per repo convention.
+- [x] **6.4** Loop `/pr-comments` until no new bot feedback. (Two iterations: Copilot inline + claude[bot] inline both addressed by 12ce1d8 and resolved; security-scan baseline initialized in 6b1a3a2; final claude[bot] timeline comment was a clean approval.)
+- [x] **6.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers. Two items flagged: Security (baseline init) and Novel Patterns (categories.md substantive change).
+- [x] **6.6** Verify CI status with `gh pr checks {pr_number}`. All checks must pass (or report `"no checks reported"`). (cspell pass, security-scan pass on head 6b1a3a2; `claude` "skipping" is the reactive @-mention workflow, not a failure.)
 - [ ] **6.7** Wait for human review before merging.
 - [ ] **6.8** After approval, squash-merge with `gh pr merge --squash --delete-branch`, sync local main with `git status --porcelain` → (stash if dirty) → `git reset --hard origin/main` → (pop if stashed), and clean up the branch/worktree if one was used.
