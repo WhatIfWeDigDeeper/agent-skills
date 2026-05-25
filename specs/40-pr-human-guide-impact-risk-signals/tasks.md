@@ -145,8 +145,8 @@
 
 ## Phase 6: Ship
 
-- [ ] **6.1** Commit all changes on branch `spec-40-pr-human-guide-impact-risk-signals`.
-- [ ] **6.2** Push and open the PR. Record PR number inline once known.
+- [x] **6.1** Commit all changes on branch `spec-40-pr-human-guide-impact-risk-signals`.
+- [x] **6.2** Push and open the PR. Record PR number inline once known. PR #168 — https://github.com/WhatIfWeDigDeeper/agent-skills/pull/168
 - [ ] **6.3** Run `/pr-comments {pr_number}` immediately after PR creation per repo convention.
 - [ ] **6.4** Loop `/pr-comments` until no new bot feedback.
 - [ ] **6.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
