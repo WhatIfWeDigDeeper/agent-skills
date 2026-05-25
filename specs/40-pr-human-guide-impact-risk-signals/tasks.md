@@ -78,11 +78,11 @@
   rg -n 'impact risk|impact that isn'"'"'t' skills/pr-human-guide/references/categories.md
   ```
   Expected: two matches. Confirmed (lines 40, 123).
-- [x] **4.3** Verify the two new Novel Patterns bullets:
+- [x] **4.3** Verify the two new Novel Patterns bullets (anchored on bullet form to exclude the Detection-approach cross-references added in Phase 5 iteration 2):
   ```bash
-  rg -n 'Sweeping cross-cutting refactor|High-fanout core helper' skills/pr-human-guide/references/categories.md
+  rg -n '^- \*\*Sweeping cross-cutting refactor|^- \*\*High-fanout core helper' skills/pr-human-guide/references/categories.md
   ```
-  Expected: two matches. Confirmed (lines 162, 170 after Phase 5 iteration 2 polish).
+  Expected: two matches.
 - [x] **4.4** Verify the new "does NOT qualify" guardrail:
   ```bash
   rg -n 'Pure mechanical changes' skills/pr-human-guide/references/categories.md
@@ -120,7 +120,7 @@
   npx cspell skills/pr-human-guide/references/categories.md skills/pr-human-guide/SKILL.md evals/pr-human-guide/benchmark.md specs/40-pr-human-guide-impact-risk-signals/*.md
   ```
   Added `codemod` and `fanout` to `cspell.config.yaml` in alphabetical position. Final cspell result: Files checked: 5, Issues found: 0.
-- [x] **4.11** Spot-check: skim `categories.md` end-to-end to confirm tone and selectivity remain consistent — no contradiction between the new sweeping-refactor signal and the existing "What does NOT qualify" lists in other categories. Section 5 framing extension (lines 132–135) bridges novelty and aggregate-scope coherently; the new "Pure mechanical changes" guardrail in the "What does NOT qualify" block (lines 179–182) is consistent with Edit C and the section-level message remains tight.
+- [x] **4.11** Spot-check: skim `categories.md` end-to-end to confirm tone and selectivity remain consistent — no contradiction between the new sweeping-refactor signal and the existing "What does NOT qualify" lists in other categories. The Section 5 framing extension bridges novelty and aggregate-scope coherently; the new "Pure mechanical changes" guardrail in the "What does NOT qualify" block is consistent with Edit C and the section-level message remains tight. (Line ranges omitted per the CLAUDE.md "phrase anchors, not line numbers" rule — they drift across iterations.)
 - [x] **4.12** Re-read all modified spec files (`plan.md`, `tasks.md`) before reporting done. Done.
 
 ---
