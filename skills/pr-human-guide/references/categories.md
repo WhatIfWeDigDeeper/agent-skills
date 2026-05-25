@@ -137,7 +137,10 @@ a yes/no judgment call the reviewer has to make about the change as a whole.
 **Detection approach**: Compare the diff against sibling files and existing
 modules. Read 2-3 files from the same directory or related modules to
 understand existing conventions, then assess whether the changed file introduces
-something the codebase hasn't seen before.
+something the codebase hasn't seen before. For the aggregate-scope signals
+below (sweeping cross-cutting refactor; high-fanout core helper edits), sample
+*importers* of the changed module rather than siblings — see each bullet for
+when sampling fires.
 
 **Examples of novel patterns that qualify**:
 
@@ -161,8 +164,8 @@ something the codebase hasn't seen before.
   propagated to 20+ call sites, swapping a logging or error-handling pattern
   in a way that changes runtime behavior). Flag for the aggregate decision,
   not each file; the question for the reviewer is "is this the right
-  transformation," not "is each line correct." Pure-mechanical renames with
-  no semantic delta do **not** qualify — see "What does NOT qualify" below.
+  transformation," not "is each line correct." Pure mechanical changes with
+  no behavior delta do **not** qualify — see "What does NOT qualify" below.
 - **High-fanout core helper edits** — non-trivial behavior changes to a
   module that is imported broadly across the codebase (root router, base
   controller, shared error helper, central middleware chain). **Trigger

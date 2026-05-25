@@ -88,7 +88,7 @@
   rg -n 'Pure mechanical changes' skills/pr-human-guide/references/categories.md
   ```
   (Anchor shortened from the original "Pure mechanical changes with no behavior delta" — the longer phrase wraps across a line break in the source and `rg` does not match across newlines by default.)
-  Expected: one match. Confirmed at line 179.
+  Expected: two matches (Phase 5 iteration 1 harmonized the Edit B cross-reference wording to match the exclusion bullet verbatim). Confirmed at lines 164 and 182.
 - [x] **4.5** Verify the Selectivity Threshold sentence:
   ```bash
   rg -n 'File count' skills/pr-human-guide/references/categories.md
