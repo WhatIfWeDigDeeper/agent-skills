@@ -137,10 +137,11 @@ a yes/no judgment call the reviewer has to make about the change as a whole.
 **Detection approach**: Compare the diff against sibling files and existing
 modules. Read 2-3 files from the same directory or related modules to
 understand existing conventions, then assess whether the changed file introduces
-something the codebase hasn't seen before. For the aggregate-scope signals
-below (sweeping cross-cutting refactor; high-fanout core helper edits), sample
-*importers* of the changed module rather than siblings — see each bullet for
-when sampling fires.
+something the codebase hasn't seen before. For the **High-fanout core helper
+edits** signal below, sample *importers* of the changed module rather than
+siblings — see that bullet for when sampling fires. The **Sweeping cross-cutting
+refactor** signal does not require sampling; the aggregate scope is already
+visible in the diff itself.
 
 **Examples of novel patterns that qualify**:
 

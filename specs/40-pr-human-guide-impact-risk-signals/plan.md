@@ -85,8 +85,9 @@ divergence is deliberate and not a sync mistake:
   change propagated to 20+ call sites, swapping a logging or error-handling
   pattern in a way that changes runtime behavior). Flag for the aggregate
   decision, not each file; the question for the reviewer is "is this the
-  right transformation," not "is each line correct." Pure-mechanical
-  renames with no semantic delta do **not** qualify — see Edit C.
+  right transformation," not "is each line correct." Pure mechanical
+  changes with no behavior delta do **not** qualify — see "What does NOT
+  qualify" (Edit C).
 - **High-fanout core helper edits** — non-trivial behavior changes to a
   module that is imported broadly across the codebase (root router, base
   controller, shared error helper, central middleware chain). **Trigger

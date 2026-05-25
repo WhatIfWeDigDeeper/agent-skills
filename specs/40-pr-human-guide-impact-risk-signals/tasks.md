@@ -33,7 +33,7 @@
   - Section **2. Config / Infrastructure** rationale: replace `"a blast radius that isn't visible from the diff alone"` with `"impact risk that isn't visible from the diff alone"` (threads the new term through the prose; "have impact" alone is ungrammatical).
   - Section **4. Data Model Changes** "What does NOT qualify": replace `"low blast radius"` with `"low impact risk"`.
 - [x] **1.3** Edit B — under **5. Novel Patterns** "Examples of novel patterns that qualify", add two new bullets (verbatim from plan.md Edit B):
-  - **Sweeping cross-cutting refactor** — a transformation applied across many files at once where the change carries a behavior or contract delta (e.g., a framework migration across an entire module, an API surface change propagated to 20+ call sites, swapping a logging or error-handling pattern in a way that changes runtime behavior). Flag for the aggregate decision, not each file; the question for the reviewer is "is this the right transformation," not "is each line correct." Pure-mechanical renames with no semantic delta do **not** qualify — see Edit C.
+  - **Sweeping cross-cutting refactor** — a transformation applied across many files at once where the change carries a behavior or contract delta (e.g., a framework migration across an entire module, an API surface change propagated to 20+ call sites, swapping a logging or error-handling pattern in a way that changes runtime behavior). Flag for the aggregate decision, not each file; the question for the reviewer is "is this the right transformation," not "is each line correct." Pure mechanical changes with no behavior delta do **not** qualify — see "What does NOT qualify" (Edit C).
   - **High-fanout core helper edits** — non-trivial behavior changes to a module that is imported broadly across the codebase (root router, base controller, shared error helper, central middleware chain). **Trigger sampling** when (a) the changed file's path matches a typically-shared layout (`router`, `controller`, `middleware`, base error/exception classes, `lib/*`, `util/*`, `common/*`) **or** (b) the changed export name appears as an import in 5+ other files within the same PR diff; otherwise skip sampling. When sampling fires, read 2–3 importers and check whether the changed function/export is called from many call sites.
 - [x] **1.4** Edit C — under the same section's "What does NOT qualify" list, add one bullet (verbatim from plan.md Edit C):
   - Pure mechanical changes with no behavior delta (auto-formatting, whitespace-only diffs, dependency-version bumps in lockfiles, single-token renames where the new name is exhaustively substituted) — count as routine even when they touch many files.
@@ -82,19 +82,19 @@
   ```bash
   rg -n 'Sweeping cross-cutting refactor|High-fanout core helper' skills/pr-human-guide/references/categories.md
   ```
-  Expected: two matches. Confirmed (lines 158, 166).
+  Expected: two matches. Confirmed (lines 162, 170 after Phase 5 iteration 2 polish).
 - [x] **4.4** Verify the new "does NOT qualify" guardrail:
   ```bash
   rg -n 'Pure mechanical changes' skills/pr-human-guide/references/categories.md
   ```
   (Anchor shortened from the original "Pure mechanical changes with no behavior delta" — the longer phrase wraps across a line break in the source and `rg` does not match across newlines by default.)
-  Expected: two matches (Phase 5 iteration 1 harmonized the Edit B cross-reference wording to match the exclusion bullet verbatim). Confirmed at lines 164 and 182.
+  Expected: two matches (Phase 5 iteration 1 harmonized the Edit B cross-reference wording to match the exclusion bullet verbatim). Confirmed at lines 168 and 183 after Phase 5 iteration 2 polish.
 - [x] **4.5** Verify the Selectivity Threshold sentence:
   ```bash
   rg -n 'File count' skills/pr-human-guide/references/categories.md
   ```
   (Anchor shortened from the original "File count alone is not a flagging signal" — the longer phrase wraps across a line break.)
-  Expected: one match. Confirmed at line 233.
+  Expected: one match. Confirmed at line 237 after Phase 5 iteration 2 polish.
 - [x] **4.6** Verify the version bump (or its absence per 1.1):
   ```bash
   rg -n '^  version:' skills/pr-human-guide/SKILL.md
@@ -136,8 +136,8 @@
   ```
   Wait for completion, apply valid findings, and rerun until zero valid findings or iteration cap 4.
 - [ ] **5.3** Record per-iteration summary inline in this task.
-  - Iteration 1: _pending_
-  - Iteration 2: _pending_
+  - Iteration 1: 2 valid findings (0 critical, 0 major, 2 minor). Applied both. Themes: (a) the Detection approach paragraph mentioned sibling-sampling only and didn't reconcile with the new importer-sampling on the High-fanout signal — extended the paragraph to address both sampling modes; (b) the Edit B cross-reference text ("Pure-mechanical renames with no semantic delta") didn't verbatim match the "What does NOT qualify" exclusion bullet ("Pure mechanical changes with no behavior delta") — harmonized wording.
+  - Iteration 2: 4 valid findings (0 critical, 2 major, 2 minor). Applied all. Themes: (M1) iteration-1's Detection approach edit listed both aggregate-scope signals but only High-fanout has trigger conditions — scoped the importer-sampling sentence to High-fanout and added an explicit "Sweeping does not require sampling" clarification; (M2) iteration-1's wording harmonization was applied only to categories.md, not to plan.md Edit B or tasks.md 1.3 — synced both spec files to the new wording per the "apply every fix to both files" repo rule; (m1) verification line numbers in 4.3, 4.4, 4.5 drifted after iteration-1 polish — refreshed to current line numbers; (m2) iteration log was empty even though iteration 1 had already run — populated this iteration log.
   - Iteration 3: _pending_
   - Iteration 4: _pending_
 
