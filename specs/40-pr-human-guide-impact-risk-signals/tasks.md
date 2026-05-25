@@ -23,101 +23,105 @@
 
 ## Phase 1: Skill edits (categories.md + version bump)
 
-- [ ] **1.1** Check version-bump state before editing:
+- [x] **1.1** Check version-bump state before editing:
   ```bash
   git fetch origin && git diff origin/main -- skills/pr-human-guide/SKILL.md | rg '^\+  version:'
   git diff --name-status origin/main...HEAD -- skills/pr-human-guide/SKILL.md
   ```
-  Record the result inline. If a bump already exists relative to `origin/main`, skip task 1.6.
-- [ ] **1.2** Edit A — terminology refresh in `skills/pr-human-guide/references/categories.md`:
+  Result: no prior bump on branch, no diff vs origin/main. Edit E (version bump) is required.
+- [x] **1.2** Edit A — terminology refresh in `skills/pr-human-guide/references/categories.md`:
   - Section **2. Config / Infrastructure** rationale: replace `"a blast radius that isn't visible from the diff alone"` with `"impact risk that isn't visible from the diff alone"` (threads the new term through the prose; "have impact" alone is ungrammatical).
   - Section **4. Data Model Changes** "What does NOT qualify": replace `"low blast radius"` with `"low impact risk"`.
-- [ ] **1.3** Edit B — under **5. Novel Patterns** "Examples of novel patterns that qualify", add two new bullets (verbatim from plan.md Edit B):
+- [x] **1.3** Edit B — under **5. Novel Patterns** "Examples of novel patterns that qualify", add two new bullets (verbatim from plan.md Edit B):
   - **Sweeping cross-cutting refactor** — a transformation applied across many files at once where the change carries a behavior or contract delta (e.g., a framework migration across an entire module, an API surface change propagated to 20+ call sites, swapping a logging or error-handling pattern in a way that changes runtime behavior). Flag for the aggregate decision, not each file; the question for the reviewer is "is this the right transformation," not "is each line correct." Pure-mechanical renames with no semantic delta do **not** qualify — see Edit C.
   - **High-fanout core helper edits** — non-trivial behavior changes to a module that is imported broadly across the codebase (root router, base controller, shared error helper, central middleware chain). **Trigger sampling** when (a) the changed file's path matches a typically-shared layout (`router`, `controller`, `middleware`, base error/exception classes, `lib/*`, `util/*`, `common/*`) **or** (b) the changed export name appears as an import in 5+ other files within the same PR diff; otherwise skip sampling. When sampling fires, read 2–3 importers and check whether the changed function/export is called from many call sites.
-- [ ] **1.4** Edit C — under the same section's "What does NOT qualify" list, add one bullet (verbatim from plan.md Edit C):
+- [x] **1.4** Edit C — under the same section's "What does NOT qualify" list, add one bullet (verbatim from plan.md Edit C):
   - Pure mechanical changes with no behavior delta (auto-formatting, whitespace-only diffs, dependency-version bumps in lockfiles, single-token renames where the new name is exhaustively substituted) — count as routine even when they touch many files.
-- [ ] **1.5** Edit D — under **Selectivity Threshold**, append one sentence to the **first paragraph** (the one ending in *"…flag only when there is a concrete reviewer-relevant risk or uncertainty."* — not the "Exceptions" list that follows): *File count alone is not a flagging signal — flag a sweeping change only when the reviewer has a meaningful yes/no decision to make about the transformation as a whole.*
-- [ ] **1.6** Edit E — bump `metadata.version` in `skills/pr-human-guide/SKILL.md` from `"0.9"` to `"0.10"` (only if 1.1 confirmed no prior bump on the branch).
+- [x] **1.5** Edit D — under **Selectivity Threshold**, append one sentence to the **first paragraph** (the one ending in *"…flag only when there is a concrete reviewer-relevant risk or uncertainty."* — not the "Exceptions" list that follows): *File count alone is not a flagging signal — flag a sweeping change only when the reviewer has a meaningful yes/no decision to make about the transformation as a whole.*
+- [x] **1.6** Edit E — bump `metadata.version` in `skills/pr-human-guide/SKILL.md` from `"0.9"` to `"0.10"` (only if 1.1 confirmed no prior bump on the branch).
 
 ---
 
 ## Phase 2: Tests
 
-- [ ] **2.1** No new tests in this spec — confirm by reviewing the existing `tests/pr-human-guide/` suite to ensure no existing test encodes the old "blast radius" wording or relies on the unchanged category text.
+- [x] **2.1** No new tests in this spec — confirm by reviewing the existing `tests/pr-human-guide/` suite to ensure no existing test encodes the old "blast radius" wording or relies on the unchanged category text.
   ```bash
   rg -n 'blast radius' tests/pr-human-guide/
   ```
-  Result expected: no matches.
-- [ ] **2.2** Run the focused suite as a regression check:
+  Result expected: no matches. Confirmed — no matches.
+- [x] **2.2** Run the focused suite as a regression check:
   ```bash
   uv run --with pytest pytest tests/pr-human-guide/ -v
   ```
+  Result: 135 passed in 0.05s.
 
 ---
 
 ## Phase 3: Eval decision and benchmark updates
 
-- [ ] **3.1** Decide and document: no new eval is added in this spec; no existing eval is re-run. The existing 8-eval suite does not exercise the new signals, so re-benchmarking would not produce informative signal.
-- [ ] **3.2** Add a single note to `evals/pr-human-guide/benchmark.md` (near the existing "Known Eval Limitations" section):
-  > **v0.10 — Impact Risk signals (spec 40).** Adds two Novel Patterns signals (sweeping cross-cutting refactor; high-fanout core helper) and a terminology refresh ("blast radius" → "impact risk"). The existing eval set does not exercise these signals, so re-benchmarking would not be informative. Coverage for the new signals is a follow-up spec with new fixtures.
-- [ ] **3.3** Do not change `metadata.skill_version`, `metadata.evals_run`, or any `runs[]` entries in `benchmark.json` — the existing convention is that `skill_version` reflects the version under which recorded runs were produced (v0.7), not the current skill version.
-- [ ] **3.4** Do not change `README.md` Eval Δ or Skill Notes Eval cost — no benchmark numbers change.
+- [x] **3.1** Decide and document: no new eval is added in this spec; no existing eval is re-run. The existing 8-eval suite does not exercise the new signals, so re-benchmarking would not produce informative signal.
+- [x] **3.2** Add a single note to `evals/pr-human-guide/benchmark.md` (near the existing "Known Eval Limitations" section): note added as the first subsection of "Known Eval Limitations", titled `### v0.10 — Impact Risk signals (spec 40)`.
+- [x] **3.3** Do not change `metadata.skill_version`, `metadata.evals_run`, or any `runs[]` entries in `benchmark.json` — the existing convention is that `skill_version` reflects the version under which recorded runs were produced (v0.7), not the current skill version.
+- [x] **3.4** Do not change `README.md` Eval Δ or Skill Notes Eval cost — no benchmark numbers change.
 
 ---
 
 ## Phase 4: Verification
 
-- [ ] **4.1** Verify no "blast radius" remains in skill content:
+- [x] **4.1** Verify no "blast radius" remains in skill content:
   ```bash
   rg -n 'blast radius' skills/pr-human-guide/
   ```
-  Expected: no matches.
-- [ ] **4.2** Verify the terminology refresh landed:
+  Expected: no matches. Confirmed.
+- [x] **4.2** Verify the terminology refresh landed:
   ```bash
   rg -n 'impact risk|impact that isn'"'"'t' skills/pr-human-guide/references/categories.md
   ```
-  Expected: two matches.
-- [ ] **4.3** Verify the two new Novel Patterns bullets:
+  Expected: two matches. Confirmed (lines 40, 123).
+- [x] **4.3** Verify the two new Novel Patterns bullets:
   ```bash
   rg -n 'Sweeping cross-cutting refactor|High-fanout core helper' skills/pr-human-guide/references/categories.md
   ```
-  Expected: two matches.
-- [ ] **4.4** Verify the new "does NOT qualify" guardrail:
+  Expected: two matches. Confirmed (lines 158, 166).
+- [x] **4.4** Verify the new "does NOT qualify" guardrail:
   ```bash
-  rg -n 'Pure mechanical changes with no behavior delta' skills/pr-human-guide/references/categories.md
+  rg -n 'Pure mechanical changes' skills/pr-human-guide/references/categories.md
   ```
-  Expected: one match.
-- [ ] **4.5** Verify the Selectivity Threshold sentence:
+  (Anchor shortened from the original "Pure mechanical changes with no behavior delta" — the longer phrase wraps across a line break in the source and `rg` does not match across newlines by default.)
+  Expected: one match. Confirmed at line 179.
+- [x] **4.5** Verify the Selectivity Threshold sentence:
   ```bash
-  rg -n 'File count alone is not a flagging signal' skills/pr-human-guide/references/categories.md
+  rg -n 'File count' skills/pr-human-guide/references/categories.md
   ```
-  Expected: one match.
-- [ ] **4.6** Verify the version bump (or its absence per 1.1):
+  (Anchor shortened from the original "File count alone is not a flagging signal" — the longer phrase wraps across a line break.)
+  Expected: one match. Confirmed at line 233.
+- [x] **4.6** Verify the version bump (or its absence per 1.1):
   ```bash
   rg -n '^  version:' skills/pr-human-guide/SKILL.md
   ```
-  Expected: `version: "0.10"`.
-- [ ] **4.7** Verify the benchmark.md note:
+  Expected: `version: "0.10"`. Confirmed.
+- [x] **4.7** Verify the benchmark.md note:
   ```bash
   rg -n 'v0.10 — Impact Risk signals' evals/pr-human-guide/benchmark.md
   ```
-  Expected: one match.
-- [ ] **4.8** Run focused tests:
+  Expected: one match. Confirmed at line 56.
+- [x] **4.8** Run focused tests:
   ```bash
   uv run --with pytest pytest tests/pr-human-guide/ -v
   ```
-- [ ] **4.9** Run full tests:
+  Result: 135 passed in 0.05s.
+- [x] **4.9** Run full tests:
   ```bash
   uv run --with pytest pytest tests/
   ```
-- [ ] **4.10** Run cspell:
+  Result: 1136 passed in 1.45s.
+- [x] **4.10** Run cspell:
   ```bash
   npx cspell skills/pr-human-guide/references/categories.md skills/pr-human-guide/SKILL.md evals/pr-human-guide/benchmark.md specs/40-pr-human-guide-impact-risk-signals/*.md
   ```
-  Add legitimate new words (likely candidate: `codemod`) to `cspell.config.yaml` in alphabetical position.
-- [ ] **4.11** Spot-check: skim `categories.md` end-to-end to confirm tone and selectivity remain consistent — no contradiction between the new sweeping-refactor signal and the existing "What does NOT qualify" lists in other categories.
-- [ ] **4.12** Re-read all modified spec files (`plan.md`, `tasks.md`) before reporting done.
+  Added `codemod` and `fanout` to `cspell.config.yaml` in alphabetical position. Final cspell result: Files checked: 5, Issues found: 0.
+- [x] **4.11** Spot-check: skim `categories.md` end-to-end to confirm tone and selectivity remain consistent — no contradiction between the new sweeping-refactor signal and the existing "What does NOT qualify" lists in other categories. Section 5 framing extension (lines 132–135) bridges novelty and aggregate-scope coherently; the new "Pure mechanical changes" guardrail in the "What does NOT qualify" block (lines 179–182) is consistent with Edit C and the section-level message remains tight.
+- [x] **4.12** Re-read all modified spec files (`plan.md`, `tasks.md`) before reporting done. Done.
 
 ---
 

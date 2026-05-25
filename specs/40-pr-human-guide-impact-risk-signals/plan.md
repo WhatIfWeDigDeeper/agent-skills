@@ -197,8 +197,8 @@ No changes are expected in:
 1. `rg -n 'blast radius' skills/pr-human-guide/` returns no results.
 2. `rg -n 'impact risk|impact that isn'"'"'t' skills/pr-human-guide/references/categories.md` returns the two replacements.
 3. `rg -n 'Sweeping cross-cutting refactor|High-fanout core helper' skills/pr-human-guide/references/categories.md` returns the two new bullets.
-4. `rg -n 'Pure mechanical changes with no behavior delta' skills/pr-human-guide/references/categories.md` returns the new "does NOT qualify" bullet.
-5. `rg -n 'File count alone is not a flagging signal' skills/pr-human-guide/references/categories.md` returns the new Selectivity Threshold sentence.
+4. `rg -n 'Pure mechanical changes' skills/pr-human-guide/references/categories.md` returns the new "does NOT qualify" bullet. (Shorter anchor avoids cross-line-wrap issues.)
+5. `rg -n 'File count' skills/pr-human-guide/references/categories.md` returns the new Selectivity Threshold sentence. (Shorter anchor avoids cross-line-wrap issues.)
 6. `rg -n '^  version:' skills/pr-human-guide/SKILL.md` shows `version: "0.10"`.
 7. `rg -n 'v0.10 — Impact Risk signals' evals/pr-human-guide/benchmark.md` shows the no-re-benchmark note.
 8. `uv run --with pytest pytest tests/pr-human-guide/ -v` passes.

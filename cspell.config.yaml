@@ -18,6 +18,7 @@ words:
   - bunx
   - cmdline
   - codegen
+  - codemod
   - codepoints
   - commenters
   - conftest
@@ -40,6 +41,7 @@ words:
   - esac
   - evals
   - exfiltration
+  - fanout
   - fastapi
   - finditer
   - frontmatter
