@@ -184,7 +184,7 @@ If a future spec wants coverage for the new signals, recommended fixtures:
 | `skills/pr-human-guide/references/categories.md` | Edits A–D: terminology refresh, two new Novel Patterns signals, one new "does NOT qualify" clause, one Selectivity Threshold sentence. |
 | `skills/pr-human-guide/SKILL.md` | Edit E: bump `metadata.version` from `"0.9"` to `"0.10"`. |
 | `evals/pr-human-guide/benchmark.md` | Add one note documenting the no-re-benchmark decision for v0.10. |
-| `cspell.config.yaml` | Add any new terms surfaced by cspell (likely candidate: `codemod`), alphabetically sorted. |
+| `cspell.config.yaml` | Add any new terms surfaced by cspell (`codemod` and `fanout` were both added during implementation), alphabetically sorted. |
 
 No changes are expected in:
 - `evals/pr-human-guide/benchmark.json` (no run data changes; `metadata.skill_version` stays at `"0.7"` per the existing convention that the field reflects the version of recorded runs, not the current skill version — already documented in `benchmark.md`).
@@ -198,7 +198,7 @@ No changes are expected in:
 1. `rg -n 'blast radius' skills/pr-human-guide/` returns no results.
 2. `rg -n 'impact risk|impact that isn'"'"'t' skills/pr-human-guide/references/categories.md` returns the two replacements.
 3. `rg -n 'Sweeping cross-cutting refactor|High-fanout core helper' skills/pr-human-guide/references/categories.md` returns the two new bullets.
-4. `rg -n 'Pure mechanical changes' skills/pr-human-guide/references/categories.md` returns the new "does NOT qualify" bullet. (Shorter anchor avoids cross-line-wrap issues.)
+4. `rg -n 'Pure mechanical changes' skills/pr-human-guide/references/categories.md` returns two matches: the Edit C "does NOT qualify" bullet and the matching Edit B cross-reference (Phase 5 iteration 1 harmonized the wording). (Shorter anchor avoids cross-line-wrap issues.)
 5. `rg -n 'File count' skills/pr-human-guide/references/categories.md` returns the new Selectivity Threshold sentence. (Shorter anchor avoids cross-line-wrap issues.)
 6. `rg -n '^  version:' skills/pr-human-guide/SKILL.md` shows `version: "0.10"`.
 7. `rg -n 'v0.10 — Impact Risk signals' evals/pr-human-guide/benchmark.md` shows the no-re-benchmark note.

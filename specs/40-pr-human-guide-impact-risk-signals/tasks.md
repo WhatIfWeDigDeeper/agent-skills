@@ -129,17 +129,17 @@
 
 *Fresh-context pass to catch drift after implementation. Use the local `claude` CLI, not `/peer-review`; always pass `-p`. Exit condition: a pass produces zero valid findings. Iteration cap: 4.*
 
-- [ ] **5.1** Stage the full branch diff.
-- [ ] **5.2** Run:
+- [x] **5.1** Stage the full branch diff. (Branch is fully committed; the diff vs `origin/main` was captured to a temp file and passed to the reviewer as a stand-in for "staged files" since the spec's staged-files convention assumed pre-commit review.)
+- [x] **5.2** Run:
   ```bash
   claude -p "review staged files"
   ```
-  Wait for completion, apply valid findings, and rerun until zero valid findings or iteration cap 4.
-- [ ] **5.3** Record per-iteration summary inline in this task.
+  Wait for completion, apply valid findings, and rerun until zero valid findings or iteration cap 4. Reached iteration cap 4 with only minor doc-sync residue applied in iteration 4; the substantive skill content has been clean since iteration 3.
+- [x] **5.3** Record per-iteration summary inline in this task.
   - Iteration 1: 2 valid findings (0 critical, 0 major, 2 minor). Applied both. Themes: (a) the Detection approach paragraph mentioned sibling-sampling only and didn't reconcile with the new importer-sampling on the High-fanout signal — extended the paragraph to address both sampling modes; (b) the Edit B cross-reference text ("Pure-mechanical renames with no semantic delta") didn't verbatim match the "What does NOT qualify" exclusion bullet ("Pure mechanical changes with no behavior delta") — harmonized wording.
   - Iteration 2: 4 valid findings (0 critical, 2 major, 2 minor). Applied all. Themes: (M1) iteration-1's Detection approach edit listed both aggregate-scope signals but only High-fanout has trigger conditions — scoped the importer-sampling sentence to High-fanout and added an explicit "Sweeping does not require sampling" clarification; (M2) iteration-1's wording harmonization was applied only to categories.md, not to plan.md Edit B or tasks.md 1.3 — synced both spec files to the new wording per the "apply every fix to both files" repo rule; (m1) verification line numbers in 4.3, 4.4, 4.5 drifted after iteration-1 polish — refreshed to current line numbers; (m2) iteration log was empty even though iteration 1 had already run — populated this iteration log.
   - Iteration 3: 2 valid findings (0 critical, 0 major, 2 minor). Applied both. Themes: (m1) 4.3's anchor matched the new "High-fanout core helper edits" cross-reference added in iteration 2's Detection-approach edit in addition to the bullet — tightened the anchor to bullet-form regex (`^- \*\*`) so it verifies the two new bullets only; (m2) 4.11 carried a stale line range "179-182" (now 183-186) — dropped the parenthetical range per the CLAUDE.md "phrase anchors, not line numbers" rule.
-  - Iteration 4: _pending_
+  - Iteration 4: 2 valid findings (0 critical, 0 major, 2 minor). Applied both. Themes: (m1) plan.md verification step 4 still implied a single match for `'Pure mechanical changes'` but iteration 1's wording harmonization caused the anchor to match both the Edit C bullet and the Edit B cross-reference — updated plan.md to match tasks.md 4.4; (m2) plan.md Files-to-Modify table predicted only `codemod` as a likely cspell candidate but `fanout` was also added — updated to reflect both. Iteration cap (4) reached with only minor doc-sync residue applied; substantive content is consistent across plan.md, tasks.md, and the skill — proceeding to Phase 6.
 
 ---
 
