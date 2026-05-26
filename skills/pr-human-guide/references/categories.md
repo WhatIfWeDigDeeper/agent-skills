@@ -37,7 +37,7 @@ server-side.
 ## 2. Config / Infrastructure
 
 **Why human review is needed**: Config changes can affect all environments
-simultaneously and often have a blast radius that isn't visible from the diff
+simultaneously and often have impact risk that isn't visible from the diff
 alone. Humans understand deployment topology and can assess what breaks.
 
 **Detection signals**:
@@ -120,7 +120,7 @@ migrations are safe under concurrent traffic and whether clients are prepared.
 - Changing a field type in a way that isn't backwards-compatible
 
 **What does NOT qualify**: adding a new table/model with no foreign keys to
-existing tables (low blast radius), purely additive API changes (new optional
+existing tables (low impact risk), purely additive API changes (new optional
 fields), index additions with no schema change.
 
 ---
@@ -129,12 +129,19 @@ fields), index additions with no schema change.
 
 **Why human review is needed**: Introducing a new pattern requires architectural
 judgment — is this the right abstraction, does it fit the codebase's direction,
-will it be maintainable by the rest of the team?
+will it be maintainable by the rest of the team? This section also covers
+transformations whose reviewer-relevant decision is about aggregate scope or
+fanout rather than per-line correctness — the underlying purpose is the same:
+a yes/no judgment call the reviewer has to make about the change as a whole.
 
 **Detection approach**: Compare the diff against sibling files and existing
 modules. Read 2-3 files from the same directory or related modules to
 understand existing conventions, then assess whether the changed file introduces
-something the codebase hasn't seen before.
+something the codebase hasn't seen before. For the **High-fanout core helper
+edits** signal below, sample *importers* of the changed module rather than
+siblings — see that bullet for when sampling fires. The **Sweeping cross-cutting
+refactor** signal does not require sampling; the aggregate scope is already
+visible in the diff itself.
 
 **Examples of novel patterns that qualify**:
 
@@ -152,10 +159,31 @@ something the codebase hasn't seen before.
 - First use of metaprogramming, reflection, or code generation
 - Introducing a new testing pattern (e.g., property-based testing, snapshot
   testing) when the codebase uses a different approach
+- **Sweeping cross-cutting refactor** — a transformation applied across many
+  files at once where the change carries a behavior or contract delta (e.g.,
+  a framework migration across an entire module, an API surface change
+  propagated to 20+ call sites, swapping a logging or error-handling pattern
+  in a way that changes runtime behavior). Flag for the aggregate decision,
+  not each file; the question for the reviewer is "is this the right
+  transformation," not "is each line correct." Pure mechanical changes with
+  no behavior delta do **not** qualify — see "What does NOT qualify" below.
+- **High-fanout core helper edits** — non-trivial behavior changes to a
+  module that is imported broadly across the codebase (root router, base
+  controller, shared error helper, central middleware chain). **Trigger
+  sampling** when (a) the changed file's path matches a typically-shared
+  layout (`router`, `controller`, `middleware`, base error/exception
+  classes, `lib/*`, `util/*`, `common/*`) **or** (b) the changed export
+  name appears as an import in 5+ other files within the same PR diff;
+  otherwise skip sampling. When sampling fires, read 2-3 importers and
+  check whether the changed function/export is called from many call
+  sites.
 
 **What does NOT qualify**: consistent use of existing patterns, adding a new
 file that follows the same structure as its siblings, using a library already
-imported elsewhere in the codebase.
+imported elsewhere in the codebase. Pure mechanical changes with no behavior
+delta (auto-formatting, whitespace-only diffs, dependency-version bumps in
+lockfiles, single-token renames where the new name is exhaustively
+substituted) — count as routine even when they touch many files.
 
 **Sampling guidance**: For large codebases, prioritize reading files in the
 same package/module as the changed file, then the most-imported utility
@@ -206,7 +234,10 @@ When multiple items in the same file qualify for the same category:
 
 Flag an area only if a reasonable senior engineer would specifically want to
 review it beyond what automated tools would catch. When in doubt, flag only
-when there is a concrete reviewer-relevant risk or uncertainty.
+when there is a concrete reviewer-relevant risk or uncertainty. File count
+alone is not a flagging signal — flag a sweeping change only when the
+reviewer has a meaningful yes/no decision to make about the transformation
+as a whole.
 
 Exceptions — never flag these regardless of content:
 - Changes that only affect comments or documentation
