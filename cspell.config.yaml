@@ -93,6 +93,7 @@ words:
   - PRRT
   - psql
   - PYEOF
+  - pypi
   - pyproject
   - PYSEC
   - pytest
