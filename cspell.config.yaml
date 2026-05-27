@@ -103,7 +103,6 @@ words:
   - pytest
   - readarray
   - REAUDIT
-  - reframings
   - reinvocation
   - repoll
   - repolls
@@ -130,7 +129,6 @@ words:
   - TOCTOU
   - toplevel
   - ugrep
-  - unbaselined
   - undercounted
   - underspecification
   - underspecified

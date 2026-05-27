@@ -78,7 +78,7 @@
 
 ## Phase 5 — Spellcheck and CI hygiene
 
-- [x] Run `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/41-peer-review-hardening-v3/plan.md specs/41-peer-review-hardening-v3/tasks.md` and add any flagged words to `cspell.config.yaml` in alphabetical order. Added: `bidi`, `codepoint`, `mapfile`, `metachar`, `readarray`, `reframings`, `roleplay`, `unbaselined`, `zalgo`. Cyrillic test-fixture strings carry `# cspell:disable-line` per project rule.
+- [x] Run `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/41-peer-review-hardening-v3/plan.md specs/41-peer-review-hardening-v3/tasks.md` and add any flagged words to `cspell.config.yaml` in alphabetical order. Added: `bidi`, `codepoint`, `mapfile`, `metachar`, `readarray`, `roleplay`, `zalgo` (initial set also included `reframings` and `unbaselined`; both were removed after claude[bot] review confirmed they no longer appeared in any non-self-referential content). Cyrillic test-fixture strings carry `# cspell:disable-line` per project rule.
 
 ## Phase 6 — Verification
 
