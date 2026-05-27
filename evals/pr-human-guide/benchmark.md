@@ -53,6 +53,10 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 
 ## Known Eval Limitations
 
+### v0.10 — Impact Risk signals (spec 40)
+
+Adds two Novel Patterns signals (sweeping cross-cutting refactor; high-fanout core helper) and a terminology refresh ("blast radius" → "impact risk") in `references/categories.md`. The existing 8-eval set does not exercise these signals — none of the fixtures contain a sweeping cross-cutting transformation or a high-fanout core helper edit — so re-benchmarking against the current suite would only validate non-regression on unrelated paths without informative signal. Coverage for the new signals is a follow-up spec with new fixtures (recommended fixtures listed in `specs/40-pr-human-guide-impact-risk-signals/plan.md` under "Evals"). `benchmark.json` `metadata.skill_version` remains `"0.7"` (the version of the recorded runs); the current skill version is v0.10.
+
 ### Non-discriminating evals on Sonnet 4.6
 
 Of the 8 evals at v0.7, 2 are non-discriminating on Sonnet 4.6 (with-skill = without-skill pass rate). The Sonnet baseline coincidentally produced the same structural cues that the skill defines for these scenarios:

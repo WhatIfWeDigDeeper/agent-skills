@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq, python3; sha256sum (Linux) or shasum (macOS
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.0"
+  version: "0.11"
 ---
 
 # PR Human Guide
@@ -70,11 +70,13 @@ diffs, changed file paths). Mitigations in place:
 
 - **Scanner heuristics** — Snyk Agent Scan's W011/W012 fire on the presence
   of `gh pr view` / `gh pr diff` regardless of mitigations. The baseline at
-  `evals/security/pr-human-guide.baseline.json` is the regression gate: once
-  populated by `bash evals/security/scan.sh --update-baselines --confirm`
-  (requires `SNYK_TOKEN`), CI fails only if findings expand beyond it. The
-  baseline currently ships with `findings: []` because the scan has not yet
-  been captured against this skill version — see `evals/security/CLAUDE.md`.
+  `evals/security/pr-human-guide.baseline.json` is the regression gate:
+  refresh it with `bash evals/security/scan.sh --update-baselines --confirm`
+  (requires `SNYK_TOKEN`), and CI fails only if findings expand beyond it.
+  The baseline currently lists `W011` (high) as the sole finding (captured
+  2026-05-25); the substantive defense for it is the Step 3
+  `<untrusted_pr_content>` boundary framing plus the static marker helper
+  — see `evals/security/CLAUDE.md`.
 
 ## Process
 

@@ -10,6 +10,7 @@ words:
   - anthropics
   - asyncio
   - asyncpg
+  - autonumber
   - baprs
   - baselined
   - basenames
@@ -18,6 +19,7 @@ words:
   - bunx
   - cmdline
   - codegen
+  - codemod
   - codepoint
   - codepoints
   - commenters
@@ -41,6 +43,7 @@ words:
   - esac
   - evals
   - exfiltration
+  - fanout
   - fastapi
   - finditer
   - frontmatter
@@ -94,6 +97,7 @@ words:
   - PRRT
   - psql
   - PYEOF
+  - pypi
   - pyproject
   - PYSEC
   - pytest

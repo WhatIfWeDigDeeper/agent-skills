@@ -94,6 +94,13 @@ cp -r skills/* ~/.claude/skills/
 - **Complementary to other review skills**: `peer-review` does automated code review; `pr-human-guide` tells the human reviewer where to focus their own judgment.
 - **Eval cost**: last benchmarked at SKILL.md v0.7 (current v1.0 adds security hardening only — argument validation, prompt-injection markers, static `marker-helper.py`, plus the v1.0 boundary-newline preservation contract aligning the Step 1 prose with the `.strip(" \t")` + `\Z` validation already enforced by tests — and was not re-benchmarked because the eval set targets review-quality, not security). On Sonnet 4.6: +17.4 seconds, +835 tokens (input + output, the full-rate billing footprint; cache tokens — creation + reads — add ~+299k more but bill at 1.25–2× and 0.1× respectively and are tracked separately as `cache_tokens` in benchmark.md) for **+31% pass rate** over baseline — 6 of 8 evals discriminate (evals 2 and 6 non-discriminating because the Sonnet baseline coincidentally produces the structured Config/Infrastructure section and the exact "Review guide updated on PR #" phrase). On Opus 4.7: +11.6 seconds, +1,060 tokens for **+42% pass rate** — **all 8 evals discriminate** (Opus baseline reliably misses HTML markers, SHA-256 diff anchors, and exact phrasing). [Details](evals/pr-human-guide/benchmark.md).
 
+<details>
+<summary>pr-human-guide flow chart</summary>
+
+![pr-human-guide skill flow diagram](docs/imgs/pr_human_guide_flow.svg)
+
+</details>
+
 ### `ship-it`
 
 - Use `/ship-it help` to choose workflow scope (full PR, commit only, or push only) and PR options (draft, self-merge).
