@@ -2,8 +2,8 @@
 
 ## Phase 1 — Spec scaffolding
 
-- [x] Write `specs/40-peer-review-hardening-v3/plan.md` with problem, threat model recap, design (six items), files to modify, verification, and risks.
-- [x] Write `specs/40-peer-review-hardening-v3/tasks.md` (this file).
+- [x] Write `specs/41-peer-review-hardening-v3/plan.md` with problem, threat model recap, design (six items), files to modify, verification, and risks.
+- [x] Write `specs/41-peer-review-hardening-v3/tasks.md` (this file).
 
 ## Phase 2 — SKILL.md edits
 
@@ -74,11 +74,11 @@
   - `skill_version` → `"1.12"`.
   - `captured_at` → `"2026-05-17"`.
   - `findings` → `W007`, `W011`, `W012` (all high). W013 was cleared during J-iteration by switching to a per-invocation `mktemp -d` directory with mode-700 perms; it no longer fires under `snyk-agent-scan==0.5.1` and is therefore not pinned. The remaining three findings are reported deterministically against the current SKILL.md and accepted as the current scanner heuristic baseline. `scan.sh diff_findings()` gates only on new IDs or severity escalations — baselined findings are accepted as expected, so pinning a currently-firing finding documents the heuristic baseline without masking anything.
-  - `notes` → expanded prose naming spec 40, the new screening pass, byte-accurate size guard (mode-600 `mktemp` + pipeline-free `head -c FILE`), whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, the Bash-3-compatible `while IFS= read -r line; do arr+=("$line"); done < <(...)` first-match selection inside `screen_context()`, and the rationale for pinning the three heuristic findings (W007/W011/W012) that still fire after spec-40 hardening.
+  - `notes` → expanded prose naming spec 41, the new screening pass, byte-accurate size guard (mode-600 `mktemp` + pipeline-free `head -c FILE`), whitespace normalization, screening-independence invariant, adjacency banner, argument-validation length caps, the Bash-3-compatible `while IFS= read -r line; do arr+=("$line"); done < <(...)` first-match selection inside `screen_context()`, and the rationale for pinning the three heuristic findings (W007/W011/W012) that still fire after spec-41 hardening.
 
 ## Phase 5 — Spellcheck and CI hygiene
 
-- [x] Run `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/40-peer-review-hardening-v3/plan.md specs/40-peer-review-hardening-v3/tasks.md` and add any flagged words to `cspell.config.yaml` in alphabetical order. Added: `bidi`, `codepoint`, `mapfile`, `metachar`, `readarray`, `reframings`, `roleplay`, `unbaselined`, `zalgo`. Cyrillic test-fixture strings carry `# cspell:disable-line` per project rule.
+- [x] Run `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/41-peer-review-hardening-v3/plan.md specs/41-peer-review-hardening-v3/tasks.md` and add any flagged words to `cspell.config.yaml` in alphabetical order. Added: `bidi`, `codepoint`, `mapfile`, `metachar`, `readarray`, `reframings`, `roleplay`, `unbaselined`, `zalgo`. Cyrillic test-fixture strings carry `# cspell:disable-line` per project rule.
 
 ## Phase 6 — Verification
 

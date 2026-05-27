@@ -91,7 +91,7 @@ Bump `metadata.version` from `"1.11"` to `"1.12"` (single bump for the PR; minor
 Update `evals/security/peer-review.baseline.json`:
 - `skill_version`: `1.11` → `1.12`
 - `captured_at`: `2026-05-09` → `2026-05-17`
-- `notes`: rewrite to name spec 40 and the new mitigations (screening pass, size guard, adjacency banner). Three findings (W007, W011, W012) pinned at high; W013 was cleared during the J-iteration when the cleanup-index pattern was replaced by per-invocation `mktemp -d` at mode 700, removing the fixed-path side-effect the scanner heuristic was matching against. See baseline notes for the heuristic origins of each remaining finding.
+- `notes`: rewrite to name spec 41 and the new mitigations (screening pass, size guard, adjacency banner). Three findings (W007, W011, W012) pinned at high; W013 was cleared during the J-iteration when the cleanup-index pattern was replaced by per-invocation `mktemp -d` at mode 700, removing the fixed-path side-effect the scanner heuristic was matching against. See baseline notes for the heuristic origins of each remaining finding.
 
 ## Files to Modify
 
@@ -101,7 +101,7 @@ Update `evals/security/peer-review.baseline.json`:
 4. `tests/peer-review/test_pr_screening.py` (new) — per-pattern + dispatch + size + confirmation tests.
 5. `tests/peer-review/test_peer_review_argument_parsing.py` — append adversarial-args regression block.
 6. `cspell.config.yaml` — add `bidi`, `codepoint`, `cyrillic`, `homoglyph`, `homoglyphs`, `zalgo` etc. (alphabetical) if cspell flags them.
-7. `specs/40-peer-review-hardening-v3/plan.md` + `tasks.md` (new).
+7. `specs/41-peer-review-hardening-v3/plan.md` + `tasks.md` (new).
 
 ## Verification
 
@@ -110,7 +110,7 @@ Update `evals/security/peer-review.baseline.json`:
 - `uv run --with pytest pytest tests/peer-review/ -v` — all green, including the new `test_pr_screening.py` and the appended adversarial-args block.
 - `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` — reports W007 + W011 + W012 at `high` (the three findings pinned in the refreshed baseline; no regression, no escalation, no new IDs). W013 was cleared during J-iteration by switching to a per-invocation `mktemp -d` directory with mode-700 perms and is therefore not pinned.
 - `bash evals/security/scan.sh` (no `--update-baselines`) — exits 0; baseline matches.
-- `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/40-peer-review-hardening-v3/plan.md specs/40-peer-review-hardening-v3/tasks.md` — no unknown words.
+- `npx cspell skills/peer-review/SKILL.md tests/peer-review/test_pr_screening.py specs/41-peer-review-hardening-v3/plan.md specs/41-peer-review-hardening-v3/tasks.md` — no unknown words.
 - `uv run python -m evals.runner peer-review` — pass rate within ±3% of the current `benchmark.json` baseline. Step 2b adds no reviewer-prompt content on the self/claude-* path, so behavioral evals should be unchanged.
 
 ## Risks and trade-offs
