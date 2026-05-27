@@ -933,6 +933,8 @@ Run this snippet on **every exit path** that follows Step 2's PR fetch:
 - Step 4a missing external CLI binary (`command -v <binary>` failed): run before emitting the `<binary> CLI not found.` line.
 - Step 4e raw-output / parse-failure terminal exit (`Could not parse structured findings; showing raw output.`): run before emitting the raw text.
 
+**These are the ONLY exit paths after Step 2's PR fetch that require cleanup. Do not skip the cleanup snippet for any other reason — such as a deemed-trivial error, a future fast-return path, or an agent-rationalized shortcut. Every new terminal exit added to this skill after Step 2 must be added to this list.**
+
 Skipping any one of these paths leaves the full PR body/diff (potentially containing secrets, prompt-injection payloads, or both) in mode-700 / mode-600 temp files indefinitely under `$TMPDIR`. The mode-700 directory perms reduce blast radius to the invoking user but do not substitute for cleanup.
 
 ```bash
