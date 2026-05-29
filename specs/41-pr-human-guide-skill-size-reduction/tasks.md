@@ -160,7 +160,7 @@
 
 ## Phase 5: Pre-ship peer review
 
-*Fresh-context pass to catch drift after implementation. Use the local `claude` CLI, not `/peer-review`; always pass `-p`. Exit condition: a pass produces zero valid findings. Iteration cap: 4.*
+*Fresh-context pass to catch drift after implementation. Use the local `claude` CLI, not `/peer-review`; always pass `-p`. Exit condition: a pass produces zero valid findings. Iteration cap: 5.*
 
 - [x] **5.1** Stage the full branch diff.
 - [x] **5.2** Run:
@@ -179,11 +179,11 @@
 
 ## Phase 6: Ship
 
-- [ ] **6.1** Commit all changes on branch `spec-41-pr-human-guide-skill-size-reduction`.
-- [ ] **6.2** Push and open the PR. Record PR number inline once known.
-- [ ] **6.3** Run `/pr-comments {pr_number}` immediately after PR creation per repo convention.
+- [x] **6.1** Commit all changes on branch `spec-41-pr-human-guide-skill-size-reduction` (commit `889f233`).
+- [x] **6.2** Push and open the PR. **PR #173** — https://github.com/WhatIfWeDigDeeper/agent-skills/pull/173.
+- [x] **6.3** Run `/pr-comments 173` immediately after PR creation per repo convention.
 - [ ] **6.4** Loop `/pr-comments` until no new bot feedback.
-- [ ] **6.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
-- [ ] **6.6** Verify CI status with `gh pr checks {pr_number}`. All checks must pass (or report `"no checks reported"`).
+- [ ] **6.5** Run `/pr-human-guide 173` to annotate the PR for human reviewers.
+- [ ] **6.6** Verify CI status with `gh pr checks 173`. All checks must pass (or report `"no checks reported"`).
 - [ ] **6.7** Wait for human review before merging.
 - [ ] **6.8** After approval, squash-merge with `gh pr merge --squash --delete-branch`, sync local main with `git status --porcelain` → (stash if dirty) → `git reset --hard origin/main` → (pop if stashed), and clean up the branch/worktree used.
