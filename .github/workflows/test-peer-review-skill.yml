@@ -6,11 +6,13 @@ on:
     paths:
       - 'skills/peer-review/**'
       - 'tests/peer-review/**'
+      - 'tests/_helpers/**'
   pull_request:
     branches: [main]
     paths:
       - 'skills/peer-review/**'
       - 'tests/peer-review/**'
+      - 'tests/_helpers/**'
   workflow_dispatch:
 
 jobs:

@@ -8,34 +8,42 @@ HELP_TRIGGERS = {"help", "--help", "-h", "?"}
 # - explicitly-supplied PR number (after stripping a single leading '#' and
 #   surrounding whitespace) must match PR_NUMBER_RE before any shell call;
 # - any --max N (and backward-compatible --auto N) value must match MAX_VALUE_RE.
-PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}$")
-MAX_VALUE_RE = re.compile(r"^[1-9][0-9]{0,3}$")
+PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,5}\Z")
+MAX_VALUE_RE = re.compile(r"^[1-9][0-9]{0,3}\Z")
 
 
 def validate_pr_number(value: str | None) -> bool:
     """Return True if value is a valid PR number per SKILL.md Step 1.
 
-    Strips surrounding whitespace, then a single leading ``#`` (so ``42``,
+    Strips surrounding spaces/tabs, then a single leading ``#`` (so ``42``,
     ``#42``, and ``  42  `` are all accepted), then matches against
-    ``PR_NUMBER_RE`` (``^[1-9][0-9]{0,5}$`` — rejects ``0`` and
-    unbounded-length digit strings). ``None`` (no PR-number token) is rejected.
+    ``PR_NUMBER_RE`` (``^[1-9][0-9]{0,5}\\Z`` — rejects ``0`` and
+    unbounded-length digit strings, and unlike ``$`` also rejects values
+    with a trailing newline such as ``"1\\n"``). ``None`` (no PR-number
+    token) is rejected.
+
+    Strip is limited to ASCII space and tab so newline / carriage-return
+    smuggled at the boundary (e.g. ``"1\\n"``) is not silently normalized away
+    before the regex check — the ``\\Z`` anchor must do the final reject.
     """
     if value is None:
         return False
-    cleaned = str(value).strip().removeprefix("#")
+    cleaned = str(value).strip(" \t").removeprefix("#")
     return bool(PR_NUMBER_RE.match(cleaned))
 
 
 def validate_max_value(value: str | None) -> bool:
     """Return True if value is a valid ``--max N`` (or ``--auto N``) per SKILL.md.
 
-    Strips surrounding whitespace, then matches against ``MAX_VALUE_RE``
-    (``^[1-9][0-9]{0,3}$`` — 1–9999, well above any realistic loop cap).
-    ``None`` (no value supplied) is rejected.
+    Strips surrounding spaces/tabs (newline / CR not stripped — see
+    :func:`validate_pr_number` for the rationale), then matches against
+    ``MAX_VALUE_RE`` (``^[1-9][0-9]{0,3}\\Z`` — 1–9999, well above any
+    realistic loop cap; ``\\Z`` rather than ``$`` so a smuggled trailing
+    newline cannot pass the regex). ``None`` (no value supplied) is rejected.
     """
     if value is None:
         return False
-    return bool(MAX_VALUE_RE.match(str(value).strip()))
+    return bool(MAX_VALUE_RE.match(str(value).strip(" \t")))
 
 
 def is_help_request(args: str) -> bool:
@@ -48,7 +56,7 @@ def is_pr_number(args: str) -> bool:
 
     Strips a leading '#' before checking (e.g. '#42' → '42'). Delegates to
     :func:`validate_pr_number` so the suite models the spec-39 regex
-    (``^[1-9][0-9]{0,5}$``) rather than the looser ``isdigit()`` check.
+    (``^[1-9][0-9]{0,5}\\Z``) rather than the looser ``isdigit()`` check.
     """
     return bool(args) and validate_pr_number(args)
 
@@ -69,17 +77,22 @@ def parse_pr_argument(args: str) -> dict:
     """
     if not args or not args.strip():
         return {"type": "detect"}
-    stripped = args.strip()
+    # Strip only ASCII space and tab — newline / carriage-return at the
+    # boundary (e.g. "1\n") must survive so the regex below catches it as a
+    # numeric-looking-but-invalid PR attempt rather than args.strip() silently
+    # normalizing it to "1" and routing to {"type": "pr_number"}.
+    stripped = args.strip(" \t")
     if is_help_request(stripped):
         return {"type": "help"}
     if is_pr_number(stripped):
         cleaned = stripped.removeprefix("#")
         return {"type": "pr_number", "number": int(cleaned)}
     # A numeric-looking PR argument that failed validation (e.g. "0", "01", a
-    # 7+-digit string, "#0") is surfaced as invalid rather than silently
+    # 7+-digit string, "#0", or a value with a smuggled trailing newline /
+    # carriage-return like "1\n") is surfaced as invalid rather than silently
     # falling through to branch detection — "##42", bare "#", and non-numeric
     # text still detect from the branch.
-    if re.fullmatch(r"[0-9]+", stripped.removeprefix("#")):
+    if re.fullmatch(r"[0-9]+\s*", stripped.removeprefix("#")):
         return {"type": "invalid", "value": stripped}
     return {"type": "detect"}
 
