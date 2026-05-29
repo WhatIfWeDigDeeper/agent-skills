@@ -29,8 +29,9 @@ and after.
    first step that ingests untrusted input" and within ~30 rendered lines of
    that step, so human reviewers and heuristic scanners can connect mitigation
    text to the flagged `gh pr view` / `gh pr diff` commands. Today the section
-   spans lines 29–75 (47 lines) and Step 2 (first ingestion) is ~44 lines
-   below its last line — already stretching the adjacency guideline.
+   spans from the `## Security model` heading through `### Residual risks`
+   (47 lines) and Step 2 (first ingestion) is ~44 lines below its last line —
+   already stretching the adjacency guideline.
    **Compressing this section is both a size win and a template-compliance
    fix.** It must remain inline; only its prose is condensed.
 
