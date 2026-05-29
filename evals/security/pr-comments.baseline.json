@@ -2,10 +2,11 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "pr-comments",
-  "skill_version": "1.41",
+  "skill_version": "1.42",
   "findings": [
-    {"id": "W011", "severity": "high"}
+    {"id": "W011", "severity": "high"},
+    {"id": "W012", "severity": "high"}
   ],
-  "captured_at": "2026-05-09",
-  "notes": "Refreshed in spec 39 (pr-comments hardening v2). The W011 severity rose from medium to high between baseline capture and this rerun against the v1.41 SKILL.md; the underlying mitigations (untrusted_comment_body framing, 64 KB body size guard, diff-context validation gate, screening-independence note, argument validators) are documented in the new ## Security model section. Snyk's W011 fires on the presence of `gh api .../comments` ingestion patterns regardless of mitigations — the substantive default-mode defense is the Step 6 diff-context validation gate (path/line check plus diff-hunk content check) backed by auto-mode escalation to a confirmation prompt on any screening-flagged or oversized comment, or any Step 6 diff-validation downgrade (the path/line `decline`, the diff-hunk-drift `decline`, and the missing-data `fix` downgrade); `--manual` mode additionally restores the Step 7 confirmation gate before any edit, commit, or push."
+  "captured_at": "2026-05-21",
+  "notes": "Refreshed in spec 39 (pr-comments hardening v2). The W011 severity rose from medium to high between baseline capture and this rerun against the v1.41 SKILL.md; the underlying mitigations (untrusted_comment_body framing, 64 KB body size guard, diff-context validation gate, screening-independence note, argument validators) are documented in the new ## Security model section. Snyk's W011 fires on the presence of `gh api .../comments` ingestion patterns regardless of mitigations — the substantive default-mode defense is the Step 6 diff-context validation gate (path/line check plus diff-hunk content check) backed by auto-mode escalation to a confirmation prompt on any screening-flagged or oversized comment, or any Step 6 diff-validation downgrade (the path/line `decline`, the diff-hunk-drift `decline`, and the missing-data `fix` downgrade); `--manual` mode additionally restores the Step 7 confirmation gate before any edit, commit, or push. W012 (high) added 2026-05-21: CI's `snyk-agent-scan==0.5.1` consistently reports W011+W012 for pr-comments, while 10 local runs against the identical SKILL.md report only W011 — the pinned package version does not pin the scanner's server-side backend model, so heuristic findings drift (the prior baseline-passing run was 2026-05-17). W012 is the same third-party-content-exposure heuristic already accepted in peer-review's baseline; it is not introduced by any code change here (the only pr-comments SKILL.md diff in this PR is a one-sentence wording fix). The W011 mitigations above cover W012 unchanged."
 }
