@@ -105,11 +105,11 @@
   rg -n 'untrusted_pr_content' skills/pr-human-guide/SKILL.md
   ```
   Expected: one Security-model match; the `<untrusted_pr_content>` template still present inline (not only a pointer).
-- [x] **4.4** Reference handoffs are imperative:
+- [x] **4.4** Mandatory reference handoffs are imperative:
   ```bash
-  rg -n 'references/(categories|output-format|marker-helper)' skills/pr-human-guide/SKILL.md
+  rg -n 'references/(categories|output-format)' skills/pr-human-guide/SKILL.md
   ```
-  Eyeball each match for "**you must now execute…**"-style imperative phrasing.
+  Eyeball each match for "**you must now execute…**"-style imperative phrasing. (The `marker-helper.py` reference is intentionally a passive `See …` pointer — Step 5 already invokes the script directly — so it is excluded from this check.)
 - [x] **4.5** No load-bearing string lost:
   ```bash
   rg -n 'Invalid PR number|No open PR found|MANDATORY' skills/pr-human-guide/SKILL.md

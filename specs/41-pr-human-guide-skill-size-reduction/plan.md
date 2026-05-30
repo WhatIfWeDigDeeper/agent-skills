@@ -296,10 +296,12 @@ No changes expected in:
    returns one match, and the `<untrusted_pr_content>` block is still in
    Step 3: `rg -n 'untrusted_pr_content' skills/pr-human-guide/SKILL.md`
    returns at least the inline template (not only a pointer).
-4. **Reference handoffs are imperative:** every "read references/…" handoff
-   in SKILL.md uses the "**you must now execute [file]**"-style imperative per
-   `skills/CLAUDE.md`. `rg -n 'references/(categories|output-format|marker-helper)' skills/pr-human-guide/SKILL.md`
-   and eyeball each for imperative phrasing.
+4. **Mandatory reference handoffs are imperative:** every mandatory "read references/…"
+   handoff in SKILL.md uses the "**you must now execute [file]**"-style imperative per
+   `skills/CLAUDE.md`. `rg -n 'references/(categories|output-format)' skills/pr-human-guide/SKILL.md`
+   and eyeball each for imperative phrasing. (The `marker-helper.py` reference is
+   intentionally a passive `See …` pointer — Step 5 already invokes the script — so it
+   is excluded from this check.)
 5. **No load-bearing string lost:** the exact error strings
    (`Invalid PR number:`, both `No open PR found`) and the MANDATORY-URL
    instruction are still in SKILL.md. `rg -n 'Invalid PR number|No open PR found|MANDATORY' skills/pr-human-guide/SKILL.md`.
