@@ -173,11 +173,12 @@ Net: ~25 lines saved.
   summary templates plus the N=0 rule are output-format text, the same
   category as the with-items / no-items blocks already in
   `references/output-format.md`. Move all three there under a new "## Report
-  summary" heading. Step 6 in SKILL.md becomes a ~5-line stub: "**Read the
-  report-summary templates in `references/output-format.md`**, choose
-  *added* vs *updated* by whether `marker-helper.py` replaced an existing
-  block, omit the item-count line when N=0, and output the PR URL as the last
-  line." Preserve the MANDATORY-URL instruction inline (it is a known
+  summary" heading. Step 6 in SKILL.md becomes a ~5-line stub: "**You must now
+  execute [`references/output-format.md`](references/output-format.md)** for the
+  report-summary templates, choose *added* vs *updated* by whether
+  `marker-helper.py` replaced an existing block, omit the item-count line when
+  N=0, and output the PR URL as the last line." Preserve the MANDATORY-URL
+  instruction inline (it is a known
   omission risk and `skills/CLAUDE.md` requires "always"/"never omit"
   phrasing for required output lines).
 - **Step 5 prose trim.** Keep the `BODY_FILE`/`GUIDE_FILE`/`OUT_FILE` +
