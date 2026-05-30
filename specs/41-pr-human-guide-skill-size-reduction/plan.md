@@ -30,7 +30,7 @@ and after.
    that step, so human reviewers and heuristic scanners can connect mitigation
    text to the flagged `gh pr view` / `gh pr diff` commands. Today the section
    spans from the `## Security model` heading through `### Residual risks`
-   (47 lines) and Step 2 (first ingestion) is ~44 lines below its last line —
+   (47 lines) and Step 1 (first ingestion) is ~44 lines below its last line —
    already stretching the adjacency guideline.
    **Compressing this section is both a size win and a template-compliance
    fix.** It must remain inline; only its prose is condensed.
@@ -276,8 +276,9 @@ No changes expected in:
   Move 4 Step 5 pointer; no edit needed.
 - `evals/pr-human-guide/evals.json` / `benchmark.json` — no new eval, no new
   recorded runs (parity check is validation-only).
-- `README.md` — no benchmark numbers change; the six-category description and
-  Eval Δ stay valid.
+- `README.md` — the `pr-human-guide` Eval-cost note is updated to reflect
+  v0.11 (security hardening + size refactor); the benchmark numbers, the
+  six-category description, and the Eval Δ stay valid.
 - Any `CLAUDE.md` / `.github/copilot-instructions.md` — the refactor changes
   skill content, not project rules, so no instruction-sync is triggered.
 - `cspell.config.yaml` — the refactor removes/relocates prose rather than
