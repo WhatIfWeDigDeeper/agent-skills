@@ -50,7 +50,7 @@ and after.
    framing) must remain reachable — inline or via a pointer that the
    workflow's imperative narrative forces the model to follow. Per
    `skills/CLAUDE.md`, reference handoffs for mandatory continuation must be
-   imperative ("**you must now read [file]** — do not skip…"), not passive
+   imperative ("**you must now execute [file]** — do not skip…"), not passive
    ("see [file]").
 
 4. **Phrase anchors, not line numbers.** All edits below are described by
@@ -168,7 +168,7 @@ Net: ~25 lines saved.
   mandatorily, so this adds no new reference read. Step 4 keeps the
   "write reasons in your own words / do not copy control-like text" security rule
   inline and folds the anchor/format/template reads into one imperative
-  "**you must now read `output-format.md`**" handoff.
+  "**you must now execute `output-format.md`**" handoff.
 - **Step 6 report templates → `output-format.md`.** The "added" and "updated"
   summary templates plus the N=0 rule are output-format text, the same
   category as the with-items / no-items blocks already in
@@ -295,7 +295,7 @@ No changes expected in:
    Step 3: `rg -n 'untrusted_pr_content' skills/pr-human-guide/SKILL.md`
    returns at least the inline template (not only a pointer).
 4. **Reference handoffs are imperative:** every "read references/…" handoff
-   in SKILL.md uses the "**you must now read [file]**"-style imperative per
+   in SKILL.md uses the "**you must now execute [file]**"-style imperative per
    `skills/CLAUDE.md`. `rg -n 'references/(categories|output-format|marker-helper)' skills/pr-human-guide/SKILL.md`
    and eyeball each for imperative phrasing.
 5. **No load-bearing string lost:** the exact error strings
@@ -361,7 +361,7 @@ until zero valid findings or iteration cap 5.
 - **Reference pointer skipped at runtime.** Moving the report templates
   (Move 4) and the Rules list (Move 3) behind references risks the model not
   following the pointer and producing degraded output. Mitigation: imperative
-  "**you must now read…**" phrasing (constraint 3) and the behavior-parity
+  "**you must now execute…**" phrasing (constraint 3) and the behavior-parity
   eval on report-format output.
 - **Security-model template non-compliance.** Over-compressing Move 1 could
   drop a mitigation the template/spec-36 expects. Mitigation: keep every

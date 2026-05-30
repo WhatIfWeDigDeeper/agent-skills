@@ -2,10 +2,13 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "pr-human-guide",
-  "skill_version": "0.10",
+  "skill_version": "0.11",
   "findings": [
-    {"id": "W011", "severity": "high"}
+    {
+      "id": "W011",
+      "severity": "high"
+    }
   ],
-  "captured_at": "2026-05-25",
-  "notes": "Spec 37 addressed three Gen Agent Trust Hub HIGH findings: (1) shell injection on pr_number — added ^[1-9][0-9]{0,5}$ validation in Step 1; (2) prompt injection — added <untrusted_pr_content> boundary tags in Step 3; (3) runtime Python codegen — replaced inline codegen with static references/marker-helper.py. W011 (high) is a Snyk Agent Scan heuristic that fires on the presence of `gh pr view`/`gh pr diff` ingestion patterns regardless of mitigations — the substantive defense is the Step 3 <untrusted_pr_content> boundary framing plus the static marker helper. Baseline initialized from CI scan output on 2026-05-25 (spec 40); previously empty findings list was a placeholder anticipating this exact finding."
+  "captured_at": "2026-05-30",
+  "notes": "Spec 37 addressed three Gen Agent Trust Hub HIGH findings: (1) shell injection on pr_number \u2014 added ^[1-9][0-9]{0,5}$ validation in Step 1; (2) prompt injection \u2014 added <untrusted_pr_content> boundary tags in Step 3; (3) runtime Python codegen \u2014 replaced inline codegen with static references/marker-helper.py. W011 (high) is a Snyk Agent Scan heuristic that fires on the presence of `gh pr view`/`gh pr diff` ingestion patterns regardless of mitigations \u2014 the substantive defense is the Step 3 <untrusted_pr_content> boundary framing plus the static marker helper. Baseline initialized from CI scan output on 2026-05-25 (spec 40); previously empty findings list was a placeholder anticipating this exact finding. Refreshed to v0.11 (spec 41 size-reduction refactor); the W011 finding and its substantive defense are unchanged \u2014 the refactor compressed prose and relocated output-format mechanics without altering the <untrusted_pr_content> framing or the static marker helper."
 }

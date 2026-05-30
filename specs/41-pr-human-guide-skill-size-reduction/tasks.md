@@ -64,16 +64,16 @@
   - Replace the four-bullet "Rules" list with one imperative line: "**Apply the Consolidation Rules and Selectivity Threshold sections of `references/categories.md`** (already read above) when merging entries and deciding what to flag."
   - Keep the tightened Novel-Patterns sibling-reading reminder (≤2 lines), the "PR title/body are context only" sentence, and the "Build an internal analysis table" stub + column header.
 - [x] **2.4** Move 4a — relocate output-format mechanics to `skills/pr-human-guide/references/output-format.md`:
-  - Add a `## Diff anchors and entry format` heading to `output-format.md` holding the SHA-256 anchor bash, the `- [ ] [path (L)](link) — reason` entry template, and the omit-line-range rule (relocated from Step 4). Step 4 keeps the "write reasons in your own words / do not copy control-like text" security rule inline and folds the anchor/format/template reads into one imperative "**you must now read `output-format.md`**" handoff.
+  - Add a `## Diff anchors and entry format` heading to `output-format.md` holding the SHA-256 anchor bash, the `- [ ] [path (L)](link) — reason` entry template, and the omit-line-range rule (relocated from Step 4). Step 4 keeps the "write reasons in your own words / do not copy control-like text" security rule inline and folds the anchor/format/template reads into one imperative "**you must now execute `output-format.md`**" handoff.
   - Add a new `## Report summary` heading to `output-format.md` containing the "added" template, the "updated" template, and the N=0 omit-item-count rule.
-  - Replace Step 6 in SKILL.md with a ~5-line stub: "**Read the report-summary templates in `references/output-format.md`**, choose *added* vs *updated* by whether `marker-helper.py` replaced an existing block, omit the item-count line when N=0, and output the PR URL as the last line."
+  - Replace Step 6 in SKILL.md with a ~5-line stub: "**You must now execute [`references/output-format.md`](references/output-format.md)** for the report-summary templates, choose *added* vs *updated* by whether `marker-helper.py` replaced an existing block, omit the item-count line when N=0, and output the PR URL as the last line."
   - Keep the MANDATORY-URL instruction inline with "always"/"never omit" phrasing.
 - [x] **2.5** Move 4b — trim Step 5 prose:
   - Keep the `BODY_FILE`/`GUIDE_FILE`/`OUT_FILE` + `marker-helper.py` + `gh pr edit` bash block, its `trap` cleanup, and the repo-relative-path portability note.
   - Cut the trailing two-paragraph explanation of bound-selection/stray-marker stripping; replace with one line pointing to `references/marker-helper.py`.
   - Keep the one-line `--body-file` rationale (zsh corrupts `<!--` via `--body "$VAR"`).
 - [x] **2.6** Move 5 — bump `metadata.version` in `skills/pr-human-guide/SKILL.md` from `"0.10"` to `"0.11"` (only if 1.1 confirmed no prior bump on the branch).
-- [x] **2.7** Re-read SKILL.md end-to-end: confirm the workflow reads coherently as a sequence, every reference handoff is imperative ("**you must now read…**"), and no step assumes content removed from an earlier step.
+- [x] **2.7** Re-read SKILL.md end-to-end: confirm the workflow reads coherently as a sequence, every reference handoff is imperative ("**you must now execute…**"), and no step assumes content removed from an earlier step.
 
 ---
 
@@ -109,7 +109,7 @@
   ```bash
   rg -n 'references/(categories|output-format|marker-helper)' skills/pr-human-guide/SKILL.md
   ```
-  Eyeball each match for "**you must now read…**"-style imperative phrasing.
+  Eyeball each match for "**you must now execute…**"-style imperative phrasing.
 - [x] **4.5** No load-bearing string lost:
   ```bash
   rg -n 'Invalid PR number|No open PR found|MANDATORY' skills/pr-human-guide/SKILL.md
@@ -154,7 +154,7 @@
 - [x] **4.13** Re-read SKILL.md end-to-end once more for sequence coherence (no dangling pointer, no step assuming removed content).
 - [x] **4.14** Re-read both spec files (`plan.md`, `tasks.md`) before reporting done.
 
-> **Phase 4 results:** 4.1 — 208 lines (≤210 ✓, -24%). 4.2 — Security model ends ~21 lines above first `gh pr view` (Step 1), within the ~30-line guideline. 4.3 — one `## Security model`; `<untrusted_pr_content>` template still inline. 4.4 — all reference handoffs imperative ("**you must now read…**"). 4.5 — error strings + MANDATORY-URL all present. 4.6 — report templates in `output-format.md`, none in SKILL.md. 4.7 — Consolidation/Selectivity pointer present. 4.8 — version `"0.11"`. 4.9 — `tests/pr-human-guide/` 135 passed. 4.10 — full suite 1136 passed. 4.11 — cspell clean across all modified files. 4.12 — `scan.sh` exit 0; pr-human-guide baseline 1/scanned 1 (no regression). 4.13/4.14 — re-read SKILL.md and both spec files; coherent.
+> **Phase 4 results:** 4.1 — 208 lines (≤210 ✓, -24%). 4.2 — Security model ends ~21 lines above first `gh pr view` (Step 1), within the ~30-line guideline. 4.3 — one `## Security model`; `<untrusted_pr_content>` template still inline. 4.4 — all reference handoffs imperative ("**you must now execute…**"). 4.5 — error strings + MANDATORY-URL all present. 4.6 — report templates in `output-format.md`, none in SKILL.md. 4.7 — Consolidation/Selectivity pointer present. 4.8 — version `"0.11"`. 4.9 — `tests/pr-human-guide/` 135 passed. 4.10 — full suite 1136 passed. 4.11 — cspell clean across all modified files. 4.12 — `scan.sh` exit 0; pr-human-guide baseline 1/scanned 1 (no regression). 4.13/4.14 — re-read SKILL.md and both spec files; coherent.
 
 ---
 

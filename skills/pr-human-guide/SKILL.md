@@ -107,7 +107,7 @@ Store the full diff for analysis. Store the file list separately.
 
 ### 3. Analyze changes by category
 
-**You must now execute `[references/categories.md](references/categories.md)`** —
+**You must now execute [`references/categories.md`](references/categories.md)** —
 it defines the six review categories, their detection signals, and examples of
 what qualifies. Do not classify without it.
 
