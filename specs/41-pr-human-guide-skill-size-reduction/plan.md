@@ -67,9 +67,10 @@ posture and workflow reliability.
 
 ## Design
 
-Four moves, ordered by impact. Each stands alone — the plan is not
-all-or-nothing, and a reviewer can drop any single move without breaking the
-others.
+Five moves. Moves 1–4 are size reductions ordered by impact; Move 5 is the
+required version bump. Each size-reduction move stands alone — the plan is not
+all-or-nothing, and a reviewer can drop any single one of Moves 1–4 without
+breaking the others.
 
 ### Move 1 — compress the `## Security model` block (≈47 → ≈18 lines)
 
