@@ -57,7 +57,7 @@ and after.
    surrounding text so they survive concurrent edits to the file.
 
 **Goal:** bring SKILL.md from **275 → ~208 lines (-24%)** with zero
-observable behavior change, and tighten the Security-model-to-Step-2 adjacency.
+observable behavior change, and tighten the Security-model-to-Step-1 adjacency.
 The initial ~185 estimate proved optimistic: the per-move prose savings were
 smaller than projected once load-bearing content was preserved, and constraint 2
 keeps the untrusted-content template inline. Reaching ≤190 would require thinning
@@ -100,7 +100,7 @@ Mirror the peer-review shape:
   the baseline file itself, so SKILL.md need only say the finding is pinned
   there and CI gates on regressions.
 
-Net: ~29 lines saved, **and** the section ends ~29 lines closer to Step 2,
+Net: ~29 lines saved, **and** the section ends ~29 lines closer to Step 1,
 resolving the adjacency stretch noted in Context constraint 1.
 
 ### Move 2 — trim Step 1 prose (≈38 → ≈25 lines)
@@ -267,6 +267,7 @@ style.
 | `skills/pr-human-guide/SKILL.md` | Moves 1–4 (compressions, dedupes, reference handoffs) + Move 5 (version bump `"0.10"` → `"0.11"`). |
 | `skills/pr-human-guide/references/output-format.md` | Receive the Step 4 diff-anchor generation + per-entry format under a new `## Diff anchors and entry format` heading, and the three Step 6 report-summary templates under a new `## Report summary` heading (Move 4). |
 | `evals/pr-human-guide/benchmark.md` | Add one prose note: v0.11 is a no-behavior-change size refactor validated by a targeted parity run (only if the parity check is run per the Evals section). |
+| `README.md` | Update the `pr-human-guide` Eval-cost note to reflect v0.11 (security hardening + size refactor); the benchmark numbers, the six-category description, and the Eval Δ stay valid. |
 
 No changes expected in:
 - `skills/pr-human-guide/references/categories.md` — it is the *destination*
@@ -276,9 +277,6 @@ No changes expected in:
   Move 4 Step 5 pointer; no edit needed.
 - `evals/pr-human-guide/evals.json` / `benchmark.json` — no new eval, no new
   recorded runs (parity check is validation-only).
-- `README.md` — the `pr-human-guide` Eval-cost note is updated to reflect
-  v0.11 (security hardening + size refactor); the benchmark numbers, the
-  six-category description, and the Eval Δ stay valid.
 - Any `CLAUDE.md` / `.github/copilot-instructions.md` — the refactor changes
   skill content, not project rules, so no instruction-sync is triggered.
 - `cspell.config.yaml` — the refactor removes/relocates prose rather than
