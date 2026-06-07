@@ -97,10 +97,8 @@ pr_body=$(printf '%s' "$PR_JSON" | jq -r '.body // ""')
 ```
 
 The error branch above surfaces the underlying `gh pr view` failure (the captured
-`${PR_JSON}`) rather than masking every failure as a missing PR — so auth,
-network, or repo errors stay visible. It prefixes `Could not fetch PR
-#${pr_number}` (explicit form) or `Could not fetch a PR for the current branch`
-plus a "pass a PR number explicitly" hint (auto-detect form), then stops.
+`${PR_JSON}`) rather than masking every failure as a missing PR, so auth,
+network, or repo errors stay visible.
 
 Also capture repo owner/name:
 
