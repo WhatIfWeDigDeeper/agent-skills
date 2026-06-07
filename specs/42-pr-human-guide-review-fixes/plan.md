@@ -101,12 +101,14 @@ pr_body=$(printf '%s' "$PR_JSON" | jq -r '.body')
 Requirements to pin down during implementation:
 
 - **Surface the underlying `gh pr view` failure, do not mask it.** Capture the
-  command's exit status / stderr (`PR_JSON=$(... 2>&1)` + status check, consistent
-  with the repo's "Capture stderr in CLI output" rule) rather than letting `set
-  -e` abort silently. On failure, emit the captured `${PR_JSON}` so auth,
-  network, or repo errors stay visible — do not collapse every failure into a
-  fixed "no PR found" string (that masks non-no-PR errors; cf. the adjacent `gh
-  repo view` block, which includes its captured `${REPO}` in the message). Keep
+  command's exit status, and redirect stderr to a separate file
+  (`2>"$PR_VIEW_STDERR"`) rather than `2>&1` — because `PR_JSON` is re-parsed as
+  JSON by `jq`, merging stderr into it would break the parse if `gh` emits a
+  warning on an otherwise successful run. On failure, emit the captured stderr so
+  auth, network, or repo errors stay visible — do not collapse every failure into
+  a fixed "no PR found" string (that masks non-no-PR errors; cf. the adjacent `gh
+  repo view` block, whose `--jq`-extracted plain-string output is only used in
+  its error message, so `2>&1` is fine there). Keep
   the explicit-form (`Could not fetch PR #${pr_number} …`) vs auto-detect-form
   (`Could not fetch a PR for the current branch …` plus a "pass a PR number
   explicitly" hint) distinction.

@@ -80,12 +80,17 @@ real PR ref instead of an empty `""`:
 ```bash
 # Explicit PR (pr_number set): gh pr view "${pr_number}" --json ...
 # Auto-detect from branch:     gh pr view --json ...
+# Capture stderr to a file (not 2>&1) so a stderr warning on an otherwise
+# successful run cannot corrupt the JSON the jq extractions below parse.
+PR_VIEW_STDERR=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-pr-view-XXXXXX")
+trap 'rm -f "${PR_VIEW_STDERR:-}"' EXIT INT TERM
 PR_JSON=$(gh pr view ${pr_number:+"${pr_number}"} \
-  --json number,url,title,baseRefName,headRefName,body 2>&1) || {
+  --json number,url,title,baseRefName,headRefName,body 2>"$PR_VIEW_STDERR") || {
+  pr_view_err=$(cat "$PR_VIEW_STDERR")
   if [ -n "${pr_number:-}" ]; then
-    echo "Could not fetch PR #${pr_number} with 'gh pr view': ${PR_JSON}" >&2
+    echo "Could not fetch PR #${pr_number} with 'gh pr view': ${pr_view_err}" >&2
   else
-    echo "Could not fetch a PR for the current branch with 'gh pr view': ${PR_JSON}" >&2
+    echo "Could not fetch a PR for the current branch with 'gh pr view': ${pr_view_err}" >&2
     echo "If the branch has no associated PR, pass a PR number explicitly." >&2
   fi
   exit 1
@@ -97,8 +102,10 @@ pr_body=$(printf '%s' "$PR_JSON" | jq -r '.body // ""')
 ```
 
 The error branch above surfaces the underlying `gh pr view` failure (the captured
-`${PR_JSON}`) rather than masking every failure as a missing PR, so auth,
-network, or repo errors stay visible.
+stderr in `${PR_VIEW_STDERR}`) rather than masking every failure as a missing PR,
+so auth, network, or repo errors stay visible. Capturing stderr to a file keeps
+stdout as clean JSON for the `jq` extractions — `2>&1` would let a stderr warning
+on a successful run break the parse.
 
 Also capture repo owner/name:
 

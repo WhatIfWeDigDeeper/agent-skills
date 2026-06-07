@@ -35,9 +35,10 @@ not line numbers. Check off each `- [ ]` immediately after completing it.
 - [x] **2.1** **Change 1 (P1)** — In `SKILL.md` Step 1, replace the
   `gh pr view ${pr_number:+"${pr_number}"} --json ... --jq '{...}'` block with a
   raw `--json` fetch captured to `PR_JSON`, then assign
-  `pr_number`/`pr_url`/`pr_title`/`pr_body` via `jq -r`. Capture stderr
-  (`2>&1`) and, on failure, surface the captured `${PR_JSON}` (explicit vs
-  auto-detect form) so non-no-PR errors are not masked. Keep
+  `pr_number`/`pr_url`/`pr_title`/`pr_body` via `jq -r`. Capture stderr to a
+  separate file (`2>"$PR_VIEW_STDERR"`, **not** `2>&1` — that would mix stderr
+  warnings into the JSON `jq` parses) and, on failure, surface the captured
+  stderr (explicit vs auto-detect form) so non-no-PR errors are not masked. Keep
   `baseRefName`/`headRefName` in the `--json` list; do not add unused shell
   vars. — Done. Both the `gh pr view` and the sibling `gh repo view` blocks use
   the `cmd || { ... }` form, not `if ! cmd; then`, so they survive interactive
