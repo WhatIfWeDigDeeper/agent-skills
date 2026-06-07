@@ -82,9 +82,10 @@ real PR ref instead of an empty `""`:
 # Auto-detect from branch:     gh pr view --json ...
 # Capture stderr to a file (not 2>&1) so a stderr warning on an otherwise
 # successful run cannot corrupt the JSON the jq extractions below parse. The
-# file is scoped to this block and removed inline in both branches — no EXIT
-# trap, which a later step's trap would clobber if both run in one shell (cf.
-# CLAUDE.md: sequential trap snippets clobber earlier traps).
+# file is scoped to this block and removed inline in both branches rather than
+# via an EXIT trap: a shell allows only one EXIT trap at a time, so if a later
+# step in the same shell installs its own EXIT trap it would replace this one
+# and leak the temp file.
 PR_VIEW_STDERR=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-pr-view-XXXXXX")
 PR_JSON=$(gh pr view ${pr_number:+"${pr_number}"} \
   --json number,url,title,baseRefName,headRefName,body 2>"$PR_VIEW_STDERR") || {
@@ -105,11 +106,12 @@ pr_title=$(printf '%s' "$PR_JSON" | jq -r '.title')
 pr_body=$(printf '%s' "$PR_JSON" | jq -r '.body // ""')
 ```
 
-The error branch above surfaces the underlying `gh pr view` failure (the captured
-stderr in `${PR_VIEW_STDERR}`) rather than masking every failure as a missing PR,
-so auth, network, or repo errors stay visible. Capturing stderr to a file keeps
-stdout as clean JSON for the `jq` extractions — `2>&1` would let a stderr warning
-on a successful run break the parse.
+The error branch above surfaces the underlying `gh pr view` failure — the stderr
+written to the `$PR_VIEW_STDERR` file and read back into `pr_view_err` before the
+file is removed — rather than masking every failure as a missing PR, so auth,
+network, or repo errors stay visible. Capturing stderr to a file keeps stdout as
+clean JSON for the `jq` extractions — `2>&1` would let a stderr warning on a
+successful run break the parse.
 
 Also capture repo owner/name:
 
