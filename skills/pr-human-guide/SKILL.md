@@ -202,6 +202,9 @@ python3 skills/pr-human-guide/references/marker-helper.py \
   --body-file "$BODY_FILE" \
   --guide-file "$GUIDE_FILE" \
   --out "$OUT_FILE"
+# A crashed marker-helper leaves the mktemp'd OUT_FILE empty; guard so the edit
+# below does not run on it.
+[ -s "$OUT_FILE" ] || { echo "marker-helper produced no output; aborting to avoid blanking the PR body." >&2; exit 1; }
 gh pr edit "${pr_number}" --body-file "$OUT_FILE"
 # Trap fires on shell exit and removes BODY_FILE/GUIDE_FILE/OUT_FILE.
 ```
