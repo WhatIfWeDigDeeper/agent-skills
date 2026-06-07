@@ -81,12 +81,15 @@ real PR ref instead of an empty `""`:
 # Explicit PR (pr_number set): gh pr view "${pr_number}" --json ...
 # Auto-detect from branch:     gh pr view --json ...
 # Capture stderr to a file (not 2>&1) so a stderr warning on an otherwise
-# successful run cannot corrupt the JSON the jq extractions below parse.
+# successful run cannot corrupt the JSON the jq extractions below parse. The
+# file is scoped to this block and removed inline in both branches — no EXIT
+# trap, which a later step's trap would clobber if both run in one shell (cf.
+# CLAUDE.md: sequential trap snippets clobber earlier traps).
 PR_VIEW_STDERR=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-pr-view-XXXXXX")
-trap 'rm -f "${PR_VIEW_STDERR:-}"' EXIT INT TERM
 PR_JSON=$(gh pr view ${pr_number:+"${pr_number}"} \
   --json number,url,title,baseRefName,headRefName,body 2>"$PR_VIEW_STDERR") || {
   pr_view_err=$(cat "$PR_VIEW_STDERR")
+  rm -f "$PR_VIEW_STDERR"
   if [ -n "${pr_number:-}" ]; then
     echo "Could not fetch PR #${pr_number} with 'gh pr view': ${pr_view_err}" >&2
   else
@@ -95,6 +98,7 @@ PR_JSON=$(gh pr view ${pr_number:+"${pr_number}"} \
   fi
   exit 1
 }
+rm -f "$PR_VIEW_STDERR"
 pr_number=$(printf '%s' "$PR_JSON" | jq -r '.number')
 pr_url=$(printf '%s' "$PR_JSON" | jq -r '.url')
 pr_title=$(printf '%s' "$PR_JSON" | jq -r '.title')
