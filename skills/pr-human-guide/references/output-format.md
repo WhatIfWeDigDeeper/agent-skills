@@ -32,6 +32,13 @@ Wrap the section in `<!-- pr-human-guide -->` / `<!-- /pr-human-guide -->`
 markers (`marker-helper.py` uses these to anchor idempotent replacement). Emit
 only the category sections that have at least one flagged item.
 
+**Lockstep with `marker-helper.py`**: the opening marker must be immediately
+followed by a newline and `## Review Guide` with **no blank line between them**.
+`skills/pr-human-guide/references/marker-helper.py` anchors on exactly that
+(`re.match(r"\r?\n## Review Guide", ...)`); inserting a blank line here silently
+demotes every real block to the helper's "last complete block" fallback path.
+Keep both in sync if you change this template.
+
 ```markdown
 <!-- pr-human-guide -->
 ## Review Guide
