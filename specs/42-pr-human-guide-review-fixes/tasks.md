@@ -39,8 +39,9 @@ not line numbers. Check off each `- [ ]` immediately after completing it.
   (`2>&1`) and, on failure, surface the captured `${PR_JSON}` (explicit vs
   auto-detect form) so non-no-PR errors are not masked. Keep
   `baseRefName`/`headRefName` in the `--json` list; do not add unused shell
-  vars. — Done; kept `if !` style consistent with the existing
-  `if ! REPO=$(gh repo view ...)` block in the same step. Per peer-review
+  vars. — Done. Both the `gh pr view` and the sibling `gh repo view` blocks use
+  the `cmd || { ... }` form, not `if ! cmd; then`, so they survive interactive
+  zsh history expansion (per CLAUDE.md's `if ! cmd` rule). Per peer-review
   finding, the error branch now emits the captured `gh pr view` error rather
   than a fixed "No open PR found" string.
 - [x] **2.2** **Change 2 (P2)** — In the Security model "Residual risks"
