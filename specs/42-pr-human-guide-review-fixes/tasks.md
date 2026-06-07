@@ -107,11 +107,13 @@ not line numbers. Check off each `- [ ]` immediately after completing it.
 
 ## Phase 5: Ship
 
-- [ ] **5.1** Pre-ship peer review of the diff (local `claude -p "review staged
+- [x] **5.1** Pre-ship peer review of the diff (local `claude -p "review staged
   files"` or `/peer-review`); apply valid findings, decline invalid with a
-  reason; iterate to zero valid findings or cap 2.
-- [ ] **5.2** Open the PR (`/ship-it` or `gh pr create`). PR body references
+  reason; iterate to zero valid findings or cap 2. — Ran `/peer-review` (gemini
+  `gemini-3-flash-preview`) on the staged diff: `NO FINDINGS`.
+- [x] **5.2** Open the PR (`/ship-it` or `gh pr create`). PR body references
   issue #175 and lists the four fixes + the behavior change (P1 auto-detect).
+  — Opened PR #178 via `/ship-it`.
 - [ ] **5.3** Run `/pr-comments {pr_number}` immediately after PR creation;
   address `claude[bot]` review and any other comments; resolve handled threads.
 - [ ] **5.4** Run `/pr-human-guide {pr_number}` to annotate for human reviewers.

@@ -38,9 +38,10 @@ def _find_replacement_bounds(body: str) -> tuple[int, int] | None:
             continue
         end = close_pos + len(CLOSE)
         after_open = body[start + len(OPEN):]
-        # Lockstep with references/output-format.md: the opening marker must be
-        # immediately followed by a newline and '## Review Guide' (no blank line
-        # between them). If that template changes, update this regex to match —
+        # Lockstep with skills/pr-human-guide/references/output-format.md: the
+        # opening marker must be immediately followed by a newline and
+        # '## Review Guide' (no blank line between them). If that template
+        # changes, update this regex to match —
         # otherwise every real block silently falls through to the `complete`
         # fallback below.
         if re.match(r"\r?\n## Review Guide", after_open):
