@@ -227,6 +227,12 @@ BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-body-XXXXXX")
 OUT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-out-XXXXXX")
 trap 'rm -f "$BODY_FILE" "$OUT_FILE" "$GUIDE_FILE"' EXIT INT TERM
 printf '%s' "$pr_body" > "$BODY_FILE"
+# Confirm the file-writing tool actually populated the guide. A missing file
+# crashes marker-helper (caught by the OUT_FILE check below), but an empty one
+# does not: marker-helper would replace an existing block with "", and the
+# resulting OUT_FILE is still non-empty, so the body would silently lose its
+# guide and anchor markers.
+[ -s "$GUIDE_FILE" ] || { echo "Guide file missing or empty ($GUIDE_FILE); write the Step 4 guide block with your file-writing tool before running marker-helper. Aborting." >&2; exit 1; }
 python3 skills/pr-human-guide/references/marker-helper.py \
   --body-file "$BODY_FILE" \
   --guide-file "$GUIDE_FILE" \

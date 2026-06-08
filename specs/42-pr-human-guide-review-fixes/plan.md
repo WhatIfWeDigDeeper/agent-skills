@@ -179,6 +179,10 @@ contract is unchanged:
   with its **file-writing tool**, so the literal `<!--` never enters a
   double-quoted zsh assignment. The path is deterministic (not `mktemp`) so it is
   stable across the file-tool write and the follow-up `marker-helper.py` call.
+  Guard `[ -s "$GUIDE_FILE" ]` before `marker-helper.py`: a missing file crashes
+  the helper (caught by the `OUT_FILE` check), but an *empty* one would let it
+  replace an existing block with `""` and leave a non-empty `OUT_FILE`, silently
+  stripping the guide and its anchor markers.
 - Add a guard before `gh pr edit`: abort if `grep -qF '<\!-- pr-human-guide'` (or
   the `/pr-human-guide` close variant) matches `OUT_FILE` — never publish a
   corrupted marker. Patterns are single-quoted so zsh does not expand the `!`.

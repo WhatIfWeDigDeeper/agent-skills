@@ -72,7 +72,9 @@ not line numbers. Check off each `- [ ]` immediately after completing it.
   (`…/pr-human-guide-guide-${pr_number}.md`), and add a pre-`gh pr edit` guard
   that aborts on a `<\!-- pr-human-guide` (or `/pr-human-guide`) marker corrupted
   by zsh history expansion. Single-quote the grep patterns so zsh does not expand
-  the `!`. Update the Security model "Body written via file, not argv" bullet.
+  the `!`. Also guard `[ -s "$GUIDE_FILE" ]` before `marker-helper.py` so an empty
+  guide file cannot silently strip the block (per @Copilot review). Update the
+  Security model "Body written via file, not argv" bullet.
   No version re-bump (already `0.12`). `marker-helper.py`/`output-format.md`/tests
   unchanged. — Done in `SKILL.md` only.
 
