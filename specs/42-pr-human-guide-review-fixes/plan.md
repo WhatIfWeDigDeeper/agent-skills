@@ -65,6 +65,16 @@ future template tweak inserting a blank line would silently demote every real
 block to the "fallback: last complete block" path. Worth a one-line lockstep
 note in both files.
 
+### P4 — guide block transits a double-quoted shell var, corrupting `<!--` markers (found in PR review)
+
+Surfaced live on PR #178: the rendered guide reached the PR body through a
+double-quoted `GUIDE_CONTENT="…<!--…"` assignment. Under interactive zsh that
+performs history expansion on the `!`, rewriting the opening marker to `<\!--`,
+which GitHub renders as visible text instead of hiding the HTML comment (and
+`marker-helper.py`'s clean `<!--` anchor no longer matches it, breaking
+idempotent replacement). The skill already writes the *final* body via
+`--body-file`, but the guide content itself was never kept out of the shell.
+
 ## Constraints
 
 1. **Phrase anchors, not line numbers.** All edits below are described by
@@ -157,6 +167,27 @@ Cross-reference each file by full path.
 
 In `SKILL.md` frontmatter `metadata.version`. Guarded by the once-per-PR check
 in Phase 1.
+
+### Change 6 — P4: write the guide via the file tool + Step 5 corruption guard
+
+Anchor: Step 5 ("Append or replace the review guide"). Two parts, `SKILL.md`
+only — no `marker-helper.py` / `output-format.md` / test changes, so the marker
+contract is unchanged:
+
+- Drop the `GUIDE_CONTENT` shell variable. Instruct the agent to write the Step 4
+  guide block to a PR-keyed temp file (`…/pr-human-guide-guide-${pr_number}.md`)
+  with its **file-writing tool**, so the literal `<!--` never enters a
+  double-quoted zsh assignment. The path is deterministic (not `mktemp`) so it is
+  stable across the file-tool write and the follow-up `marker-helper.py` call.
+- Add a guard before `gh pr edit`: abort if `grep -qF '<\!-- pr-human-guide'` (or
+  the `/pr-human-guide` close variant) matches `OUT_FILE` — never publish a
+  corrupted marker. Patterns are single-quoted so zsh does not expand the `!`.
+  Scoped to the `pr-human-guide` marker (not bare `<\!--`) to avoid false
+  positives on PR bodies that legitimately discuss the corrupted token.
+
+No version re-bump (already `0.12` this PR; once-per-PR rule). Update the Security
+model "Body written via file, not argv" bullet to cover the new file-tool write
+and guard.
 
 ## Critical files
 

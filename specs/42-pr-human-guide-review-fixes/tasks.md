@@ -66,6 +66,15 @@ not line numbers. Check off each `- [ ]` immediately after completing it.
   description changed (P1 fixes auto-detect; likely no README change needed —
   confirm). — Updated the eval-cost note: bumped "current v0.11" → "v0.12" and
   appended the spec 42 change summary.
+- [x] **2.7** **Change 6 (P4, found in PR review)** — In `SKILL.md` Step 5,
+  replace the `GUIDE_CONTENT` shell var + `printf '%s' "$GUIDE_CONTENT"` with a
+  file-tool write of the guide block to a PR-keyed temp file
+  (`…/pr-human-guide-guide-${pr_number}.md`), and add a pre-`gh pr edit` guard
+  that aborts on a `<\!-- pr-human-guide` (or `/pr-human-guide`) marker corrupted
+  by zsh history expansion. Single-quote the grep patterns so zsh does not expand
+  the `!`. Update the Security model "Body written via file, not argv" bullet.
+  No version re-bump (already `0.12`). `marker-helper.py`/`output-format.md`/tests
+  unchanged. — Done in `SKILL.md` only.
 
 ## Phase 3: Behavior verification (P1 is a runtime change)
 

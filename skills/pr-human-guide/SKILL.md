@@ -47,9 +47,12 @@ Mitigations in place:
   anchored `<!-- pr-human-guide -->` block; extra or incomplete markers in
   `pr_body` are treated as untrusted text after canonical-block extraction and
   cannot shift replacement bounds (Step 5).
-- **Body written via file, not argv** — `gh pr edit --body-file` avoids zsh
-  history corruption of `<!--` markers; the temp file path is unguessable
-  (`mktemp`) (Step 5).
+- **Body written via file, not argv** — the rendered guide block is written to a
+  temp file with the agent's file-writing tool (never a double-quoted shell
+  variable, which interactive zsh corrupts `<!--` → `<\!--`), and
+  `gh pr edit --body-file` posts the result; a Step 5 guard aborts if a corrupted
+  `<\!-- pr-human-guide` marker reaches the output. Temp paths come from `mktemp`
+  or the temp dir (Step 5).
 
 Residual risks: Snyk Agent Scan's `W011` fires on the presence of
 `gh pr view` / `gh pr diff` regardless of mitigations. The finding is pinned in
@@ -198,19 +201,32 @@ an anchor.
 ### 5. Append or replace the review guide in the PR description
 
 Write only by replacing/appending the bounded `<!-- pr-human-guide -->` block on
-the detected or explicit PR via `--body-file`. Assign the rendered guide markdown
-from Step 4 (the entire `<!-- pr-human-guide -->` … `<!-- /pr-human-guide -->`
-block) to `GUIDE_CONTENT`, write `pr_body` and `GUIDE_CONTENT` to temp files, and
-invoke `marker-helper.py` to produce the updated body. The path below is
-repo-root-relative — adjust the prefix to match your repo's layout if it differs:
+the detected or explicit PR via `--body-file`.
+
+**Write the Step 4 guide block (the entire `<!-- pr-human-guide -->` …
+`<!-- /pr-human-guide -->` markdown) to the guide temp file using your
+file-writing tool — never route it through a double-quoted shell variable.** The
+block contains `<!--`; under interactive zsh a `GUIDE_CONTENT="…<!--…"` assignment
+performs history expansion on the `!`, rewriting the opening marker to `<\!--`.
+GitHub then renders the marker as literal text instead of hiding the HTML comment.
+Writing through the file tool bypasses the shell entirely. Use a temp path keyed
+to the PR so it is stable across the two tool calls below (resolve `$TMPDIR` and
+`${pr_number}` to literal values when handing the path to your file-writing tool):
+
+```
+${TMPDIR:-/private/tmp}/pr-human-guide-guide-${pr_number}.md
+```
+
+Then assemble and post the body (the `marker-helper.py` path is repo-root-relative
+— adjust the prefix to match your repo's layout if it differs):
 
 ```bash
+# GUIDE_FILE was written above by your file-writing tool — not via the shell.
+GUIDE_FILE="${TMPDIR:-/private/tmp}/pr-human-guide-guide-${pr_number}.md"
 BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-body-XXXXXX")
-GUIDE_FILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-guide-XXXXXX")
 OUT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-out-XXXXXX")
-trap 'rm -f "$BODY_FILE" "$GUIDE_FILE" "$OUT_FILE"' EXIT INT TERM
+trap 'rm -f "$BODY_FILE" "$OUT_FILE" "$GUIDE_FILE"' EXIT INT TERM
 printf '%s' "$pr_body" > "$BODY_FILE"
-printf '%s' "$GUIDE_CONTENT" > "$GUIDE_FILE"
 python3 skills/pr-human-guide/references/marker-helper.py \
   --body-file "$BODY_FILE" \
   --guide-file "$GUIDE_FILE" \
@@ -218,8 +234,15 @@ python3 skills/pr-human-guide/references/marker-helper.py \
 # A crashed marker-helper leaves the mktemp'd OUT_FILE empty; guard so the edit
 # below does not run on it.
 [ -s "$OUT_FILE" ] || { echo "marker-helper produced no output; aborting to avoid blanking the PR body." >&2; exit 1; }
+# Refuse to post a marker that interactive zsh corrupted to <\!-- (the guide block
+# reached the body through a double-quoted shell assignment instead of the
+# file-writing tool). Patterns are single-quoted so zsh does not expand the !.
+if grep -qF '<\!-- pr-human-guide' "$OUT_FILE" || grep -qF '<\!-- /pr-human-guide' "$OUT_FILE"; then
+  echo 'Corrupted <\!-- pr-human-guide marker in generated body; aborting. Write the guide block to the temp file with your file-writing tool, not a double-quoted shell variable.' >&2
+  exit 1
+fi
 gh pr edit "${pr_number}" --body-file "$OUT_FILE"
-# Trap fires on shell exit and removes BODY_FILE/GUIDE_FILE/OUT_FILE.
+# Trap fires on shell exit and removes BODY_FILE/OUT_FILE/GUIDE_FILE.
 ```
 
 See [`references/marker-helper.py`](references/marker-helper.py) for
