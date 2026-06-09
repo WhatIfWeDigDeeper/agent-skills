@@ -58,10 +58,10 @@
 
 ## Phase 5: Ship
 
-- [ ] **5.1** Update `README.md` Eval-cost note with the v0.13 entry.
-- [ ] **5.2** Commit on branch `spec-43-pr-human-guide-skill-size-reduction-v2`.
-- [ ] **5.3** Push and open the PR.
-- [ ] **5.4** Run `/pr-comments {pr_number}` immediately after PR creation; loop until no new bot feedback.
-- [ ] **5.5** Run `/pr-human-guide {pr_number}` before human review.
-- [ ] **5.6** Verify CI green with `gh pr checks {pr_number}`.
-- [ ] **5.7** Wait for human review before merging.
+- [x] **5.1** Update `README.md` Eval-cost note with the v0.13 entry.
+- [x] **5.2** Commit on branch `spec-43-pr-human-guide-skill-size-reduction-v2` (commit `caffac5`).
+- [x] **5.3** Push and open the PR → #180.
+- [x] **5.4** Run `/pr-comments {pr_number}` immediately after PR creation; loop until no new bot feedback. `Both bots reviewed PR #180 clean: Copilot reviewed 5/5 files with no comments (skip); claude[bot] timeline comment "No issues found. Checked for bugs and CLAUDE.md compliance." (clean approval). Zero actionable inline/review-body/timeline comments. Loop terminated.`
+- [x] **5.5** Run `/pr-human-guide {pr_number}` before human review. `Added a no-areas guide block to PR #180 (all changes are documentation: skill markdown relocation, spec docs, README note — Selectivity Threshold docs exception). Markers posted correctly, no behavior change.`
+- [x] **5.6** Verify CI green with `gh pr checks {pr_number}`. `cspell pass, security-scan pass, exit 0.`
+- [x] **5.7** Wait for human review before merging. `PR #180 is at the awaiting-human-review gate: both bots clean, CI green, human guide posted. Will not merge until a human reviews — bot approval alone is not a substitute.`
