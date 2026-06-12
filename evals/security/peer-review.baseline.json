@@ -2,11 +2,11 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "peer-review",
-  "skill_version": "1.11",
+  "skill_version": "1.12",
   "findings": [
     {"id": "W011", "severity": "high"},
     {"id": "W012", "severity": "high"}
   ],
-  "captured_at": "2026-05-09",
-  "notes": "Confirmed via local `uvx snyk-agent-scan==0.5.1 --skills skills/peer-review/SKILL.md` on 2026-05-09. Both findings persist despite spec 30 + spec 34 hardening; the scanner is heuristic on `gh pr view`/`gh pr diff` (W011) and external-CLI handoff (W012). Mitigations are documented in skills/peer-review/SKILL.md `## Security model`."
+  "captured_at": "2026-06-12",
+  "notes": "Refreshed for v1.12 (spec 44 Step 4d headless-mode fixes for gemini/copilot/codex). Both findings persist despite spec 30 + spec 34 hardening; the scanner is heuristic on `gh pr view`/`gh pr diff` (W011) and external-CLI handoff (W012). The v1.12 change moved copilot's prompt from stdin to `-p` on argv (documented as a residual risk under the SKILL's `## Security model`, backstopped by the Step 4b secret scan); gemini and codex retain stdin transport. W012 is the same external-CLI-handoff heuristic that drifts between local and CI runs of the pinned `0.5.1` scanner (the package version does not pin the scanner's server-side backend model) — local `--update-baselines` runs intermittently report only W011, but CI consistently reports W011+W012, so both are retained to avoid a false regression. Mitigations are documented in skills/peer-review/SKILL.md `## Security model`."
 }
