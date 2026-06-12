@@ -4,9 +4,9 @@
   "skill": "peer-review",
   "skill_version": "1.12",
   "findings": [
-    {"id": "W011", "severity": "high"},
-    {"id": "W012", "severity": "high"}
+    {"id": "W007", "severity": "high"},
+    {"id": "W011", "severity": "high"}
   ],
   "captured_at": "2026-06-12",
-  "notes": "Refreshed for v1.12 (spec 44 Step 4d headless-mode fixes for gemini/copilot/codex). Both findings persist despite spec 30 + spec 34 hardening; the scanner is heuristic on `gh pr view`/`gh pr diff` (W011) and external-CLI handoff (W012). The v1.12 change moved copilot's prompt from stdin to `-p` on argv (documented as a residual risk under the SKILL's `## Security model`, backstopped by the Step 4b secret scan); gemini and codex retain stdin transport. W012 is the same external-CLI-handoff heuristic that drifts between local and CI runs of the pinned `0.5.1` scanner (the package version does not pin the scanner's server-side backend model) — local `--update-baselines` runs intermittently report only W011, but CI consistently reports W011+W012, so both are retained to avoid a false regression. Mitigations are documented in skills/peer-review/SKILL.md `## Security model`."
+  "notes": "Refreshed for v1.12 (spec 44 Step 4d headless-mode fixes for gemini/copilot/codex). The pinned snyk-agent-scan==0.5.1 now reports W007+W011 for this skill (stable across 4 local runs and the CI run on this PR); it previously reported W011+W012. The package version pins the client, not the scanner's server-side backend model, so which presence-based heuristic it emits drifts between runs — W012 (external-CLI handoff) is no longer surfaced and W007 (insecure credential handling — the review templates quote a phrase anchor from the diff, and the self/claude path can return unredacted diff content) now is. Neither finding is introduced by the v1.12 change; both fire on features the skill needs. W011 is heuristic on `gh pr view`/`gh pr diff` ingestion. Mitigations (untrusted-content boundary markers, stdin transport for gemini/codex, the Step 4b pre-flight secret scan that redacts before any external-CLI handoff, argument validation) are documented in skills/peer-review/SKILL.md `## Security model`. The v1.12 change moved copilot's prompt from stdin to `-p` on argv, documented there as a residual risk backstopped by the secret scan; gemini and codex retain stdin transport."
 }
