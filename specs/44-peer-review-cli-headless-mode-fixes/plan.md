@@ -99,17 +99,18 @@ developers.openai.com/codex; not verified against a locally installed codex**):`
 ```bash
 CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && cat "$PROMPT_FILE" \
-    | codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check --model "$SUBMODEL" - 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$(cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never \
+    --skip-git-repo-check --model "$SUBMODEL" - < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && cat "$PROMPT_FILE" \
-    | codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check - 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$(cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never \
+    --skip-git-repo-check - < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
 fi
 ```
 
-`cd "$WORKDIR" && cat … | codex …` parses as `cd && (cat | codex)` (`&&` binds looser than `|`),
-so the pipeline runs in the neutral dir as intended; `|| CLI_RC=$?` captures the pipeline status
-(last command = codex).
+The trailing `-` makes `codex exec` read the prompt from stdin, fed here by `< "$PROMPT_FILE"`
+redirection (the same stdin-transport form as the gemini block, not a `cat … |` pipe). Because
+there is no pipeline, `|| CLI_RC=$?` captures `codex`'s own exit status directly. `$PROMPT_FILE`
+is an absolute path, so the redirect reads fine from the neutral `$WORKDIR` cwd.
 
 ### Edit D — neutral working directory for all external CLIs
 

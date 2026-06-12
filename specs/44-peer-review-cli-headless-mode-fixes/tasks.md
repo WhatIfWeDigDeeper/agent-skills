@@ -85,7 +85,7 @@ phrase-based; re-locate each block by its surrounding text since line numbers dr
   output still returned). 4 findings, all **minor pre-existing polish** (binary-file detection
   underspecified; `${//}` glob-vs-literal nit; branch-not-found check absent from snippet; placeholder
   name drift). All skipped — not v1.12 regressions, lower value than #181, no second issue filed.
-- [ ] **4.4** Push, open PR, immediately run `/pr-comments {pr_number}`.
+- [x] **4.4** Push, open PR (#182), immediately run `/pr-comments 182`.
 - [ ] **4.5** Loop `/pr-comments` until no new bot feedback.
 - [ ] **4.6** Run `/pr-human-guide` to annotate the PR for human reviewers.
 - [ ] **4.7** Verify CI green (`gh pr checks {pr_number}`); a human reviews before merge.

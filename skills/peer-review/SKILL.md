@@ -513,9 +513,9 @@ For codex (`codex exec` runs headless; `--sandbox read-only` prevents writes; `-
 ```bash
 CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && cat "$PROMPT_FILE" | codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check --model "$SUBMODEL" - 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$(cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check --model "$SUBMODEL" - < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && cat "$PROMPT_FILE" | codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check - 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$(cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check - < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
 fi
 ```
 
