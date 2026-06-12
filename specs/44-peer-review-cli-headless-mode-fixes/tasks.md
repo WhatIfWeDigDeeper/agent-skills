@@ -67,22 +67,21 @@ phrase-based; re-locate each block by its surrounding text since line numbers dr
 
 ## Phase 4: Ship
 
-- [ ] **4.1** Branch `spec-44-peer-review-cli-headless-mode-fixes`. Commit the spec docs first
+- [x] **4.1** Branch `spec-44-peer-review-cli-headless-mode-fixes`. Commit the spec docs first
   (`spec(peer-review): v1.12 Step 4d headless-mode fix plan (#176, #177)`), then the SKILL.md
   edits (`feat(peer-review): v1.12 — headless-mode fixes for gemini/copilot/codex Step 4d (#176, #177)`).
-- [ ] **4.2** **Bookend peer-review via copilot (live test of the fixed Step 4d copilot path; needs
-  network — lift sandbox):** run `/peer-review skills/peer-review/SKILL.md --model copilot:gpt-5.4`.
-  This exercises the new `-p "$(cat …)"` + neutral-`$WORKDIR` invocation end-to-end *and* gets a
-  fresh-context review of the change. Apply valid findings (reply `all` to auto-approve), commit
-  any edits before push. Record inline: did the copilot CLI run cleanly (no `No prompt provided`,
-  no repo ingestion), and a one-line finding summary. (`gpt-5.4` is a free-form submodel value —
-  the skill documents the `copilot[:submodel]` syntax but pins no specific model.)
-- [ ] **4.3** **Bookend peer-review via gemini (live test of the fixed Step 4d gemini path; needs
-  network — lift sandbox):** run `/peer-review skills/peer-review/SKILL.md --model gemini`. This
-  exercises the new short-`-p`-directive + `< "$PROMPT_FILE"` invocation end-to-end. Apply valid
-  findings (reply `all`), commit any edits before push. Record inline: did gemini complete without
-  hanging, and a one-line finding summary. (Append a submodel if desired, e.g. `--model
-  gemini:gemini-3-flash-preview`; plain `gemini` uses the default model.)
+- [x] **4.2** **Bookend peer-review via copilot — DONE.** Ran `/peer-review skills/peer-review/SKILL.md --model copilot:gpt-5.4`.
+  copilot ran **cleanly** (CLI_RC=0, no `No prompt provided`, ~62k tokens = the SKILL.md prompt
+  itself, **no repo-context ingestion** — confirms the neutral-`$WORKDIR` fix). Triage kept 3 of 4
+  findings, all **pre-existing** (not v1.12 regressions). Finding 1 (copilot output-contract: Step
+  4e JSON vs the text prompt — proven by copilot returning markdown) filed as **issue #181**;
+  findings 2 (branch-diff ref form) and 3 (no-findings wording) left unapplied to keep PR scope tight.
+- [x] **4.3** **Bookend peer-review via gemini — DONE.** Ran `/peer-review skills/peer-review/SKILL.md --model gemini`.
+  gemini completed **without hanging** (CLI_RC=0; the short-`-p`-directive + `< "$PROMPT_FILE"` +
+  `--skip-trust` invocation worked; the `[IDEClient]` directory-mismatch line is a benign warning,
+  output still returned). 4 findings, all **minor pre-existing polish** (binary-file detection
+  underspecified; `${//}` glob-vs-literal nit; branch-not-found check absent from snippet; placeholder
+  name drift). All skipped — not v1.12 regressions, lower value than #181, no second issue filed.
 - [ ] **4.4** Push, open PR, immediately run `/pr-comments {pr_number}`.
 - [ ] **4.5** Loop `/pr-comments` until no new bot feedback.
 - [ ] **4.6** Run `/pr-human-guide` to annotate the PR for human reviewers.
