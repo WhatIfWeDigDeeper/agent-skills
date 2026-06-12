@@ -503,9 +503,9 @@ For copilot (passes the prompt via `-p` on argv — copilot's current CLI does n
 ```bash
 CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && copilot --allow-all-tools --deny-tool='write' --model "$SUBMODEL" -p "$(cat "$PROMPT_FILE")" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && copilot --allow-all-tools --deny-tool='write' --model "$SUBMODEL" -p "$(cat "$PROMPT_FILE")"; } 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && copilot --allow-all-tools --deny-tool='write' -p "$(cat "$PROMPT_FILE")" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && copilot --allow-all-tools --deny-tool='write' -p "$(cat "$PROMPT_FILE")"; } 2>&1) || CLI_RC=$?
 fi
 ```
 
@@ -513,9 +513,9 @@ For codex (`codex exec` runs headless; `--sandbox read-only` prevents writes; `-
 ```bash
 CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check --model "$SUBMODEL" - < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check --model "$SUBMODEL" - < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check - < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check - < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
 fi
 ```
 
@@ -523,9 +523,9 @@ For gemini (`--approval-mode plan` enables read-only mode; `-p` triggers headles
 ```bash
 CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && gemini --approval-mode plan --skip-trust -m "$SUBMODEL" -p "Perform the diff review described in the input on stdin and return the findings now." < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && gemini --approval-mode plan --skip-trust -m "$SUBMODEL" -p "Perform the diff review described in the input on stdin and return the findings now." < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && gemini --approval-mode plan --skip-trust -p "Perform the diff review described in the input on stdin and return the findings now." < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && gemini --approval-mode plan --skip-trust -p "Perform the diff review described in the input on stdin and return the findings now." < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
 fi
 ```
 

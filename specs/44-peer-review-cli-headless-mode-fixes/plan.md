@@ -54,13 +54,13 @@ Anchor: the gemini block under `**4d. Execute and capture output:**`
 ```bash
 CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && gemini --approval-mode plan --skip-trust -m "$SUBMODEL" \
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && gemini --approval-mode plan --skip-trust -m "$SUBMODEL" \
     -p "Perform the diff review described in the input on stdin and return the findings now." \
-    < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
+    < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && gemini --approval-mode plan --skip-trust \
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && gemini --approval-mode plan --skip-trust \
     -p "Perform the diff review described in the input on stdin and return the findings now." \
-    < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
+    < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
 fi
 ```
 
@@ -78,11 +78,11 @@ Anchor: the copilot block (`For copilot:`). Replace the if/else block:
 ```bash
 CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && copilot --allow-all-tools --deny-tool='write' \
-    --model "$SUBMODEL" -p "$(cat "$PROMPT_FILE")" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && copilot --allow-all-tools --deny-tool='write' \
+    --model "$SUBMODEL" -p "$(cat "$PROMPT_FILE")"; } 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && copilot --allow-all-tools --deny-tool='write' \
-    -p "$(cat "$PROMPT_FILE")" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && copilot --allow-all-tools --deny-tool='write' \
+    -p "$(cat "$PROMPT_FILE")"; } 2>&1) || CLI_RC=$?
 fi
 ```
 
@@ -99,11 +99,11 @@ developers.openai.com/codex; not verified against a locally installed codex**):`
 ```bash
 CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never \
-    --skip-git-repo-check --model "$SUBMODEL" - < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never \
+    --skip-git-repo-check --model "$SUBMODEL" - < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
 else
-  REVIEW_OUTPUT=$(cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never \
-    --skip-git-repo-check - < "$PROMPT_FILE" 2>&1) || CLI_RC=$?
+  REVIEW_OUTPUT=$({ cd "$WORKDIR" && codex exec --sandbox read-only --ask-for-approval never \
+    --skip-git-repo-check - < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
 fi
 ```
 
@@ -111,6 +111,13 @@ The trailing `-` makes `codex exec` read the prompt from stdin, fed here by `< "
 redirection (the same stdin-transport form as the gemini block, not a `cat … |` pipe). Because
 there is no pipeline, `|| CLI_RC=$?` captures `codex`'s own exit status directly. `$PROMPT_FILE`
 is an absolute path, so the redirect reads fine from the neutral `$WORKDIR` cwd.
+
+**Brace-grouping the `cd` and the CLI (all three blocks).** Each capture wraps `cd "$WORKDIR" &&
+<cli>` in `{ …; } 2>&1` rather than attaching `2>&1` to the CLI alone. The redirection then
+applies to the whole group, so a `cd "$WORKDIR"` failure (e.g. the neutral dir was removed between
+creation and use) is captured into `$REVIEW_OUTPUT` and reaches the error-handling path, instead
+of leaking to the outer stderr while `$REVIEW_OUTPUT` is left empty. Low-probability given the
+guarded `mktemp -d` immediately prior, but it makes the failure visible rather than silent.
 
 ### Edit D — neutral working directory for all external CLIs
 
