@@ -6,7 +6,9 @@ phrase-based; re-locate each block by its surrounding text since line numbers dr
 ## Phase 1: Edits to `skills/peer-review/SKILL.md`
 
 - [x] **1.1** Edit D (setup) — under `**4d. Execute and capture output:**`, immediately before the
-  per-CLI branch, add `WORKDIR=$(mktemp -d "${TMPDIR:-/private/tmp}/peer-review-cwd.XXXXXX")`.
+  per-CLI branch, add `WORKDIR=$(mktemp -d "${TMPDIR:-/private/tmp}/peer-review-cwd.XXXXXX")`
+  guarded with `|| { rm -f "$PROMPT_FILE"; …; exit 1; }` so a failed `mktemp -d` still cleans up
+  `$PROMPT_FILE` and `cd "$WORKDIR"` never falls back to the current dir.
 - [x] **1.2** Edit B (copilot) — replace the `For copilot:` if/else block with the `-p "$(cat
   "$PROMPT_FILE")"` + `cd "$WORKDIR"` form from plan.md "Edit B".
 - [x] **1.3** Edit C (codex) — replace the `For codex (…)` heading prose and if/else block with the
@@ -18,7 +20,8 @@ phrase-based; re-locate each block by its surrounding text since line numbers dr
   (discovered in 3.7): the neutral `$WORKDIR` is an untrusted folder and gemini otherwise reverts
   to interactive approval.
 - [x] **1.5** Edit D (cleanup) — replace the lone `rm -f "$PROMPT_FILE"` cleanup at the end of
-  Step 4d with `rm -f "$PROMPT_FILE"` + `rm -rf "$WORKDIR"`.
+  Step 4d with `rm -f "$PROMPT_FILE"` + `if [ -n "${WORKDIR:-}" ]; then rm -rf "$WORKDIR"; fi`
+  (guard the `rm -rf` so an unset/empty `$WORKDIR` can never expand to an unintended path).
 - [x] **1.6** Edit E (prose) — find the sentence beginning `Prompt content is passed via stdin
   redirection (copilot, gemini) or piping (codex)` and replace it with the corrected wording from
   plan.md "Edit E" (stdin for gemini/codex; copilot on argv; neutral `$WORKDIR` note).

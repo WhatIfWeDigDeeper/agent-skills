@@ -100,7 +100,7 @@ developers.openai.com/codex; not verified against a locally installed codex**):`
 CLI_RC=0
 if [ -n "$SUBMODEL" ]; then
   REVIEW_OUTPUT=$(cd "$WORKDIR" && cat "$PROMPT_FILE" \
-    | codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check -m "$SUBMODEL" - 2>&1) || CLI_RC=$?
+    | codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check --model "$SUBMODEL" - 2>&1) || CLI_RC=$?
 else
   REVIEW_OUTPUT=$(cd "$WORKDIR" && cat "$PROMPT_FILE" \
     | codex exec --sandbox read-only --ask-for-approval never --skip-git-repo-check - 2>&1) || CLI_RC=$?
@@ -117,15 +117,17 @@ In Step 4d, immediately before the CLI branch, create an empty temp dir; clean i
 `$PROMPT_FILE` at the end of the step. Both create→use→cleanup stay inside the single Bash tool
 call already required for Steps 4c+4d.
 
-Add before the branch:
+Add before the branch (guard creation so `$PROMPT_FILE` is still cleaned up and `cd "$WORKDIR"`
+never falls back to the current dir if `mktemp -d` fails):
 ```bash
-WORKDIR=$(mktemp -d "${TMPDIR:-/private/tmp}/peer-review-cwd.XXXXXX")
+WORKDIR=$(mktemp -d "${TMPDIR:-/private/tmp}/peer-review-cwd.XXXXXX") || { rm -f "$PROMPT_FILE"; echo "peer-review: could not create neutral working directory; aborting." >&2; exit 1; }
 ```
 
-Replace the lone cleanup `rm -f "$PROMPT_FILE"` with:
+Replace the lone cleanup `rm -f "$PROMPT_FILE"` with (guard the `rm -rf` so an unset/empty
+`$WORKDIR` can never expand to an unintended path):
 ```bash
 rm -f "$PROMPT_FILE"
-rm -rf "$WORKDIR"
+if [ -n "${WORKDIR:-}" ]; then rm -rf "$WORKDIR"; fi
 ```
 
 The `$(cd "$WORKDIR" && …)` subshell isolates the cwd change to each capture and does not affect
