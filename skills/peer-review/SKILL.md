@@ -492,9 +492,9 @@ Prompt content reaches gemini and codex via stdin (gemini appends stdin to a sho
 
 Each CLI invocation captures its exit status in `CLI_RC` so non-zero exits (CLI warnings, parse errors, network failures) do not abort the bash block before the temp-file cleanup runs. The `|| CLI_RC=$?` form is `set -e`-safe — without it, a non-zero CLI exit would propagate out of the `$( … )` assignment and skip the unconditional `rm -f` below, leaving the prompt file (which may contain unredacted diff content) on disk.
 
-First, create a neutral empty working directory and run the selected CLI from inside it, so the external CLI reviews only the supplied prompt rather than ingesting the repository as agent context. The `cd` happens inside the `$( … )` subshell, so it does not affect the outer shell; `$PROMPT_FILE` is an absolute path and reads fine from any cwd:
+First, create a neutral empty working directory and run the selected CLI from inside it, so the external CLI reviews only the supplied prompt rather than ingesting the repository as agent context. The `cd` happens inside the `$( … )` subshell, so it does not affect the outer shell; `$PROMPT_FILE` is an absolute path and reads fine from any cwd. Guard the `mktemp -d` so a failure (un-writable `$TMPDIR`, disk full) removes `$PROMPT_FILE` (which may hold unredacted diff content / secrets) and aborts with a clear error — without the guard, a failed `mktemp -d` would leave `WORKDIR` empty, and the later `cd "$WORKDIR"` would become `cd ""` (a no-op that keeps the CLI in the repo root, defeating the neutral-cwd isolation); under `set -e` the failed assignment would instead abort the block before the Step 4d cleanup, stranding `$PROMPT_FILE` on disk:
 ```bash
-WORKDIR=$(mktemp -d "${TMPDIR:-/private/tmp}/peer-review-cwd.XXXXXX")
+WORKDIR=$(mktemp -d "${TMPDIR:-/private/tmp}/peer-review-cwd.XXXXXX") || { rm -f "$PROMPT_FILE"; echo "peer-review: could not create neutral working directory; aborting." >&2; exit 1; }
 ```
 
 For copilot (passes the prompt via `-p` on argv — copilot's current CLI does not honor stdin in non-interactive mode; see the Security model's Residual risks):
