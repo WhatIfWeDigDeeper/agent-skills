@@ -86,7 +86,7 @@ phrase-based; re-locate each block by its surrounding text since line numbers dr
   underspecified; `${//}` glob-vs-literal nit; branch-not-found check absent from snippet; placeholder
   name drift). All skipped — not v1.12 regressions, lower value than #181, no second issue filed.
 - [x] **4.4** Push, open PR (#182), immediately run `/pr-comments 182`.
-- [ ] **4.5** Loop `/pr-comments` until no new bot feedback.
+- [x] **4.5** Loop `/pr-comments` until no new bot feedback. Converged at iteration 9: Copilot "generated no new comments" and claude[bot] returned no findings, with CI (cspell/security-scan/test) all green.
 - [ ] **4.6** Run `/pr-human-guide` to annotate the PR for human reviewers.
 - [ ] **4.7** Verify CI green (`gh pr checks {pr_number}`); a human reviews before merge.
 - [ ] **4.8** `gh pr merge --squash --delete-branch`, sync local main, run `/learn` if prompted.
