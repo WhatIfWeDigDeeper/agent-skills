@@ -88,7 +88,8 @@ phrase-based; re-locate each block by its surrounding text since line numbers dr
 - [x] **4.4** Push, open PR (#182), immediately run `/pr-comments 182`.
 - [x] **4.5** Loop `/pr-comments` until no new bot feedback. Converged at iteration 9: Copilot "generated no new comments" and claude[bot] returned no findings, with CI (cspell/security-scan/test) all green.
 - [x] **4.6** Run `/pr-human-guide` to annotate the PR for human reviewers. Added a guide flagging 3 areas: copilot argv tradeoff (Security), the superset security baseline (Security), and the doc-derived codex invocation (Novel Patterns).
-- [ ] **4.7** Verify CI green (`gh pr checks {pr_number}`); a human reviews before merge.
+- [x] **4.7** CI verified green — `gh pr checks 182` shows cspell/security-scan/test all `pass`,
+  `mergeStateStatus: CLEAN`. Awaiting human review + explicit merge confirmation (4.8).
 - [ ] **4.8** `gh pr merge --squash --delete-branch`, sync local main, run `/learn` if prompted.
 - [ ] **4.9** Close issues #176 and #177 referencing the merged PR.
 
