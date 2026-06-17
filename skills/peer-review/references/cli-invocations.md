@@ -4,11 +4,17 @@ This is the external-CLI executable path (copilot / codex / gemini). SKILL.md
 Step 4c keeps the security rationale (the stdin-vs-argv explanation, the
 single-call invariant, the "Why `mktemp`" note, and the explicit-cleanup-not-`trap`
 note); SKILL.md Step 4 keeps the which-CLI dispatch table that sets `$SUBMODEL`
-and selects the binary. **Run the entire write → invoke → cleanup block in a
-single Bash tool call** — `$PROMPT_FILE` is a subshell-scoped variable created by
-the write below and consumed/cleaned by the invocation; splitting them strands
-the temp file or makes the CLI read `/dev/null`. Step 4e (parse) is non-shell and
-runs in the assistant afterward, from the captured `REVIEW_OUTPUT`.
+and selects the binary.
+
+**The 4c write, the 4d invocation, and the cleanup below MUST run in a single
+Bash tool call.** The fenced blocks are split here only for readability — they
+are one executable unit. `$PROMPT_FILE` is a subshell-scoped variable created by
+the write block and consumed/cleaned by the invocation; running any block as a
+separate Bash call drops `$PROMPT_FILE` (the CLI then reads `/dev/null`) or
+strands the temp file (which may hold unredacted diff content / secrets) on disk.
+Concatenate the write + `$WORKDIR` + the selected CLI block + cleanup into one
+invocation. Step 4e (parse) is non-shell and runs in the assistant afterward,
+from the captured `REVIEW_OUTPUT`.
 
 ## 4c — write prompt to temp file
 
