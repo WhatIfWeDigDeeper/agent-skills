@@ -174,13 +174,11 @@
 
 *Fresh-context pass to catch drift after implementation. Use the local `claude` CLI, not `/peer-review`; always pass `-p`. Exit condition: a pass produces zero valid findings. Iteration cap: 5.*
 
-- [ ] **5.1** Stage the full branch diff.
-- [ ] **5.2** Run:
-  ```bash
-  claude -p "review staged files"
-  ```
-  Wait for completion, apply valid findings, and rerun until zero valid findings or iteration cap 5.
-- [ ] **5.3** Record per-iteration summary inline in this task.
+- [x] **5.1** Reviewed the full branch diff vs `origin/main` (changes were already committed, so the review targeted `git diff origin/main...HEAD` rather than the staging area).
+- [x] **5.2** Ran a fresh-context `claude -p` review focused on lost/altered logic, dangling cross-references, handoff correctness, and the 4c+4d single-call invariant. Converged in 2 iterations (cap 5).
+- [x] **5.3** Per-iteration summary:
+  - Iteration 1: 0 critical, 0 major, 1 optional minor. Applied. The 4c+4d single-call invariant survives but is now physically separated from the bash it governs; the reviewer suggested strengthening the single-call emphasis in `cli-invocations.md`'s intro (the file the agent has open when constructing the Bash call) to match SKILL.md's bolded "MUST". Applied as commit `33c1646` — restated the invariant with "MUST … one executable unit … Concatenate … into one invocation." Reviewer also confirmed (mechanically) every moved block byte-identical, no dangling refs, all four handoffs imperative, 175 tests pass, cspell clean, single version bump.
+  - Iteration 2: 0 critical, 0 major, 0 minor — clean "ready to merge" verdict. Re-verified byte-identity, cross-reference integrity, handoff form, and the now-strengthened single-call guard. One out-of-scope pre-existing nit noted and declined: `$SUBMODEL` is never explicitly assigned in the dispatch bash (identical on `origin/main`, not a regression; fixing it would scope-creep into the CLI behavior #176/#177 settled). Loop converged.
 
 ---
 
