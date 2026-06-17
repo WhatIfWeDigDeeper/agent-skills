@@ -34,22 +34,22 @@
 
 ## Phase 1: Pre-implementation baseline capture
 
-- [ ] **1.1** Check version-bump state before editing (once-per-PR rule):
+- [x] **1.1** Check version-bump state before editing (once-per-PR rule):
   ```bash
   git fetch origin && git diff origin/main -- skills/peer-review/SKILL.md | rg '^\+  version:'
   git diff --name-status origin/main...HEAD -- skills/peer-review/SKILL.md
   ```
   Expected: no prior bump on branch; status `M` (modified, not added) → Move 5 version bump is required and the new-skill exception does not apply. Record result inline.
-- [ ] **1.2** Record the starting line count for the verification target:
+- [x] **1.2** Record the starting line count for the verification target:
   ```bash
   wc -l skills/peer-review/SKILL.md
   ```
   Expected starting value: 702. Record inline.
-- [ ] **1.3** Snapshot the `origin/main` SKILL.md for the behavior-parity baseline (used in Phase 3):
+- [x] **1.3** Snapshot the `origin/main` SKILL.md for the behavior-parity baseline (used in Phase 3):
   ```bash
   git show origin/main:skills/peer-review/SKILL.md > "${TMPDIR:-/private/tmp}/peer-review-snapshot.md"
   ```
-- [ ] **1.4** Confirm no `references/` dir exists yet and the symlink resolves:
+- [x] **1.4** Confirm no `references/` dir exists yet and the symlink resolves:
   ```bash
   ls skills/peer-review/
   ls -la .claude/skills/peer-review
@@ -166,7 +166,7 @@
 - [x] **4.11** Re-read SKILL.md end-to-end once more for sequence coherence (no dangling pointer, no step assuming removed content).
 - [x] **4.12** Re-read both spec files (`plan.md`, `tasks.md`) before reporting done.
 
-> **Phase 4 results:** 4.1 — 381 lines (702 → 381, **-46%**; well under the ≤~430 ceiling). 4.2 — `## Security model` (1 match) + `### Why W007, W011, and W012 still appear` sub-section + "Untrusted-content boundary markers" bullet all inline; `<untrusted_diff>` wrapper now in `prompt-templates.md` (3 occurrences) per constraint 2 option (b). 4.3 — four non-empty reference files exist; `patterns_case_sensitive`, `You are doing a diff review`, `copilot --allow-all-tools`, and `PROMPT_FILE=$(mktemp` all return 0 in SKILL.md; `MUST run in a single Bash tool call` still present (invariant inline). 4.4 — all four handoffs imperative ("**You must now execute…**") and cited by full path. 4.5 — Step 3 mode-selection, Step 4b run/confirm gate + confirmation prompt, Step 4 preamble dispatch table, Step 5 bucket-routing all still inline. 4.6 — `version: "1.13"`. 4.7 — symlink resolves; all four refs reachable via `.claude/skills/peer-review/references/`. 4.8 — `tests/peer-review/` 175 passed; full suite 1136 passed. 4.9 — cspell clean across SKILL.md + 4 refs + benchmark.md + both spec files (a few non-dictionary words in earlier draft prose were reworded rather than added to the wordlist; no `cspell.config.yaml` change needed). 4.10 — `scan.sh` exit 0; peer-review 3→2 findings (W012 cleared — its external-CLI trigger text moved to `references/`, which scan.sh does not scan). Harmless subset of the pinned superset; baseline **not** refreshed down per spec. 4.11/4.13 — no dangling refs to moved content (`rg` for "patterns above"/"output blocks below"/"grep -Eo" → none); remaining `Step 4d`/`4e` mentions are legitimate conceptual step references. 4.12 — re-read both spec files; coherent.
+> **Phase 4 results:** 4.1 — 381 lines (702 → 381, **-46%**; well under the ≤~430 ceiling). 4.2 — `## Security model` (1 match) + `### Why W007, W011, and W012 still appear` sub-section + "Untrusted-content boundary markers" bullet all inline; `<untrusted_diff>` wrapper now in `prompt-templates.md` (3 occurrences) per constraint 2 option (b). 4.3 — four non-empty reference files exist; `patterns_case_sensitive`, `You are doing a diff review`, `copilot --allow-all-tools`, and `PROMPT_FILE=$(mktemp` all return 0 in SKILL.md; `MUST run in a single Bash tool call` still present (invariant inline). 4.4 — all four handoffs imperative ("**You must now execute…**") and cited by full path. 4.5 — Step 3 mode-selection, Step 4b run/confirm gate + confirmation prompt, Step 4 preamble dispatch table, Step 5 bucket-routing all still inline. 4.6 — `version: "1.13"`. 4.7 — symlink resolves; all four refs reachable via `.claude/skills/peer-review/references/`. 4.8 — `tests/peer-review/` 175 passed; full suite 1136 passed. 4.9 — cspell clean across SKILL.md + 4 refs + benchmark.md + both spec files (a few non-dictionary words in earlier draft prose were reworded rather than added to the wordlist; no `cspell.config.yaml` change needed). 4.10 — `scan.sh` exit 0; peer-review 3→2 findings (W012 cleared — its external-CLI trigger text moved to `references/`, which scan.sh does not scan). Harmless subset of the pinned superset; baseline **not** refreshed down per spec. 4.11 — no dangling refs to moved content (`rg` for "patterns above"/"output blocks below"/"grep -Eo" → none); remaining `Step 4d`/`4e` mentions are legitimate conceptual step references. 4.12 — re-read both spec files; coherent.
 
 ---
 
