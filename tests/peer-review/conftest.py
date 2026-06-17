@@ -241,7 +241,7 @@ def should_run_secret_scan(model: str | None) -> bool:
 
 
 def secret_scan(prompt: str) -> list[tuple[str, str]]:
-    """Run both grep -E groups from SKILL.md Step 4b against `prompt`.
+    """Run both grep -E groups from references/secret-scan.md (SKILL.md Step 4b) against `prompt`.
 
     Returns a list of `(pattern_name, matched_substring)` tuples — empty when
     the prompt is clean. A match in either group counts; both groups are run

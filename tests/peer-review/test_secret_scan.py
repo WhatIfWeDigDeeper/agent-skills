@@ -153,8 +153,8 @@ def test_aws_access_key_matches():
 
 def test_aws_lowercase_akia_does_not_match():
     """AWS keys are strictly uppercase — `akia…` is an English word, not a key.
-    The SKILL.md Step 4b note "Do not collapse both groups into a single
-    `grep -Ei` call" explicitly warns against case-folding `[0-9A-Z]` to
+    The references/secret-scan.md note (SKILL.md Step 4b) "Do not collapse both
+    groups into a single `grep -Ei` call" explicitly warns against case-folding `[0-9A-Z]` to
     `[0-9A-Za-z]` because it would falsely match `akiamatashotokugawamotoharu`."""
     prompt = "consider akiamatashotokugawamotoharu as a counterexample"
     hits = secret_scan(prompt)

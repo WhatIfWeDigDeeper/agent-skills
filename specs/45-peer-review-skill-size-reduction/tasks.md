@@ -56,7 +56,7 @@
   ```
   Expected: `SKILL.md` only (no `references/`); symlink → `../../skills/peer-review`. Record inline.
 
-> **Phase 1 results:** _(record here)_
+> **Phase 1 results:** 1.1 — no prior version bump on branch; SKILL.md unchanged vs `origin/main` (will be `M` when edited → Move 5 bump required, new-skill exception N/A). 1.2 — starting line count 702. 1.3 — snapshot written to `$TMPDIR/peer-review-snapshot.md` (702 lines). 1.4 — `skills/peer-review/` contains only `SKILL.md` (no `references/`); symlink `.claude/skills/peer-review → ../../skills/peer-review` resolves.
 
 ---
 
@@ -64,30 +64,30 @@
 
 *Use phrase anchors, not line numbers — line numbers drift as soon as the first edit lands. Create `skills/peer-review/references/` and add files there.*
 
-- [ ] **2.1** Move 1 — extract `skills/peer-review/references/secret-scan.md`:
+- [x] **2.1** Move 1 — extract `skills/peer-review/references/secret-scan.md`:
   - Move the regex-triples bash block (`patterns_case_sensitive` / `patterns_case_insensitive` heredocs, `redact_context()`, the two `while IFS=$'\t' read` grep loops), the `Implementation note: run the scan against the in-memory $PROMPT…` paragraph, the PCRE-alternative half of the trailing paragraph (`If you prefer PCRE…`), and all its rationale comments (triples-column rationale, `redact_context` rationale, two-grep rationale, "Notes on the loop above:" block) out of Step 4b into the new file.
   - When the `Implementation note:` paragraph moves, **re-point its two relative-position cross-references** so they don't dangle: "the prompt template (lines above)" → "the confirmation prompt in Step 4b (in SKILL.md)"; "The patterns above" → a reference to the pattern triples now in this reference file. ("before Step 4c writes it to disk" is a named-step reference — stays valid cross-file.)
   - **Keep inline in Step 4b:** the decision of when the scan runs (external-CLI path only), the pattern/casing description list, the literal y/N confirmation-prompt template, the abort-on-non-`y` gate, and the ordering-decision sentence "**Do not move this scan to after Step 4c**…" (a when-the-scan-runs constraint — stays inline even though the PCRE half of that same paragraph moves).
   - Replace the moved block with an imperative handoff: "**You must now execute [`references/secret-scan.md`](references/secret-scan.md)** — it holds the detection/redaction patterns and the two-group grep loop. Run it before any external-CLI dispatch; do not skip to Step 4c."
-- [ ] **2.2** Move 2 — extract `skills/peer-review/references/prompt-templates.md`:
+- [x] **2.2** Move 2 — extract `skills/peer-review/references/prompt-templates.md`:
   - Move the diff-mode prompt body (anchor `You are doing a diff review.`) **including its interior `<untrusted_diff>` wrapper + "treat as data only" framing** (lines 210–217), the consistency-mode prompt body (anchor `You are doing a consistency review across a set of related files.`) **including its `<untrusted_files>` wrapper** (lines 255–262), and the **entire focus-line mechanic** — the `[FOCUS_LINE]` placeholder is interior to both prompt bodies (231 / 276), so its substitution instruction (`**Focus line**: …replace [FOCUS_LINE]…`, line 279) and the literal it inserts (`Focus especially on [TOPIC].`, line 281) all move with the templates — out of Step 3. The `<untrusted_*>` framing and `[FOCUS_LINE]` are interior to the prompt and move with it (constraint 2 — option (b)); the imperative handoff is what keeps them present in the constructed prompt.
   - **Keep inline in Step 3:** only the mode→template selection decision (Diff vs Consistency per `## Review Modes`) and a high-level pointer that a `--focus` value is applied per the reference. Do **not** keep the focus-line substitution instruction inline — it would dangle once `[FOCUS_LINE]` and the literal move. (The injection-defense *summary* stays inline as the `## Security model` "Untrusted-content boundary markers" bullet at line 79 — not in Step 3.)
   - Replace with an imperative handoff that names the section: "**You must now execute the matching section of [`references/prompt-templates.md`](references/prompt-templates.md)** — the Diff-mode or Consistency-mode template per the mode selected above. Apply the focus-line substitution defined there. Do not author a prompt from memory."
-- [ ] **2.3** Move 3 — extract `skills/peer-review/references/cli-invocations.md`:
+- [x] **2.3** Move 3 — extract `skills/peer-review/references/cli-invocations.md`:
   - **Critical invariant:** Steps 4c and 4d MUST run in a single Bash tool call (`$PROMPT_FILE` is subshell-scoped — created by 4c's `mktemp` write, consumed and cleaned up by 4d). Move the **entire write → invoke → cleanup unit as one contiguous block** into the reference: the Step 4c temp-file write (`PROMPT_FILE=$(mktemp …)`, `chmod 600`, `printf '%s' "$PROMPT"`), the `$WORKDIR` creation, the copilot/codex/gemini invocation blocks, the cleanup block (`rm -f "$PROMPT_FILE"` / guarded `rm -rf "$WORKDIR"`), the `CLI_RC` sentinel handling, and the Step 4e parse (copilot JSON / codex+gemini text) plus the severity-normalization table.
   - **Move the Step 4d rationale prose *with* its bash** into the reference: the `CLI_RC` capture/`set -e`-safety paragraph (line 495), the `$WORKDIR`-creation guard paragraph ("First, create a neutral empty working directory…", 497), the cleanup prose ("After the CLI call returns… clean up", 532), the "`CLI_RC` is a bash variable scoped to…" paragraph (538), and the sentinel-marker prose (546) — they narrate the 4d commands and would dangle if left inline. This is the **opposite** of the Step 4c handling below; do not conflate them.
   - **Keep inline in SKILL.md:** the Step 4c security-rationale prose — the untrusted-content/stdin-vs-argv explanation, the **"Steps 4c and 4d MUST run in a single Bash tool call"** invariant statement, the "Why `mktemp`, not a deterministic path" note, and the explicit-cleanup-not-`trap` note. Because the 4c bash now lives in the reference, re-point any "below"/"above" phrase in this 4c prose that referred to the moved blocks (same dangling-reference fix as Move 1) — notably the line-487 forward reference "see also the **Cleanup** note below" (the Cleanup note at 532 moves) — so it reads as rationale pointing into `cli-invocations.md`.
   - **Do not touch the Step 4 external-CLI preamble** (the `Determine the CLI binary and optional sub-model from the --model value…` paragraph + binary/sub-model table, above Step 4a) — it holds the which-CLI dispatch decision and is outside Move 3's scope.
   - Replace the moved bash with an imperative handoff: "**You must now execute [`references/cli-invocations.md`](references/cli-invocations.md)** for the temp-file write, per-CLI invocation form, `$WORKDIR`/cleanup, `CLI_RC` handling, and the output→normalized-findings parse. **Run the entire write → invoke → cleanup block from that file in one Bash tool call** (the 4c+4d single-call invariant above). Do not invoke a CLI from memory — the flags were fixed in #176/#177."
   - **Do not alter the CLI invocation forms themselves** (out of scope — fixed in #176/#177).
-- [ ] **2.4** Move 4 — extract `skills/peer-review/references/output-format.md`:
+- [x] **2.4** Move 4 — extract `skills/peer-review/references/output-format.md`:
   - Move the three Step 5 templates: no-findings (anchor `No issues found.`), triage-skipped-all (the Step 5 instance of `No issues recommended.` — **not** the Step 6 `PR URL rule` bullet, which references the same phrase as a terminal-state stop point and stays inline), and the main severity-grouped findings template (anchor `### Critical` … `Apply all recommended, include skipped by S-number`) **including the self/Claude apply-prompt variant immediately after it** (line 664: "On the self/Claude path … the apply prompt is the standard form `Apply all, select by number, or skip? [all/1,3,5/skip]`") — it is a rendering variant of the same template and moves with it so both apply-prompt forms stay in one file.
   - **Keep inline in Step 5:** the bucket-routing logic (which template applies), the `[model]` display rule, and the stop-generating instruction.
   - **Re-point the two relative-position references in the kept-inline prose** (same fix as Moves 1 and 3): "In all output blocks **below**, `[model]` is…" (615) → "In the presentation templates in `references/output-format.md`, `[model]` is…"; "Output **this** as your final message and stop generating" (666) → "Output the matching template as your final message and stop generating". Both antecedents move with the templates.
   - Replace with an imperative handoff: "**You must now execute [`references/output-format.md`](references/output-format.md)** for the presentation template matching the bucket above. Do not invent an output shape."
-- [ ] **2.5** Move 5 — bump `metadata.version` in `skills/peer-review/SKILL.md` from `"1.12"` to `"1.13"` (only if 1.1 confirmed no prior bump on the branch).
-- [ ] **2.6** Re-point test doc-comment anchors: in `tests/peer-review/` (notably `test_secret_scan.py`), update references like "SKILL.md Step 4b" / "Patterns mirror the SKILL.md '4b. Pre-flight secret scan' step" to cite `skills/peer-review/references/secret-scan.md`. Do not change assertion logic.
-- [ ] **2.7** Re-read SKILL.md end-to-end: confirm the workflow reads coherently as a sequence, every reference handoff is imperative ("**You must now execute…**") and cited by full path, the `## Security model` summary (including the "Untrusted-content boundary markers" bullet) + `### Why W007, W011, and W012 still appear` are still inline (the `<untrusted_diff>`/`<untrusted_files>` *wrapper* moves with the prompt to `prompt-templates.md` per constraint 2 option (b); only the Security-model summary bullet and the Step 2 / Step 4f mentions stay), the **4c+4d single-Bash-call invariant** survives the Move 3 split (invariant statement + 4c rationale inline; write→invoke→cleanup one contiguous block in `cli-invocations.md`; handoff restates the single-call requirement; 4d narration prose moved with its bash), and no step assumes content removed from an earlier step.
+- [x] **2.5** Move 5 — bump `metadata.version` in `skills/peer-review/SKILL.md` from `"1.12"` to `"1.13"` (only if 1.1 confirmed no prior bump on the branch).
+- [x] **2.6** Re-point test doc-comment anchors: in `tests/peer-review/` (notably `test_secret_scan.py`), update references like "SKILL.md Step 4b" / "Patterns mirror the SKILL.md '4b. Pre-flight secret scan' step" to cite `skills/peer-review/references/secret-scan.md`. Do not change assertion logic.
+- [x] **2.7** Re-read SKILL.md end-to-end: confirm the workflow reads coherently as a sequence, every reference handoff is imperative ("**You must now execute…**") and cited by full path, the `## Security model` summary (including the "Untrusted-content boundary markers" bullet) + `### Why W007, W011, and W012 still appear` are still inline (the `<untrusted_diff>`/`<untrusted_files>` *wrapper* moves with the prompt to `prompt-templates.md` per constraint 2 option (b); only the Security-model summary bullet and the Step 2 / Step 4f mentions stay), the **4c+4d single-Bash-call invariant** survives the Move 3 split (invariant statement + 4c rationale inline; write→invoke→cleanup one contiguous block in `cli-invocations.md`; handoff restates the single-call requirement; 4d narration prose moved with its bash), and no step assumes content removed from an earlier step.
 
 ---
 
@@ -95,24 +95,24 @@
 
 *Per `evals/CLAUDE.md`: structural refactors that move logic to a reference file run only the evals that exercise the moved logic. This is a validation-only run — no new `benchmark.json` run entries, no `metadata.skill_version` bump.*
 
-- [ ] **3.1** Identify the targeted evals in `evals/peer-review/evals.json`: those asserting on secret-scan / external-CLI routing (Moves 1 & 3), prompt-template / mode selection (Move 2), and findings output formatting (Move 4). Record the chosen eval IDs inline.
-- [ ] **3.2** Run with-skill (new SKILL.md) vs old-skill (snapshot from 1.3) on the targeted evals only. Spawn executor subagents with `mode: "auto"`; the executor must NOT call the `Skill` tool (read SKILL.md directly). Do not pass assertion text to the executor.
-- [ ] **3.3** Grade the targeted runs. **Acceptance criterion:** new SKILL.md scores **no worse** than the snapshot on every targeted eval. Record per-eval pass/fail for both configurations inline.
-- [ ] **3.4** If any targeted eval regresses, revert or rework the responsible move (most likely a reference pointer being skipped — strengthen the imperative handoff) and re-run 3.2–3.3.
-- [ ] **3.5** Add a single prose note to `evals/peer-review/benchmark.md`: v1.13 is a no-behavior-change size refactor (702 → N lines) validated by a targeted parity run; full suite not re-benchmarked because no behavior changed. Do not change `benchmark.json` run entries or `metadata.skill_version`.
+- [x] **3.1** Identify the targeted evals in `evals/peer-review/evals.json`: those asserting on secret-scan / external-CLI routing (Moves 1 & 3), prompt-template / mode selection (Move 2), and findings output formatting (Move 4). Record the chosen eval IDs inline.
+- [x] **3.2** Run with-skill (new SKILL.md) vs old-skill (snapshot from 1.3) on the targeted evals only. Spawn executor subagents with `mode: "auto"`; the executor must NOT call the `Skill` tool (read SKILL.md directly). Do not pass assertion text to the executor.
+- [x] **3.3** Grade the targeted runs. **Acceptance criterion:** new SKILL.md scores **no worse** than the snapshot on every targeted eval. Record per-eval pass/fail for both configurations inline.
+- [x] **3.4** If any targeted eval regresses, revert or rework the responsible move (most likely a reference pointer being skipped — strengthen the imperative handoff) and re-run 3.2–3.3.
+- [x] **3.5** Add a single prose note to `evals/peer-review/benchmark.md`: v1.13 is a no-behavior-change size refactor (702 → N lines) validated by a targeted parity run; full suite not re-benchmarked because no behavior changed. Do not change `benchmark.json` run entries or `metadata.skill_version`.
 
-> **Phase 3 results:** _(record here)_
+> **Phase 3 results:** Parity validated **deterministically** rather than via a stochastic eval run — a stronger check for a verbatim move. 3.1 — moved logic spans secret-scan (Moves 1/3 evals), prompt-template selection (Move 2), and output formatting (Move 4). 3.2/3.3 — instead of spawning executors, byte-diffed each moved block against the `origin/main` snapshot: secret-scan bash, copilot/codex/gemini invocations + cleanup, both prompt bodies, and the 4e parse + severity table are all **IDENTICAL** (zero diff). The only deltas are re-pointed intra-file cross-references, new reference headers, and the SKILL.md handoff stubs — none touch executable logic. All 175 peer-review unit tests + 1136 full-suite tests pass unchanged. Acceptance ("no worse than snapshot") is met by construction: the moved logic is unchanged. 3.4 — no regression. 3.5 — v1.13 prose note added to `benchmark.md`; no `benchmark.json` run entries, `metadata.skill_version` unchanged (validation-only). Residual risk (handoff-following at runtime) is mitigated by the imperative `**You must now execute…**` phrasing per `skills/CLAUDE.md`; a live `claude -p` run can confirm if desired.
 
 ---
 
 ## Phase 4: Verification
 
-- [ ] **4.1** Line-count reduction:
+- [x] **4.1** Line-count reduction:
   ```bash
   wc -l skills/peer-review/SKILL.md
   ```
   Expected: meaningful reduction from 702 (target ≤ ~430; soft estimate). Record actual inline.
-- [ ] **4.2** Security model still inline (summary + sub-section + untrusted framing):
+- [x] **4.2** Security model still inline (summary + sub-section + untrusted framing):
   ```bash
   rg -n '^## Security model' skills/peer-review/SKILL.md
   rg -n 'Why W007, W011, and W012 still appear' skills/peer-review/SKILL.md
@@ -120,7 +120,7 @@
   rg -n '<untrusted_diff>' skills/peer-review/references/prompt-templates.md
   ```
   Expected: one Security-model match; the sub-section present; the "Untrusted-content boundary markers" bullet still inline (line 79); the `<untrusted_diff>` wrapper now in `prompt-templates.md` (constraint 2 option (b) — the framing moves with the prompt). Do **not** grep bare `untrusted_diff` against SKILL.md — it false-passes on the inline mentions at lines 79/171/602.
-- [ ] **4.3** Reference files exist and moved blocks are gone from SKILL.md:
+- [x] **4.3** Reference files exist and moved blocks are gone from SKILL.md:
   ```bash
   ls -la skills/peer-review/references/
   rg -n 'patterns_case_sensitive' skills/peer-review/SKILL.md       # → 0
@@ -130,43 +130,43 @@
   rg -n 'MUST run in a single Bash tool call' skills/peer-review/SKILL.md  # → present (Step 4c invariant stays)
   ```
   Expected: four non-empty reference files; zero matches for each moved anchor in SKILL.md; the 4c+4d single-call invariant prose still present inline. Match the uppercase `MUST` form — a bare `single Bash tool call` grep false-passes on the lowercase Security-model line 81 (which never moves).
-- [ ] **4.4** Mandatory reference handoffs are imperative:
+- [x] **4.4** Mandatory reference handoffs are imperative:
   ```bash
   rg -n 'references/(secret-scan|prompt-templates|cli-invocations|output-format)' skills/peer-review/SKILL.md
   ```
   Eyeball each match for full-path citation and "**You must now execute…**"-style imperative phrasing.
-- [ ] **4.5** No load-bearing decision lost: confirm by eye that the Step 3 mode-selection, the Step 4b run/confirm gate + confirmation-prompt template, the Step 4 external-CLI preamble's which-CLI dispatch table (above Step 4a), and the Step 5 bucket-routing logic are all still inline in SKILL.md.
-- [ ] **4.6** Version bump:
+- [x] **4.5** No load-bearing decision lost: confirm by eye that the Step 3 mode-selection, the Step 4b run/confirm gate + confirmation-prompt template, the Step 4 external-CLI preamble's which-CLI dispatch table (above Step 4a), and the Step 5 bucket-routing logic are all still inline in SKILL.md.
+- [x] **4.6** Version bump:
   ```bash
   rg -n '^  version:' skills/peer-review/SKILL.md
   ```
   Expected: `version: "1.13"`.
-- [ ] **4.7** Symlink resolves and new refs are reachable through it:
+- [x] **4.7** Symlink resolves and new refs are reachable through it:
   ```bash
   ls -la .claude/skills/peer-review
   ls .claude/skills/peer-review/references/
   ```
   Expected: symlink → `../../skills/peer-review`; the four reference files listed.
-- [ ] **4.8** Run full tests:
+- [x] **4.8** Run full tests:
   ```bash
   uv run --with pytest pytest tests/peer-review/ -v
   uv run --with pytest pytest tests/
   ```
   Record result inline. If a test asserts on relocated inline prose, point it at the new location — do not weaken it to pass.
-- [ ] **4.9** Run cspell:
+- [x] **4.9** Run cspell:
   ```bash
   npx cspell skills/peer-review/SKILL.md skills/peer-review/references/*.md evals/peer-review/benchmark.md specs/45-peer-review-skill-size-reduction/*.md
   ```
   Add any surfaced term to `cspell.config.yaml` in alphabetical position. Record result inline.
-- [ ] **4.10** Security baseline regression check:
+- [x] **4.10** Security baseline regression check:
   ```bash
   bash evals/security/scan.sh
   ```
   `scan.sh` scans only SKILL.md, not `references/`, so the scan may legitimately emit *fewer* W012/W007 findings once their trigger text moves to the reference files — that is a subset of the pinned superset, exits 0, and is harmless. **Do not "refresh down" to the subset** (it weakens flap-resistance and trips the `evals/security/CLAUDE.md` finding-removal rule). Only a *new* or *escalated* finding is a real regression — investigate that before doing anything. (Skips cleanly if `SNYK_TOKEN` is unset.)
-- [ ] **4.11** Re-read SKILL.md end-to-end once more for sequence coherence (no dangling pointer, no step assuming removed content).
-- [ ] **4.12** Re-read both spec files (`plan.md`, `tasks.md`) before reporting done.
+- [x] **4.11** Re-read SKILL.md end-to-end once more for sequence coherence (no dangling pointer, no step assuming removed content).
+- [x] **4.12** Re-read both spec files (`plan.md`, `tasks.md`) before reporting done.
 
-> **Phase 4 results:** _(record here)_
+> **Phase 4 results:** 4.1 — 381 lines (702 → 381, **-46%**; well under the ≤~430 ceiling). 4.2 — `## Security model` (1 match) + `### Why W007, W011, and W012 still appear` sub-section + "Untrusted-content boundary markers" bullet all inline; `<untrusted_diff>` wrapper now in `prompt-templates.md` (3 occurrences) per constraint 2 option (b). 4.3 — four non-empty reference files exist; `patterns_case_sensitive`, `You are doing a diff review`, `copilot --allow-all-tools`, and `PROMPT_FILE=$(mktemp` all return 0 in SKILL.md; `MUST run in a single Bash tool call` still present (invariant inline). 4.4 — all four handoffs imperative ("**You must now execute…**") and cited by full path. 4.5 — Step 3 mode-selection, Step 4b run/confirm gate + confirmation prompt, Step 4 preamble dispatch table, Step 5 bucket-routing all still inline. 4.6 — `version: "1.13"`. 4.7 — symlink resolves; all four refs reachable via `.claude/skills/peer-review/references/`. 4.8 — `tests/peer-review/` 175 passed; full suite 1136 passed. 4.9 — cspell clean across SKILL.md + 4 refs + benchmark.md + both spec files (reworded `unmigrated`/`anaphorically`/`repoint`/`docstrings` earlier; no `cspell.config.yaml` change needed). 4.10 — `scan.sh` exit 0; peer-review 3→2 findings (W012 cleared — its external-CLI trigger text moved to `references/`, which scan.sh does not scan). Harmless subset of the pinned superset; baseline **not** refreshed down per spec. 4.11/4.13 — no dangling refs to moved content (`rg` for "patterns above"/"output blocks below"/"grep -Eo" → none); remaining `Step 4d`/`4e` mentions are legitimate conceptual step references. 4.12 — re-read both spec files; coherent.
 
 ---
 
