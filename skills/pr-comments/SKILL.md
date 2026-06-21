@@ -465,7 +465,7 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 
 **Bots that have previously reviewed this PR but haven't yet seen the current HEAD are added after the push below**, not here — the Stale-HEAD Bot Detection query compares against the PR's remote HEAD, which still points at the pre-push commit until the push lands. Running it now would miss a bot whose only activity was a clean approval at the previous HEAD. Build the commenter list from the five local sources above for now; the stale-HEAD bots are merged in after `git push` (see the post-push merge below).
 
-If the commenter list is empty **and** no commit was made in Step 10 (nothing to push, so no stale-HEAD detection will run), skip this step and proceed to Step 14. Otherwise continue — even an empty commenter list must reach the push so stale-HEAD bots can be detected against the refreshed remote HEAD.
+Do not finalize the reviewer list or skip to Step 14 here — the empty-check is deferred to step 2 below, after stale-HEAD bots are detected and merged in. Continue into the push/re-request flow even when the commenter list is currently empty: a commit made in Step 10 still needs to be pushed, and a clean-approval-only bot can only be detected after the push lands. When no commit was made in Step 10, still continue — the stale-HEAD query in step 2 runs against the current remote HEAD and may surface bots left stale by an earlier push.
 
 **Display names for bot accounts**: When building the prompt or status line, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
@@ -504,7 +504,7 @@ Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
 
 2. **Detect stale-HEAD bots — now that the push has landed.** Run the canonical query once from `references/bot-polling.md` → **Stale-HEAD Bot Detection**. Running it *after* the push means the PR's remote HEAD reflects the just-pushed commit, so a bot whose only activity was a clean approval at the previous HEAD is now correctly reported as stale (it would have been missed if this ran before the push). Merge the returned bot logins into the commenter list and deduplicate to form the final reviewer list. If no commit was made in Step 10 (push skipped), still run this query — it catches bots already stale against the unchanged HEAD. If the deduplicated reviewer list is now empty, skip the remaining re-request actions and proceed to Step 14.
 
-3. Re-request review from each commenter. Split the deduplicated reviewer list into **human** and **bot** logins — handle them separately so a bot rejection doesn't block the human re-requests.
+3. Re-request review from each reviewer in the deduplicated list (the commenters from Step 13 plus any stale-HEAD bots merged in step 2 — which may include clean-approval-only bots that never commented). Split the deduplicated reviewer list into **human** and **bot** logins — handle them separately so a bot rejection doesn't block the human re-requests.
 
    **Human reviewers** — GitHub only notifies reviewers when they are *added*, not when they're already on the list, so remove them first to re-trigger the notification:
    ```bash

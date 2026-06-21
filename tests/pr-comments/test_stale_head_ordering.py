@@ -40,7 +40,7 @@ class TestStaleHeadDetectionAfterPush:
             "Stale-HEAD Bot Detection must run after `git push`, not while building "
             "the reviewer list before the push (#171)."
         )
-        push_idx = section.index("git push")
+        push_idx = section.index("```bash\n   git push\n   ```")
         run_idx = section.index("Run the canonical query")
         assert push_idx < run_idx, (
             "Stale-HEAD Bot Detection must run after `git push` so the remote HEAD "
