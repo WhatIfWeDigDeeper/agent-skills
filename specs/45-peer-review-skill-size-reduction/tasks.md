@@ -184,11 +184,11 @@
 
 ## Phase 6: Ship
 
-- [ ] **6.1** Commit all changes on branch `spec-45-peer-review-skill-size-reduction`.
-- [ ] **6.2** Push and open the PR.
-- [ ] **6.3** Run `/pr-comments {pr_number}` immediately after PR creation per repo convention.
-- [ ] **6.4** Loop `/pr-comments` until no new bot feedback (claude[bot] clean approval; Copilot threads resolved).
-- [ ] **6.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
-- [ ] **6.6** Verify CI status with `gh pr checks {pr_number}` — no check failing or pending.
-- [ ] **6.7** Wait for human review before merging.
-- [ ] **6.8** After approval, squash-merge with `gh pr merge --squash --delete-branch`, sync local main (`git status --porcelain` → stash if dirty → `git reset --hard origin/main` → pop if stashed), and clean up the branch.
+- [x] **6.1** Commit all changes on branch `spec-45-peer-review-skill-size-reduction`.
+- [x] **6.2** Push and open the PR.
+- [x] **6.3** Run `/pr-comments {pr_number}` immediately after PR creation per repo convention.
+- [x] **6.4** Loop `/pr-comments` until no new bot feedback (claude[bot] clean approval; Copilot threads resolved).
+- [x] **6.5** Run `/pr-human-guide {pr_number}` to annotate the PR for human reviewers.
+- [x] **6.6** Verify CI status with `gh pr checks {pr_number}` — no check failing or pending.
+- [x] **6.7** Wait for human review before merging.
+- [x] **6.8** After approval, squash-merge with `gh pr merge --squash --delete-branch`, sync local main (`git status --porcelain` → stash if dirty → `git reset --hard origin/main` → pop if stashed), and clean up the branch.
