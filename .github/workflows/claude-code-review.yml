@@ -31,7 +31,7 @@ jobs:
           echo "pr_number=$pr_num" >> "$GITHUB_OUTPUT"
 
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           ref: refs/pull/${{ steps.sanitize.outputs.pr_number }}/head
