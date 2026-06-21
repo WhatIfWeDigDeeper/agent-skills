@@ -1,0 +1,28 @@
+name: Test PR Comments Skill
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/pr-comments/**'
+      - 'tests/pr-comments/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/pr-comments/**'
+      - 'tests/pr-comments/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Run tests
+        run: uv run --with pytest pytest tests/pr-comments/ -v
