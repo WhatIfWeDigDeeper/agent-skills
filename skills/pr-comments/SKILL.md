@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.43"
+  version: "1.44"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -463,9 +463,9 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 - The authors of any review body comments you replied to or declined, using the `author` field from Step 2b.
 - The authors of any timeline comments you replied to or declined, using the `author` field from Step 2c.
 
-**Also include bots that have previously reviewed this PR but haven't yet seen the current HEAD**. Run the canonical query once from `references/bot-polling.md` → **Stale-HEAD Bot Detection** while building this reviewer list, then merge those bot logins with the commenter list and deduplicate before the empty-check below.
+**Bots that have previously reviewed this PR but haven't yet seen the current HEAD are added after the push below**, not here — the Stale-HEAD Bot Detection query compares against the PR's remote HEAD, which still points at the pre-push commit until the push lands. Running it now would miss a bot whose only activity was a clean approval at the previous HEAD. Build the commenter list from the five local sources above for now; the stale-HEAD bots are merged in after `git push` (see the post-push merge below).
 
-If the deduplicated reviewer list is empty, skip this step and proceed to Step 14.
+If the commenter list is empty **and** no commit was made in Step 10 (nothing to push, so no stale-HEAD detection will run), skip this step and proceed to Step 14. Otherwise continue — even an empty commenter list must reach the push so stale-HEAD bots can be detected against the refreshed remote HEAD.
 
 **Display names for bot accounts**: When building the prompt or status line, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
@@ -502,7 +502,9 @@ Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
    git push
    ```
 
-2. Re-request review from each commenter. Split the deduplicated reviewer list into **human** and **bot** logins — handle them separately so a bot rejection doesn't block the human re-requests.
+2. **Detect stale-HEAD bots — now that the push has landed.** Run the canonical query once from `references/bot-polling.md` → **Stale-HEAD Bot Detection**. Running it *after* the push means the PR's remote HEAD reflects the just-pushed commit, so a bot whose only activity was a clean approval at the previous HEAD is now correctly reported as stale (it would have been missed if this ran before the push). Merge the returned bot logins into the commenter list and deduplicate to form the final reviewer list. If no commit was made in Step 10 (push skipped), still run this query — it catches bots already stale against the unchanged HEAD. If the deduplicated reviewer list is now empty, skip the remaining re-request actions and proceed to Step 14.
+
+3. Re-request review from each commenter. Split the deduplicated reviewer list into **human** and **bot** logins — handle them separately so a bot rejection doesn't block the human re-requests.
 
    **Human reviewers** — GitHub only notifies reviewers when they are *added*, not when they're already on the list, so remove them first to re-trigger the notification:
    ```bash
@@ -522,7 +524,7 @@ After the POST below, follow the shared polling flow in `references/bot-polling.
 
 **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it cannot be re-requested via API. Check the `anthropics/claude-code-action` workflow trigger: `on: pull_request` re-triggers on push; if it uses `on: workflow_dispatch`, first identify the workflow by searching `.github/workflows/` for `anthropics/claude-code-action` and use the matching workflow filename, or run `gh workflow list` and use the workflow name or ID it returns, then run `gh workflow run <workflow> -f pr_number={pr_number}` with that filename. Do not include it in the polling offer; re-invoke the skill when its review arrives.
 
-Use the **bot subset of the deduplicated reviewer list produced in Step 13** (excluding `claude[bot]`). Step 13 already runs the Stale-HEAD Bot Detection query from `references/bot-polling.md` before deduplication and the empty-check, so **do not run that query again here**.
+Use the **bot subset of the deduplicated reviewer list produced in Step 13** (excluding `claude[bot]`). Step 13 already runs the Stale-HEAD Bot Detection query from `references/bot-polling.md` after the push, then merges and deduplicates, so **do not run that query again here**.
 
 **Before the POST call**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
 
