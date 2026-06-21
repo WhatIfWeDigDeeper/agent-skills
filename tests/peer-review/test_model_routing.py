@@ -1,8 +1,18 @@
 """Tests for --model routing decisions in peer-review skill."""
 
+from pathlib import Path
+
 import pytest
 
-from conftest import route_model
+from conftest import cli_output_parse_format, route_model
+
+_CLI_INVOCATIONS = (
+    Path(__file__).resolve().parents[2]
+    / "skills"
+    / "peer-review"
+    / "references"
+    / "cli-invocations.md"
+)
 
 
 class TestSelfAndClaudeRouting:
@@ -90,6 +100,54 @@ class TestGeminiRouting:
         assert result["route"] == "gemini"
         assert result["binary"] == "gemini"
         assert result["submodel"] == "gemini-2.0-flash"
+
+
+class TestExternalCliOutputParseFormat:
+    """All external CLIs are parsed via the prose path per cli-invocations.md Step 4e.
+
+    Regression guard for issue #181: Step 3 sends copilot the same prose template
+    (severity-grouped findings ending in `NO FINDINGS`) as codex/gemini, and Step
+    4d invokes copilot without requesting JSON — so copilot output must be parsed
+    as prose, not JSON. A JSON-parse path for copilot would always fall through to
+    the raw-output fallback.
+    """
+
+    def test_copilot_parses_as_prose_not_json(self):
+        assert cli_output_parse_format("copilot") == "prose"
+        assert cli_output_parse_format("copilot:gpt-4o-mini") == "prose"
+
+    def test_codex_parses_as_prose(self):
+        assert cli_output_parse_format("codex") == "prose"
+
+    def test_gemini_parses_as_prose(self):
+        assert cli_output_parse_format("gemini") == "prose"
+
+    def test_all_external_clis_share_one_parse_path(self):
+        formats = {cli_output_parse_format(m) for m in ("copilot", "codex", "gemini")}
+        assert formats == {"prose"}, "external CLIs must share a single prose parse path"
+
+    def test_internal_path_has_no_external_parse(self):
+        assert cli_output_parse_format("self") is None
+        assert cli_output_parse_format("claude-opus-4-6") is None
+
+    def test_reference_file_does_not_claim_copilot_json_contract(self):
+        """The Step 4e text must not describe a copilot-specific JSON output schema.
+
+        Catches the #181 contradiction at the source: an earlier revision said
+        copilot output is JSON `{ summary, overall_risk, findings: [...] }`, which
+        contradicts the prose prompt the skill actually sends.
+        """
+        text = _CLI_INVOCATIONS.read_text()
+        lowered = text.lower()
+        assert "overall_risk" not in lowered
+        assert "suggested_fix" not in lowered
+        assert "output is json" not in lowered
+
+    def test_reference_file_states_copilot_parsed_like_codex_gemini(self):
+        """Step 4e must state copilot is parsed identically to codex/gemini as prose."""
+        text = _CLI_INVOCATIONS.read_text().lower()
+        assert "copilot" in text
+        assert "markdown or plain text" in text
 
 
 class TestUnsupportedModel:
