@@ -497,6 +497,8 @@ If no commit was made in Step 10, omit the push but keep the stale-HEAD detectio
 Auto mode — detecting stale-HEAD bots against the current HEAD and re-requesting review from @user1, @user2 (plus any stale-HEAD bots found; no new commits to push).
 ```
 
+**When the pre-push commenter list is empty** (the deferred-empty-check scenario above — e.g. a re-run where every thread was already resolved, so no commenters were processed), omit the `from @user1, @user2` clause from whichever prompt or status line you emit rather than interpolating an empty list. The manual prompt becomes `Push and re-request review? [y/N]` (or `Re-request review? (no new commits to push) [y/N]`); the auto status line drops the `from @user…` fragment but keeps the stale-HEAD detection clause (e.g. `Auto mode — pushing, then detecting and re-requesting any stale-HEAD bots found after the push.`). Step 2 below still runs and re-requests any stale-HEAD bots it finds.
+
 **If auto mode is proceeding, or the user explicitly confirms in manual mode:**
 
 1. Push the branch (skip if no commit was made in Step 10 — there is nothing new to push):
