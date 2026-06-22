@@ -481,6 +481,8 @@ If no commit was made in Step 10 (nothing to push), omit the push:
 Re-request review from @user1, @user2? (no new commits to push) [y/N]
 ```
 
+The `@user` list in this prompt is the pre-push commenter-derived set only. After the user confirms, step 2 below still runs stale-HEAD bot detection (post-push) and may merge in additional bot reviewers that were not shown here — so the confirmed re-request can cover bots beyond the names in the prompt.
+
 Output this prompt as your final message and **stop generating**. Do not assume `y`, do not continue to the push or re-request commands, and resume only after the user replies explicitly.
 
 Otherwise (auto mode, the default), skip this prompt entirely. Show a short status line instead and proceed immediately. The `@user` list here is the pre-push commenter-derived set only — stale-HEAD bots are detected and merged in at step 2 below (post-push), so the status line names the detection step rather than implying the list is final:
