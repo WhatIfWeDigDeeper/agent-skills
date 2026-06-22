@@ -81,9 +81,7 @@ The marker survives into Step 4e's parsing input (which is the assistant's readi
 
 ## 4e — parse output → normalized findings
 
-For copilot: output is JSON with schema `{ summary, overall_risk, findings: [{ severity, file, title, details, suggested_fix }] }`. Extract `findings[]`; map `details` → problem, `suggested_fix` → fix. Apply severity normalization below. If `findings` is empty, treat as `NO FINDINGS`. If JSON is malformed, fall through to raw-output fallback.
-
-For codex and gemini: output is markdown or plain text. First check if output is exactly `NO FINDINGS` — if so, treat as no issues. Otherwise parse severity from lines matching patterns like `[HIGH]`, `**Critical**`, `severity: high` (case-insensitive). Extract title, file, problem, and fix from surrounding lines. If no structured severity pattern is found, present the full output as a single `major` finding.
+All three CLIs (copilot, codex, gemini) receive the same prose template from Step 3 (the severity-grouped findings list ending in `NO FINDINGS`) and are parsed identically: output is markdown or plain text. First check if output is exactly `NO FINDINGS` — if so, treat as no issues. Otherwise parse severity from lines matching patterns like `[HIGH]`, `**Critical**`, `severity: high` (case-insensitive). Extract title, file, problem, and fix from surrounding lines. If no structured severity pattern is found, present the full output as a single `major` finding.
 
 If parsing fails for any CLI: output raw text with the prefix "Could not parse structured findings; showing raw output." Then stop — this is a terminal output. Do not proceed to triage (Step 4f) or apply (Step 6); the raw text is presented directly to the user, who can re-run the skill or invoke the CLI manually if they need structured findings.
 
