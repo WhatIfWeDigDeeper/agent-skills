@@ -483,16 +483,16 @@ Re-request review from @user1, @user2? (no new commits to push) [y/N]
 
 Output this prompt as your final message and **stop generating**. Do not assume `y`, do not continue to the push or re-request commands, and resume only after the user replies explicitly.
 
-Otherwise (auto mode, the default), skip this prompt entirely. Show a short status line instead and proceed immediately:
+Otherwise (auto mode, the default), skip this prompt entirely. Show a short status line instead and proceed immediately. The `@user` list here is the pre-push commenter-derived set only — stale-HEAD bots are detected and merged in at step 2 below (post-push), so the status line names the detection step rather than implying the list is final:
 
 ```
-Auto mode — pushing and re-requesting review from @user1, @user2.
+Auto mode — pushing, then detecting stale-HEAD bots and re-requesting review from @user1, @user2 (plus any stale-HEAD bots found after the push).
 ```
 
-If no commit was made in Step 10, omit the push in the status line:
+If no commit was made in Step 10, omit the push but keep the stale-HEAD detection in the status line — it still runs against the current remote HEAD:
 
 ```
-Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
+Auto mode — detecting stale-HEAD bots against the current HEAD and re-requesting review from @user1, @user2 (plus any stale-HEAD bots found; no new commits to push).
 ```
 
 **If auto mode is proceeding, or the user explicitly confirms in manual mode:**
