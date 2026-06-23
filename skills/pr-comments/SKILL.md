@@ -481,9 +481,11 @@ If no commit was made in Step 10 (nothing to push), omit the push:
 Re-request review from @user1, @user2? (no new commits to push) [y/N]
 ```
 
+The `@user` list in this prompt is the pre-push commenter-derived set only. After the user confirms, step 2 below still runs stale-HEAD bot detection (after the push step, if any) and may merge in additional bot reviewers that were not shown here — so the confirmed re-request can cover bots beyond the names in the prompt.
+
 Output this prompt as your final message and **stop generating**. Do not assume `y`, do not continue to the push or re-request commands, and resume only after the user replies explicitly.
 
-Otherwise (auto mode, the default), skip this prompt entirely. Show a short status line instead and proceed immediately. The `@user` list here is the pre-push commenter-derived set only — stale-HEAD bots are detected and merged in at step 2 below (post-push), so the status line names the detection step rather than implying the list is final:
+Otherwise (auto mode, the default), skip this prompt entirely. Show a short status line instead and proceed immediately. The `@user` list here is the pre-push commenter-derived set only — stale-HEAD bots are detected and merged in at step 2 below (after the push step, if any), so the status line names the detection step rather than implying the list is final:
 
 ```
 Auto mode — pushing, then detecting stale-HEAD bots and re-requesting review from @user1, @user2 (plus any stale-HEAD bots found after the push).
@@ -494,6 +496,8 @@ If no commit was made in Step 10, omit the push but keep the stale-HEAD detectio
 ```
 Auto mode — detecting stale-HEAD bots against the current HEAD and re-requesting review from @user1, @user2 (plus any stale-HEAD bots found; no new commits to push).
 ```
+
+**When the pre-push commenter list is empty** (the deferred-empty-check scenario above — e.g. a re-run where every thread was already resolved, so no commenters were processed), omit the `from @user1, @user2` clause from whichever prompt or status line you emit rather than interpolating an empty list. The manual prompt becomes `Push and re-request review? [y/N]` (or `Re-request review? (no new commits to push) [y/N]`); the auto status line drops the `from @user…` fragment but keeps the stale-HEAD detection clause (e.g. `Auto mode — pushing, then detecting and re-requesting any stale-HEAD bots found after the push.`). Step 2 below still runs and re-requests any stale-HEAD bots it finds.
 
 **If auto mode is proceeding, or the user explicitly confirms in manual mode:**
 

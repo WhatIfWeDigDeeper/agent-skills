@@ -70,5 +70,11 @@ class TestBotPollingReferenceConsistency:
         ref = (
             SKILL_MD.parent / "references" / "bot-polling.md"
         ).read_text(encoding="utf-8")
-        detection = ref[ref.index("## Stale-HEAD Bot Detection"):]
+        # Bound the slice to the Stale-HEAD section itself (up to the next
+        # top-level heading) — slicing to EOF would let unrelated later sections
+        # (e.g. the Shared polling loop) satisfy the assertion even if this
+        # section stopped documenting the post-push timing.
+        start = ref.index("## Stale-HEAD Bot Detection")
+        next_heading = ref.index("\n## ", start + 1)
+        detection = ref[start:next_heading]
         assert "after" in detection and "git push" in detection
