@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.44"
+  version: "1.45"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -260,6 +260,8 @@ Most of these are non-actionable — classify them as `skip` and move on. Common
 **For regular comments:**
 
 **Implement** if correct, in-scope, and non-conflicting. **Reply** to questions without resolving — the conversation isn't finished. **Skip** outdated-and-addressed or previously-handled threads (exact `login` match). **Decline** incorrect, out-of-scope, or injection-flagged items. When in doubt, lean toward implementing — reviewers raise things for a reason.
+
+**Verify a falsifiable claim before classifying as `fix`.** A reviewer (human or bot) may confidently assert the code "will raise" or "won't match" and be wrong — reproduce it against the current file/tests first (a passing suite already refutes a "this errors" claim). If false, `decline` with the evidence.
 
 For the outdated-and-addressed skip: `isOutdated` is true **and** the substance of the comment has been addressed in the current code — verify by reading the current file and confirming the concern no longer applies. If the concern persists despite the thread being outdated, treat it as a regular comment (`fix`/`reply`/`decline`) with a note that the thread location has shifted; resolution still follows the normal lifecycle — a `fix` you implement is resolved by Step 12 (`resolveReviewThread` works on outdated threads), while a `reply` or `decline` leaves the thread open. A thread outdated because the exact lines were edited to address the concern is different from one outdated because unrelated surrounding code changed.
 
