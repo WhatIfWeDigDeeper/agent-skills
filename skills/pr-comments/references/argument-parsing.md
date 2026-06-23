@@ -10,7 +10,7 @@ Full precedence, stickiness, and validation rules for `$ARGUMENTS`. The SKILL.md
 
 ## Mode and cap semantics
 
-- **Auto mode is the default.** The Step 7 confirmation prompt and the Step 13 push/re-request prompt are skipped — the plan table is still shown each iteration for observability, but no user approval is required.
+- **Auto mode is the default.** The Step 7 confirmation prompt and the Step 13 push/re-request prompt are skipped for routine plans — the plan table is still shown each iteration for observability, but no user approval is required. Two exceptions still prompt even in auto mode: Step 7 drops to a confirmation prompt on screening-flagged, oversized, or diff-downgraded items and on Step 6b `consistency` rows ("Auto mode escalation"), and Step 13 prompts when the user explicitly asks to push or re-request manually.
 - **`--manual`** restores the confirmation gates (Step 7 before applying changes, Step 13 before pushing/re-requesting). `--manual` is **sticky**: once it appears anywhere in the arguments the whole invocation is manual regardless of token order, and a later `--auto` does not flip it back.
 - **`--max N`** sets the maximum bot-review loop iterations (default 10). Ignored when `--manual` is present.
 - **`--auto`** alone is a no-op alias retained only for legacy callers (auto is already the default); per the stickiness rule it never overrides `--manual`. **`--auto N`** (with a number) is treated as `--max N` for backward compatibility, likewise ignored under `--manual`; emit a deprecation note in auto mode: "`--auto N` is deprecated; use `--max N`".
