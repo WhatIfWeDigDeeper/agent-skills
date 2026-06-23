@@ -127,9 +127,9 @@ Entered from Step 6c only when the plan is empty or every plan row's `Action` va
 
 ## Stale-HEAD Bot Detection
 
-Use this query at two call sites: Step 13's stale-HEAD bot re-request logic and Step 6c above (check before falling through to Step 7).
+Use this query at two call sites: Step 13's stale-HEAD bot re-request logic (run **after** the push step — and after `git push` only when a commit was made, so the remote HEAD reflects the just-pushed commit, or the unchanged HEAD when no push occurred) and Step 6c above (check before falling through to Step 7).
 
-Get the PR's canonical HEAD SHA from the API (not `git rev-parse HEAD`, which may diverge) and find any previously-reviewing bots whose most recent submitted review was on an older commit. Excludes `claude[bot]` (cannot be re-requested via API) and filters to submitted reviews only (excludes PENDING state, requires non-null submitted_at):
+Get the PR's canonical HEAD SHA from the API (not `git rev-parse HEAD`, which may diverge) and find any previously-reviewing bots whose most recent submitted review was on an older commit. Because the query compares against the PR's *remote* HEAD, running it before a pending `git push` would compare against the pre-push commit and miss a bot whose only activity was a clean approval at that prior HEAD — Step 13 therefore runs it after the push. Excludes `claude[bot]` (cannot be re-requested via API) and filters to submitted reviews only (excludes PENDING state, requires non-null submitted_at):
 
 ```bash
 head_sha=$(gh api repos/{owner}/{repo}/pulls/{pr_number} --jq '.head.sha')

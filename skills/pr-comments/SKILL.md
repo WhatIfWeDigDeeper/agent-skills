@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.43"
+  version: "1.44"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -463,9 +463,9 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 - The authors of any review body comments you replied to or declined, using the `author` field from Step 2b.
 - The authors of any timeline comments you replied to or declined, using the `author` field from Step 2c.
 
-**Also include bots that have previously reviewed this PR but haven't yet seen the current HEAD**. Run the canonical query once from `references/bot-polling.md` → **Stale-HEAD Bot Detection** while building this reviewer list, then merge those bot logins with the commenter list and deduplicate before the empty-check below.
+**Bots that have previously reviewed this PR but haven't yet seen the current HEAD are added after the push below**, not here — the Stale-HEAD Bot Detection query compares against the PR's remote HEAD, which still points at the pre-push commit until the push lands. Running it now would miss a bot whose only activity was a clean approval at the previous HEAD. Build the commenter list from the five local sources above for now; the stale-HEAD bots are merged in after `git push` (see the post-push merge below).
 
-If the deduplicated reviewer list is empty, skip this step and proceed to Step 14.
+Do not finalize the reviewer list or skip to Step 14 here — the empty-check is deferred to step 2 below, after stale-HEAD bots are detected and merged in. Continue into the push/re-request flow even when the commenter list is currently empty: a commit made in Step 10 still needs to be pushed, and a clean-approval-only bot can only be detected after the push lands. When no commit was made in Step 10, still continue — the stale-HEAD query in step 2 runs against the current remote HEAD and may surface bots left stale by an earlier push.
 
 **Display names for bot accounts**: When building the prompt or status line, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
 
@@ -481,19 +481,23 @@ If no commit was made in Step 10 (nothing to push), omit the push:
 Re-request review from @user1, @user2? (no new commits to push) [y/N]
 ```
 
+The `@user` list in this prompt is the pre-push commenter-derived set only. After the user confirms, step 2 below still runs stale-HEAD bot detection (after the push step, if any) and may merge in additional bot reviewers that were not shown here — so the confirmed re-request can cover bots beyond the names in the prompt.
+
 Output this prompt as your final message and **stop generating**. Do not assume `y`, do not continue to the push or re-request commands, and resume only after the user replies explicitly.
 
-Otherwise (auto mode, the default), skip this prompt entirely. Show a short status line instead and proceed immediately:
+Otherwise (auto mode, the default), skip this prompt entirely. Show a short status line instead and proceed immediately. The `@user` list here is the pre-push commenter-derived set only — stale-HEAD bots are detected and merged in at step 2 below (after the push step, if any), so the status line names the detection step rather than implying the list is final:
 
 ```
-Auto mode — pushing and re-requesting review from @user1, @user2.
+Auto mode — pushing, then detecting stale-HEAD bots and re-requesting review from @user1, @user2 (plus any stale-HEAD bots found after the push).
 ```
 
-If no commit was made in Step 10, omit the push in the status line:
+If no commit was made in Step 10, omit the push but keep the stale-HEAD detection in the status line — it still runs against the current remote HEAD:
 
 ```
-Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
+Auto mode — detecting stale-HEAD bots against the current HEAD and re-requesting review from @user1, @user2 (plus any stale-HEAD bots found; no new commits to push).
 ```
+
+**When the pre-push commenter list is empty** (the deferred-empty-check scenario above — e.g. a re-run where every thread was already resolved, so no commenters were processed), omit the `from @user1, @user2` clause from whichever prompt or status line you emit rather than interpolating an empty list. The manual prompt becomes `Push and re-request review? [y/N]` (or `Re-request review? (no new commits to push) [y/N]`); the auto status line drops the `from @user…` fragment but keeps the stale-HEAD detection clause (e.g. `Auto mode — pushing, then detecting and re-requesting any stale-HEAD bots found after the push.`). Step 2 below still runs and re-requests any stale-HEAD bots it finds.
 
 **If auto mode is proceeding, or the user explicitly confirms in manual mode:**
 
@@ -502,7 +506,9 @@ Auto mode — re-requesting review from @user1, @user2 (no new commits to push).
    git push
    ```
 
-2. Re-request review from each commenter. Split the deduplicated reviewer list into **human** and **bot** logins — handle them separately so a bot rejection doesn't block the human re-requests.
+2. **Detect stale-HEAD bots — after the push (if any) has landed.** Run the canonical query once from `references/bot-polling.md` → **Stale-HEAD Bot Detection**. Running it *after* any push means the PR's remote HEAD reflects the just-pushed commit (or, when no commit was made, the unchanged current HEAD), so a bot whose only activity was a clean approval at the previous HEAD is now correctly reported as stale (it would have been missed if this ran before the push). Merge the returned bot logins into the commenter list and deduplicate to form the final reviewer list. If no commit was made in Step 10 (push skipped), still run this query — it catches bots already stale against the unchanged HEAD. If the deduplicated reviewer list is now empty, skip the remaining re-request actions and proceed to Step 14.
+
+3. Re-request review from each reviewer in the deduplicated list (the commenters from Step 13 plus any stale-HEAD bots merged in step 2 — which may include clean-approval-only bots that never commented). Split the deduplicated reviewer list into **human** and **bot** logins — handle them separately so a bot rejection doesn't block the human re-requests.
 
    **Human reviewers** — GitHub only notifies reviewers when they are *added*, not when they're already on the list, so remove them first to re-trigger the notification:
    ```bash
@@ -522,7 +528,7 @@ After the POST below, follow the shared polling flow in `references/bot-polling.
 
 **Exception — `claude[bot]`**: This is a GitHub App, not a bot user account. The `/requested_reviewers` REST endpoint returns 422 for `claude[bot]`. Skip re-request for it — it cannot be re-requested via API. Check the `anthropics/claude-code-action` workflow trigger: `on: pull_request` re-triggers on push; if it uses `on: workflow_dispatch`, first identify the workflow by searching `.github/workflows/` for `anthropics/claude-code-action` and use the matching workflow filename, or run `gh workflow list` and use the workflow name or ID it returns, then run `gh workflow run <workflow> -f pr_number={pr_number}` with that filename. Do not include it in the polling offer; re-invoke the skill when its review arrives.
 
-Use the **bot subset of the deduplicated reviewer list produced in Step 13** (excluding `claude[bot]`). Step 13 already runs the Stale-HEAD Bot Detection query from `references/bot-polling.md` before deduplication and the empty-check, so **do not run that query again here**.
+Use the **bot subset of the deduplicated reviewer list produced in Step 13** (excluding `claude[bot]`). Step 13 already runs the Stale-HEAD Bot Detection query from `references/bot-polling.md` after the push, then merges and deduplicates, so **do not run that query again here**.
 
 **Before the POST call**, capture the polling snapshot — this must happen before the re-request to ensure no same-second review is missed (see `references/bot-polling.md` for the exact snapshot commands).
 
