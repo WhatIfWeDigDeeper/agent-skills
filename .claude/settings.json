@@ -38,7 +38,7 @@
       "Bash(chmod 777 *)",
       "Bash(chmod *777 *)"
     ],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "auto"
   },
   "enabledPlugins": {
     "security-guidance@claude-plugins-official": true,
@@ -47,6 +47,8 @@
     "ralph-loop@claude-plugins-official": true
   },
   "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "55",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "200000",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1"
   },
@@ -85,6 +87,14 @@
   },
   "sandbox": {
     "enabled": true,
+    "credentials": {
+      "envVars": [
+        {
+          "name": "OPENAI_API_KEY",
+          "mode": "deny"
+        }
+      ]
+    },
     "autoAllowBashIfSandboxed": true,
     "enableWeakerNetworkIsolation": true,
     "network": {

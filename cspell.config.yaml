@@ -10,6 +10,7 @@ words:
   - anthropics
   - asyncio
   - asyncpg
+  - AUTOCOMPACT
   - autonumber
   - baprs
   - baselined
