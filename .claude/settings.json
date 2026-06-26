@@ -88,7 +88,8 @@
   "sandbox": {
     "enabled": true,
     "credentials": {
-      "envVars": [{
+      "envVars": [
+        {
           "name": "OPENAI_API_KEY",
           "mode": "deny"
         }
