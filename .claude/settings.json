@@ -47,9 +47,10 @@
     "ralph-loop@claude-plugins-official": true
   },
   "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "55",
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "200000",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1",
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
+    "CLAUDE_CODE_DISABLE_1M_CONTEXT": "1"
   },
   "hooks": {
     "PostToolUse": [
