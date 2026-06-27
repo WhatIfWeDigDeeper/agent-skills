@@ -616,6 +616,37 @@ def is_already_addressed(
     return False
 
 
+def is_previously_handled(
+    comment_updated_at: str,
+    operator_reply_times: list[str],
+) -> bool:
+    """Return True if an unresolved thread should be skipped as previously-handled.
+
+    Per SKILL.md Step 6: a thread with an operator reply (PR author or
+    authenticated user) was handled in a prior run and is skipped — **unless**
+    the reviewer edited their comment after the latest operator reply, in which
+    case the edit may carry new feedback and the thread must be re-planned.
+
+    Args:
+        comment_updated_at: ISO timestamp of the reviewer comment's last edit
+            (``updated_at``). Empty string if unknown.
+        operator_reply_times: ISO timestamps of replies from the PR author or
+            authenticated user on the thread.
+
+    Returns:
+        True to skip (previously handled, no newer edit); False to re-plan
+        (no operator reply yet, or the comment was edited after the latest
+        reply). Self-terminating: once a fresh reply is posted, its timestamp
+        is newer than ``updated_at`` and the thread is skipped again.
+    """
+    if not operator_reply_times:
+        return False
+    latest_reply = max(operator_reply_times)
+    if comment_updated_at and comment_updated_at > latest_reply:
+        return False
+    return True
+
+
 def should_signal3_fire(new_bot_timeline_comments: list[dict]) -> bool:
     """Return True if Signal 3 should trigger a loop-back to Step 2.
 
