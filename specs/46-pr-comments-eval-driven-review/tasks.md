@@ -46,6 +46,12 @@ each item as it completes — do not batch at the end.
   already carries the shared reasoning the move would have justified.
 - [x] **1.4** Re-ran `test_stale_head_ordering.py` + `test_push_rerequest_routing.py`
   — 16 passed, no wording changes needed (all asserted strings preserved).
+- [x] **1.5** **Review follow-up:** Copilot flagged the invariant's "Each names the
+  detection step" bullet as over-claiming — the manual-mode prompt templates name no
+  detection step (only the auto status line does). Narrowed the bullet and the
+  emit-instruction to scope the "names the detection step" claim to the auto status
+  line, while keeping the shared empty-list clause-dropping for every variant. All
+  asserted strings (`empty`, etc.) preserved; suite still green.
 
 ---
 
@@ -98,6 +104,13 @@ each item as it completes — do not batch at the end.
   (the fresh reply's timestamp then exceeds `updated_at`), so no loop risk. (e)'s
   repoll-widening was scoped as large/risky (non-termination) and deferred per the
   task's own escape hatch.
+  - **Review follow-up (post-implementation):** the Opus/Copilot review pass caught
+    that the Step 6 exception read `updated_at` / reply `created_at` but the **Step 2
+    `jq` projection fetched neither** — the exception was dead code (unit tests passed
+    because the conftest helper models the logic, not the fetch). Fixed by adding
+    `created_at, updated_at` to the Step 2 projection and anchoring the exception
+    prose to those fields. No version re-bump (already 1.47); no new test (helper
+    already covers the logic, only the data source changed).
 - [x] **3.4** Added `tests/pr-comments/test_previously_handled_skip.py` (7 cases)
   plus the `is_previously_handled` conftest helper. No new eval added: the fix is
   classifiable unit-logic with no observable executor-output change beyond the
