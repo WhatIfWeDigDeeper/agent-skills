@@ -684,13 +684,13 @@ def parse_all_flag(args: str) -> dict:
     Returns:
         {
             "all": bool,            # True only in auto mode when --all present
-            "remaining_args": str,  # args with --all (and --manual) removed
+            "remaining_args": str,  # args with --all removed (--manual kept)
         }
 
     Note: ``--manual`` is consumed here only to decide whether ``--all`` is
     honored; mode parsing itself lives in :func:`parse_auto_flag`. The
-    ``remaining_args`` returned here still has ``--max`` / ``--auto`` tokens in
-    it — run :func:`parse_auto_flag` for those.
+    ``remaining_args`` returned here still has ``--manual`` / ``--max`` /
+    ``--auto`` tokens in it — run :func:`parse_auto_flag` for those.
     """
     if not args or not args.strip():
         return {"all": False, "remaining_args": ""}

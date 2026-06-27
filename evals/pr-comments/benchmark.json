@@ -7349,7 +7349,7 @@
           "evidence": "The agent stopped after presenting the decision table; it made no edits, ran no `git commit`, and pushed nothing \u2014 it emitted the decision prompt as its final message and waited for the user."
         },
         {
-          "text": "The agent presents a per-nit decision table and a prompt offering fix-all / skip-all / file-as-issue / select",
+          "text": "The agent presents a per-nit decision table and a prompt offering fix-all / skip-all / issue-all / select",
           "passed": true,
           "evidence": "Output included the `## Nits-only round \u2014 your call` table (columns #, File, Nit, Marker) listing both nits, followed by the prompt `Decide per nit \u2014 [fix-all / skip-all / issue-all / select]:`."
         }
@@ -7388,7 +7388,7 @@
           "evidence": "The baseline applied both edits (rename and typo fix) and committed them without halting for a user decision."
         },
         {
-          "text": "The agent presents a per-nit decision table and a prompt offering fix-all / skip-all / file-as-issue / select",
+          "text": "The agent presents a per-nit decision table and a prompt offering fix-all / skip-all / issue-all / select",
           "passed": false,
           "evidence": "No decision table or fix-all/skip-all/issue-all/select prompt appeared; the baseline has no such workflow."
         }
