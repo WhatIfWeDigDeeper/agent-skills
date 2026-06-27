@@ -174,6 +174,14 @@ skill-creator eval loop.
    and per-eval results. Follow the `evals/CLAUDE.md` benchmarking rules and the
    `benchmark.json` `\uXXXX`-escape handling note in the root CLAUDE.md (rewrite
    via `json.dump(..., ensure_ascii=True)`).
+5. **Document the changed `without_skill` arm in `benchmark.md`.** The recorded
+   v1.36 baseline measured `without_skill` as a *true no-skill* run (mean 0.5986,
+   delta +0.39 on Opus). This pass redefines the arm as the **pre-edit v-current
+   snapshot** (step 1), so the new delta measures only the marginal effect of this
+   pass's edits and will be near zero — not a regression. Add an explicit
+   methodology note to `benchmark.md` recording that the arm definition changed
+   and what it now means, so the delta discontinuity between the v1.36 and
+   v-current run entries is not misread.
 
 ## Workflow / file changes
 

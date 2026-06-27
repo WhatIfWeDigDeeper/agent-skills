@@ -99,7 +99,11 @@ each item as it completes — do not batch at the end.
   `run_summary`, and `run_summary_by_model`. Rewrite via `json.dump(...,
   ensure_ascii=True)` to preserve `\uXXXX` escapes (root CLAUDE.md note).
 - [ ] **4.4** Update `benchmark.md` prose to match the new data (problem-statement
-  framing, rates, non-discriminating-eval notes).
+  framing, rates, non-discriminating-eval notes). **Add a methodology note** that
+  the `without_skill` arm changed definition this run — from the v1.36 true
+  no-skill baseline (0.5986, delta +0.39 on Opus) to the pre-edit v-current
+  snapshot (step 0.3) — so the near-zero delta vs the v1.36 entries reads as a
+  changed measurement, not a regression.
 
 ---
 
