@@ -4,7 +4,7 @@
 - `claude-sonnet-4-6` — primary suite 2026-03-29; spec 15 update 2026-04-03; eval 10 v1.24 re-run 2026-04-07; evals 37–38 v1.28 run 2026-04-12. Analyzer: Sonnet 4.6.
 - `claude-opus-4-7` — full 38-eval suite × 2 configurations on 2026-04-24 (spec 26). Analyzer: **Sonnet 4.6** (deviation from spec — Opus 4.7 hit the rate-limit mid-grading; Sonnet was used to grade all 76 transcripts uniformly for analyzer-model consistency).
 
-**Evals**: 38 evals × 2 configurations × 2 models = **152 canonical runs**, plus 13 Sonnet-only regression run entries across 6 evals (12, 14, 20, 22, 23, 24, all with `run_number > 1`), plus 4 Sonnet-only runs for the two nits-only-gate evals (39, 40 × 2 configurations; spec 47). Total: 169 entries in `runs[]`. Evals 39–40 were run on Sonnet 4.6 only; Opus 4.7 runs for them are a pending follow-up, so the Opus aggregates below still cover evals 1–38.
+**Evals**: 38 dual-model evals (the canonical subset, evals 1–38) × 2 configurations × 2 models = **152 canonical runs**, plus 13 Sonnet-only regression run entries across 6 evals (12, 14, 20, 22, 23, 24, all with `run_number > 1`), plus 4 Sonnet-only runs for the two nits-only-gate evals (39, 40 × 2 configurations; spec 47). Total: 169 entries in `runs[]`. Evals 39–40 were run on Sonnet 4.6 only; Opus 4.7 runs for them are a pending follow-up, so the Opus aggregates below still cover evals 1–38.
 
 **Skill version**: v1.48 (current). Sonnet runs for evals 1–38 were produced under v1.21/v1.24/v1.28 as noted above; Opus runs were produced under v1.36; the two nits-only-gate evals (39, 40) were produced under v1.48.
 
