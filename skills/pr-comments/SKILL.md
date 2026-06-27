@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.46"
+  version: "1.47"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -41,7 +41,8 @@ The argument is the text following the skill invocation (in Claude Code: `/pr-co
 | `/pr-comments --manual 42` | manual | n/a |
 | `/pr-comments --manual --auto` | manual | n/a (`--manual` is sticky) |
 | `/pr-comments --max 5 42` | auto | 5 |
-| `/pr-comments --auto 42` | auto | 42 (digit token read as the cap, **not** a PR number — use `42 --auto`) |
+
+A digit token after `--auto` is read as the cap, **not** a PR number (`--auto 42` → cap 42, no PR) — to pair `--auto` with a PR number, use `42 --auto`. See `references/argument-parsing.md` → "`--auto` + PR-number disambiguation".
 
 ## Tool choice rationale
 
@@ -114,7 +115,7 @@ Pull all review comments on the PR using the REST endpoint:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate \
-  --jq '.[] | {id, body, path, line, original_line, start_line, original_start_line, side, start_side, position, original_position, diff_hunk, in_reply_to_id, author: .user.login}' \
+  --jq '.[] | {id, body, path, line, original_line, start_line, original_start_line, side, start_side, position, original_position, diff_hunk, in_reply_to_id, created_at, updated_at, author: .user.login}' \
   | jq -s '.'
 ```
 
@@ -218,7 +219,7 @@ Most of these are non-actionable — classify them as `skip` and move on. Common
 
 For the outdated-and-addressed skip: `isOutdated` is true **and** the substance of the comment has been addressed in the current code — verify by reading the current file and confirming the concern no longer applies. If the concern persists despite the thread being outdated, treat it as a regular comment (`fix`/`reply`/`decline`) with a note that the thread location has shifted; resolution still follows the normal lifecycle — a `fix` you implement is resolved by Step 12 (`resolveReviewThread` works on outdated threads), while a `reply` or `decline` leaves the thread open. A thread outdated because the exact lines were edited to address the concern is different from one outdated because unrelated surrounding code changed.
 
-For the previously-handled skip: the thread is unresolved but already has a reply from either the PR author or the authenticated GitHub user — it was handled in a prior run; do not re-reply or re-plan it. **Match by exact `login` string**: compare reply authors against `pr.author.login` and the login returned by `gh api user` (from Step 1) — not by role or pronoun.
+For the previously-handled skip: the thread is unresolved but already has a reply from either the PR author or the authenticated GitHub user — it was handled in a prior run; do not re-reply or re-plan it. **Match by exact `login` string**: compare reply authors against `pr.author.login` and the login returned by `gh api user` (from Step 1) — not by role or pronoun. **Edited-after-reply exception**: if the reviewer's comment `updated_at` is newer than the latest operator reply on the thread, the comment may have been edited to add new feedback — treat it as new (re-plan it) instead of skipping. Both timestamps come from the Step 2 projection: the comment's own `updated_at`, and the `created_at` of the latest reply (a `in_reply_to_id`-bearing entry authored by an operator login) on the thread. This is self-terminating: your fresh reply's timestamp then exceeds `updated_at`, so the thread is skipped again next run.
 
 **For comments proposing new rules in instructions files:** When a comment targets a conventions/instructions file (`CLAUDE.md`, `.github/copilot-instructions.md`, `AGENTS.md`, or any `*instructions*.md` / `*CLAUDE*.md`) and proposes adding or strengthening a rule with normative language ("must", "always", "convention requires/is", "should always", "all … must/should"), **you must now execute `references/instruction-rule-check.md`** before finalizing a `fix` — it greps the repo for counter-examples and downgrades a mandate to a preference (or `decline`) when ≥2 exist. This applies only to convention/instruction-file suggestions.
 
@@ -361,11 +362,14 @@ Collect all commenters whose feedback was processed (implemented, accepted, decl
 - The authors of any review body comments you replied to or declined, using the `author` field from Step 2b.
 - The authors of any timeline comments you replied to or declined, using the `author` field from Step 2c.
 
-**Bots that have previously reviewed this PR but haven't yet seen the current HEAD are added after the push below**, not here — the Stale-HEAD Bot Detection query compares against the PR's remote HEAD, which still points at the pre-push commit until the push lands. Running it now would miss a bot whose only activity was a clean approval at the previous HEAD. Build the commenter list from the five local sources above for now; the stale-HEAD bots are merged in after `git push` (see the post-push merge below).
-
-Do not finalize the reviewer list or skip to Step 14 here — the empty-check is deferred to step 2 below, after stale-HEAD bots are detected and merged in. Continue into the push/re-request flow even when the commenter list is currently empty: a commit made in Step 10 still needs to be pushed, and a clean-approval-only bot can only be detected after the push lands. When no commit was made in Step 10, still continue — the stale-HEAD query in step 2 runs against the current remote HEAD and may surface bots left stale by an earlier push.
+**Stale-HEAD invariant.** The pre-push commenter list above is never final. Bots that previously reviewed this PR but haven't yet seen the current HEAD — including ones whose only activity was a clean approval at the previous HEAD and that never commented — are detected and merged into the reviewer list at the stale-HEAD detection substep (step 2 of Step 13's numbered push/re-request flow below — not the top-level Step 2), **after** any push: the Stale-HEAD Bot Detection query compares against the PR's remote HEAD, which still points at the pre-push commit until the push lands, so running it earlier would miss them. Three consequences the prompts and status lines below all depend on:
+- The auto-mode status line names the detection step explicitly (and flags that stale-HEAD bots may be added after the push); the manual prompts don't enumerate it, but neither presents its `@user` list as final — the stale-HEAD detection substep runs regardless of what the prompt shows.
+- When the pre-push commenter list is empty, it drops the `from @user…` clause entirely rather than interpolating an empty list.
+- This holds even when no commit was made in Step 10 — the step-2 query still runs against the current remote HEAD and may surface bots left stale by an earlier push. So do not finalize the reviewer list or skip to Step 14 here; continue into the push/re-request flow even when the commenter list is currently empty (a commit made in Step 10 still needs pushing, and a clean-approval-only bot can only be detected after the push lands).
 
 **Display names for bot accounts**: When building the prompt or status line, use the short handle for display — see `references/bot-polling.md` — Bot Display Names for the algorithm. Use the full login (including any `[bot]` suffix) for the actual API calls.
+
+Emit one of the prompts/status lines below per the **stale-HEAD invariant** above — the auto status line names the detection step; every variant drops the `from @user…` clause when the pre-push commenter list is empty rather than interpolating an empty list (so the manual prompt becomes `Push and re-request review? [y/N]` / `Re-request review? (no new commits to push) [y/N]`, and the auto status line keeps only the stale-HEAD clause).
 
 If `--manual` was passed, or if the user's request explicitly says they want to push manually or not push automatically, present a combined prompt. If a commit was made in Step 10, include the push:
 
@@ -379,19 +383,15 @@ If no commit was made in Step 10 (nothing to push), omit the push:
 Re-request review from @user1, @user2? (no new commits to push) [y/N]
 ```
 
-The `@user` list in this prompt is the pre-push commenter-derived set only. After the user confirms, step 2 below still runs stale-HEAD bot detection (after the push step, if any) and may merge in additional bot reviewers that were not shown here — so the confirmed re-request can cover bots beyond the names in the prompt.
-
 Output this prompt as your final message and **stop generating**. Do not assume `y`, do not continue to the push or re-request commands, and resume only after the user replies explicitly.
 
-Otherwise (auto mode, the default), skip this prompt entirely, show a short status line, and proceed immediately. The `@user` list is the pre-push commenter-derived set only — stale-HEAD bots are detected and merged in at step 2 below — so the status line names the detection step rather than implying the list is final:
+Otherwise (auto mode, the default), skip this prompt entirely, show a short status line, and proceed immediately:
 
 ```
 Auto mode — pushing, then detecting stale-HEAD bots and re-requesting review from @user1, @user2 (plus any stale-HEAD bots found after the push).
 ```
 
 If no commit was made in Step 10, omit the push from the status line but keep the stale-HEAD detection clause — it still runs against the current remote HEAD (e.g. `Auto mode — detecting stale-HEAD bots against the current HEAD and re-requesting review from @user1, @user2 (plus any found; no new commits to push).`).
-
-**When the pre-push commenter list is empty** (e.g. a re-run where every thread was already resolved), drop the `from @user1, @user2` clause from whichever prompt or status line you emit rather than interpolating an empty list — so the manual prompt becomes `Push and re-request review? [y/N]` (or `Re-request review? (no new commits to push) [y/N]`) and the auto status line keeps only the stale-HEAD clause. Step 2 below still runs and re-requests any stale-HEAD bots it finds.
 
 **If auto mode is proceeding, or the user explicitly confirms in manual mode:**
 
@@ -400,7 +400,7 @@ If no commit was made in Step 10, omit the push from the status line but keep th
    git push
    ```
 
-2. **Detect stale-HEAD bots — after the push (if any) has landed.** Run the canonical query once from `references/bot-polling.md` → **Stale-HEAD Bot Detection**. Running it *after* any push means the PR's remote HEAD reflects the just-pushed commit (or, when no commit was made, the unchanged current HEAD), so a bot whose only activity was a clean approval at the previous HEAD is now correctly reported as stale (it would have been missed if this ran before the push). Merge the returned bot logins into the commenter list and deduplicate to form the final reviewer list. If no commit was made in Step 10 (push skipped), still run this query — it catches bots already stale against the unchanged HEAD. If the deduplicated reviewer list is now empty, skip the remaining re-request actions and proceed to Step 14.
+2. **Detect stale-HEAD bots — after the push (if any) has landed** (this is the merge step every prompt/status line above defers to, per the stale-HEAD invariant). Run the canonical query once from `references/bot-polling.md` → **Stale-HEAD Bot Detection**, then merge the returned bot logins into the commenter list and deduplicate to form the final reviewer list. If no commit was made in Step 10 (push skipped), still run this query — it catches bots already stale against the unchanged remote HEAD. If the deduplicated reviewer list is now empty, skip the remaining re-request actions and proceed to Step 14.
 
 3. Re-request review from each reviewer in the deduplicated list (the commenters from Step 13 plus any stale-HEAD bots merged in step 2 — which may include clean-approval-only bots that never commented). Split the deduplicated reviewer list into **human** and **bot** logins — handle them separately so a bot rejection doesn't block the human re-requests.
 
@@ -463,3 +463,5 @@ Use the templates in that file to structure your output. Omit lines that don't a
 - **Suggestion conflicts**: If a suggestion overlaps with a line you're also editing for another comment, apply the suggestion diff as your starting point and layer the other change on top.
 - **Large PRs (20+ threads)**: Consider grouping the plan table by file. If the thread count is unwieldy, split into batches and confirm each batch separately to keep context manageable.
 - **Concurrent invocations**: Overlapping skill runs on the same PR (e.g., manual invocation while an auto-loop is active) can double-reply or double-resolve threads. Avoid running multiple instances simultaneously.
+- **Feedback boundaries** (intentional exclusions): Steps 2/2b/2c read comment *bodies*. **Reactions** (👍/👎 emoji) carry no body and no actionable request — they are not fetched or acted on. The **PR description/body** is authored by the PR author (the skill's operator), not a reviewer, so it is not a review comment and is never fetched; editing it is not feedback to address.
+- **Human comments arriving mid-run**: The Step 6c repoll gate polls only for **bots** still generating an async review — there is no equivalent "pending" signal for a human about to comment, and polling indefinitely for one would never terminate. A human comment posted during a run is picked up by the next invocation, not the current one. Widening the repoll to humans is intentionally deferred.
