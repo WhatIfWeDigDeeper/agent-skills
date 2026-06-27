@@ -16,8 +16,13 @@ For example, Claude Code uses `[Claude Code](https://claude.com/claude-code)`.
 ## Nit replies (Step 6d nits-only gate)
 
 When the Step 6d gate resolves a nit by **skipping** or **deferring to an
-issue**, reply to the originating bot comment (inline endpoint, below) with the
-byline footer. The thread is left **open** (not resolved).
+issue**, reply to the originating bot comment with the byline footer, using the
+endpoint **and format** that match where the nit originated: an inline (Step 2)
+nit via the inline replies endpoint below; a review-body (Step 2b) or timeline
+(Step 2c) nit via the issue comments endpoint, with a **timeline** reply
+following the Timeline comment format below — start with `@{commenter_login}` and
+include a `>` quote, or the commenter is not notified and the reply loses
+context. The thread is left **open** (not resolved).
 
 - **Skipped nit** (`skip-all`, or a `select` row chosen as skip):
 

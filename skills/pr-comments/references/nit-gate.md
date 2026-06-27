@@ -46,7 +46,9 @@ simply shows this table again; the user can pick `skip-all` then to terminate.
 
 Do **not** commit. For each nit's originating bot comment, post the skip-nit
 reply from `references/reply-formats.md` ("Noted as a nit — leaving as-is for
-now"). Leave each thread **open** (do not resolve — see thread semantics below).
+now") — using the endpoint/format that matches the comment's origin (a
+timeline-originated nit needs the `@{commenter_login}` + `>` quote wrapper).
+Leave each thread **open** (do not resolve — see thread semantics below).
 Then **exit the loop** and go to **Step 14** (report).
 
 ### `issue-all`
@@ -58,7 +60,9 @@ on its own line as your **final message**, then **stop generating**. Do not
 supply an answer, do not assume a default, do not proceed to `gh issue create`.
 Resume only after the user replies (same discipline as the "Present the table"
 prompt above). Then, for each nit, post the issue-link reply from
-`references/reply-formats.md` ("Filed as #NNN"). Do **not** commit code; leave
+`references/reply-formats.md` ("Filed as #NNN") — using the endpoint/format that
+matches the comment's origin (a timeline-originated nit needs the
+`@{commenter_login}` + `>` quote wrapper). Do **not** commit code; leave
 each thread **open**. Then **exit the loop** and go to **Step 14**.
 
 ### `select`
