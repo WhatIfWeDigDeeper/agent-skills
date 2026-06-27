@@ -4,9 +4,9 @@
 - `claude-sonnet-4-6` — primary suite 2026-03-29; spec 15 update 2026-04-03; eval 10 v1.24 re-run 2026-04-07; evals 37–38 v1.28 run 2026-04-12. Analyzer: Sonnet 4.6.
 - `claude-opus-4-7` — full 38-eval suite × 2 configurations on 2026-04-24 (spec 26). Analyzer: **Sonnet 4.6** (deviation from spec — Opus 4.7 hit the rate-limit mid-grading; Sonnet was used to grade all 76 transcripts uniformly for analyzer-model consistency).
 
-**Evals**: 38 evals × 2 configurations × 2 models = **152 canonical runs**, plus 13 Sonnet-only regression run entries across 6 evals (12, 14, 20, 22, 23, 24, all with `run_number > 1`). Total: 165 entries in `runs[]`.
+**Evals**: 38 evals × 2 configurations × 2 models = **152 canonical runs**, plus 13 Sonnet-only regression run entries across 6 evals (12, 14, 20, 22, 23, 24, all with `run_number > 1`), plus 4 Sonnet-only runs for the two nits-only-gate evals (39, 40 × 2 configurations; spec 47). Total: 169 entries in `runs[]`. Evals 39–40 were run on Sonnet 4.6 only; Opus 4.7 runs for them are a pending follow-up, so the Opus aggregates below still cover evals 1–38.
 
-**Skill version**: v1.36 (current). Sonnet runs were produced under v1.21/v1.24/v1.28 as noted above; Opus runs were produced under v1.36.
+**Skill version**: v1.5 (current). Sonnet runs for evals 1–38 were produced under v1.21/v1.24/v1.28 as noted above; Opus runs were produced under v1.36; the two nits-only-gate evals (39, 40) were produced under v1.5.
 
 > **Pending refresh — `without_skill` arm redefinition (spec 46).** The numbers below are the v1.36 run. The spec-46 refresh (deferred; not yet executed) **redefines the `without_skill` arm**: instead of the *true no-skill* baseline used here (a general assistant with no SKILL.md — Opus 59.9% pass, delta **+39 pts**), the refresh will measure `without_skill` as the **pre-edit v-current snapshot** of the skill (the v1.46 snapshot captured in task 0.3; re-create it in a scratchpad dir at refresh time). Because both arms of the refresh then run essentially the same skill — differing only by spec-46's small edits (Step 13 consolidation, `--auto 42` doc reduction, the edited-after-reply skip exception) — the refreshed delta is expected to be **near zero by design**. That near-zero delta measures *this pass's marginal change to an already-strong skill*, **not a regression** against the +39 pt true-baseline value. When the refresh lands, replace this note with the new run's Summary and keep the +39 pt true-baseline figure cited explicitly so the two measurements are not conflated.
 
@@ -16,11 +16,11 @@
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** ± 0% | 37.0% ± 24.9% | **+63%** |
+| Pass Rate | **100%** ± 0% | 37.0% ± 25.7% | **+63%** |
 | Time | 71.8s ± 10.0s | 45.9s ± 5.6s | +25.9s |
 | Tokens | 19975 ± 228 | 13683 ± 271 | +6291 |
 
-Sonnet time and token statistics are computed only over primary runs (`run_number = 1`) that have recorded, non-null values. Coverage differs: time has 11 of 76 runs measured (5 with-skill, 6 without-skill); tokens has 8 of 76 (3 with-skill, 5 without-skill). Runs with `null` instrumentation (including simulated transcripts) and all regression runs are excluded. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
+Sonnet time and token statistics are computed only over primary runs (`run_number = 1`) that have recorded, non-null values. Coverage differs: time has 11 of 80 runs measured (5 with-skill, 6 without-skill); tokens has 8 of 80 (3 with-skill, 5 without-skill). Runs with `null` instrumentation (including simulated transcripts) and all regression runs are excluded. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
 ### `claude-opus-4-7`
 
@@ -32,7 +32,7 @@ Sonnet time and token statistics are computed only over primary runs (`run_numbe
 
 Opus per-run time and token measurements are `null` because subagent usage data was visible only in the runtime's per-task completion notifications and was not captured at the parent level. Observed wall-clock ranges from those notifications: with_skill ~115s and ~60–100k tokens per run; without_skill ~45s and ~28–68k tokens per run. The pass-rate aggregates remain fully reliable.
 
-The skill improves correctness on Sonnet 4.6 by **+63 percentage points** (37% → 100%) and on Opus 4.7 by **+39 percentage points** (60% → 99%). The Opus baseline is materially stronger than Sonnet's, so the marginal value of the skill on Opus is smaller — this matches the prediction in `specs/26-pr-comments-dual-model-benchmark/plan.md` and is consistent with the pattern observed when the `learn` skill was benchmarked on Opus 4.7 (spec 25). Of the 38 evals, 9 are non-discriminating on Opus 4.7 (delta = 0); only 1 is non-discriminating on Sonnet 4.6 (eval 38). See **Known Eval Limitations** below.
+The skill improves correctness on Sonnet 4.6 by **+63 percentage points** (37% → 100%) and on Opus 4.7 by **+39 percentage points** (60% → 99%). The Opus baseline is materially stronger than Sonnet's, so the marginal value of the skill on Opus is smaller — this matches the prediction in `specs/26-pr-comments-dual-model-benchmark/plan.md` and is consistent with the pattern observed when the `learn` skill was benchmarked on Opus 4.7 (spec 25). Of the 38 evals run on both models, 9 are non-discriminating on Opus 4.7 (delta = 0); on Sonnet 4.6 — which additionally ran evals 39–40, 40 total — only 1 is non-discriminating (eval 38; eval 40 is partially discriminating, not non-discriminating). See **Known Eval Limitations** below.
 
 ## Per-Eval Results
 
@@ -78,6 +78,10 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 | 36 | follow-up-issue-filing | **4/4 (100%)** | 2/4 (50%) | **4/4 (100%)** | 3/4 (75%) |
 | 37 | post-edit-drift-scan | **4/4 (100%)** | 3/4 (75%) | **4/4 (100%)** | 3/4 (75%) |
 | 38 | convention-sanity-check | **4/4 (100%)** | **4/4 (100%)** | **4/4 (100%)** | **4/4 (100%)** |
+| 39 | all-nits-gate-halts | **4/4 (100%)** | 0/4 (0%) | N/A | N/A |
+| 40 | mixed-round-no-nit-gate | **4/4 (100%)** | 3/4 (75%) | N/A | N/A |
+
+Evals 39–40 (spec 47) were run on Sonnet 4.6 only; Opus 4.7 runs are a pending follow-up, hence `N/A` in the Opus columns.
 
 ## Known Eval Limitations
 
@@ -95,7 +99,7 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 
 These cells flag candidates for a future **purpose-refresh** follow-up spec on `pr-comments`, analogous to `learn` v1.0 (spec 25). This spec only reports the signal; it does not rewrite the skill.
 
-**Sonnet 4.6 sparse time/token coverage.** Of 76 primary Sonnet runs, only 11 have a recorded `time_seconds` (5 with-skill, 6 without-skill) and only 8 have a recorded `tokens` (3 with-skill, 5 without-skill). The remaining 65–68 are simulated transcripts with `null` values. The Summary table's Sonnet time row aggregates over those 11 runs; the Sonnet tokens row aggregates over those 8. Opus time/tokens are `null` across the board. This data asymmetry is a known limitation; back-filling Sonnet would require re-running the March/April 2026 suite under measurement, which is out of scope for this spec.
+**Sonnet 4.6 sparse time/token coverage.** Of 80 primary Sonnet runs, only 11 have a recorded `time_seconds` (5 with-skill, 6 without-skill) and only 8 have a recorded `tokens` (3 with-skill, 5 without-skill). The remaining 69–72 are simulated transcripts with `null` values. The Summary table's Sonnet time row aggregates over those 11 runs; the Sonnet tokens row aggregates over those 8. Opus time/tokens are `null` across the board. This data asymmetry is a known limitation; back-filling Sonnet would require re-running the March/April 2026 suite under measurement, which is out of scope for this spec.
 
 **Sonnet-only regression runs.** Six evals (12, 14, 20, 22, 23, 24) have `run_number > 1` Sonnet-only entries — variance probes added at v1.11/v1.15 for Sonnet 4.6 specifically. They are excluded from `run_summary_by_model` aggregation (only `run_number = 1` runs contribute). Opus 4.7 runs only `run_number: 1`.
 
@@ -295,10 +299,20 @@ Tests Step 9 (post-edit drift re-scan): after implementing the reviewer's fix, t
 
 Tests Step 6 convention sanity-check: when a reviewer proposes a mandatory rule for an instructions file, grep for counter-examples before classifying as fix. Non-discriminating on both models. Both configurations find the existing softened CLAUDE.md wording and decline the "must" framing. Retained as a regression baseline.
 
+### Eval 39 — `all-nits-gate-halts`
+**Prompt**: Two bot comments on a PR, both cosmetic — a `nit:` rename for readability on src/auth.py and a `typo:` fix on README.md. Address the review in auto mode.
+
+Tests Step 6d (nits-only gate): when every actionable comment is a nit, the auto-mode agent must tag both as nits, recognize the all-nits condition, halt instead of auto-applying, and delegate to `references/nit-gate.md` to present the "## Nits-only round — your call" table plus the `Decide per nit — [fix-all / skip-all / issue-all / select]:` prompt. Fully discriminating on Sonnet 4.6 (+100%): with_skill 4/4, without_skill 0/4 — the baseline has no nit concept, so it tags nothing, never gates, and auto-applies and commits both fixes. Opus 4.7 run pending.
+
+### Eval 40 — `mixed-round-no-nit-gate`
+**Prompt**: Two bot comments on src/parser.py — a substantive off-by-one bug (`range(len(s) - 1)` skips the last element) and a `nit:` rename for readability. Address the review in auto mode.
+
+Tests the gate's negative branch: a round with at least one non-nit actionable comment must *not* trigger the nits-only gate. The agent tags only the rename as a nit, leaves the off-by-one as a substantive fix, and proceeds to apply and commit both in auto mode with no decision table. Partially discriminating on Sonnet 4.6 (+25%): with_skill 4/4, without_skill 3/4. The baseline fails only `cosmetic-tagged-nit` (it has no nit vocabulary); the other three without_skill assertions pass vacuously because the baseline lacks the gate it would otherwise have to suppress. Opus 4.7 run pending.
+
 ## Notes
 
 - **GraphQL thread state is the root discriminator on Sonnet 4.6.** Nearly every Sonnet without-skill failure traces back to the baseline using only the REST comments endpoint. Without `isResolved` and `isOutdated` from GraphQL, resolved-thread filtering, outdated skipping, and selective thread resolution are all impossible. On Opus 4.7 this gap narrows considerably — the Opus baseline naturally calls GraphQL for many of these scenarios, which is why the Opus delta (+39 pp) is materially smaller than Sonnet's (+63 pp).
 - **Process steps vs. output quality.** The baseline produces reasonable commit messages and file edits on its own — on either model. The skill's value is almost entirely in the process steps it mandates: plan table presentation, Co-authored-by attribution, thread resolution via GraphQL mutation, the push + re-request workflow, and the security-screening categories.
 - **Auto mode (default) shows the plan but has no confirmation gate.** Since v1.16, the default invocation skips the `Proceed? [y/N/auto]` prompt. The plan table is still shown for observability. The confirmation gate appears only when `--manual` is passed or when a special condition forces it (security flags, oversized comments, consistency items, diff-validation declines).
-- **Time and token instrumentation gaps.** On Sonnet 4.6, only 11 of 76 primary runs have recorded `time_seconds` and 8 of 76 have recorded `tokens` (all concentrated in evals 1–6); the rest used simulated transcripts. On Opus 4.7, no per-run measurements were preserved at the parent conversation level (subagent usage data was visible only in transient task-completion notifications). Pass rates are fully reliable on both models; timing and token aggregates are approximate or `null`.
+- **Time and token instrumentation gaps.** On Sonnet 4.6, only 11 of 80 primary runs have recorded `time_seconds` and 8 of 80 have recorded `tokens` (all concentrated in evals 1–6); the rest used simulated transcripts. On Opus 4.7, no per-run measurements were preserved at the parent conversation level (subagent usage data was visible only in transient task-completion notifications). Pass rates are fully reliable on both models; timing and token aggregates are approximate or `null`.
 - **Per-model deltas confirm the spec 25 pattern.** When `learn` was benchmarked on Opus 4.7, 19 of 20 cells stopped discriminating — the base model had internalized the skill. On `pr-comments`, 9 of 38 evals show the same pattern on Opus 4.7 (vs. 1 on Sonnet 4.6). This is the signal plan.md predicted; a future purpose-refresh follow-up spec should use these non-discriminating evals as the starting point for what to prune or re-target.

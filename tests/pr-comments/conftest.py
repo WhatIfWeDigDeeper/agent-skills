@@ -669,3 +669,158 @@ def extract_coauthors(comments: list[dict]) -> list[str]:
             seen.add(author)
             authors.append(author)
     return sorted(authors)
+
+
+def parse_all_flag(args: str) -> dict:
+    """Parse the ``--all`` escape-hatch flag per argument-parsing.md (spec 47).
+
+    ``--all`` is a **boolean** (it takes no value and never consumes the
+    following token) that disables the Step 6d nits-only halt in auto mode. It
+    is **non-sticky** (applies to this invocation only) and is **discarded under
+    ``--manual``** — manual mode has no nits-only gate to disable, so ``--all``
+    there is neither used nor an error. Like the other mode tokens it is
+    stripped from ``$ARGUMENTS`` before PR-number validation.
+
+    Returns:
+        {
+            "all": bool,            # True only in auto mode when --all present
+            "remaining_args": str,  # args with --all (and --manual) removed
+        }
+
+    Note: ``--manual`` is consumed here only to decide whether ``--all`` is
+    honored; mode parsing itself lives in :func:`parse_auto_flag`. The
+    ``remaining_args`` returned here still has ``--max`` / ``--auto`` tokens in
+    it — run :func:`parse_auto_flag` for those.
+    """
+    if not args or not args.strip():
+        return {"all": False, "remaining_args": ""}
+
+    tokens = args.strip().split()
+    all_seen = False
+    manual_seen = False
+    remaining_tokens: list[str] = []
+
+    for tok in tokens:
+        if tok == "--all":
+            all_seen = True  # boolean — does not consume a following token
+        elif tok == "--manual":
+            manual_seen = True
+            remaining_tokens.append(tok)  # leave for parse_auto_flag
+        else:
+            remaining_tokens.append(tok)
+
+    # --all is discarded under --manual (no nits-only gate to disable there).
+    all_effective = all_seen and not manual_seen
+    return {"all": all_effective, "remaining_args": " ".join(remaining_tokens)}
+
+
+# ---------------------------------------------------------------------------
+# Step 6 / Step 6d helpers: nit tagging and the nits-only gate (spec 47)
+# ---------------------------------------------------------------------------
+
+# Actions that can carry a `nit` tag. Per SKILL.md Step 6: only `fix` /
+# `accept suggestion` rows are ever nits; `reply` / `decline` / `skip` /
+# `consistency` are never nits.
+_NIT_ELIGIBLE_ACTIONS = {"fix", "accept suggestion"}
+
+# Actions that count as "actionable" for the Step 6d gate trigger. Per SKILL.md
+# Step 6d, actionable rows are `fix` / `accept suggestion` / `reply` / `decline`
+# / `consistency` — `skip` is non-actionable (all-skip rounds belong to Step 6c).
+_ACTIONABLE_ACTIONS = {"fix", "accept suggestion", "reply", "decline", "consistency"}
+
+# Explicit leading markers (case-insensitive). Per SKILL.md Step 6: a leading
+# `nit:` / `nitpick:` / `(nit)` / `minor:` / `style:` / `typo:`.
+_NIT_LEADING_MARKERS = ("nit:", "nitpick:", "(nit)", "minor:", "style:", "typo:")
+
+# Bot-supplied low/trivial severity labels (matched anywhere, case-insensitive).
+_NIT_SEVERITY_PATTERNS = (
+    r"severity:\s*(low|trivial)",
+    r"\[(low|trivial)\]",
+    r"\b(low|trivial)\s+severity\b",
+)
+
+# Representative semantic-fallback signals — cosmetic changes with no functional
+# consequence (wording / spelling / naming / formatting / doc phrasing). This is
+# a representative, conservative set for the test model, not an exhaustive NLP
+# classifier; anything not matched defaults to **not** a nit.
+_NIT_SEMANTIC_PATTERNS = (
+    r"\btypo\b",
+    r"\bspelling\b",
+    r"\bmisspell",
+    r"\bgrammar\b",
+    r"\bpunctuation\b",
+    r"\bcapitali[sz]ation\b",
+    r"\bwording\b",
+    r"\bphrasing\b",
+    r"\brename\b",
+    r"\bnaming\b",
+    r"\bformatting\b",
+    r"\bwhitespace\b",
+    r"\bindentation\b",
+    r"\bimport order(ing)?\b",
+)
+
+
+def is_nit(body: str, action: str) -> bool:
+    """Return True if a planned row is a cosmetic *nit* per SKILL.md Step 6.
+
+    Only `fix` / `accept suggestion` rows can be nits — `reply` / `decline` /
+    `skip` / `consistency` always return False regardless of body. For an
+    eligible action, the body is a nit when it carries an explicit marker
+    (leading `nit:` / `nitpick:` / `(nit)` / `minor:` / `style:` / `typo:`, or a
+    bot low/trivial severity label anywhere) or matches a representative
+    semantic-fallback signal (spelling/naming/formatting/doc phrasing). The
+    **conservative bias** is the default: anything not matched is **not** a nit.
+
+    Note: this models the body-level classification only. The Step 5 carve-out
+    (an oversized or Step-5-flagged comment is never a nit) is enforced upstream
+    by excluding such rows before tagging, not inside this function.
+    """
+    if action not in _NIT_ELIGIBLE_ACTIONS:
+        return False
+    if not body:
+        return False
+    stripped = body.strip().lower()
+    if stripped.startswith(_NIT_LEADING_MARKERS):
+        return True
+    for pattern in _NIT_SEVERITY_PATTERNS:
+        if re.search(pattern, stripped):
+            return True
+    for pattern in _NIT_SEMANTIC_PATTERNS:
+        if re.search(pattern, stripped):
+            return True
+    return False
+
+
+def should_present_nit_table(
+    rows: list[dict],
+    all_flag: bool = False,
+    manual: bool = False,
+) -> bool:
+    """Return True if the Step 6d nits-only gate should fire for this plan.
+
+    Per SKILL.md Step 6d, the gate presents the nits-only table only in auto
+    mode when **every** actionable row is a `nit`. It returns True only when:
+
+    - not ``all_flag`` (``--all`` restores auto-fix-everything), and
+    - not ``manual`` (manual mode already gates at the Step 7 confirm prompt), and
+    - there is **≥1 actionable row**, and
+    - **every** actionable row is a nit.
+
+    Each row is a dict with an ``action`` key and an optional ``nit`` boolean.
+    Actionable rows are `fix` / `accept suggestion` / `reply` / `decline` /
+    `consistency`; `skip` rows are non-actionable and ignored. Because only
+    `fix` / `accept suggestion` can be nits, any actionable `reply` / `decline`
+    / `consistency` row is a non-nit actionable row and disqualifies the gate
+    (routing to Step 7 instead). An empty/all-skip plan returns False — that
+    path belongs to Step 6c.
+    """
+    if all_flag or manual:
+        return False
+    actionable = [r for r in rows if r.get("action") in _ACTIONABLE_ACTIONS]
+    if not actionable:
+        return False
+    return all(
+        r.get("action") in _NIT_ELIGIBLE_ACTIONS and bool(r.get("nit"))
+        for r in actionable
+    )

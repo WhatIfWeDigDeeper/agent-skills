@@ -39,6 +39,7 @@ from pathlib import Path
 import pytest
 
 from conftest import (
+    parse_all_flag,
     parse_auto_flag,
     parse_pr_argument,
     validate_max_value,
@@ -203,6 +204,49 @@ class TestParseAutoFlagMaxHandling:
         assert result["auto"] is True
         assert result["max_iterations"] == 10
         assert result["remaining_args"] == "#42"
+
+
+class TestAllFlagValidation:
+    """``--all`` (spec 47) is a boolean, stripped before PR-number validation,
+    and discarded under ``--manual``.
+
+    The strip pass (``parse_all_flag``) must remove ``--all`` so a co-supplied
+    PR number still reaches ``validate_pr_number`` / ``parse_pr_argument``
+    cleanly, and must never let ``--all`` itself reach a shell call.
+    """
+
+    def test_all_does_not_block_pr_validation(self) -> None:
+        """``--all 42`` → ``--all`` stripped, ``42`` still validates as a PR number."""
+        remaining = parse_all_flag("--all 42")["remaining_args"]
+        assert validate_pr_number(remaining) is True
+        assert parse_pr_argument(remaining) == {"type": "pr_number", "number": 42}
+
+    def test_all_does_not_block_hash_pr_validation(self) -> None:
+        remaining = parse_all_flag("--all #42")["remaining_args"]
+        assert validate_pr_number(remaining) is True
+
+    def test_all_with_invalid_pr_still_surfaces_invalid(self) -> None:
+        """Stripping ``--all`` must not mask an invalid PR number behind it."""
+        remaining = parse_all_flag("--all 0")["remaining_args"]
+        assert validate_pr_number(remaining) is False
+        assert parse_pr_argument(remaining)["type"] == "invalid"
+
+    def test_all_token_never_leaks_as_pr_argument(self) -> None:
+        """``--all`` alone leaves no PR token — detection, not a stray ``--all``."""
+        remaining = parse_all_flag("--all")["remaining_args"]
+        assert "--all" not in remaining
+        assert parse_pr_argument(remaining) == {"type": "detect"}
+
+    def test_all_discarded_under_manual(self) -> None:
+        """Under ``--manual`` the ``--all`` escape hatch is dropped (no gate to disable)."""
+        result = parse_all_flag("--all --manual 42")
+        assert result["all"] is False
+        # --manual survives for parse_auto_flag, which sets manual mode.
+        assert parse_auto_flag(result["remaining_args"])["auto"] is False
+
+    @pytest.mark.parametrize("args", ["--all --manual", "--manual --all"])
+    def test_all_discarded_regardless_of_order(self, args: str) -> None:
+        assert parse_all_flag(args)["all"] is False
 
 
 class TestNumericLookingInvalidPRArgument:
