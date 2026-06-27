@@ -72,7 +72,7 @@
       23,
       24
     ],
-    "skill_version": "1.5",
+    "skill_version": "1.48",
     "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check)",
     "last_updated": "2026-04-24T00:00:00Z"
   },
@@ -7647,6 +7647,6 @@
     "Evals 7, 9, 11: existing v1.17 executor outputs re-graded under v1.20 auto Step 13 assertions (no-prompt path). All with_skill runs pass 100%. Without_skill: eval 7 (2/5), eval 9 (1/5), eval 11 (3/5). These are re-grades only; no new executor runs were added, so run entries and metadata.skill_version correctly remain at v1.17.",
     "Eval 37 covers post-edit drift re-scan (Step 9): after fixing SKILL.md, the skill scans PR-modified files for the replaced substring and folds drift fixes into the same commit. with_skill 4/4 (100%), without_skill 3/4 (75%) \u2014 discriminating (+25%). The differentiating assertion is Co-authored-by credit for the bot reviewer, which is a skill-specific convention. The drift detection itself passes in both configurations since the prompt explicitly names the stale file.",
     "Eval 38 covers convention sanity-check (Step 6): when a reviewer proposes a \"must\" rule for CLAUDE.md, the skill searches for counter-examples before adopting it. with_skill 4/4 (100%), without_skill 4/4 (100%) \u2014 non-discriminating (delta 0%). The baseline naturally checks the existing CLAUDE.md text before editing and finds the already-softened rule. Non-discriminating evals establish a regression baseline but do not contribute to the pass-rate delta.",
-    "Evals 39 (all-nits-gate-halts) and 40 (mixed-round-no-nit-gate) were added at v1.5 for the nits-only gate (spec 47) and run on Sonnet 4.6 only; Opus 4.7 runs for these two evals are a pending follow-up, so the top-level run_summary and the claude-opus-4-7 by-model block continue to reflect the Opus baseline over evals 1-38. Eval 39 is fully discriminating (with_skill 4/4, without_skill 0/4): the baseline has no nit concept, so it tags nothing as a nit, never enters the nits-only gate, and auto-applies/commits both cosmetic fixes. Eval 40 is partially discriminating (with_skill 4/4, without_skill 3/4): the baseline fails only `cosmetic-tagged-nit` (no nit vocabulary); the other three without_skill assertions pass vacuously because the baseline lacks the gate it would otherwise have to suppress."
+    "Evals 39 (all-nits-gate-halts) and 40 (mixed-round-no-nit-gate) were added at v1.48 for the nits-only gate (spec 47) and run on Sonnet 4.6 only; Opus 4.7 runs for these two evals are a pending follow-up, so the top-level run_summary and the claude-opus-4-7 by-model block continue to reflect the Opus baseline over evals 1-38. Eval 39 is fully discriminating (with_skill 4/4, without_skill 0/4): the baseline has no nit concept, so it tags nothing as a nit, never enters the nits-only gate, and auto-applies/commits both cosmetic fixes. Eval 40 is partially discriminating (with_skill 4/4, without_skill 3/4): the baseline fails only `cosmetic-tagged-nit` (no nit vocabulary); the other three without_skill assertions pass vacuously because the baseline lacks the gate it would otherwise have to suppress."
   ]
 }

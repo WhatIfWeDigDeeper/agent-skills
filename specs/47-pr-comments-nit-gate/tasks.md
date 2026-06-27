@@ -127,7 +127,8 @@ as edits land.
 
 ## Phase 6: Version, docs, lint
 
-- [x] **6.1** Bump SKILL.md `version` `"1.47"` → minor (e.g. `"1.5"`). First run
+- [x] **6.1** Bump SKILL.md `version` `"1.47"` → `"1.48"` (trailing-integer
+  increment, per the repo's scheme). First run
   `git fetch origin && git diff origin/main -- skills/pr-comments/SKILL.md |
   rg '^\+  version:'` to confirm no bump exists yet — once per PR.
 - [x] **6.2** Update `README.md` pr-comments notes (nits-only gate + `--all`).
@@ -147,7 +148,7 @@ as edits land.
   it if scope allows). Ran both new evals on Sonnet 4.6 (executor mode auto, no
   assertion leakage); graded; recorded 4 runs in `benchmark.json` (eval 39
   with 4/4, without 0/4; eval 40 with 4/4, without 3/4), bumped
-  `evals_run`→[1..40] and `skill_version`→"1.5", recomputed the Sonnet by-model
+  `evals_run`→[1..40] and `skill_version`→"1.48", recomputed the Sonnet by-model
   block (delta still "+0.63"), and added a provenance note. Refreshed
   `README.md` (39/40 discriminate; denominators 76→80) and `benchmark.md`
   (header counts, Summary stat, per-eval table rows, per-eval sections for

@@ -178,7 +178,8 @@ is a valid loop exit — the agent still may not self-decide to stop on 'minor.'
   - Step 7 plan table (heading "### 7. Present Plan and Confirm"): add a `Nit`
     indicator so nits are visible in normal mixed-round plans too.
   - Arguments section + invocation table: document `--all`.
-  - Frontmatter `version`: bump `"1.47"` → minor (e.g. `"1.5"`), once for the PR.
+  - Frontmatter `version`: bump `"1.47"` → `"1.48"` (trailing-integer increment,
+    per the repo's scheme), once for the PR.
 - **`skills/pr-comments/references/argument-parsing.md`** — strip `--all` in the
   token pass (boolean, non-sticky, no value); document semantics (auto mode
   only; ignored under `--manual`).

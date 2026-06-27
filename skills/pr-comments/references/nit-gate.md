@@ -52,15 +52,21 @@ Then **exit the loop** and go to **Step 14** (report).
 ### `issue-all`
 
 File a follow-up GitHub issue per nit via the existing **Step 11**
-`gh issue create` flow (offer one grouped issue covering all nits as an
-alternative — ask `One issue per nit, or one grouped issue? [per-nit/grouped]`).
-For each nit, post the issue-link reply from `references/reply-formats.md`
-("Filed as #NNN"). Do **not** commit code; leave each thread **open**. Then
-**exit the loop** and go to **Step 14**.
+`gh issue create` flow. First offer one grouped issue covering all nits as an
+alternative: emit `One issue per nit, or one grouped issue? [per-nit/grouped]`
+on its own line as your **final message**, then **stop generating**. Do not
+supply an answer, do not assume a default, do not proceed to `gh issue create`.
+Resume only after the user replies (same discipline as the "Present the table"
+prompt above). Then, for each nit, post the issue-link reply from
+`references/reply-formats.md` ("Filed as #NNN"). Do **not** commit code; leave
+each thread **open**. Then **exit the loop** and go to **Step 14**.
 
 ### `select`
 
-Sub-prompt per row for `fix` / `skip` / `issue`:
+Sub-prompt per row for `fix` / `skip` / `issue`. Emit the prompt block below as
+your **final message**, then **stop generating**. Do not supply answers, do not
+assume a default, do not proceed to apply any outcome. Resume only after the
+user replies (same discipline as the "Present the table" prompt above).
 
 ```
 Per nit — fix / skip / issue:
