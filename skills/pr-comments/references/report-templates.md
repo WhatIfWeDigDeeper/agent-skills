@@ -98,3 +98,4 @@ The `<PR URL>` line is not optional. Output it last, on its own line, every time
 - `Exited: poll timeout (10 min) on iteration N.`
 - `Exited: nits-only round — user chose skip-all.`
 - `Exited: nits-only round — user chose issue-all (filed N issues).`
+- `Exited: nits-only round — user chose select; no nits fixed (M skipped, K filed as issues).`
