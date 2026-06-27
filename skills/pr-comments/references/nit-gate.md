@@ -91,7 +91,9 @@ produced); if every selected row was skip/issue, exit to Step 14 like
   one iteration exactly as a normal fix round does (so `--max` still bounds total
   commits). `skip-all` and `issue-all` exit and consume none.
 - **Thread state on skip/issue:** a skipped or issue-deferred nit's reply
-  **leaves the bot thread open** — do **not** resolve it. This lets the Step 6
+  **leaves the bot thread open** — do **not** resolve it (this applies to
+  inline-originated nits, which have a review thread; review-body and timeline
+  nits have no thread to resolve). This lets the Step 6
   "previously-handled skip" exact-login match self-terminate the thread on the
   next invocation, and lets an edit-after-reply re-surface it if the bot follows
   up.

@@ -22,7 +22,9 @@ nit via the inline replies endpoint below; a review-body (Step 2b) or timeline
 (Step 2c) nit via the issue comments endpoint, with a **timeline** reply
 following the Timeline comment format below — start with `@{commenter_login}` and
 include a `>` quote, or the commenter is not notified and the reply loses
-context. The thread is left **open** (not resolved).
+context. When the nit came from an inline comment, its review thread is left
+**open** (not resolved); review-body and timeline comments have no thread to
+resolve.
 
 - **Skipped nit** (`skip-all`, or a `select` row chosen as skip):
 

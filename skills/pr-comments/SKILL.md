@@ -251,7 +251,7 @@ Proceed with this step only if the plan is empty or **every** plan row's `Action
 
 - `--all` was passed (the escape hatch restores auto-fix-everything behavior),
 - the run is in `--manual` mode (every round already gates at the Step 7 confirm prompt), or
-- the plan has zero actionable rows / every actionable row is `skip` (that path belongs to Step 6c — an all-skip round routes there, never here).
+- the plan has zero actionable rows — the plan is empty, or every row is a `skip` (that path belongs to Step 6c — an all-skip round routes there, never here; `skip` is not an actionable action).
 
 **Trigger:** the plan has **≥1 actionable row** and **every** actionable row is tagged `nit` (from Step 6). Actionable rows are `fix` / `accept suggestion` / `reply` / `decline` / `consistency`; since only `fix` / `accept suggestion` can be tagged `nit`, the trigger means every actionable row is a `fix` / `accept suggestion` nit. A single non-nit actionable row (or any `reply` / `decline` / `consistency` row) disqualifies the gate — proceed to Step 7 and auto-apply as normal; the nits ride along.
 
