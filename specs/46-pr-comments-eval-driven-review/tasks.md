@@ -12,8 +12,9 @@ each item as it completes — do not batch at the end.
   entries: `skill_version` 1.36, Opus with/without means **0.9887 / 0.5986**, 9
   non-discriminating Opus eval IDs **5, 6, 24, 27, 29, 32, 33, 35, 38**
   (computed over run entries, not prose).
-- [x] **0.3** Snapshotted pre-edit `skills/pr-comments/` (v1.46) to
-  `/tmp/claude-501/pr-comments-baseline-v1.46` for the without-skill arm.
+- [x] **0.3** Snapshotted pre-edit `skills/pr-comments/` (v1.46) to a scratchpad
+  snapshot (`${TMPDIR:-/private/tmp}/pr-comments-baseline-v1.46`) for the
+  without-skill arm.
 - [x] **0.4** Read all four test files. Phase 1 must preserve, inside the Step 13
   section: the literal ` ```bash\n   git push\n   ``` ` block before
   "Run the canonical query"; "Run the canonical query" absent from list-building
