@@ -54,7 +54,11 @@ Then **exit the loop** and go to **Step 14** (report).
 ### `issue-all`
 
 File a follow-up GitHub issue per nit via the existing **Step 11**
-`gh issue create` flow. First offer one grouped issue covering all nits as an
+`gh issue create` flow. The user's `issue-all` choice **is** the
+pre-authorization named in Step 11's exception, so issues are created
+**immediately** — do not defer them to Step 14, and do not re-run Step 11's
+per-item `[y/n]` confirmation (the grouped-vs-per-nit prompt below is the only
+prompt here). First offer one grouped issue covering all nits as an
 alternative: emit `One issue per nit, or one grouped issue? [per-nit/grouped]`
 on its own line as your **final message**, then **stop generating**. Do not
 supply an answer, do not assume a default, do not proceed to `gh issue create`.
@@ -81,7 +85,10 @@ Per nit — fix / skip / issue:
 Apply the mixed outcome: `fix` rows go through Steps 8–13; `skip` rows get the
 skip-nit reply; `issue` rows go through the Step 11 issue flow with an
 issue-link reply (always one issue per nit here — the grouped-issue offer
-applies only to `issue-all`). **Continue the loop only if ≥1 nit was fixed** (a commit was
+applies only to `issue-all`). Each `issue` choice is itself the
+pre-authorization for Step 11's exception, so create those issues
+**immediately** without deferring to Step 14 or re-running Step 11's per-item
+`[y/n]` confirmation. **Continue the loop only if ≥1 nit was fixed** (a commit was
 produced); if every selected row was skip/issue, exit to Step 14 like
 `skip-all`.
 
