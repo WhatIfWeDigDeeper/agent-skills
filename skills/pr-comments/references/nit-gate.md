@@ -9,11 +9,13 @@ nits and the user decides. Do not auto-apply anything before the user replies.
 
 ## Present the table
 
-Emit the nits-only table. Columns: **#**, **File** (`path:line`), **Nit**
-(one-line description of the change), **Marker** (the explicit marker that
-tagged it — `nit:` / `nitpick:` / `(nit)` / `minor:` / `style:` / `typo:` / a
-bot severity label — or `semantic` when the tag came from the semantic
-fallback rather than an explicit marker).
+Emit the nits-only table. Columns: **#**, **File** (`path:line` for an inline
+nit; a review-body or timeline nit has no line anchor, so use the source marker
+`*(review body)*` or `*(timeline)*` instead — same markers used elsewhere in the
+skill), **Nit** (one-line description of the change), **Marker** (the explicit
+marker that tagged it — `nit:` / `nitpick:` / `(nit)` / `minor:` / `style:` /
+`typo:` / a bot severity label — or `semantic` when the tag came from the
+semantic fallback rather than an explicit marker).
 
 ```
 ## Nits-only round — your call
@@ -22,6 +24,7 @@ fallback rather than an explicit marker).
 |---|------|-----|--------|
 | 1 | src/util.ts:42 | Rename `tmp` -> `temp` for readability | nit: |
 | 2 | docs/readme.md:10 | Fix a spelling typo in the heading | typo: |
+| 3 | *(timeline)* | Tighten the wording of one sentence | semantic |
 
 Decide per nit — [fix-all / skip-all / issue-all / select]:
 ```
