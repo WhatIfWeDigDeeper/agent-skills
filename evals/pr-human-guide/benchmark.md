@@ -56,7 +56,7 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 
 ### v0.10 — Impact Risk signals (spec 40)
 
-Adds two Novel Patterns signals (sweeping cross-cutting refactor; high-fanout core helper) and a terminology refresh ("blast radius" → "impact risk") in `references/categories.md`. The existing 8-eval set does not exercise these signals — none of the fixtures contain a sweeping cross-cutting transformation or a high-fanout core helper edit — so re-benchmarking against the current suite would only validate non-regression on unrelated paths without informative signal. Coverage for the new signals is a follow-up spec with new fixtures (recommended fixtures listed in `specs/40-pr-human-guide-impact-risk-signals/plan.md` under "Evals"). `benchmark.json` `metadata.skill_version` remains `"0.7"` (the version of the recorded runs); the current skill version is v0.11 (see the v0.11 note below).
+Adds two Novel Patterns signals (sweeping cross-cutting refactor; high-fanout core helper) and a terminology refresh ("blast radius" → "impact risk") in `references/categories.md`. The existing 8-eval set does not exercise these signals — none of the fixtures contain a sweeping cross-cutting transformation or a high-fanout core helper edit — so re-benchmarking against the current suite would only validate non-regression on unrelated paths without informative signal. Coverage for the new signals was delivered by a follow-up (spec 48) — see the v0.13 subsection below, which adds evals 9–12 and measures them on Opus 4.8. `benchmark.json` `metadata.skill_version` remains `"0.7"` (the version of the recorded runs); the current skill version is v0.13 (see the v0.11 and v0.13 notes below).
 
 ### v0.11 — SKILL.md size reduction (spec 41)
 
