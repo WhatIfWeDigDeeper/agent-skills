@@ -59,7 +59,9 @@
       35,
       36,
       37,
-      38
+      38,
+      39,
+      40
     ],
     "runs_per_configuration": 1,
     "regression_run_evals": [
@@ -70,9 +72,9 @@
       23,
       24
     ],
-    "skill_version": "1.36",
-    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check)",
-    "last_updated": "2026-04-24T00:00:00Z"
+    "skill_version": "1.48",
+    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check); evals 39-40 (nits-only gate) run on Sonnet 4.6 only under v1.48 on 2026-06-27 (spec 47)",
+    "last_updated": "2026-06-27T00:00:00Z"
   },
   "runs": [
     {
@@ -7313,6 +7315,162 @@
           "evidence": "Chooses option 1 (decline) and posts a PR reply citing '17 files across 5 skill directories, none skill-prefixed' plus the __init__.py mitigation as justification."
         }
       ]
+    },
+    {
+      "eval_id": 39,
+      "eval_name": "all-nits-gate-halts",
+      "executor_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The agent tags both comments as nits in the plan",
+          "passed": true,
+          "evidence": "The plan table marked both rows as nits: the `nit: rename tmp to token for readability` comment on src/auth.py (explicit `nit:` marker + naming/readability semantic) and the `typo: 'recieve' should be 'receive'` comment on README.md (explicit `typo:` marker), both as action `fix` with a nit indicator."
+        },
+        {
+          "text": "The agent recognizes that every actionable comment is a nit and triggers the nits-only gate instead of proceeding",
+          "passed": true,
+          "evidence": "With both actionable rows tagged as nits and no flags (auto mode), the agent evaluated Step 6d, found >=1 actionable row and every actionable row a nit, and entered the nits-only gate (references/nit-gate.md) instead of proceeding to Step 7 auto-apply."
+        },
+        {
+          "text": "The agent halts and does not auto-apply or commit the nit fixes before the user makes a choice",
+          "passed": true,
+          "evidence": "The agent stopped after presenting the decision table; it made no edits, ran no `git commit`, and pushed nothing \u2014 it emitted the decision prompt as its final message and waited for the user."
+        },
+        {
+          "text": "The agent presents a per-nit decision table and a prompt offering fix-all / skip-all / issue-all / select",
+          "passed": true,
+          "evidence": "Output included the `## Nits-only round \u2014 your call` table (columns #, File, Nit, Marker) listing both nits, followed by the prompt `Decide per nit \u2014 [fix-all / skip-all / issue-all / select]:`."
+        }
+      ]
+    },
+    {
+      "eval_id": 39,
+      "eval_name": "all-nits-gate-halts",
+      "executor_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 4,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The agent tags both comments as nits in the plan",
+          "passed": false,
+          "evidence": "The baseline has no nit concept; it presented the two comments as ordinary fixes with no nit tag/indicator in any plan output."
+        },
+        {
+          "text": "The agent recognizes that every actionable comment is a nit and triggers the nits-only gate instead of proceeding",
+          "passed": false,
+          "evidence": "No nits-only gate exists in the baseline; the agent proceeded directly to applying both edits."
+        },
+        {
+          "text": "The agent halts and does not auto-apply or commit the nit fixes before the user makes a choice",
+          "passed": false,
+          "evidence": "The baseline applied both edits (rename and typo fix) and committed them without halting for a user decision."
+        },
+        {
+          "text": "The agent presents a per-nit decision table and a prompt offering fix-all / skip-all / issue-all / select",
+          "passed": false,
+          "evidence": "No decision table or fix-all/skip-all/issue-all/select prompt appeared; the baseline has no such workflow."
+        }
+      ]
+    },
+    {
+      "eval_id": 40,
+      "eval_name": "mixed-round-no-nit-gate",
+      "executor_model": "claude-sonnet-4-6",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The agent does not tag the off-by-one bug comment as a nit",
+          "passed": true,
+          "evidence": "The agent classified the `range(len(s) - 1)` off-by-one comment as a substantive `fix` (a real functional defect \u2014 the loop skips the last element) with no nit indicator."
+        },
+        {
+          "text": "The agent tags the rename-for-readability comment as a nit in the plan",
+          "passed": true,
+          "evidence": "The agent tagged the `nit: rename s to source for readability` comment as a `fix` with a nit indicator (explicit `nit:` marker + naming/readability semantic)."
+        },
+        {
+          "text": "The agent does not trigger the nits-only gate because at least one actionable comment is not a nit",
+          "passed": true,
+          "evidence": "Because the off-by-one row is a non-nit actionable comment, the Step 6d trigger (every actionable row is a nit) was not met; the agent proceeded to Step 7 without entering the nits-only gate."
+        },
+        {
+          "text": "The agent applies and commits both changes in auto mode without halting for a per-nit decision table",
+          "passed": true,
+          "evidence": "In auto mode the agent edited src/parser.py to `range(len(s))` and renamed `s` to `source`, then committed both with Co-authored-by trailers \u2014 no decision table was presented."
+        }
+      ]
+    },
+    {
+      "eval_id": 40,
+      "eval_name": "mixed-round-no-nit-gate",
+      "executor_model": "claude-sonnet-4-6",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": null
+      },
+      "expectations": [
+        {
+          "text": "The agent does not tag the off-by-one bug comment as a nit",
+          "passed": true,
+          "evidence": "Vacuously satisfied: the baseline has no nit concept, so it did not tag the off-by-one comment as a nit (it treated it as an ordinary fix)."
+        },
+        {
+          "text": "The agent tags the rename-for-readability comment as a nit in the plan",
+          "passed": false,
+          "evidence": "The baseline has no nit concept and did not tag the rename comment as a nit; it presented it as an ordinary fix with no nit indicator."
+        },
+        {
+          "text": "The agent does not trigger the nits-only gate because at least one actionable comment is not a nit",
+          "passed": true,
+          "evidence": "Vacuously satisfied: the baseline has no nits-only gate, so it never triggered one; it proceeded to apply both comments."
+        },
+        {
+          "text": "The agent applies and commits both changes in auto mode without halting for a per-nit decision table",
+          "passed": true,
+          "evidence": "The baseline applied the off-by-one fix and the rename and committed both without halting \u2014 no decision table exists in the baseline workflow."
+        }
+      ]
     }
   ],
   "run_summary": {
@@ -7372,34 +7530,34 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 71.8,
-          "stddev": 10.0,
+          "mean": 71.78,
+          "stddev": 10.0358,
           "min": 57.7,
           "max": 85.8
         },
         "tokens": {
-          "mean": 19974.7,
-          "stddev": 228.0,
+          "mean": 19974.6667,
+          "stddev": 228.0007,
           "min": 19747,
           "max": 20203
         }
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.37,
-          "stddev": 0.2487,
+          "mean": 0.3702,
+          "stddev": 0.2567,
           "min": 0.0,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 45.9,
-          "stddev": 5.6,
+          "mean": 45.9167,
+          "stddev": 5.5557,
           "min": 39.0,
           "max": 55.2
         },
         "tokens": {
           "mean": 13683.4,
-          "stddev": 271.0,
+          "stddev": 270.9895,
           "min": 13263,
           "max": 14003
         }
@@ -7488,6 +7646,7 @@
     "Eval 1 re-run for v1.17: replaced old with_skill entry whose evidence described pre-v1.16 confirmation-gate behavior. New evidence confirms auto mode skips Proceed? prompt per SKILL.md v1.17.",
     "Evals 7, 9, 11: existing v1.17 executor outputs re-graded under v1.20 auto Step 13 assertions (no-prompt path). All with_skill runs pass 100%. Without_skill: eval 7 (2/5), eval 9 (1/5), eval 11 (3/5). These are re-grades only; no new executor runs were added, so run entries and metadata.skill_version correctly remain at v1.17.",
     "Eval 37 covers post-edit drift re-scan (Step 9): after fixing SKILL.md, the skill scans PR-modified files for the replaced substring and folds drift fixes into the same commit. with_skill 4/4 (100%), without_skill 3/4 (75%) \u2014 discriminating (+25%). The differentiating assertion is Co-authored-by credit for the bot reviewer, which is a skill-specific convention. The drift detection itself passes in both configurations since the prompt explicitly names the stale file.",
-    "Eval 38 covers convention sanity-check (Step 6): when a reviewer proposes a \"must\" rule for CLAUDE.md, the skill searches for counter-examples before adopting it. with_skill 4/4 (100%), without_skill 4/4 (100%) \u2014 non-discriminating (delta 0%). The baseline naturally checks the existing CLAUDE.md text before editing and finds the already-softened rule. Non-discriminating evals establish a regression baseline but do not contribute to the pass-rate delta."
+    "Eval 38 covers convention sanity-check (Step 6): when a reviewer proposes a \"must\" rule for CLAUDE.md, the skill searches for counter-examples before adopting it. with_skill 4/4 (100%), without_skill 4/4 (100%) \u2014 non-discriminating (delta 0%). The baseline naturally checks the existing CLAUDE.md text before editing and finds the already-softened rule. Non-discriminating evals establish a regression baseline but do not contribute to the pass-rate delta.",
+    "Evals 39 (all-nits-gate-halts) and 40 (mixed-round-no-nit-gate) were added at v1.48 for the nits-only gate (spec 47) and run on Sonnet 4.6 only; Opus 4.7 runs for these two evals are a pending follow-up, so the top-level run_summary and the claude-opus-4-7 by-model block continue to reflect the Opus baseline over evals 1-38. Eval 39 is fully discriminating (with_skill 4/4, without_skill 0/4): the baseline has no nit concept, so it tags nothing as a nit, never enters the nits-only gate, and auto-applies/commits both cosmetic fixes. Eval 40 is partially discriminating (with_skill 4/4, without_skill 3/4): the baseline fails only `cosmetic-tagged-nit` (no nit vocabulary); the other three without_skill assertions pass vacuously because the baseline lacks the gate it would otherwise have to suppress."
   ]
 }

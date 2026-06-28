@@ -10,6 +10,7 @@ Use these templates for Step 14, omitting lines that don't apply.
 {changes line}
 {declined line — omit if none}
 {skipped line — omit if none}
+{nits line — omit if the Step 6d gate did not fire}
 {push/review status}
 {poll status — omit if not applicable}
 
@@ -32,6 +33,8 @@ Use these templates for Step 14, omitting lines that don't apply.
 - `Skipped N threads already handled in the reply chain`
 - `Skipped N threads (outdated or already handled)`
 - `Skipped N timeline comments (already addressed or non-actionable)`
+
+**Nits line** (only when the Step 6d nits-only gate fired this run): `Nits: N fixed, N skipped, N filed as issue` — omit the zero-count segments (e.g. `Nits: 2 skipped` if none were fixed or filed).
 
 **Push/review status** (pick one):
 - Pushed and re-requested: `Pushed and re-requested review from @user1, @user2`
@@ -58,6 +61,7 @@ Shown in place of the standard report when auto-mode was active:
 | 3    | 0       | —     | —        | —        | —       | (none)  |
 
 Total: 5 fixes, 1 accepted suggestion, 1 declined across 2 commits.
+Nits: 2 skipped, 1 filed as issue (#123)   ← include only if the Step 6d gate fired
 Updated PR title: "Fix null checks and parameter naming per review"
 Updated PR body: reflects 3 commits (was 1).
 Exited: no new threads after iteration 3.
@@ -92,3 +96,6 @@ The `<PR URL>` line is not optional. Output it last, on its own line, every time
 - `Exited: no new threads after iteration N.`
 - `Exited: reached max iterations (N).`
 - `Exited: poll timeout (10 min) on iteration N.`
+- `Exited: nits-only round — user chose skip-all.`
+- `Exited: nits-only round — user chose issue-all (filed N issues).`
+- `Exited: nits-only round — user chose select; no nits fixed (M skipped, K filed as issues).`

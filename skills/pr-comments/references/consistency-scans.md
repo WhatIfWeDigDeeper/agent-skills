@@ -19,10 +19,10 @@ After Step 6 (all comments classified), before presenting the plan in Step 7, sc
 3. **Add `consistency` rows to the plan.** For each genuine match, add a row whose Note column references the originating item number and briefly describes the proposed parallel change:
 
    ```
-   | # | File | Summary | Action | Note |
-   |---|------|---------|--------|------|
-   | 1 | src/api.ts:42 | Rename `getData` to `fetchData` | `fix` | |
-   | 2 | src/routes.ts:18 | Same `getData` usage as #1 | `consistency` | Apply matching rename? |
+   | # | File | Summary | Action | Nit | Note |
+   |---|------|---------|--------|-----|------|
+   | 1 | src/api.ts:42 | Rename `getData` to `fetchData` | `fix` | | |
+   | 2 | src/routes.ts:18 | Same `getData` usage as #1 | `consistency` | | Apply matching rename? |
    ```
 
 4. **No matches? No rows.** Skip silently — do not add a "no consistency issues found" message.

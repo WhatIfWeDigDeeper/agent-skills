@@ -1,0 +1,25 @@
+{
+  "summary": {"passed": 4, "failed": 0, "total": 4, "pass_rate": 1.0},
+  "expectations": [
+    {
+      "text": "The agent tags both comments as nits in the plan",
+      "passed": true,
+      "evidence": "The plan table marked both rows as nits: the `nit: rename tmp to token for readability` comment on src/auth.py (explicit `nit:` marker + naming/readability semantic) and the `typo: 'recieve' should be 'receive'` comment on README.md (explicit `typo:` marker), both as action `fix` with a nit indicator."
+    },
+    {
+      "text": "The agent recognizes that every actionable comment is a nit and triggers the nits-only gate instead of proceeding",
+      "passed": true,
+      "evidence": "With both actionable rows tagged as nits and no flags (auto mode), the agent evaluated Step 6d, found >=1 actionable row and every actionable row a nit, and entered the nits-only gate (references/nit-gate.md) instead of proceeding to Step 7 auto-apply."
+    },
+    {
+      "text": "The agent halts and does not auto-apply or commit the nit fixes before the user makes a choice",
+      "passed": true,
+      "evidence": "The agent stopped after presenting the decision table; it made no edits, ran no `git commit`, and pushed nothing — it emitted the decision prompt as its final message and waited for the user."
+    },
+    {
+      "text": "The agent presents a per-nit decision table and a prompt offering fix-all / skip-all / issue-all / select",
+      "passed": true,
+      "evidence": "Output included the `## Nits-only round — your call` table (columns #, File, Nit, Marker) listing both nits, followed by the prompt `Decide per nit — [fix-all / skip-all / issue-all / select]:`."
+    }
+  ]
+}
