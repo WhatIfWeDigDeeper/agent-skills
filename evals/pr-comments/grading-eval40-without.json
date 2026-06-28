@@ -1,0 +1,25 @@
+{
+  "summary": {"passed": 3, "failed": 1, "total": 4, "pass_rate": 0.75},
+  "expectations": [
+    {
+      "text": "The agent does not tag the off-by-one bug comment as a nit",
+      "passed": true,
+      "evidence": "Vacuously satisfied: the baseline has no nit concept, so it did not tag the off-by-one comment as a nit (it treated it as an ordinary fix)."
+    },
+    {
+      "text": "The agent tags the rename-for-readability comment as a nit in the plan",
+      "passed": false,
+      "evidence": "The baseline has no nit concept and did not tag the rename comment as a nit; it presented it as an ordinary fix with no nit indicator."
+    },
+    {
+      "text": "The agent does not trigger the nits-only gate because at least one actionable comment is not a nit",
+      "passed": true,
+      "evidence": "Vacuously satisfied: the baseline has no nits-only gate, so it never triggered one; it proceeded to apply both comments."
+    },
+    {
+      "text": "The agent applies and commits both changes in auto mode without halting for a per-nit decision table",
+      "passed": true,
+      "evidence": "The baseline applied the off-by-one fix and the rename and committed both without halting — no decision table exists in the baseline workflow."
+    }
+  ]
+}

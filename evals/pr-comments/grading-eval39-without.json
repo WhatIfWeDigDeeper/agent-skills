@@ -1,0 +1,25 @@
+{
+  "summary": {"passed": 0, "failed": 4, "total": 4, "pass_rate": 0.0},
+  "expectations": [
+    {
+      "text": "The agent tags both comments as nits in the plan",
+      "passed": false,
+      "evidence": "The baseline has no nit concept; it presented the two comments as ordinary fixes with no nit tag/indicator in any plan output."
+    },
+    {
+      "text": "The agent recognizes that every actionable comment is a nit and triggers the nits-only gate instead of proceeding",
+      "passed": false,
+      "evidence": "No nits-only gate exists in the baseline; the agent proceeded directly to applying both edits."
+    },
+    {
+      "text": "The agent halts and does not auto-apply or commit the nit fixes before the user makes a choice",
+      "passed": false,
+      "evidence": "The baseline applied both edits (rename and typo fix) and committed them without halting for a user decision."
+    },
+    {
+      "text": "The agent presents a per-nit decision table and a prompt offering fix-all / skip-all / issue-all / select",
+      "passed": false,
+      "evidence": "No decision table or fix-all/skip-all/issue-all/select prompt appeared; the baseline has no such workflow."
+    }
+  ]
+}

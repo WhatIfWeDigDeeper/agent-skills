@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.47"
+  version: "1.48"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -27,6 +27,7 @@ The argument is the text following the skill invocation (in Claude Code: `/pr-co
 
 - Optional PR number (e.g. `42` or `#42`). If omitted, detect from the current branch.
 - `--manual` restores the confirmation gates skipped by the default auto mode (Step 7 and Step 13); it is **sticky**. `--max N` caps bot-review loop iterations (default 10).
+- `--all` (auto mode only) disables the Step 6d nits-only halt: every comment, including a pure-nit round, is auto-fixed as before. It is a boolean (no value) and is **ignored under `--manual`** (manual already gates every round at Step 7).
 - If `$ARGUMENTS` is `help`, `--help`, `-h`, or `?`, print usage and exit.
 
 **Parse and validate before any shell call. You must now execute `references/argument-parsing.md`** for the full strip/precedence/stickiness/validation rules — Step 1 below restates the validation order, and the validation itself is a Security model mitigation (see [Security model](#security-model)).
@@ -41,6 +42,7 @@ The argument is the text following the skill invocation (in Claude Code: `/pr-co
 | `/pr-comments --manual 42` | manual | n/a |
 | `/pr-comments --manual --auto` | manual | n/a (`--manual` is sticky) |
 | `/pr-comments --max 5 42` | auto | 5 |
+| `/pr-comments --all` | auto | 10 (nits-only halt disabled) |
 
 A digit token after `--auto` is read as the cap, **not** a PR number (`--auto 42` → cap 42, no PR) — to pair `--auto` with a PR number, use `42 --auto`. See `references/argument-parsing.md` → "`--auto` + PR-number disambiguation".
 
@@ -223,6 +225,14 @@ For the previously-handled skip: the thread is unresolved but already has a repl
 
 **For comments proposing new rules in instructions files:** When a comment targets a conventions/instructions file (`CLAUDE.md`, `.github/copilot-instructions.md`, `AGENTS.md`, or any `*instructions*.md` / `*CLAUDE*.md`) and proposes adding or strengthening a rule with normative language ("must", "always", "convention requires/is", "should always", "all … must/should"), **you must now execute `references/instruction-rule-check.md`** before finalizing a `fix` — it greps the repo for counter-examples and downgrades a mandate to a preference (or `decline`) when ≥2 exist. This applies only to convention/instruction-file suggestions.
 
+**Tag nits.** After classifying, tag each `fix` / `accept suggestion` row as a **`nit`** when it is clearly cosmetic/trivial — no effect on correctness, behavior, security, performance, or public API. Signals, in order:
+
+- **Explicit markers** in the comment body: a leading `nit:`, `nitpick:`, `(nit)`, `minor:`, `style:`, `typo:`, or a bot-supplied low/trivial severity label.
+- **Semantic fallback**: wording/spelling/comment-typo fixes, naming/style preferences, formatting/whitespace, doc phrasing, import ordering — changes with no functional consequence.
+- **Conservative bias**: when in doubt, **not** a nit (treat as substantive → normal flow). A misjudged "real" issue is still auto-fixed; only *clearly* trivial rows are tagged. Mirrors "when in doubt, lean toward implementing."
+
+`reply`, `decline`, `skip`, and `consistency` rows are never nits — the tag only modifies `fix` / `accept suggestion`. An **oversized comment (Step 5), or any comment Step 5 flagged for manual review, is never a nit** even if its body reads as cosmetic: the Step 6d gate runs before Step 7, so tagging such a row `nit` would route it to the lightweight nit table and drop Step 5's "manual review recommended; pause auto-mode" caveat. The tag drives the Step 6d nits-only gate and the `Nit` column in the Step 7 plan table.
+
 ### 6b. Cross-File Consistency Check
 
 After Step 6 (all comments classified), before presenting the plan in Step 7, **you must now execute the Step 6b section of `references/consistency-scans.md`** — it scans the PR-modified files for identifiers overlapping planned `fix`/`accept suggestion` changes and adds `consistency` rows (which always require explicit Step 7 confirmation, even in auto mode). No matches → no rows, silently.
@@ -235,6 +245,18 @@ Proceed with this step only if the plan is empty or **every** plan row's `Action
 
 **You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all six steps in that section (pending-bot check, post-fetch review check, loop-back if post-fetch review found, polling if pending-but-not-yet-reviewed, stale-HEAD bot check, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated.
 
+### 6d. Nits-only gate
+
+**Auto mode only.** Skip this step entirely when **any** of these hold:
+
+- `--all` was passed (the escape hatch restores auto-fix-everything behavior),
+- the run is in `--manual` mode (every round already gates at the Step 7 confirm prompt), or
+- the plan has zero actionable rows — the plan is empty, or every row is a `skip` (that path belongs to Step 6c — an all-skip round routes there, never here; `skip` is not an actionable action).
+
+**Trigger:** the plan has **≥1 actionable row** and **every** actionable row is tagged `nit` (from Step 6). Actionable rows are `fix` / `accept suggestion` / `reply` / `decline` / `consistency`; since only `fix` / `accept suggestion` can be tagged `nit`, the trigger means every actionable row is a `fix` / `accept suggestion` nit. A single non-nit actionable row (or any `reply` / `decline` / `consistency` row) disqualifies the gate — proceed to Step 7 and auto-apply as normal; the nits ride along.
+
+When the trigger fires, **you must now execute `references/nit-gate.md`** — present the nits-only table and collect the user's decision instead of auto-applying. Do not auto-apply the nits, and do not skip to Step 7, until that section's logic has been evaluated.
+
 ### 7. Present Plan and Confirm
 
 Before touching anything, show a plan table:
@@ -242,15 +264,17 @@ Before touching anything, show a plan table:
 ```
 ## PR Review Plan
 
-| # | File | Summary | Action | Note |
-|---|------|---------|--------|------|
-| 1 | path/file.ts:42 | One-line description of what the comment says | `fix` | |
-| 2 | path/other.ts:10 | One-line description | `accept suggestion` | |
-| 3 | path/lib.ts:99 | One-line description | `decline` | Reason for declining |
-| 4 | path/old.ts:5 | One-line description | `skip` | outdated thread |
-| 5 | *(review body)* | One-line description of top-level review feedback | `skip` | bot PR summary, no action needed |
-| 6 | *(timeline)* | One-line description of timeline comment | `reply` | question from @reviewer |
+| # | File | Summary | Action | Nit | Note |
+|---|------|---------|--------|-----|------|
+| 1 | path/file.ts:42 | One-line description of what the comment says | `fix` | | |
+| 2 | path/other.ts:10 | One-line description | `accept suggestion` | ✓ | |
+| 3 | path/lib.ts:99 | One-line description | `decline` | | Reason for declining |
+| 4 | path/old.ts:5 | One-line description | `skip` | | outdated thread |
+| 5 | *(review body)* | One-line description of top-level review feedback | `skip` | | bot PR summary, no action needed |
+| 6 | *(timeline)* | One-line description of timeline comment | `reply` | | question from @reviewer |
 ```
+
+The `Nit` column shows `✓` for any `fix` / `accept suggestion` row tagged a nit in Step 6 (blank otherwise). It is informational in mixed rounds; when **every** actionable row is a nit, the Step 6d gate has already diverted to the nits-only table instead of this one.
 
 **Confirmation prompt template.** When this prompt is required, emit `Proceed? [y/N/auto]` on its own line after the closing code fence — and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
 

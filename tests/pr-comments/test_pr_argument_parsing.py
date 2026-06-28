@@ -2,7 +2,12 @@
 
 import pytest
 
-from conftest import is_pr_number, parse_auto_flag, parse_pr_argument
+from conftest import (
+    is_pr_number,
+    parse_all_flag,
+    parse_auto_flag,
+    parse_pr_argument,
+)
 
 
 class TestPRNumberDetection:
@@ -209,3 +214,48 @@ class TestCombinedAutoAndPRNumberParsing:
         """'--auto' with no PR number → remaining_args '' → detect from branch."""
         remaining = parse_auto_flag("--auto")["remaining_args"]
         assert parse_pr_argument(remaining) == {"type": "detect"}
+
+
+class TestAllFlagParsing:
+    """Test ``--all`` parsing (spec 47): boolean, non-sticky, ignored under --manual."""
+
+    def test_all_flag_alone(self):
+        result = parse_all_flag("--all")
+        assert result == {"all": True, "remaining_args": ""}
+
+    def test_no_all_flag(self):
+        assert parse_all_flag("42") == {"all": False, "remaining_args": "42"}
+
+    def test_empty_args(self):
+        assert parse_all_flag("") == {"all": False, "remaining_args": ""}
+
+    def test_all_is_boolean_does_not_consume_next_token(self):
+        """--all takes no value; a following PR number is preserved, not eaten."""
+        result = parse_all_flag("--all 42")
+        assert result["all"] is True
+        assert result["remaining_args"] == "42"
+
+    def test_all_stripped_before_pr_validation(self):
+        """--all is removed so the PR number validates downstream."""
+        remaining = parse_all_flag("--all 42")["remaining_args"]
+        assert parse_pr_argument(remaining) == {"type": "pr_number", "number": 42}
+
+    def test_all_with_hash_prefixed_pr(self):
+        remaining = parse_all_flag("--all #42")["remaining_args"]
+        assert parse_pr_argument(remaining) == {"type": "pr_number", "number": 42}
+
+    def test_all_ignored_under_manual(self):
+        """--manual discards --all (no nits-only gate to disable); --manual kept."""
+        result = parse_all_flag("--all --manual 42")
+        assert result["all"] is False
+        assert "--manual" in result["remaining_args"]
+
+    def test_manual_token_left_for_auto_flag_parser(self):
+        """parse_all_flag leaves --manual in remaining_args for parse_auto_flag."""
+        remaining = parse_all_flag("--all --manual")["remaining_args"]
+        assert parse_auto_flag(remaining)["auto"] is False
+
+    def test_all_token_order_independent(self):
+        result = parse_all_flag("42 --all")
+        assert result["all"] is True
+        assert result["remaining_args"] == "42"
