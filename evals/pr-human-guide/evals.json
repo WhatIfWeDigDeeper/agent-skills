@@ -180,6 +180,98 @@
         "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers"
       }
     ]
+  },
+  {
+    "id": 9,
+    "name": "sweeping-cross-cutting-refactor",
+    "prompt": "Can you add a guide to PR #210's description so reviewers know where to focus? This one's a big sweep across the handlers.\n\nPR #210 — 'Route all handler errors through centralized error middleware'\nURL: https://github.com/owner/repo/pull/210\nCurrent PR description: 'Replaces the inline 500-response in every route handler with next(err) so all errors flow through the new centralized error middleware. Touches 24 handler files; the transformation is identical in each.'\n\nThree representative files are shown; the remaining 21 handlers follow the exact same change:\n\n```diff\ndiff --git a/src/handlers/users.ts b/src/handlers/users.ts\nindex 1111111..2222222 100644\n--- a/src/handlers/users.ts\n+++ b/src/handlers/users.ts\n@@ -14,9 +14,8 @@ export async function getUser(req, res, next) {\n   try {\n     const user = await db.users.findById(req.params.id);\n     res.json(user);\n-  } catch (err) {\n-    console.error(err);\n-    res.status(500).json({ error: 'Internal server error' });\n+  } catch (err) {\n+    next(err);\n   }\n }\ndiff --git a/src/handlers/orders.ts b/src/handlers/orders.ts\nindex 3333333..4444444 100644\n--- a/src/handlers/orders.ts\n+++ b/src/handlers/orders.ts\n@@ -22,9 +22,8 @@ export async function listOrders(req, res, next) {\n   try {\n     const orders = await db.orders.findByUser(req.user.id);\n     res.json(orders);\n-  } catch (err) {\n-    console.error(err);\n-    res.status(500).json({ error: 'Internal server error' });\n+  } catch (err) {\n+    next(err);\n   }\n }\ndiff --git a/src/handlers/products.ts b/src/handlers/products.ts\nindex 5555555..6666666 100644\n--- a/src/handlers/products.ts\n+++ b/src/handlers/products.ts\n@@ -18,9 +18,8 @@ export async function getProduct(req, res, next) {\n   try {\n     const product = await db.products.findById(req.params.id);\n     res.json(product);\n-  } catch (err) {\n-    console.error(err);\n-    res.status(500).json({ error: 'Internal server error' });\n+  } catch (err) {\n+    next(err);\n   }\n }\n```",
+    "expected_output": "The agent should flag this as a single Novel Patterns (sweeping cross-cutting refactor) item describing the aggregate transformation, not one entry per file, and should name the behavior/contract delta (errors and logging now produced by centralized middleware instead of each handler returning its own 500). The guide is wrapped in the canonical <!-- pr-human-guide --> / <!-- /pr-human-guide --> markers and posted via gh pr edit.",
+    "assertions": [
+      {
+        "id": "flags-as-novel-pattern",
+        "text": "The review guide flags this change under Novel Patterns (as a sweeping cross-cutting refactor / aggregate transformation)"
+      },
+      {
+        "id": "flags-aggregate-not-per-file",
+        "text": "The review guide treats the refactor as a single aggregate item rather than creating a separate flagged entry for each of the 24 handler files"
+      },
+      {
+        "id": "notes-behavior-delta",
+        "text": "The review guide identifies the runtime behavior/contract change (errors now routed through centralized middleware instead of each handler returning its own 500 response), not merely that many files changed"
+      },
+      {
+        "id": "uses-html-markers",
+        "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "mechanical-rename-no-behavior-delta",
+    "prompt": "Prep PR #214 for review — add a guide pointing reviewers at anything that needs careful judgment.\n\nPR #214 — 'Rename internal helper computeTotal to calculateTotal'\nURL: https://github.com/owner/repo/pull/214\nCurrent PR description: 'Pure rename of the internal helper computeTotal to calculateTotal. No signature, behavior, or public-API change. The old name is exhaustively replaced across all 25 internal call sites.'\n\nRepresentative slice (the rest are identical one-token substitutions):\n\n```diff\ndiff --git a/src/billing/total.ts b/src/billing/total.ts\nindex aaaaaaa..bbbbbbb 100644\n--- a/src/billing/total.ts\n+++ b/src/billing/total.ts\n@@ -3,7 +3,7 @@\n-export function computeTotal(items: Item[]): number {\n+export function calculateTotal(items: Item[]): number {\n   return items.reduce((sum, i) => sum + i.price, 0);\n }\ndiff --git a/src/billing/invoice.ts b/src/billing/invoice.ts\nindex ccccccc..ddddddd 100644\n--- a/src/billing/invoice.ts\n+++ b/src/billing/invoice.ts\n@@ -10,7 +10,7 @@ export function buildInvoice(order: Order) {\n-  const total = computeTotal(order.items);\n+  const total = calculateTotal(order.items);\n   return { ...order, total };\n }\ndiff --git a/src/billing/cart.ts b/src/billing/cart.ts\nindex eeeeeee..fffffff 100644\n--- a/src/billing/cart.ts\n+++ b/src/billing/cart.ts\n@@ -5,7 +5,7 @@ export function cartSummary(cart: Cart) {\n-  return { count: cart.items.length, total: computeTotal(cart.items) };\n+  return { count: cart.items.length, total: calculateTotal(cart.items) };\n }\n```",
+    "expected_output": "The agent should NOT flag the rename. A pure single-token rename exhaustively substituted, with no behavior delta, is routine per the 'What does NOT qualify' list and the Selectivity Threshold ('File count alone is not a flagging signal'). The agent should emit the bounded 'no areas requiring special human review attention were identified' empty-guide variant, wrapped in the canonical markers.",
+    "assertions": [
+      {
+        "id": "does-not-flag-rename",
+        "text": "The review guide does NOT flag the rename under Novel Patterns or any other category — it is a pure mechanical substitution with no behavior delta, and file count alone is not a flagging signal"
+      },
+      {
+        "id": "outputs-no-areas-message",
+        "text": "The review guide body contains the message indicating no areas requiring special human review were identified"
+      },
+      {
+        "id": "uses-exact-markers",
+        "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats)"
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "name": "high-fanout-core-helper",
+    "prompt": "Add a review guide to PR #221 so the team knows what to scrutinize.\n\nPR #221 — 'Add retry and shorten default timeout in the shared HTTP client'\nURL: https://github.com/owner/repo/pull/221\nCurrent PR description: 'Updates src/lib/http.ts, the request helper imported by every service in the repo.'\n\n```diff\ndiff --git a/src/lib/http.ts b/src/lib/http.ts\nindex 1234567..89abcde 100644\n--- a/src/lib/http.ts\n+++ b/src/lib/http.ts\n@@ -1,12 +1,28 @@\n import axios from 'axios';\n\n-const DEFAULT_TIMEOUT_MS = 30000;\n+const DEFAULT_TIMEOUT_MS = 5000;\n+const MAX_RETRIES = 3;\n\n export async function request(url: string, opts: RequestOpts = {}) {\n-  return axios({ url, timeout: DEFAULT_TIMEOUT_MS, ...opts });\n+  let lastErr;\n+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {\n+    try {\n+      return await axios({ url, timeout: DEFAULT_TIMEOUT_MS, ...opts });\n+    } catch (err) {\n+      lastErr = err;\n+      if (err.response && err.response.status < 500) throw err;\n+    }\n+  }\n+  throw lastErr;\n }\n```",
+    "expected_output": "The agent should flag src/lib/http.ts under Novel Patterns as a high-fanout core helper edit — the path matches the shared-layout trigger list (lib/*) and the helper is imported broadly. The guide should note the change affects callers across the codebase (impact beyond the single file) and identify the behavior change (shorter default timeout and/or new retry-on-5xx loop). Canonical markers; posted via gh pr edit.",
+    "assertions": [
+      {
+        "id": "flags-high-fanout-helper",
+        "text": "The review guide flags the change to the shared HTTP client (src/lib/http.ts) under Novel Patterns / as a high-fanout core helper edit"
+      },
+      {
+        "id": "notes-broad-impact",
+        "text": "The review guide notes the change affects callers across the codebase (impact extends beyond the single file because the helper is broadly imported)"
+      },
+      {
+        "id": "flags-behavior-change",
+        "text": "The review guide identifies the behavior change (shortened default timeout and/or new retry-on-5xx loop) as the reviewer-relevant concern"
+      },
+      {
+        "id": "uses-html-markers",
+        "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers"
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "name": "selectivity-over-flagging",
+    "prompt": "Can you add a review guide to PR #230 so reviewers know where to focus?\n\nPR #230 — 'Add rate limiting to login endpoint plus housekeeping'\nURL: https://github.com/owner/repo/pull/230\nCurrent PR description: 'Adds rate limiting to the login endpoint. Also reformats a util file, bumps a dependency patch version, updates the README, and adds a test.'\n\n```diff\ndiff --git a/src/auth/login.ts b/src/auth/login.ts\nindex 1111111..2222222 100644\n--- a/src/auth/login.ts\n+++ b/src/auth/login.ts\n@@ -1,6 +1,15 @@\n import { verifyPassword } from './password';\n+import { rateLimiter } from './rateLimiter';\n\n export async function login(req, res) {\n+  const allowed = await rateLimiter.consume(req.ip);\n+  if (!allowed) {\n+    return res.status(429).json({ error: 'Too many attempts' });\n+  }\n   const ok = await verifyPassword(req.body.email, req.body.password);\n   if (!ok) return res.status(401).json({ error: 'Invalid credentials' });\n   return res.json({ token: issueToken(req.body.email) });\n }\ndiff --git a/package-lock.json b/package-lock.json\nindex 3333333..4444444 100644\n--- a/package-lock.json\n+++ b/package-lock.json\n@@ -120,7 +120,7 @@\n     \"node_modules/express\": {\n-      \"version\": \"4.18.1\",\n+      \"version\": \"4.18.2\",\n       \"resolved\": \"https://registry.npmjs.org/express/-/express-4.18.2.tgz\"\n     }\ndiff --git a/README.md b/README.md\nindex 5555555..6666666 100644\n--- a/README.md\n+++ b/README.md\n@@ -1,3 +1,3 @@\n # My App\n-A web app.\n+A web application for managing orders.\ndiff --git a/src/utils/format.ts b/src/utils/format.ts\nindex 7777777..8888888 100644\n--- a/src/utils/format.ts\n+++ b/src/utils/format.ts\n@@ -1,1 +1,3 @@\n-export function fmt(x){return x.trim()}\n+export function fmt(x) {\n+  return x.trim();\n+}\ndiff --git a/tests/auth/login.test.ts b/tests/auth/login.test.ts\nnew file mode 100644\n--- /dev/null\n+++ b/tests/auth/login.test.ts\n@@ -0,0 +1,8 @@\n+import { login } from '../../src/auth/login';\n+\n+describe('login', () => {\n+  it('rate limits repeated attempts', async () => {\n+    // ...\n+  });\n+});\n```",
+    "expected_output": "The agent should flag only the login rate-limiting change (Security). The package-lock.json patch version bump (version-only, auto-generated), the README doc edit, the whitespace-only reformat of src/utils/format.ts, and the new test file all fall under 'What does NOT qualify' and must not be flagged. The guide should contain a single flagged item, wrapped in canonical markers.",
+    "assertions": [
+      {
+        "id": "flags-security-change",
+        "text": "The review guide flags the login rate-limiting change (Security category) as warranting review"
+      },
+      {
+        "id": "omits-lockfile-bump",
+        "text": "The review guide does NOT flag the package-lock.json patch version bump (version-only / auto-generated)"
+      },
+      {
+        "id": "omits-docs-test-and-formatting",
+        "text": "The review guide does NOT flag the README update, the whitespace-only reformat of src/utils/format.ts, or the new test file"
+      },
+      {
+        "id": "is-selective",
+        "text": "The guide flags only the genuinely risky area (the rate-limit change); it does not emit a section or entry for every changed file"
+      }
+    ]
   }
   ]
 }

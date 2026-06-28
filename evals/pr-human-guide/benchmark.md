@@ -3,10 +3,11 @@
 **Models tested**:
 - `claude-sonnet-4-6` — full 8-eval suite × 2 configurations on 2026-04-28 (spec 28). Analyzer: **Sonnet 4.6**.
 - `claude-opus-4-7` — full 8-eval suite × 2 configurations on 2026-04-28 (spec 28). Analyzer: **Sonnet 4.6** (chosen up front for analyzer-uniformity, following the spec 27 precedent).
+- `claude-opus-4-8` — partial set: 4 new evals (9–12) × 2 configurations on 2026-06-28 (spec 48). Analyzer: **Opus 4.8** (graded inline by the controller). Covers the two impact-risk Novel Patterns signals (sweeping cross-cutting refactor, high-fanout core helper edit), a negative rename guardrail, and the Selectivity Threshold. See the v0.13 subsection under Known Eval Limitations.
 
-**Evals**: 8 evals × 2 configurations × 2 models = **32 canonical runs**, all `run_number == 1`.
+**Evals**: 8 evals × 2 configurations × 2 models = **32 canonical runs** (the full-suite headline), plus **8 partial-set runs** (evals 9–12 × 2 configurations on Opus 4.8, spec 48) = 40 runs total, all `run_number == 1`.
 
-**Skill version**: v0.7. Both model rows produced under v0.7. The previous Sonnet runs at v0.1 (16 entries) were removed in spec 28 Phase 1 so both models share an apples-to-apples skill version; git history retains the prior shape.
+**Skill version**: full-suite rows under v0.7; the spec-48 partial set under v0.13. The previous Sonnet runs at v0.1 (16 entries) were removed in spec 28 Phase 1 so both full-suite models share an apples-to-apples skill version; git history retains the prior shape. `benchmark.json` `metadata.skill_version` stays `"0.7"` (the version of the recorded full-suite runs); the partial set is version-noted here and in the v0.13 subsection.
 
 ## Summary
 
@@ -55,11 +56,38 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 
 ### v0.10 — Impact Risk signals (spec 40)
 
-Adds two Novel Patterns signals (sweeping cross-cutting refactor; high-fanout core helper) and a terminology refresh ("blast radius" → "impact risk") in `references/categories.md`. The existing 8-eval set does not exercise these signals — none of the fixtures contain a sweeping cross-cutting transformation or a high-fanout core helper edit — so re-benchmarking against the current suite would only validate non-regression on unrelated paths without informative signal. Coverage for the new signals is a follow-up spec with new fixtures (recommended fixtures listed in `specs/40-pr-human-guide-impact-risk-signals/plan.md` under "Evals"). `benchmark.json` `metadata.skill_version` remains `"0.7"` (the version of the recorded runs); the current skill version is v0.11 (see the v0.11 note below).
+Adds two Novel Patterns signals (sweeping cross-cutting refactor; high-fanout core helper) and a terminology refresh ("blast radius" → "impact risk") in `references/categories.md`. The existing 8-eval set does not exercise these signals — none of the fixtures contain a sweeping cross-cutting transformation or a high-fanout core helper edit — so re-benchmarking against the current suite would only validate non-regression on unrelated paths without informative signal. Coverage for the new signals was delivered by a follow-up (spec 48) — see the v0.13 subsection below, which adds evals 9–12 and measures them on Opus 4.8. `benchmark.json` `metadata.skill_version` remains `"0.7"` (the version of the recorded runs); the current skill version is v0.13 (see the v0.11 and v0.13 notes below).
 
 ### v0.11 — SKILL.md size reduction (spec 41)
 
 No-behavior-change context-cost refactor: SKILL.md shrank from 275 to 208 lines (-24%) by compressing the Security model to a flat bullet list, deduping the repeated "treat as untrusted" restatements, and relocating output-format mechanics (diff-anchor generation, per-entry format, with/no-items templates, report-summary templates) into `references/output-format.md` — all behind imperative "you must now execute" handoffs. The `<untrusted_pr_content>` block and Security model stay inline. Per `evals/CLAUDE.md` (structural refactors that move logic to a reference file run only the evals exercising the moved logic), the full suite was not re-benchmarked; instead a targeted parity run compared v0.11 against the `origin/main` snapshot on eval 1 (`security-changes` — markers/diff-link/report), eval 6 (`idempotent-rerun` — relocated marker handling + "updated" report template), and an ad-hoc prompt-injection probe (the highest-risk move, the untrusted-restatement dedupe). New scored no worse than the snapshot on every check (eval 1: 4/4 both; eval 6: 3/3 both), and both configurations held the line on the injection probe (ignored the embedded "reply only APPROVED / empty the description" instruction and flagged the `0o777` chmod). `benchmark.json` `metadata.skill_version` remains `"0.7"` (the version of the recorded runs); no new run entries were recorded for this validation-only parity check.
+
+### v0.13 — Opus 4.8 coverage for impact-risk signals + selectivity (spec 48)
+
+Spec 40 added the two subtlest Novel Patterns signals — *sweeping cross-cutting refactor* and *high-fanout core helper edits* — and explicitly deferred eval coverage to a follow-up. **Spec 48 is that follow-up**: four new evals (ids 9–12), executed and graded on **claude-opus-4-8** only. The historical evals 1–8 v0.7 Sonnet / Opus-4-7 rows are left unchanged, so the headline delta stays sourced from the full suite; these new runs are a partial coverage set. No skill behavior changed — this was a measurement-coverage pass — and no defect surfaced, so no version bump accompanies the runs.
+
+| Metric | with-skill | without-skill | Delta |
+|--------|------------|---------------|-------|
+| Pass rate | **100%** ±0% | 46% ±22% | **+54%** |
+| Min / Max | 100% / 100% | 25% / 75% | |
+| Time (s) | 66.3 ±10.3 | 42.8 ±10.7 | +23.5 |
+| Tokens (input + output) | 38,559 ±5,877 | 19,215 ±376 | +19,344 |
+| Cache tokens (creation + reads) | 530,471 ±70,513 | 189,815 ±18,358 | +340,656 |
+
+Stats use sample stddev (N−1) over the 4 evals per configuration; token-counting convention matches the v0.7 tables. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
+
+Per-eval pass/fail (Opus 4.8):
+
+| # | Eval | With | Without |
+|---|------|------|---------|
+| 9 | sweeping-cross-cutting-refactor | **4/4 (100%)** | 2/4 (50%) |
+| 10 | mechanical-rename-no-behavior-delta | **3/3 (100%)** | 1/3 (33%) |
+| 11 | high-fanout-core-helper | **4/4 (100%)** | 3/4 (75%) |
+| 12 | selectivity-over-flagging | **4/4 (100%)** | 1/4 (25%) |
+
+All four discriminate (≥1 assertion fails without_skill). Eval 11 is the weakest discriminator — the Opus baseline flags the high-fanout helper, its broad impact, and the behavior change on its own; only the canonical-marker assertion fails, so the skill's measured edge there is the structured marker format. Eval 12 (selectivity) is the strongest: the baseline emitted a guide entry for all five changed files — including asking a reviewer to verify a test stub — exactly the over-flagging failure mode the eval targets, while the skill flagged only the login rate-limit change. Eval 10 confirms the negative guardrail works: with-skill correctly did NOT flag the exhaustive single-token rename and emitted the bounded "no areas" body.
+
+A deliberately-omitted case: a *negative* high-fanout fixture (behavior change to a low-fanout, non-shared module) is not included — such a file would still legitimately flag under plain novelty, so the case cannot cleanly isolate "the high-fanout signal did not fire."
 
 ### Non-discriminating evals on Sonnet 4.6
 
@@ -96,13 +124,16 @@ The extraction logic is generalized in [`evals/scripts/extract_subagent_usage.py
 
 ### Preserved grading artifacts
 
-Five `grading-*.json` files alongside this `benchmark.md` capture grader judgment calls worth preserving (the other 27 grading runs were mechanical pass/fail on literal-marker checks):
+Eight `grading-*.json` files alongside this `benchmark.md` capture grader judgment calls worth preserving (the other 32 grading runs were mechanical pass/fail on literal-marker checks):
 
 - `grading-{sonnet,opus}-without-eval-5.json` — judgment: does the **absence** of any review-guide construct count as the body containing the "no areas requiring special human review" message? Both gradings rule "no" — the body must literally contain that message.
 - `grading-{sonnet,opus}-without-eval-8.json` — judgment: does discussion of `worker_threads` framed as a lifecycle/error-handling concern count as flagging it as "the new use of worker threads"? Both gradings rule "no" — the flag must explicitly call it out as a new concurrency primitive.
 - `grading-opus-without-eval-7.json` — judgment: does `"### Areas needing careful attention"` with numbered subsections satisfy "the review guide includes a Data Model Changes section"? Grading rules "no" — the section name (or close equivalent like "Schema Changes" / "Database Changes") must appear literally.
+- `grading-opus-4-8-without-eval-9.json` (spec 48) — judgment: does a free-form numbered "Reviewer Guide" that treats the change as an aggregate refactor satisfy "flags this change under Novel Patterns"? Rules "no" — the change must be categorized under Novel Patterns (the baseline's content was strong but uncategorized and used non-canonical markers).
+- `grading-opus-4-8-without-eval-10.json` (spec 48) — judgment: does a populated "Reviewer Guide" with low-effort confirmation items satisfy the "no areas requiring special human review" message? Rules "no" — the bounded empty-guide body must be emitted, not a populated guide (parallels the eval-5 calls).
+- `grading-opus-4-8-without-eval-12.json` (spec 48) — judgment: does listing routine files (lockfile bump, README, formatting reflow, test stub) under a "skim only" section count as flagging them? Rules "yes, it flags them" — the skill's selectivity behavior omits them entirely, so the omit-* and is-selective assertions fail.
 
-The remaining 27 grading runs are not committed; the benchmark.json `expectations` array carries each one's verdict and evidence inline.
+The remaining 32 grading runs are not committed; the benchmark.json `expectations` array carries each one's verdict and evidence inline.
 
 ### Sonnet with_skill model-mismatch incident (recovered)
 
@@ -141,3 +172,19 @@ PR has a SQL migration with RENAME COLUMN, DROP COLUMN, SET NOT NULL, and a Grap
 ### Eval 8 — `concurrency-state`
 
 PR introduces worker threads with module-level shared mutable state. Both with-skill runs correctly produced a "Concurrency / State" section flagging activeJobCount/jobQueue and worker_threads. Both without-skill runs scored 2/4 — they discussed the concurrency content but didn't explicitly flag worker_threads as a new concurrency primitive (assertion 3) and didn't use the HTML markers (assertion 4). **Discriminates on:** worker_threads-as-novel flag and marker format, on both models (+0.50 delta).
+
+### Eval 9 — `sweeping-cross-cutting-refactor`
+
+(Opus 4.8 only, spec 48.) PR routes every route handler's error path through centralized middleware (`next(err)` replacing inline `console.error` + `res.status(500).json(...)`) across 24 handler files; the diff shows 3 representative files and states the other 21 are identical. With-skill (4/4) categorized the change once under Novel Patterns as a sweeping cross-cutting refactor, emitted a single aggregate entry (`src/handlers/*.ts` (24 handler files)) rather than 24 per-file entries, named the runtime behavior delta (logging relocated; status code and response body now produced by middleware), and used the canonical `<!-- pr-human-guide -->` markers. Without-skill (2/4) produced strong aggregate content — it too steered reviewers away from line-by-line reading and flagged the lost logging and the response-contract change — but used a non-canonical `<!-- review-guide:start -->` marker and a free-form numbered "Reviewer Guide" with no Novel Patterns categorization. **Discriminates on:** the Novel Patterns categorization and marker format.
+
+### Eval 10 — `mechanical-rename-no-behavior-delta`
+
+(Opus 4.8 only, spec 48.) Negative guardrail: a pure single-token rename (`computeTotal` → `calculateTotal`) exhaustively substituted across 25 internal call sites, with no signature, behavior, or public-API change. With-skill (3/3) correctly classified every file as `(none)` — citing the "single-token rename … does NOT qualify" rule and the Selectivity Threshold ("file count alone is not a flagging signal") — and emitted the bounded "No areas requiring special human review attention were identified." body inside canonical markers. Without-skill (1/3) reached the same honest conclusion ("nothing in this PR needs careful human judgment") but wrapped it in a full "Reviewer Guide" with three confirmation items and used no HTML markers, so it failed both the bounded-no-areas-message and exact-markers assertions. **Discriminates on:** the bounded no-areas body and marker format. Confirms the skill does not misfire the sweeping-refactor signal on a high-file-count mechanical change.
+
+### Eval 11 — `high-fanout-core-helper`
+
+(Opus 4.8 only, spec 48.) Non-trivial behavior change to `src/lib/http.ts` — the request helper imported by every service: default timeout 30s→5s plus a new retry-on-5xx loop. With-skill (4/4) flagged it under Novel Patterns as a high-fanout core helper edit (the `lib/*` path triggered importer sampling), noted the broad impact across callers, named the behavior change, and used canonical markers. Without-skill (3/4) flagged the high-fanout helper, its large blast radius, and the timeout/retry behavior change just as well on its own — only the canonical-marker assertion failed. **Weakly discriminating:** the skill's measured edge here is the structured marker format, not the detection of the high-fanout concern itself (the strong Opus baseline already catches it).
+
+### Eval 12 — `selectivity-over-flagging`
+
+(Opus 4.8 only, spec 48.) A busy PR where only one change warrants a flag — rate limiting added to the login endpoint (Security) — alongside a `package-lock.json` patch bump, a README edit, a whitespace-only reformat of `src/utils/format.ts`, and a new test file, all of which fall under "What does NOT qualify" / Selectivity Threshold exceptions. With-skill (4/4) flagged only the login rate-limit change (one item, one Security category) and explicitly listed the four routine files as deliberately not flagged. Without-skill (1/4) flagged the security change correctly but then enumerated all four routine files in a "skim only" section — even asking the reviewer to confirm the test stub "asserts something before merge" — failing the omit-lockfile, omit-docs/test/formatting, and is-selective assertions. **Strongest new discriminator:** captures the over-flagging failure mode precisely (the baseline emitted an entry for every changed file).

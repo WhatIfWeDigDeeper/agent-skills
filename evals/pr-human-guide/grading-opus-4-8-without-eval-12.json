@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "passed": 1,
+    "failed": 3,
+    "total": 4,
+    "pass_rate": 0.25
+  },
+  "expectations": [
+    {
+      "text": "The review guide flags the login rate-limiting change (Security category) as warranting review",
+      "passed": true,
+      "evidence": "'Focus here - needs human judgment: Rate limiting on the login endpoint.'"
+    },
+    {
+      "text": "The review guide does NOT flag the package-lock.json patch version bump (version-only / auto-generated)",
+      "passed": false,
+      "evidence": "Lists 'package-lock.json - express 4.18.1 -> 4.18.2, a patch bump' under 'Lower-risk - skim only' rather than omitting it."
+    },
+    {
+      "text": "The review guide does NOT flag the README update, the whitespace-only reformat of src/utils/format.ts, or the new test file",
+      "passed": false,
+      "evidence": "Enumerates README, src/utils/format.ts, and the new test (flagged: 'confirm it is actually filled in / asserts something before merge') in the guide."
+    },
+    {
+      "text": "The guide flags only the genuinely risky area (the rate-limit change); it does not emit a section or entry for every changed file",
+      "passed": false,
+      "evidence": "Emits an entry for all five changed files (one focus + four skim), not only the risky one."
+    }
+  ],
+  "notes": "Judgment: does listing the four routine files (lockfile bump, README, formatting reflow, test stub) under a 'Lower-risk \u2014 skim only' section count as flagging them? Ruled 'yes, it flags them' \u2014 the skill's selectivity behavior is to omit them entirely, and the baseline even asked the reviewer to verify the test stub 'asserts something before merge'. omits-lockfile-bump, omits-docs-test-and-formatting, and is-selective all ruled 'no'; flags-security-change ruled 'yes'."
+}

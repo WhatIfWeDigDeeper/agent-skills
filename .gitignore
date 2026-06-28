@@ -3,6 +3,7 @@
 evals/*/workspace/
 __pycache__/
 .agents/
+.superpowers/
 .claude/skills/
 .claude/worktrees/
 .claude/scheduled_tasks.lock

@@ -1,0 +1,26 @@
+{
+  "summary": {
+    "passed": 1,
+    "failed": 2,
+    "total": 3,
+    "pass_rate": 0.3333
+  },
+  "expectations": [
+    {
+      "text": "The review guide does NOT flag the rename under Novel Patterns or any other category \u2014 it is a pure mechanical substitution with no behavior delta, and file count alone is not a flagging signal",
+      "passed": true,
+      "evidence": "'nothing in this PR needs careful human judgment'; no risk category manufactured."
+    },
+    {
+      "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
+      "passed": false,
+      "evidence": "Emits a full '## Reviewer Guide' with three 'quick confirmation' items rather than the bounded 'no areas requiring special human review' body."
+    },
+    {
+      "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats)",
+      "passed": false,
+      "evidence": "No HTML comment markers at all - plain '## Reviewer Guide' heading."
+    }
+  ],
+  "notes": "Judgment (parallels the eval-5 no-areas calls): does a full 'Reviewer Guide' with three low-effort confirmation items satisfy 'the body contains the message indicating no areas requiring special human review were identified'? Ruled 'no' \u2014 the bounded empty-guide body must be emitted, not a populated guide; the baseline produced content rather than the no-areas variant. does-not-flag-rename ruled 'yes' (no risk category manufactured)."
+}
