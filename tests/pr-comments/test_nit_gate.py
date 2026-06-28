@@ -112,6 +112,30 @@ class TestIsNitActionGating:
         assert is_nit("nit: rename for consistency", "consistency") is False
 
 
+class TestStep5CarveOut:
+    """Step 5 carve-out: an oversized comment, or any comment Step 5 flagged for
+    manual review, is **never** a nit — even if its body reads as cosmetic
+    (SKILL.md Step 6). `is_nit` is body-only and cannot enforce this; the
+    carve-out excludes such rows upstream before tagging (see the `is_nit`
+    docstring). These tests pin the contract so the carve-out is not silently
+    lost: tagging an oversized cosmetic row `nit` would divert it to the
+    lightweight nit table and drop Step 5's "manual review recommended" caveat.
+    """
+
+    def test_is_nit_is_body_only_and_cannot_enforce_the_carve_out(self):
+        # A cosmetic body tags True on its own merits — nothing in is_nit knows
+        # the comment was oversized or Step-5-flagged. Enforcement MUST happen
+        # upstream, which is why such a row must reach tagging already nit=False.
+        assert is_nit("typo: fix the heading spelling", "fix") is True
+
+    def test_carved_out_row_modeled_as_non_nit_disqualifies_gate(self):
+        # When Step 5 correctly carves out an oversized/flagged cosmetic comment,
+        # the row arrives as an actionable fix with nit=False — which disqualifies
+        # the Step 6d gate, routing to Step 7 where Step 5's caveat is preserved.
+        rows = [{"action": "fix", "nit": False}]
+        assert should_present_nit_table(rows) is False
+
+
 class TestShouldPresentNitTable:
     """Step 6d gate trigger: auto mode, ≥1 actionable row, all actionable nits."""
 

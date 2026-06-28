@@ -80,7 +80,8 @@ Per nit — fix / skip / issue:
 
 Apply the mixed outcome: `fix` rows go through Steps 8–13; `skip` rows get the
 skip-nit reply; `issue` rows go through the Step 11 issue flow with an
-issue-link reply. **Continue the loop only if ≥1 nit was fixed** (a commit was
+issue-link reply (always one issue per nit here — the grouped-issue offer
+applies only to `issue-all`). **Continue the loop only if ≥1 nit was fixed** (a commit was
 produced); if every selected row was skip/issue, exit to Step 14 like
 `skip-all`.
 
@@ -90,10 +91,27 @@ produced); if every selected row was skip/issue, exit to Step 14 like
   iteration. A `fix-all` or `select`-with-≥1-fix that resumes the loop consumes
   one iteration exactly as a normal fix round does (so `--max` still bounds total
   commits). `skip-all` and `issue-all` exit and consume none.
+- **Pending async bots on exit:** `skip-all` and `issue-all` exit the loop
+  immediately. Unlike the Step 6c all-skip repoll gate, they do **not** wait for
+  a bot whose review is still generating, so a still-pending substantive review
+  is deferred to the next invocation rather than caught this run. This is
+  intentional — the same deferral as a human comment arriving mid-run; the next
+  `/pr-comments` invocation picks it up.
 - **Thread state on skip/issue:** a skipped or issue-deferred nit's reply
-  **leaves the bot thread open** — do **not** resolve it (this applies to
-  inline-originated nits, which have a review thread; review-body and timeline
-  nits have no thread to resolve). This lets the Step 6
-  "previously-handled skip" exact-login match self-terminate the thread on the
-  next invocation, and lets an edit-after-reply re-surface it if the bot follows
-  up.
+  **leaves the bot thread open** — do **not** resolve it. How the nit avoids
+  re-surfacing (and re-triggering this gate) on the next invocation depends on
+  where it originated:
+  - **Inline** nits have a review thread: the Step 6 "previously-handled skip"
+    exact-`login` match self-terminates it on the next run, and an
+    edit-after-reply re-surfaces it if the bot follows up.
+  - **Timeline** nits have no thread, but the skip/issue reply's
+    `@{commenter_login}` + `>` quote (required by `references/reply-formats.md`)
+    is recognized by the Step 2c linkage dedup, which marks the comment `skip`
+    next run. The `@mention` + quote is therefore load-bearing for
+    self-termination, not just notification.
+  - **Review-body** nits have neither a thread nor a Step 2b dedup, so a
+    skipped/issued review-body nit can re-trigger this gate on a later run if it
+    remains the only actionable row. This is a pre-existing skill limitation
+    (normal review-body replies/declines re-surface the same way), and review
+    bodies are rarely actionable nits, so the case is narrow — the next
+    invocation simply re-presents it.
