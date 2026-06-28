@@ -306,8 +306,10 @@ executor model **claude-opus-4-8**.
   `eval_name`, `prompt`, `assertions: []`) into both config dirs.
 - [x] **Step 2.2:** Spawn the 8 executor subagents. Each executor prompt MUST:
   - Receive only the eval `prompt` and this setup (NEVER the assertion text).
-  - `mktemp -d` a workspace under `${TMPDIR:-/private/tmp}`, write any needed
-    fixture context there, `cd` in.
+  - `mktemp -d "${TMPDIR:-/private/tmp}/phg-eval-XXXXXX"` a workspace with an
+    explicit template (bare `mktemp -d` falls back to `/tmp` when `$TMPDIR` is
+    unset, which this repo treats as non-writable in sandboxed runs), write any
+    needed fixture context there, `cd` in.
   - **Not call the `Skill` tool.** `with_skill`: read
     `skills/pr-human-guide/SKILL.md` + referenced files and do the work directly.
     `without_skill`: do NOT read `skills/pr-human-guide/SKILL.md` or
