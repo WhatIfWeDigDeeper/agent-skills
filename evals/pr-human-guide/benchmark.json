@@ -21,6 +21,14 @@
         "timestamp": "2026-04-28T00:00:00Z",
         "runs_per_configuration": 1,
         "notes": "8 evals \u00d7 2 configurations = 16 runs at SKILL.md v0.7, all run_number == 1. Analyzer is claude-sonnet-4-6 for analyzer-uniformity. Per-run time_seconds, tokens, cache_tokens, tool_calls, and errors are extracted from the executor subagent JSONL transcripts (tokens = input + output; cache_tokens = creation + reads, kept separate)."
+      },
+      {
+        "executor_model": "claude-opus-4-8",
+        "analyzer_model": "claude-opus-4-8",
+        "skill_version": "0.13",
+        "timestamp": "2026-06-28T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "Spec 48 coverage addition: 4 new evals (9-12) x 2 configurations = 8 runs on SKILL.md v0.13, all run_number == 1. This is a partial set covering the two impact-risk Novel Patterns signals deferred by spec 40 (sweeping cross-cutting refactor, high-fanout core helper edit), a negative rename guardrail, and the previously-unmeasured Selectivity Threshold. Run only on claude-opus-4-8 by design (the historical evals 1-8 v0.7 Sonnet/Opus rows are left unchanged). Grading was performed inline by the controller (claude-opus-4-8) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors are extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). top-level metadata.skill_version stays '0.7' per the existing convention that it reflects the version of the recorded full-suite runs; this partial set is version-noted here and in benchmark.md."
       }
     ],
     "timestamp": "2026-04-28T00:00:00Z",
@@ -32,7 +40,11 @@
       5,
       6,
       7,
-      8
+      8,
+      9,
+      10,
+      11,
+      12
     ],
     "runs_per_configuration": 1
   },
@@ -40,7 +52,8 @@
     "Multi-model framing: Sonnet 4.6 and Opus 4.7 both ran the full 8-eval suite at SKILL.md v0.7. The previous v0.1 Sonnet runs were removed (git history retains the prior shape) so both models share an apples-to-apples skill version.",
     "Per-run stats are aggregated from the per-agent JSONL transcripts. time_seconds = max-minus-min event timestamp. tokens = input_tokens + output_tokens summed across all assistant turns (matches the repo's learn / pr-comments / peer-review convention \u2014 the 'new work' that drives full-rate billing). cache_tokens = cache_creation_input_tokens + cache_read_input_tokens summed similarly; this is tracked separately because cache reads (0.1x rate) dominate the volume but not the cost. tool_calls = count of tool_use content blocks. errors = count of tool_result blocks with is_error: true.",
     "Sonnet with_skill runs were re-spawned to correct an executor-model mismatch: the first batch hit transient 529 errors at spawn time, was resumed via SendMessage, and the resume path inherited the parent's claude-opus-4-7 instead of the original claude-sonnet-4-6 model. The re-spawns ran cleanly on Sonnet 4.6, verified by inspecting message.model in each agent's JSONL.",
-    "Two Sonnet without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool despite the SKILL.md/references read prohibition; those runs were re-spawned with explicit Skill-tool prohibition added to the executor prompt, and only the clean re-runs are recorded."
+    "Two Sonnet without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool despite the SKILL.md/references read prohibition; those runs were re-spawned with explicit Skill-tool prohibition added to the executor prompt, and only the clean re-runs are recorded.",
+    "Evals 9-12 (executor claude-opus-4-8, SKILL.md v0.13, spec 48) are a partial coverage set, not part of the v0.7 full-suite headline delta. Per-eval discrimination holds: eval 9 with/without = 4/4 vs 2/4; eval 10 = 3/3 vs 1/3; eval 11 = 4/4 vs 3/4; eval 12 = 4/4 vs 1/4. Eval 11 is weakly discriminating (baseline flags the high-fanout helper, broad impact, and behavior change on its own; only the canonical-marker assertion fails). Eval 12 (selectivity) is the strongest new discriminator: the baseline emitted a guide entry for all five changed files, including asking to verify a test stub. No skill defect surfaced, so no version bump accompanies these runs. See run_summary_by_model['claude-opus-4-8'] for the new-set aggregate (with_skill pass_rate 1.00 vs without_skill 0.46, delta +0.54)."
   ],
   "runs": [
     {
@@ -1390,6 +1403,332 @@
       "notes": [
         "Without the skill, Opus produced a thorough freeform review with correct concurrency/state content and an accepted section header variant, but missed flagging worker_threads as a new primitive (treated it as a lifecycle/error concern instead) and omitted the required HTML comment markers. Same pattern as sonnet/without."
       ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "sweeping-cross-cutting-refactor",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 77.15,
+        "tokens": 45038,
+        "cache_tokens": 635809,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide flags this change under Novel Patterns (as a sweeping cross-cutting refactor / aggregate transformation)",
+          "passed": true,
+          "evidence": "Internal table categorizes the change as 'Novel Patterns (Sweeping cross-cutting refactor)'; guide emits a '### Novel Patterns' section."
+        },
+        {
+          "text": "The review guide treats the refactor as a single aggregate item rather than creating a separate flagged entry for each of the 24 handler files",
+          "passed": true,
+          "evidence": "Single guide entry '`src/handlers/*.ts` (24 handler files)' \u2014 'flagged once at the aggregate level, not 24 times.'"
+        },
+        {
+          "text": "The review guide identifies the runtime behavior/contract change (errors now routed through centralized middleware instead of each handler returning its own 500 response), not merely that many files changed",
+          "passed": true,
+          "evidence": "'Carries a runtime behavior delta (logging relocated; status code and response body now decided by middleware, not the handler).'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "Guide wrapped in '<!-- pr-human-guide -->' ... '<!-- /pr-human-guide -->'."
+        }
+      ],
+      "notes": "Positive probe for the Sweeping cross-cutting refactor signal (spec 40 fixture #1). Flagged once at aggregate level under Novel Patterns with the behavior delta named; canonical markers present."
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "sweeping-cross-cutting-refactor",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 55.16,
+        "tokens": 19171,
+        "cache_tokens": 207261,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide flags this change under Novel Patterns (as a sweeping cross-cutting refactor / aggregate transformation)",
+          "passed": false,
+          "evidence": "No 'Novel Patterns' category; baseline uses a free-form '## Reviewer Guide' with numbered sections 1-5."
+        },
+        {
+          "text": "The review guide treats the refactor as a single aggregate item rather than creating a separate flagged entry for each of the 24 handler files",
+          "passed": true,
+          "evidence": "'The right review strategy is not to read all 24 diffs line-by-line'; treats the sweep as one aggregate item."
+        },
+        {
+          "text": "The review guide identifies the runtime behavior/contract change (errors now routed through centralized middleware instead of each handler returning its own 500 response), not merely that many files changed",
+          "passed": true,
+          "evidence": "Item 2 'Lost logging - behavior change, not just refactor'; item 3 'Response-contract change (status code + body shape).'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "Uses non-canonical '<!-- review-guide:start -->' / '<!-- review-guide:end -->' markers, not '<!-- pr-human-guide -->'."
+        }
+      ],
+      "notes": "Discriminates on markers and the Novel Patterns categorization: baseline produced strong aggregate content but used non-canonical '<!-- review-guide:start -->' markers and a free-form numbered guide."
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "mechanical-rename-no-behavior-delta",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 55.07,
+        "tokens": 30783,
+        "cache_tokens": 487228,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide does NOT flag the rename under Novel Patterns or any other category \u2014 it is a pure mechanical substitution with no behavior delta, and file count alone is not a flagging signal",
+          "passed": true,
+          "evidence": "All files classified '(none)'; 'single-token rename where the new name is exhaustively substituted ... does NOT qualify'; no category produces an item."
+        },
+        {
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "passed": true,
+          "evidence": "Guide body: 'No areas requiring special human review attention were identified.'"
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats)",
+          "passed": true,
+          "evidence": "Body wrapped in '<!-- pr-human-guide -->' ... '<!-- /pr-human-guide -->'."
+        }
+      ],
+      "notes": "Negative guardrail for the rename exception: correctly did NOT flag the exhaustive single-token rename and emitted the bounded 'no areas' body with canonical markers."
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "mechanical-rename-no-behavior-delta",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.3333,
+        "passed": 1,
+        "failed": 2,
+        "total": 3,
+        "time_seconds": 34.93,
+        "tokens": 18890,
+        "cache_tokens": 204074,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide does NOT flag the rename under Novel Patterns or any other category \u2014 it is a pure mechanical substitution with no behavior delta, and file count alone is not a flagging signal",
+          "passed": true,
+          "evidence": "'nothing in this PR needs careful human judgment'; no risk category manufactured."
+        },
+        {
+          "text": "The review guide body contains the message indicating no areas requiring special human review were identified",
+          "passed": false,
+          "evidence": "Emits a full '## Reviewer Guide' with three 'quick confirmation' items rather than the bounded 'no areas requiring special human review' body."
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats)",
+          "passed": false,
+          "evidence": "No HTML comment markers at all - plain '## Reviewer Guide' heading."
+        }
+      ],
+      "notes": "Discriminates on markers and the bounded no-areas body: baseline emitted a full Reviewer Guide with three confirmation items and no HTML markers."
+    },
+    {
+      "eval_id": 11,
+      "eval_name": "high-fanout-core-helper",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 72.5,
+        "tokens": 39610,
+        "cache_tokens": 496083,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide flags the change to the shared HTTP client (src/lib/http.ts) under Novel Patterns / as a high-fanout core helper edit",
+          "passed": true,
+          "evidence": "Table categorizes 'src/lib/http.ts' as 'Novel Patterns (High-fanout core helper edit)'; 'changed file path matches the typically-shared lib/* layout, so importer-sampling fires.'"
+        },
+        {
+          "text": "The review guide notes the change affects callers across the codebase (impact extends beyond the single file because the helper is broadly imported)",
+          "passed": true,
+          "evidence": "'the request helper every service imports'; 'confirm retrying is safe for non-idempotent callers ... fits all consumers.'"
+        },
+        {
+          "text": "The review guide identifies the behavior change (shortened default timeout and/or new retry-on-5xx loop) as the reviewer-relevant concern",
+          "passed": true,
+          "evidence": "'a new retry-on-failure loop ... and (2) the default timeout drops from 30s to 5s.'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": true,
+          "evidence": "Guide wrapped in '<!-- pr-human-guide -->' ... '<!-- /pr-human-guide -->'."
+        }
+      ],
+      "notes": "Positive probe for the High-fanout core helper signal (spec 40 fixture #3). lib/* path triggered importer sampling; flagged broad impact + behavior change with canonical markers."
+    },
+    {
+      "eval_id": 11,
+      "eval_name": "high-fanout-core-helper",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 48.33,
+        "tokens": 19752,
+        "cache_tokens": 173334,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide flags the change to the shared HTTP client (src/lib/http.ts) under Novel Patterns / as a high-fanout core helper edit",
+          "passed": true,
+          "evidence": "'## Review guide' flags 'src/lib/http.ts, the request helper imported by every service ... blast radius is large' under 'High priority - behavior change for all callers.'"
+        },
+        {
+          "text": "The review guide notes the change affects callers across the codebase (impact extends beyond the single file because the helper is broadly imported)",
+          "passed": true,
+          "evidence": "'a behavior change here ships to all callers at once.'"
+        },
+        {
+          "text": "The review guide identifies the behavior change (shortened default timeout and/or new retry-on-5xx loop) as the reviewer-relevant concern",
+          "passed": true,
+          "evidence": "'Default timeout cut 6x (30000ms -> 5000ms)'; 'Retries on non-idempotent requests.'"
+        },
+        {
+          "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+          "passed": false,
+          "evidence": "No canonical markers - plain '## Review guide' heading, no '<!-- pr-human-guide -->'."
+        }
+      ],
+      "notes": "Weakly discriminating: baseline flags the high-fanout helper, broad impact, and behavior change well on its own; only the canonical-marker assertion fails. The skill's edge here is the structured marker format."
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "selectivity-over-flagging",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 60.44,
+        "tokens": 38805,
+        "cache_tokens": 502762,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide flags the login rate-limiting change (Security category) as warranting review",
+          "passed": true,
+          "evidence": "'### Security' entry flags 'src/auth/login.ts' new IP-based rate limiting on the login endpoint."
+        },
+        {
+          "text": "The review guide does NOT flag the package-lock.json patch version bump (version-only / auto-generated)",
+          "passed": true,
+          "evidence": "'package-lock.json - express 4.18.1 -> 4.18.2 is a patch bump ... does NOT qualify' - deliberately not flagged."
+        },
+        {
+          "text": "The review guide does NOT flag the README update, the whitespace-only reformat of src/utils/format.ts, or the new test file",
+          "passed": true,
+          "evidence": "README (docs), src/utils/format.ts (formatting-only), tests/auth/login.test.ts (test file) each listed as deliberately NOT flagged."
+        },
+        {
+          "text": "The guide flags only the genuinely risky area (the rate-limit change); it does not emit a section or entry for every changed file",
+          "passed": true,
+          "evidence": "Only one guide item across one category; report: '1 item across 1 category.'"
+        }
+      ],
+      "notes": "Selectivity probe: flagged only the login rate-limit (Security) and deliberately omitted the lockfile bump, README, formatting reflow, and test file. One item, one category."
+    },
+    {
+      "eval_id": 12,
+      "eval_name": "selectivity-over-flagging",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 32.85,
+        "tokens": 19045,
+        "cache_tokens": 174591,
+        "tool_calls": 2,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The review guide flags the login rate-limiting change (Security category) as warranting review",
+          "passed": true,
+          "evidence": "'Focus here - needs human judgment: Rate limiting on the login endpoint.'"
+        },
+        {
+          "text": "The review guide does NOT flag the package-lock.json patch version bump (version-only / auto-generated)",
+          "passed": false,
+          "evidence": "Lists 'package-lock.json - express 4.18.1 -> 4.18.2, a patch bump' under 'Lower-risk - skim only' rather than omitting it."
+        },
+        {
+          "text": "The review guide does NOT flag the README update, the whitespace-only reformat of src/utils/format.ts, or the new test file",
+          "passed": false,
+          "evidence": "Enumerates README, src/utils/format.ts, and the new test (flagged: 'confirm it is actually filled in / asserts something before merge') in the guide."
+        },
+        {
+          "text": "The guide flags only the genuinely risky area (the rate-limit change); it does not emit a section or entry for every changed file",
+          "passed": false,
+          "evidence": "Emits an entry for all five changed files (one focus + four skim), not only the risky one."
+        }
+      ],
+      "notes": "Strongest new discriminator: baseline enumerated all five changed files (including asking to verify the test stub), exactly the over-flagging failure mode; only flags-security-change passes."
     }
   ],
   "run_summary_by_model": {
@@ -1511,6 +1850,66 @@
         "time_seconds": "+11.6",
         "tokens": "+1060",
         "cache_tokens": "+364303"
+      }
+    },
+    "claude-opus-4-8": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 1.0,
+          "stddev": 0.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 66.29,
+          "stddev": 10.2732,
+          "min": 55.07,
+          "max": 77.15
+        },
+        "tokens": {
+          "mean": 38559,
+          "stddev": 5876.7546,
+          "min": 30783,
+          "max": 45038
+        },
+        "cache_tokens": {
+          "mean": 530470.5,
+          "stddev": 70513.2955,
+          "min": 487228,
+          "max": 635809
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.4583,
+          "stddev": 0.2205,
+          "min": 0.25,
+          "max": 0.75
+        },
+        "time_seconds": {
+          "mean": 42.8175,
+          "stddev": 10.7127,
+          "min": 32.85,
+          "max": 55.16
+        },
+        "tokens": {
+          "mean": 19214.5,
+          "stddev": 376.3106,
+          "min": 18890,
+          "max": 19752
+        },
+        "cache_tokens": {
+          "mean": 189815,
+          "stddev": 18358.2455,
+          "min": 173334,
+          "max": 207261
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.54",
+        "time_seconds": "+23.5",
+        "tokens": "+19344",
+        "cache_tokens": "+340656"
       }
     }
   },

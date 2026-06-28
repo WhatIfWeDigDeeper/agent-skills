@@ -284,14 +284,14 @@ wrapped in canonical markers.
 
 ### Steps
 
-- [ ] **Step 1.1:** Write a Python script (in scratchpad) that loads
+- [x] **Step 1.1:** Write a Python script (in scratchpad) that loads
   `evals/pr-human-guide/evals.json`, appends the four eval dicts above (ids 9–12)
   to `evals`, and writes the file back. To avoid reformatting the existing items,
   read the raw text and splice the 4 serialized objects before the final `]`
   (add a comma after eval 8); indent each with `textwrap.indent(json.dumps(obj, indent=2), '  ')`.
-- [ ] **Step 1.2:** Run it; then validate:
+- [x] **Step 1.2:** Run it; then validate:
   `python3 -c 'import json; d=json.load(open("evals/pr-human-guide/evals.json")); assert [e["id"] for e in d["evals"]][-4:]==[9,10,11,12]; print("ok", len(d["evals"]))'`
-- [ ] **Step 1.3:** `git add evals/pr-human-guide/evals.json && git commit -m "test(pr-human-guide): add evals 9-12 for impact-risk signals + selectivity (spec 48)"`
+- [x] **Step 1.3:** `git add evals/pr-human-guide/evals.json && git commit -m "test(pr-human-guide): add evals 9-12 for impact-risk signals + selectivity (spec 48)"`
 
 ---
 
@@ -302,9 +302,9 @@ wrapped in canonical markers.
 Spawn **all 8 subagents in the same turn** (4 evals × 2 configs), `mode: "auto"`,
 executor model **claude-opus-4-8**.
 
-- [ ] **Step 2.1:** For each eval, write `eval_metadata.json` (`eval_id`,
+- [x] **Step 2.1:** For each eval, write `eval_metadata.json` (`eval_id`,
   `eval_name`, `prompt`, `assertions: []`) into both config dirs.
-- [ ] **Step 2.2:** Spawn the 8 executor subagents. Each executor prompt MUST:
+- [x] **Step 2.2:** Spawn the 8 executor subagents. Each executor prompt MUST:
   - Receive only the eval `prompt` and this setup (NEVER the assertion text).
   - `mktemp -d` a workspace under `${TMPDIR:-/private/tmp}`, write any needed
     fixture context there, `cd` in.
@@ -316,7 +316,7 @@ executor model **claude-opus-4-8**.
     body that would be posted; do not hit GitHub.
   - Save the final guide + terminal report to
     `evals/pr-human-guide/workspace/iteration-2/eval-<N>-<name>/<config>/output.md`.
-- [ ] **Step 2.3:** As each task notification arrives, write its `total_tokens` /
+- [x] **Step 2.3:** As each task notification arrives, write its `total_tokens` /
   `duration_ms` into `…/<config>/timing.json` (this is the only chance to capture
   it).
 
@@ -326,15 +326,15 @@ executor model **claude-opus-4-8**.
 
 **Files:** Create `evals/pr-human-guide/workspace/iteration-2/eval-<N>-<name>/<config>/grading.json`
 
-- [ ] **Step 3.1:** Grade each run against its assertions. Pass the **full
+- [x] **Step 3.1:** Grade each run against its assertions. Pass the **full
   assertion text** strings (not ids) to the grader. Use a script for mechanical
   checks (marker presence, section-name presence, per-file entry counts, "no
   areas" phrase); judgment inline for selectivity/aggregate.
-- [ ] **Step 3.2:** Write each `grading.json` with shape
+- [x] **Step 3.2:** Write each `grading.json` with shape
   `{"summary": {"passed":N,"failed":N,"total":N,"pass_rate":0.N}, "expectations":[{"text":"…","passed":bool,"evidence":"…"}]}`.
   Field names exactly `text`/`passed`/`evidence`. Evidence repo-relative, no
   absolute paths.
-- [ ] **Step 3.3:** Confirm each new eval discriminates (≥1 assertion fails
+- [x] **Step 3.3:** Confirm each new eval discriminates (≥1 assertion fails
   without_skill). If any does not, note it (do not fabricate a delta).
 
 ---
@@ -343,18 +343,18 @@ executor model **claude-opus-4-8**.
 
 **Files:** Modify `evals/pr-human-guide/benchmark.json`
 
-- [ ] **Step 4.1:** Append 8 run entries (evals 9–12 × 2 configs), executor model
+- [x] **Step 4.1:** Append 8 run entries (evals 9–12 × 2 configs), executor model
   `claude-opus-4-8`, with `eval_name`, `pass_rate`, `passed`, `failed`, `total`,
   `expectations` (`{text,passed,evidence}` only), and `time_seconds`/`tokens`/
   `cache_tokens`/`tool_calls`/`errors` (`null` for any unrecorded measurement).
-- [ ] **Step 4.2:** Add an Opus-4.8 summary block (sample stddev, N−1) and a
+- [x] **Step 4.2:** Add an Opus-4.8 summary block (sample stddev, N−1) and a
   top-level `notes` entry naming the model + skill version v0.13; extend
   `metadata.evals_run` to `[1..12]`. Do NOT touch the 32 historical runs or their
   `run_summary`; leave `metadata.skill_version` at `"0.7"`.
-- [ ] **Step 4.3:** Validate JSON + key schema:
+- [x] **Step 4.3:** Validate JSON + key schema:
   `python3 -c 'import json; json.load(open("evals/pr-human-guide/benchmark.json"))'`
   and the `jq` expectation-keys check from plan Verification (returns `0`).
-- [ ] **Step 4.4:** Commit grading json **selectively** (only judgment-call
+- [x] **Step 4.4:** Commit grading json **selectively** (only judgment-call
   gradings, per `evals/CLAUDE.md`); do NOT commit raw transcripts.
 
 ---
@@ -363,28 +363,28 @@ executor model **claude-opus-4-8**.
 
 **Files:** Modify `evals/pr-human-guide/benchmark.md`, `README.md`, `cspell.config.yaml`
 
-- [ ] **Step 5.1:** Add `### v0.13 — Opus 4.8 coverage for impact-risk signals +
+- [x] **Step 5.1:** Add `### v0.13 — Opus 4.8 coverage for impact-risk signals +
   selectivity (spec 48)` under "Known Eval Limitations"; add four
   `### Eval N — \`name\`` per-eval sections; update the "Token statistics… N of M"
   denominator sentence to the new totals.
-- [ ] **Step 5.2:** Update the pr-human-guide `Eval cost` bullet in `README.md`
+- [x] **Step 5.2:** Update the pr-human-guide `Eval cost` bullet in `README.md`
   to note the coverage expansion + Opus 4.8 run. Leave the table `Eval Δ` cell
   unless the full-suite headline changes (it does not).
-- [ ] **Step 5.3:** `npx cspell evals/pr-human-guide/*.md specs/48-pr-human-guide-eval-coverage/*.md`;
+- [x] **Step 5.3:** `npx cspell evals/pr-human-guide/*.md specs/48-pr-human-guide-eval-coverage/*.md`;
   add any unknown terms to `cspell.config.yaml` in alphabetical position.
-- [ ] **Step 5.4:** Commit:
+- [x] **Step 5.4:** Commit:
   `git commit -m "docs(pr-human-guide): record Opus 4.8 coverage runs for evals 9-12 (spec 48)"`
 
 ---
 
 ## Task 6: Verify + review
 
-- [ ] **Step 6.1:** `uv run --with pytest pytest tests/pr-human-guide/` (lift
+- [x] **Step 6.1:** `uv run --with pytest pytest tests/pr-human-guide/` (lift
   sandbox) — must stay **135 passed**.
-- [ ] **Step 6.2:** Re-validate both JSON files parse and the expectation-key
+- [x] **Step 6.2:** Re-validate both JSON files parse and the expectation-key
   `jq` check returns `0`.
-- [ ] **Step 6.3:** Launch the eval viewer
+- [x] **Step 6.3:** Launch the eval viewer
   (`generate_review.py` on `iteration-2`, `--skill-name pr-human-guide`,
   `--benchmark …/benchmark.json`) so outputs are reviewable.
-- [ ] **Step 6.4:** Report results; if any with_skill eval failed (skill defect),
+- [x] **Step 6.4:** Report results; if any with_skill eval failed (skill defect),
   surface it and propose a separate follow-up rather than editing the skill here.

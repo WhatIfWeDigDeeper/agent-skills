@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "expectations": [
+    {
+      "text": "The review guide flags this change under Novel Patterns (as a sweeping cross-cutting refactor / aggregate transformation)",
+      "passed": false,
+      "evidence": "No 'Novel Patterns' category; baseline uses a free-form '## Reviewer Guide' with numbered sections 1-5."
+    },
+    {
+      "text": "The review guide treats the refactor as a single aggregate item rather than creating a separate flagged entry for each of the 24 handler files",
+      "passed": true,
+      "evidence": "'The right review strategy is not to read all 24 diffs line-by-line'; treats the sweep as one aggregate item."
+    },
+    {
+      "text": "The review guide identifies the runtime behavior/contract change (errors now routed through centralized middleware instead of each handler returning its own 500 response), not merely that many files changed",
+      "passed": true,
+      "evidence": "Item 2 'Lost logging - behavior change, not just refactor'; item 3 'Response-contract change (status code + body shape).'"
+    },
+    {
+      "text": "The review guide is wrapped in <!-- pr-human-guide --> and <!-- /pr-human-guide --> markers",
+      "passed": false,
+      "evidence": "Uses non-canonical '<!-- review-guide:start -->' / '<!-- review-guide:end -->' markers, not '<!-- pr-human-guide -->'."
+    }
+  ],
+  "notes": "Judgment: the baseline produced strong aggregate refactor content (steered reviewers off line-by-line reading; flagged lost logging and the response-contract change) but under a free-form numbered 'Reviewer Guide', not a 'Novel Patterns' category, and with non-canonical '<!-- review-guide:start -->' markers. flags-as-novel-pattern ruled 'no' because the change is not categorized under Novel Patterns; flags-aggregate-not-per-file and notes-behavior-delta ruled 'yes' on content."
+}
