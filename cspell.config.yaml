@@ -121,6 +121,7 @@ words:
   - subshell
   - substep
   - substeps
+  - textwrap
   - tfvars
   - TOCTOU
   - toplevel
