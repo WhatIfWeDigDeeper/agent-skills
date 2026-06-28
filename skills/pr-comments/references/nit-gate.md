@@ -56,7 +56,7 @@ Then **exit the loop** and go to **Step 14** (report).
 
 ### `issue-all`
 
-File a follow-up GitHub issue per nit via the existing **Step 11**
+File follow-up GitHub issue(s) for the nits via the existing **Step 11**
 `gh issue create` flow. The user's `issue-all` choice **is** the
 pre-authorization named in Step 11's exception, so issues are created
 **immediately** — do not defer them to Step 14, and do not re-run Step 11's
