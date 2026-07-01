@@ -340,7 +340,7 @@ The subagent runs **only** `gh api` reads and `jq`. It performs **no** writes �
 
 ### VERDICT — what the subagent returns
 
-Return **only** this JSON object — no surrounding prose, explanation, or code fence commentary — so the main agent can parse and route on it deterministically (see **Handoff recipe** above).
+Return **only** this raw JSON object — no surrounding prose, explanation, or Markdown. In particular, do **not** wrap it in code fences (no triple-backtick block, `json`-tagged or otherwise) and add no code-fence commentary — so the main agent can parse and route on it deterministically (see **Handoff recipe** above). The main agent parses the returned text as JSON directly; a fenced or prose-wrapped response fails that parse and fail-safes to `timeout` (per the recipe), silently dropping a real `new_threads` / `all_clean` outcome.
 
 ```json
 {
