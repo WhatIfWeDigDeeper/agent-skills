@@ -310,7 +310,7 @@ The subagent runs the **exact same** detection logic as the inline fallback: it 
 
 ### Handoff recipe (main agent)
 
-When Tier 0 applies, the main agent hands off exactly like this — and does **not** also run the inline Tier 1/2/3 loop:
+When Tier 0 applies, the main agent hands off exactly like this — and does **not** also run the inline Tier 1/2/3 loop. In `--manual` mode this handoff happens **only after** the user accepts the polling offer (the stop-and-wait gate in **Manual mode** above); Tier 0 delegation replaces *how* the loop runs, not *whether* the manual-mode prompt gates it — never spawn the subagent before that gate is accepted.
 
 1. **Spawn** a background task (in Claude Code: a `run_in_background` Agent on a cheaper model tier — see **Model note**) with the **State handoff** fields below as its input and a **read-only** toolset (no write tools — see **Read-only constraint**).
 2. **End the turn.** The main agent takes no further action this turn: it does not enter the inline loop, does not poll itself, and does not re-run the Step 13b/6c setup. The runtime re-invokes it when the subagent completes.
@@ -332,7 +332,7 @@ The subagent holds no prior context. Main passes the full poll state:
 | `unresolved_thread_ids[]` | fresh snapshot (Shared Setup) | Signal 1 baseline |
 | `bot_logins[]` (canonical) | 6c setup / 13b reviewer list | Signal 2/3 per-bot equality match — never `endswith("[bot]")` |
 | `poll_interval_secs` (60), `timeout_secs` (600) | reference defaults | cadence + stop |
-| `mode` (auto/manual) | run mode | affects only whether main re-prompts on return; the subagent just watches |
+| `mode` (auto/manual) | run mode | main-agent UX state only — it governs the pre-poll manual-mode gate (the polling offer + stop-and-wait before spawn, per **Manual mode** above) and whether main re-prompts on return. The subagent **ignores** `mode` and just watches; it is passed for observability, not to change polling behavior. |
 
 ### Read-only constraint
 
