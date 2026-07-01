@@ -39,7 +39,9 @@ def _polling_subagent_section() -> str:
     """Return the text of the ## Polling subagent section only."""
     text = BOT_POLLING_MD.read_text(encoding="utf-8")
     start = text.index("## Polling subagent")
-    next_heading = text.index("\n## ", start + 1)
+    next_heading = text.find("\n## ", start + 1)
+    if next_heading == -1:  # section is last — slice to EOF
+        next_heading = len(text)
     return text[start:next_heading]
 
 
@@ -149,7 +151,7 @@ class TestReferenceProse:
     def test_section_documents_read_only_constraint(self):
         section = _polling_subagent_section()
         assert "read-only" in section.lower() or "read only" in section.lower()
-        assert "no** writes" in section.lower() or "no writes" in section.lower()
+        assert "**no** writes" in section or "no writes" in section.lower()
 
     def test_section_forbids_endswith_bot_matching(self):
         """Signals 2/3 must match the canonical login, never endswith("[bot]")."""
@@ -207,7 +209,7 @@ class TestReferenceProse:
         """
         section = _polling_subagent_section()
         assert "observability hint" in section
-        assert "all** comment surfaces" in section or "all comment surfaces" in section
+        assert "**all** comment surfaces" in section or "all comment surfaces" in section
 
     def test_all_clean_excludes_signal_3(self):
         """`all_clean` must exclude Signal 3, not only Signal 1.
