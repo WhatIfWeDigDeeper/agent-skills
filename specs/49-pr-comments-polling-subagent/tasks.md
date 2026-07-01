@@ -6,20 +6,20 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
 
 ## Phase 0: Baseline & re-verification
 
-- [ ] **0.1** Re-verify current state (it drifts): `rg '^  version:'
+- [x] **0.1** Re-verify current state (it drifts): `rg '^  version:'
   skills/pr-comments/SKILL.md`, `wc -l skills/pr-comments/SKILL.md`,
   `wc -l skills/pr-comments/references/bot-polling.md`, and
   `git log --oneline -3 -- skills/pr-comments/`. Expected at spec-write time:
   **v1.48, SKILL.md 491 lines, bot-polling.md 322 lines**.
-- [ ] **0.2** Read all `tests/pr-comments/` files; list every literal string /
+- [x] **0.2** Read all `tests/pr-comments/` files; list every literal string /
   behavior the new edits must preserve (signal names, canonical-login rule,
   tier model, all-skip routing). This change is additive — nothing existing
   should change semantics.
-- [ ] **0.3** Confirm no `Tier 0` / `Polling subagent` / `VERDICT` token already
+- [x] **0.3** Confirm no `Tier 0` / `Polling subagent` / `VERDICT` token already
   exists in the skill, references, tests, or evals
-  (`rg -rni 'tier 0|polling subagent|verdict' skills/pr-comments tests/pr-comments evals/pr-comments`)
+  (`rg -rni 'tier 0|polling subagent|verdict' skills/pr-comments tests/pr-comments evals/pr-comments evals/security/pr-comments.baseline.json`)
   so the new section introduces no collision.
-- [ ] **0.4** Pre-spec peer review — stage only the spec docs
+- [x] **0.4** Pre-spec peer review — stage only the spec docs
   (`git add specs/49-pr-comments-polling-subagent/plan.md specs/49-pr-comments-polling-subagent/tasks.md`),
   then run two independent reviewers over the staged diff:
   - **Claude** (local CLI): `claude -p "review staged files"`.
@@ -31,11 +31,31 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
   whichever reviewer still flags issues until both produce zero valid findings or
   iteration cap **3**.
   > The Claude pass already ran as the brainstorming inline self-review (caught
-  > and fixed the `reinvoke_needed` verdict inconsistency) — mark that reviewer's
+  > and *removed* a spurious `reinvoke_needed` verdict outcome — the no-Tier-0
+  > case is decided before spawn, so it is not a verdict; the contract's three
+  > outcomes are `new_threads`/`all_clean`/`timeout`) — mark that reviewer's
   > first pass complete and start Copilot fresh.
-- [ ] **0.5** Record a per-reviewer, per-iteration summary inline. Format:
+- [x] **0.5** Record a per-reviewer, per-iteration summary inline. Format:
   `{Reviewer} iteration N: K valid findings (X critical, Y major, Z minor). Applied all. {Brief note on themes.}`
-- [ ] **0.6** Commit the post-review spec docs as a single commit before Phase 1
+  - **Claude iteration 1:** 1 valid finding (0 critical, 0 major, 1 minor).
+    Applied. Removed the spurious `reinvoke_needed` 4th verdict outcome — a
+    subagent that only exists when a Tier-0 primitive is present can never
+    return "can't background-poll," so the no-Tier-0 case is decided pre-spawn,
+    not as a verdict. Fixed across tasks.md (3.1, 4.2) and plan.md (Risks,
+    Testing).
+  - **Copilot iteration 1:** 2 valid findings (0 critical, 1 major, 1 minor),
+    1 declined. Applied — (a) task 0.3 collision grep omitted
+    `evals/security/pr-comments.baseline.json` (where the pr-comments eval
+    artifact lives); added it. (b) task 0.4's `reinvoke_needed` note lacked
+    traceability; clarified the term was *removed* (not renamed) and named the
+    three real outcomes. Declined — plan.md Goal 3 "(Opus)" without an "in
+    Claude Code:" qualifier: the spec is a design doc that uses bare
+    `Opus`/`Sonnet` as shorthand throughout (diagram, Decisions); the
+    portability qualifier is enforced on shipped files via task 4.1, and
+    a single-spot edit would be internally inconsistent.
+  - Both reviewers clean at iteration 1 (no critical/blocking findings); exited
+    well under cap 3.
+- [x] **0.6** Commit the post-review spec docs as a single commit before Phase 1
   begins.
 
 ---
