@@ -19,16 +19,22 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
   exists in the skill, references, tests, or evals
   (`rg -rni 'tier 0|polling subagent|verdict' skills/pr-comments tests/pr-comments evals/pr-comments`)
   so the new section introduces no collision.
-- [ ] **0.4** Run the pre-spec consistency review. Stage only the spec docs
+- [ ] **0.4** Pre-spec peer review — stage only the spec docs
   (`git add specs/49-pr-comments-polling-subagent/plan.md specs/49-pr-comments-polling-subagent/tasks.md`),
-  then:
-  ```bash
-  claude -p "review staged files"
-  ```
+  then run two independent reviewers over the staged diff:
+  - **Claude** (local CLI): `claude -p "review staged files"`.
+  - **Copilot**: `/peer-review specs/49-pr-comments-polling-subagent/ with Copilot`
+    (needs network + session-state access — lift any sandbox restrictions; in
+    Claude Code: `dangerouslyDisableSandbox: true`).
+
   Apply valid findings, decline invalid findings with a short reason, and rerun
-  until zero valid findings or iteration cap 2.
-- [ ] **0.5** Record per-iteration summary inline in this task. Format:
-  `Iteration N: K valid findings (X critical, Y major, Z minor). Applied all. {Brief note on themes.}`
+  whichever reviewer still flags issues until both produce zero valid findings or
+  iteration cap **3**.
+  > The Claude pass already ran as the brainstorming inline self-review (caught
+  > and fixed the `reinvoke_needed` verdict inconsistency) — mark that reviewer's
+  > first pass complete and start Copilot fresh.
+- [ ] **0.5** Record a per-reviewer, per-iteration summary inline. Format:
+  `{Reviewer} iteration N: K valid findings (X critical, Y major, Z minor). Applied all. {Brief note on themes.}`
 - [ ] **0.6** Commit the post-review spec docs as a single commit before Phase 1
   begins.
 
@@ -118,18 +124,39 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
 
 ## Phase 5: Pre-ship peer review
 
-- [ ] **5.1** Stage the full diff and run the local `claude` CLI review
+*Fresh-context pass over the full implementation diff to catch drift. Exit
+condition: a pass produces zero valid findings. Iteration cap: 3.*
+
+- [ ] **5.1** Stage the full branch diff and run the local `claude` CLI review
   (`claude -p "review staged files"`, non-interactive). Apply valid findings;
-  decline invalid with a reason; cap at 2 iterations.
-- [ ] **5.2** Mirror any CLAUDE.md rule changes into
-  `.github/copilot-instructions.md` (instruction-sync CI check). This spec is not
-  expected to add CLAUDE.md rules, but confirm.
+  decline invalid with a short reason.
+- [ ] **5.2** Run `/peer-review with Copilot` over the same staged diff (needs
+  network + session-state access — lift any sandbox restrictions; in Claude Code:
+  `dangerouslyDisableSandbox: true`). Apply valid findings; decline invalid with
+  a short reason. Rerun 5.1/5.2 until both reviewers are clean or iteration cap 3.
+- [ ] **5.3** Record a per-reviewer, per-iteration summary inline.
 
 ---
 
 ## Phase 6: Ship
 
 - [ ] **6.1** Open the PR (`/ship-it` or `gh pr create`), then immediately run
-  `/pr-comments {pr}` per repo workflow; address `claude[bot]` review.
-- [ ] **6.2** Before reporting ready for human review, run `/pr-human-guide`.
-- [ ] **6.3** Verify CI green (`gh pr checks {pr}`) before merge-ready.
+  `/pr-comments {pr}` per repo workflow; loop until `claude[bot]` (and Copilot,
+  if requested) are clean with no new unresolved threads.
+- [ ] **6.2** Verify CI is green with `gh pr checks {pr}` — no check failing or
+  pending — **before** 6.3, so the human-review signal never fires on a red or
+  in-flight build. If a final commit from 6.1 left checks running, **poll** until
+  they settle (`"no checks reported"` is transient for ~60s after a push — re-poll
+  before trusting it). In practice the Copilot review in 6.1 usually outlasts the
+  checks, but repos with long-running checks need the poll.
+- [ ] **6.3** Run `/pr-human-guide {pr}` to annotate the PR for human reviewers.
+- [ ] **6.4** Run `/learn` on the branch before merge to capture any
+  implementation-discovered gotchas into **both** `CLAUDE.md` and
+  `.github/copilot-instructions.md` (the instruction-sync CI check enforces the
+  pairing; this replaces the old manual copilot-instructions mirror step). If
+  `/learn` produces a commit, it reopens the gates — re-run `/pr-comments {pr}`
+  and re-verify CI (6.2) before proceeding.
+- [ ] **6.5** Wait for human review — bot approval alone is not a merge signal.
+- [ ] **6.6** After approval, squash-merge (`gh pr merge --squash --delete-branch`)
+  and sync local `main` (`git status --porcelain` → stash if dirty →
+  `git pull --ff-only origin main` → pop).
