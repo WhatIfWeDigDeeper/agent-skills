@@ -143,19 +143,20 @@ condition: a pass produces zero valid findings. Iteration cap: 3.*
 - [ ] **6.1** Open the PR (`/ship-it` or `gh pr create`), then immediately run
   `/pr-comments {pr}` per repo workflow; loop until `claude[bot]` (and Copilot,
   if requested) are clean with no new unresolved threads.
-- [ ] **6.2** Verify CI is green with `gh pr checks {pr}` — no check failing or
-  pending — **before** 6.3, so the human-review signal never fires on a red or
-  in-flight build. If a final commit from 6.1 left checks running, **poll** until
-  they settle (`"no checks reported"` is transient for ~60s after a push — re-poll
-  before trusting it). In practice the Copilot review in 6.1 usually outlasts the
-  checks, but repos with long-running checks need the poll.
-- [ ] **6.3** Run `/pr-human-guide {pr}` to annotate the PR for human reviewers.
-- [ ] **6.4** Run `/learn` on the branch before merge to capture any
-  implementation-discovered gotchas into **both** `CLAUDE.md` and
-  `.github/copilot-instructions.md` (the instruction-sync CI check enforces the
-  pairing; this replaces the old manual copilot-instructions mirror step). If
-  `/learn` produces a commit, it reopens the gates — re-run `/pr-comments {pr}`
-  and re-verify CI (6.2) before proceeding.
+- [ ] **6.2** Run `/learn` on the branch to capture any implementation-discovered
+  gotchas into **both** `CLAUDE.md` and `.github/copilot-instructions.md` (the
+  instruction-sync CI check enforces the pairing; this replaces the old manual
+  copilot-instructions mirror step). Run it **here** — after the bots converge
+  but before the final CI/human-guide gates — so any `/learn` commit flows
+  through those gates once: if it commits, re-run `/pr-comments {pr}` and loop
+  back here before proceeding to 6.3.
+- [ ] **6.3** Verify CI is green with `gh pr checks {pr}` — no check failing or
+  pending — **before** 6.4, so the human-review signal never fires on a red or
+  in-flight build. If a final commit from 6.1/6.2 left checks running, **poll**
+  until they settle (`"no checks reported"` is transient for ~60s after a push —
+  re-poll before trusting it). In practice the Copilot review usually outlasts
+  the checks, but repos with long-running checks need the poll.
+- [ ] **6.4** Run `/pr-human-guide {pr}` to annotate the PR for human reviewers.
 - [ ] **6.5** Wait for human review — bot approval alone is not a merge signal.
 - [ ] **6.6** After approval, squash-merge (`gh pr merge --squash --delete-branch`)
   and sync local `main` (`git status --porcelain` → stash if dirty →
