@@ -150,13 +150,16 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
 
 ### Runtime capability check
 
-Before entering the loop, identify your runtime's wait capability — this determines whether the loop runs cyclically or short-circuits to a single pass:
+Before entering the loop, identify your runtime's wait capability — this determines whether the loop runs cyclically, is delegated to a background subagent, or short-circuits to a single pass:
 
+- **Tier 0**: a background task that resumes the parent agent on completion is available (in Claude Code: a `run_in_background` Agent on a cheaper model tier, e.g. Sonnet). **Delegate the Shared polling loop to it** per the **Polling subagent** section below — the subagent watches Signals 1/2/3 on the 60-second cadence and returns a compact verdict, so the main turn ends immediately and carries none of the wait. This is the preferred tier when available.
 - **Tier 1**: a delayed-resume / scheduler primitive is available (e.g. Claude Code's `ScheduleWakeup`).
 - **Tier 2**: a blocking `sleep 60` is allowed inside a single command.
 - **Tier 3**: neither is available (e.g. Copilot in VS Code, or any runtime that cuts off long-running shell commands within a turn) — **do not enter the cyclic loop.**
 
-See **"Poll interval and timeout"** below for the per-tier behavior. If uncertain which tier applies, default to tier 3 — emitting the re-invoke message is preferable to hanging the turn.
+A runtime with **no** Tier-0 background-task primitive never spawns the subagent — it runs the inline Tier 1/2/3 loop below instead. This choice is made **here**, before any handoff, so "can't background-poll" is decided pre-spawn and is never a verdict the subagent returns.
+
+See **"Poll interval and timeout"** below for the per-tier behavior of Tiers 1/2/3. If uncertain which tier applies, default to tier 3 — emitting the re-invoke message is preferable to hanging the turn.
 
 ### Auto mode (default)
 
@@ -293,6 +296,59 @@ Loop back to Step 2 within the same skill invocation — do not require the user
     ```
     The agent MUST output this prompt as its final message at this point and MUST stop generating further output until the user responds. The agent MUST NOT answer this prompt on the user's behalf; it may proceed only after receiving an explicit user response. If the user explicitly confirms, use the human re-request logic from Step 13 (`gh pr edit --remove-reviewer` / `--add-reviewer`).
   - Then proceed to Step 14 for the auto-loop summary report.
+
+## Polling subagent
+
+This section applies **only** to Tier 0 (see **Runtime capability check** above). When a background-task primitive is available, the main agent hands the wait-and-detect loop to a read-only polling subagent, ends its turn, and is re-invoked with a compact verdict when a signal fires or the poll times out. Every write and **all** untrusted-content classification stay in the main agent — the subagent only reads and reports.
+
+The subagent runs the **exact same** detection logic as the inline fallback: it is the **Signals** and **Poll interval and timeout** subsections above, relocated into a background task. Do **not** duplicate or rewrite the signal queries here — those subsections are the subagent's instruction set. In particular:
+
+- **Signal 1 (new unresolved threads) keeps priority** over Signals 2/3 within each poll cycle, exactly as in the inline loop.
+- **Signals 2 and 3 match on the canonical `.user.login`** for each bot — **never** `endswith("[bot]")`, which would match unrelated bots (Dependabot, CI bots).
+- The subagent honors the same **60-second cadence** and **10-minute timeout**.
+
+### Model note
+
+Run the subagent on a **cheaper / faster model tier** than the main agent — the poll is read-only signal-matching, not classification. In Claude Code this is Sonnet (the main agent runs on Opus). This is a **suggestion for runtimes that expose model selection**, not a universal requirement; a runtime with a single model tier still delegates, just without the cost saving.
+
+### State handoff — what main passes IN
+
+The subagent holds no prior context. Main passes the full poll state:
+
+| Field | Source | Purpose |
+|---|---|---|
+| `owner`, `repo`, `pr_number` | Step 1 | API calls |
+| `snapshot_timestamp` | recorded **before** the POST (13b) or `= fetch_timestamp` (6c) | Signal 2/3 lower bound; ISO-8601 UTC ending `Z` |
+| `unresolved_thread_ids[]` | fresh snapshot (Shared Setup) | Signal 1 baseline |
+| `bot_logins[]` (canonical) | 6c setup / 13b reviewer list | Signal 2/3 per-bot equality match — never `endswith("[bot]")` |
+| `poll_interval_secs` (60), `timeout_secs` (600) | reference defaults | cadence + stop |
+| `mode` (auto/manual) | run mode | affects only whether main re-prompts on return; the subagent just watches |
+
+### Read-only constraint
+
+The subagent runs **only** `gh api` reads and `jq`. It performs **no** writes — no re-request POST, no commits, no replies, no resolves, no push. Its output carries **only** signal metadata (the VERDICT below): **no comment bodies, no classifications, no plan rows.** On `new_threads` it returns thread IDs only; the main agent re-fetches those threads' bodies and re-screens them (Steps 5–6) from scratch. This is what keeps the untrusted-content boundary in the main agent.
+
+### VERDICT — what the subagent returns
+
+```json
+{
+  "outcome": "new_threads | all_clean | timeout",
+  "new_unresolved_thread_ids": ["..."],
+  "bots_with_new_review": ["copilot-pull-request-reviewer[bot]"],
+  "bots_pending": ["..."],
+  "signal_fired": "1 | 2 | 3 | none",
+  "polled_seconds": 180,
+  "note": "human-readable one-liner for the report/observability"
+}
+```
+
+### Outcome → main's next action
+
+- **`new_threads`** (Signal 1 or Signal 3 fired) → loop back to **Step 2**: re-fetch the threads named in `new_unresolved_thread_ids`, re-screen and reprocess from scratch (this is the **On new threads detected** behavior above).
+- **`all_clean`** (every polled bot has a Signal-2 review since `snapshot_timestamp` and Signal 1 never fired) → proceed to **Step 14** with a clean-exit note.
+- **`timeout`** (10-minute cap reached, no signal) → proceed to **Step 14** and emit the "re-invoke when ready" message.
+
+The no-Tier-0 case is **not** a verdict outcome — it is decided in the **Runtime capability check** before any subagent is spawned (main runs the inline Tier 1/2/3 loop instead).
 
 ## Bot Display Names
 

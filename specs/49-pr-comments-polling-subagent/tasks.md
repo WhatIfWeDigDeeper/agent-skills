@@ -62,7 +62,7 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
 
 ## Phase 1: Reference — add the Polling subagent path (`bot-polling.md`)
 
-- [ ] **1.1** In the **Runtime capability check** section, add **Tier 0** above
+- [x] **1.1** In the **Runtime capability check** section, add **Tier 0** above
   Tier 1: a background task that resumes the parent agent on completion is
   available (in Claude Code: a `run_in_background` Agent on a cheaper model tier,
   e.g. Sonnet) → delegate the Shared polling loop to it per the new **Polling
@@ -70,7 +70,7 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
   runtime with **no** Tier-0 primitive never spawns the subagent and runs the
   inline Tier 1/2/3 loop instead — decided here, *before* any handoff (so
   "can't background-poll" is not a verdict outcome).
-- [ ] **1.2** Add a new **`## Polling subagent`** section containing:
+- [x] **1.2** Add a new **`## Polling subagent`** section containing:
   - the **IN-state** table (owner/repo/pr_number, `snapshot_timestamp`,
     `unresolved_thread_ids[]`, canonical `bot_logins[]`, `poll_interval_secs`,
     `timeout_secs`, `mode`) with each field's source and purpose;
@@ -84,12 +84,12 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
   - the **outcome → main-action** mapping (`new_threads` → loop back to Step 2
     and re-screen; `all_clean` → Step 14 clean-exit note; `timeout` → Step 14
     re-invoke message).
-- [ ] **1.3** In the new section, **reference** the existing **Signals** and
+- [x] **1.3** In the new section, **reference** the existing **Signals** and
   **Poll interval and timeout** subsections as the spec of what the subagent
   runs — do **not** duplicate the signal queries. State explicitly that Signal 1
   keeps priority over Signals 2/3 inside the subagent and that Signal 2/3 match
   on the **canonical** `.user.login` (never `endswith("[bot]")`).
-- [ ] **1.4** Confirm the inline **Signals / Poll interval and timeout / On new
+- [x] **1.4** Confirm the inline **Signals / Poll interval and timeout / On new
   threads detected** subsections are unchanged (they remain the fallback and the
   subagent's instruction set).
 
@@ -97,18 +97,18 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
 
 ## Phase 2: SKILL.md wiring
 
-- [ ] **2.1** Step 6c: where it delegates to the Shared polling loop, add "(or
+- [x] **2.1** Step 6c: where it delegates to the Shared polling loop, add "(or
   delegate it to the polling subagent — see `references/bot-polling.md` →
   **Polling subagent**)." Anchor on the sentence containing "All-Skip Repoll
   Gate defined in `references/bot-polling.md`".
-- [ ] **2.2** Step 13b: where it says "Resume the shared bot-polling flow" /
+- [x] **2.2** Step 13b: where it says "Resume the shared bot-polling flow" /
   "proceed to the Shared polling loop," add the same parenthetical delegation
   pointer. Anchor on the sentence containing "Resume the shared bot-polling
   flow".
-- [ ] **2.3** Verify the pre-loop work is untouched: 6c's pending/post-fetch/
+- [x] **2.3** Verify the pre-loop work is untouched: 6c's pending/post-fetch/
   stale-HEAD checks and 13b's re-request POST + `review_requested` verification
   gate stay in the main agent (they are credentialed / classification work).
-- [ ] **2.4** Bump `metadata.version` in `skills/pr-comments/SKILL.md` (once).
+- [x] **2.4** Bump `metadata.version` in `skills/pr-comments/SKILL.md` (once).
   First run `git fetch origin && git diff origin/main -- skills/pr-comments/SKILL.md | rg '^\+  version:'`
   to confirm no bump already exists on the branch.
 
@@ -116,27 +116,27 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
 
 ## Phase 3: Tests
 
-- [ ] **3.1** Add `tests/pr-comments/` coverage asserting the `outcome` →
+- [x] **3.1** Add `tests/pr-comments/` coverage asserting the `outcome` →
   main-action mapping: each of `new_threads` / `all_clean` / `timeout` routes to
   the correct main step. Also assert the pre-spawn branch: no Tier-0 primitive →
   inline loop, no subagent.
-- [ ] **3.2** Add an assertion that the VERDICT contract carries **no**
+- [x] **3.2** Add an assertion that the VERDICT contract carries **no**
   comment-body / classification / plan-row fields (the security boundary — the
   subagent returns only signal metadata).
-- [ ] **3.3** Run `uv run --with pytest pytest tests/` (lift sandbox if the uv
+- [x] **3.3** Run `uv run --with pytest pytest tests/` (lift sandbox if the uv
   cache errors) — all existing + new tests green.
 
 ---
 
 ## Phase 4: Portability, spelling, security
 
-- [ ] **4.1** Grep the edited files for any hardcoded universal model/tool
+- [x] **4.1** Grep the edited files for any hardcoded universal model/tool
   requirement (`rg -n 'Sonnet|run_in_background|Agent tool' skills/pr-comments`)
   — every occurrence must carry an "in Claude Code:" qualifier or equivalent
   capability-neutral framing.
-- [ ] **4.2** `npx cspell "skills/pr-comments/**/*.md" "specs/49-pr-comments-polling-subagent/*.md"`
+- [x] **4.2** `npx cspell "skills/pr-comments/**/*.md" "specs/49-pr-comments-polling-subagent/*.md"`
   — add any new terms to `cspell.config.yaml` in alphabetical order.
-- [ ] **4.3** Re-run `bash evals/security/scan.sh` for pr-comments — confirm no
+- [x] **4.3** Re-run `bash evals/security/scan.sh` for pr-comments — confirm no
   new findings (subagent adds no ingestion). Refresh the baseline in-PR only if
   findings actually change (with justification per `evals/security/CLAUDE.md`).
 

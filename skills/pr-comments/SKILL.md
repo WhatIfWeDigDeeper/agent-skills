@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.48"
+  version: "1.49"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -243,7 +243,7 @@ After Step 6b, check whether the plan contains any actionable items. Actionable:
 
 Proceed with this step only if the plan is empty or **every** plan row's `Action` value is exactly `skip`. Otherwise skip this step entirely and proceed to Step 7.
 
-**You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all six steps in that section (pending-bot check, post-fetch review check, loop-back if post-fetch review found, polling if pending-but-not-yet-reviewed, stale-HEAD bot check, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated.
+**You must now execute the All-Skip Repoll Gate defined in `references/bot-polling.md` — Entry Point: All-Skip Repoll Gate.** Follow all six steps in that section (pending-bot check, post-fetch review check, loop-back if post-fetch review found, polling if pending-but-not-yet-reviewed, stale-HEAD bot check, and fall-through to Step 7). Do not proceed to Step 7 until that section's logic has been evaluated. When that section reaches the Shared polling loop, delegate it to the polling subagent if the runtime supports it — see `references/bot-polling.md` → **Polling subagent**.
 
 ### 6d. Nits-only gate
 
@@ -468,7 +468,7 @@ After the POST:
 1. Confirm the pre-POST snapshot was recorded (timestamp + unresolved thread IDs)
 2. Confirm the POST re-request was sent for each bot reviewer
 3. **Verify a `review_requested` event was actually emitted** — see `references/bot-polling.md` → **Entry from Step 13b**, step 4. GitHub silently no-ops the POST (HTTP 201, no event) for bots that have previously reviewed this PR. The check is global (any post-snapshot `review_requested` event), not per-bot.
-4. **Resume the shared bot-polling flow in `references/bot-polling.md` after its setup section** — do not restart the setup section (snapshot and POST are already done), but still follow any manual-mode poll-offer / stop-and-wait behavior before the signal-checking and loop-exit logic
+4. **Resume the shared bot-polling flow in `references/bot-polling.md` after its setup section** — do not restart the setup section (snapshot and POST are already done), but still follow any manual-mode poll-offer / stop-and-wait behavior before the signal-checking and loop-exit logic. When the runtime supports it, delegate the Shared polling loop to the polling subagent — see `references/bot-polling.md` → **Polling subagent**.
 
 ### 14. Report
 
