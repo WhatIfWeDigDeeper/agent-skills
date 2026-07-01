@@ -101,7 +101,7 @@ class TestPreSpawnBranch:
 class TestVerdictSecurityBoundary:
     """The VERDICT carries only signal metadata — never untrusted content."""
 
-    def test_clean_verdict_has_no_forbidden_fields(self):
+    def test_verdict_has_no_forbidden_fields(self):
         verdict = {
             "outcome": "new_threads",
             "new_unresolved_thread_ids": ["PRRT_abc"],
