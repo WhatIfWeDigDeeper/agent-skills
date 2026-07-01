@@ -308,6 +308,15 @@ The subagent runs the **exact same** detection logic as the inline fallback: it 
 - The subagent honors the same **60-second cadence** and **10-minute timeout**.
 - **Return timing:** the subagent returns **promptly** at the tick where Signal 1 or Signal 3 first fires (verdict `new_threads`) — it does **not** keep polling to the timeout. It returns `all_clean` at the tick where every polled bot has reported with no Signal 1/3 having fired, and `timeout` only when the 10-minute cap is reached first.
 
+### Handoff recipe (main agent)
+
+When Tier 0 applies, the main agent hands off exactly like this — and does **not** also run the inline Tier 1/2/3 loop:
+
+1. **Spawn** a background task (in Claude Code: a `run_in_background` Agent on a cheaper model tier — see **Model note**) with the **State handoff** fields below as its input and a **read-only** toolset (no write tools — see **Read-only constraint**).
+2. **End the turn.** The main agent takes no further action this turn: it does not enter the inline loop, does not poll itself, and does not re-run the Step 13b/6c setup. The runtime re-invokes it when the subagent completes.
+3. **On resume, parse the VERDICT.** The subagent returns **only** the VERDICT JSON object below — no surrounding prose — so main routes on it deterministically. If the returned text is not a single parseable VERDICT object, treat it as `timeout` (fail safe to the Step 14 "re-invoke when ready" message) rather than guessing an outcome.
+4. **Route** on `outcome` per **Outcome → main's next action** below.
+
 ### Model note
 
 Run the subagent on a **cheaper / faster model tier** than the main agent — the poll is read-only signal-matching, not classification. In Claude Code this is Sonnet (the main agent runs on Opus). This is a **suggestion for runtimes that expose model selection**, not a universal requirement; a runtime with a single model tier still delegates, just without the cost saving.
@@ -330,6 +339,8 @@ The subagent holds no prior context. Main passes the full poll state:
 The subagent runs **only** `gh api` reads and `jq`. It performs **no** writes — no re-request POST, no commits, no replies, no resolves, no push. Its output carries **only** signal metadata (the VERDICT below): **no comment bodies, no classifications, no plan rows.** The `note` field is a **status string only** (counts, bot logins, elapsed seconds) — never echo comment or review text into it. On `new_threads` it returns thread IDs only as an **observability hint** (not the re-fetch scope); the main agent runs the full **On new threads detected** re-fetch of **all** comment surfaces and re-screens (Steps 5–6) from scratch — so a Signal-3 timeline comment that carries no thread ID (leaving `new_unresolved_thread_ids` empty) is still picked up. This is what keeps the untrusted-content boundary in the main agent. This boundary is upheld by the subagent's instruction set **and** its read-only toolset (in Claude Code: the subagent is spawned without write tools) — it is a **trust boundary the handoff must enforce**, not a runtime sandbox guarantee, so the VERDICT allow-list and the `note` constraint are the controls that keep it honest.
 
 ### VERDICT — what the subagent returns
+
+Return **only** this JSON object — no surrounding prose, explanation, or code fence commentary — so the main agent can parse and route on it deterministically (see **Handoff recipe** above).
 
 ```json
 {
