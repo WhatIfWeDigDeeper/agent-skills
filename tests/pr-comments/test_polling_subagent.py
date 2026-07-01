@@ -13,6 +13,7 @@ and assert the reference prose documents the same contract, so bot-polling.md an
 the helpers cannot silently drift apart.
 """
 
+import json
 from pathlib import Path
 
 import pytest
@@ -39,6 +40,15 @@ def _polling_subagent_section() -> str:
     start = text.index("## Polling subagent")
     next_heading = text.index("\n## ", start + 1)
     return text[start:next_heading]
+
+
+def _documented_verdict_keys() -> set[str]:
+    """Parse the VERDICT ```json block in the section and return its key set."""
+    section = _polling_subagent_section()
+    fence = "```json"
+    start = section.index(fence) + len(fence)
+    end = section.index("```", start)
+    return set(json.loads(section[start:end]))
 
 
 class TestOutcomeToMainAction:
@@ -149,6 +159,54 @@ class TestReferenceProse:
     def test_section_notes_signal_1_priority(self):
         section = _polling_subagent_section()
         assert "Signal 1" in section and "priorit" in section.lower()
+
+    def test_documented_verdict_keys_match_allowed_fields(self):
+        """The VERDICT JSON block must not drift from the security allow-list.
+
+        If a field like ``comment_bodies`` is added to the documented block, or
+        an allowed field is renamed, this fails — the drift-guard the suite
+        advertises. ``verdict_forbidden_fields`` alone can't catch this because
+        nothing feeds it the *documented* shape.
+        """
+        assert _documented_verdict_keys() == POLLING_VERDICT_ALLOWED_FIELDS
+
+    def test_documented_outcome_enum_lists_exactly_three(self):
+        """The `outcome` field enumerates only the three valid outcomes."""
+        section = _polling_subagent_section()
+        # The VERDICT block documents the enum as "a | b | c".
+        marker = '"outcome": "'
+        start = section.index(marker) + len(marker)
+        end = section.index('"', start)
+        documented = {o.strip() for o in section[start:end].split("|")}
+        assert documented == POLLING_VERDICT_OUTCOMES
+
+    def test_section_pins_poll_cadence_and_timeout(self):
+        """60s cadence / 10min timeout are invariants — pin them in the prose."""
+        section = _polling_subagent_section()
+        assert "60-second" in section
+        assert "10-minute" in section
+
+    def test_note_field_is_constrained_to_status_only(self):
+        """`note` is free text; prose must forbid echoing comment text into it.
+
+        The key-name allow-list guards field *names*, not *values* — without this
+        instruction a read-only subagent could leak untrusted comment text
+        through `note`, undercutting the security boundary.
+        """
+        section = _polling_subagent_section()
+        assert "status string only" in section
+        assert "never echo" in section.lower()
+
+    def test_new_threads_action_is_full_refetch_not_hint_scoped(self):
+        """`new_threads` must re-fetch all surfaces, not only the hint's IDs.
+
+        Signal 3 (a timeline comment) carries no thread ID, so scoping the
+        re-fetch to ``new_unresolved_thread_ids`` would drop it. The prose must
+        call the field a hint and mandate a full re-fetch.
+        """
+        section = _polling_subagent_section()
+        assert "observability hint" in section
+        assert "all** comment surfaces" in section or "all comment surfaces" in section
 
     def test_tier0_documented_in_capability_check(self):
         text = BOT_POLLING_MD.read_text(encoding="utf-8")

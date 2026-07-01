@@ -147,14 +147,39 @@ as edits land. Bump `metadata.version` exactly once for the whole PR.
 *Fresh-context pass over the full implementation diff to catch drift. Exit
 condition: a pass produces zero valid findings. Iteration cap: 3.*
 
-- [ ] **5.1** Stage the full branch diff and run the local `claude` CLI review
+- [x] **5.1** Stage the full branch diff and run the local `claude` CLI review
   (`claude -p "review staged files"`, non-interactive). Apply valid findings;
   decline invalid with a short reason.
 - [ ] **5.2** Run `/peer-review with Copilot` over the same staged diff (needs
   network + session-state access — lift any sandbox restrictions; in Claude Code:
   `dangerouslyDisableSandbox: true`). Apply valid findings; decline invalid with
   a short reason. Rerun 5.1/5.2 until both reviewers are clean or iteration cap 3.
-- [ ] **5.3** Record a per-reviewer, per-iteration summary inline.
+  > **Blocked in-session:** the Claude Code auto-mode classifier denies
+  > `copilot --allow-all-tools` (its non-interactive mode) as an "unsafe agent"
+  > even with `--deny-tool=write`; this needs a user-added Bash permission rule
+  > and must not be worked around. Run via the `!` prefix or add the rule, then
+  > re-run. Copilot on the PR (`claude[bot]` + Copilot bot review in Phase 6.1)
+  > still provides an independent second reviewer.
+- [x] **5.3** Record a per-reviewer, per-iteration summary inline.
+  - **Claude iteration 1:** 2 major, 3 minor valid; 1 minor declined. Applied —
+    (Major) `new_threads` re-fetch scope was ambiguous and dropped Signal-3
+    timeline comments (no thread ID → empty `new_unresolved_thread_ids` → nothing
+    re-fetched); reworded both the Read-only constraint and Outcome→action to
+    mandate a **full** re-fetch and call the ID list an observability hint.
+    (Major) the advertised VERDICT-key drift guard had no test; added
+    `test_documented_verdict_keys_match_allowed_fields` parsing the doc's `json`
+    block. (Minor) reworded `timeout` "no signal" for the partial-review case;
+    added cadence-pin and only-three-outcomes tests. Declined — `should_spawn`
+    identity function (intentional pre-spawn-contract documentation).
+  - **Claude iteration 2:** 0 major, 1 minor valid; 1 minor declined. Applied —
+    constrained the `note` field to a status string only ("never echo comment
+    text") so the prose matches the key-name test's boundary guarantee; added
+    `test_note_field_is_constrained_to_status_only`. Declined — `all_clean` →
+    Step 14 vs. auto-loop CI gate (CLAUDE.md enforces CI independently before
+    merge; summary-vs-detail, not a regression). Reviewer verdict: no
+    Critical/Major findings.
+  - **Copilot:** not run in-session (blocked, see 5.2). Second-reviewer coverage
+    deferred to the Phase 6.1 on-PR bots.
 
 ---
 

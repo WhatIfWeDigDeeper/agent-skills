@@ -326,7 +326,7 @@ The subagent holds no prior context. Main passes the full poll state:
 
 ### Read-only constraint
 
-The subagent runs **only** `gh api` reads and `jq`. It performs **no** writes — no re-request POST, no commits, no replies, no resolves, no push. Its output carries **only** signal metadata (the VERDICT below): **no comment bodies, no classifications, no plan rows.** On `new_threads` it returns thread IDs only; the main agent re-fetches those threads' bodies and re-screens them (Steps 5–6) from scratch. This is what keeps the untrusted-content boundary in the main agent.
+The subagent runs **only** `gh api` reads and `jq`. It performs **no** writes — no re-request POST, no commits, no replies, no resolves, no push. Its output carries **only** signal metadata (the VERDICT below): **no comment bodies, no classifications, no plan rows.** The `note` field is a **status string only** (counts, bot logins, elapsed seconds) — never echo comment or review text into it. On `new_threads` it returns thread IDs only as an **observability hint** (not the re-fetch scope); the main agent runs the full **On new threads detected** re-fetch of **all** comment surfaces and re-screens (Steps 5–6) from scratch — so a Signal-3 timeline comment that carries no thread ID (leaving `new_unresolved_thread_ids` empty) is still picked up. This is what keeps the untrusted-content boundary in the main agent.
 
 ### VERDICT — what the subagent returns
 
@@ -344,9 +344,9 @@ The subagent runs **only** `gh api` reads and `jq`. It performs **no** writes �
 
 ### Outcome → main's next action
 
-- **`new_threads`** (Signal 1 or Signal 3 fired) → loop back to **Step 2**: re-fetch the threads named in `new_unresolved_thread_ids`, re-screen and reprocess from scratch (this is the **On new threads detected** behavior above).
+- **`new_threads`** (Signal 1 or Signal 3 fired) → loop back to **Step 2** and run the full **On new threads detected** behavior above: re-fetch **all** comment surfaces (not only the threads named in `new_unresolved_thread_ids` — that field is an observability hint and is empty when only Signal 3 fired), then re-screen and reprocess from scratch.
 - **`all_clean`** (every polled bot has a Signal-2 review since `snapshot_timestamp` and Signal 1 never fired) → proceed to **Step 14** with a clean-exit note.
-- **`timeout`** (10-minute cap reached, no signal) → proceed to **Step 14** and emit the "re-invoke when ready" message.
+- **`timeout`** (10-minute cap reached before every bot reported — `bots_pending` is non-empty; some bots may have posted Signal-2 reviews, so `signal_fired` reflects the last actionable signal or `none`) → proceed to **Step 14** and emit the "re-invoke when ready" message.
 
 The no-Tier-0 case is **not** a verdict outcome — it is decided in the **Runtime capability check** before any subagent is spawned (main runs the inline Tier 1/2/3 loop instead).
 
