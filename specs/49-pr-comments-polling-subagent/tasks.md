@@ -150,16 +150,15 @@ condition: a pass produces zero valid findings. Iteration cap: 3.*
 - [x] **5.1** Stage the full branch diff and run the local `claude` CLI review
   (`claude -p "review staged files"`, non-interactive). Apply valid findings;
   decline invalid with a short reason.
-- [ ] **5.2** Run `/peer-review with Copilot` over the same staged diff (needs
+- [x] **5.2** Run `/peer-review with Copilot` over the same staged diff (needs
   network + session-state access — lift any sandbox restrictions; in Claude Code:
   `dangerouslyDisableSandbox: true`). Apply valid findings; decline invalid with
   a short reason. Rerun 5.1/5.2 until both reviewers are clean or iteration cap 3.
-  > **Blocked in-session:** the Claude Code auto-mode classifier denies
+  > **Ran manually via `!` prefix.** The Claude Code auto-mode classifier denies
   > `copilot --allow-all-tools` (its non-interactive mode) as an "unsafe agent"
   > even with `--deny-tool=write`; this needs a user-added Bash permission rule
-  > and must not be worked around. Run via the `!` prefix or add the rule, then
-  > re-run. Copilot on the PR (`claude[bot]` + Copilot bot review in Phase 6.1)
-  > still provides an independent second reviewer.
+  > and must not be worked around, so the user ran the Copilot review through the
+  > `!` prefix. Findings triaged and applied (see 5.3, Copilot iteration 1).
 - [x] **5.3** Record a per-reviewer, per-iteration summary inline.
   - **Claude iteration 1:** 2 major, 3 minor valid; 1 minor declined. Applied —
     (Major) `new_threads` re-fetch scope was ambiguous and dropped Signal-3
@@ -178,8 +177,32 @@ condition: a pass produces zero valid findings. Iteration cap: 3.*
     Step 14 vs. auto-loop CI gate (CLAUDE.md enforces CI independently before
     merge; summary-vs-detail, not a regression). Reviewer verdict: no
     Critical/Major findings.
-  - **Copilot:** not run in-session (blocked, see 5.2). Second-reviewer coverage
-    deferred to the Phase 6.1 on-PR bots.
+  - **Copilot iteration 1:** 1 major, 2 minor valid; 3 minor + 2 test-gap notes
+    triaged (some declined). Applied — (Major) the `all_clean` criterion omitted
+    Signal 3, so a poll where a mid-poll timeline comment fired could still
+    resolve clean; reworded to require **Signal 1 and Signal 3 never fired** and
+    added `test_all_clean_excludes_signal_3`. (Minor) pinned prompt-return timing
+    (subagent returns promptly on Signal 1/3, not at the timeout) +
+    `test_section_documents_prompt_return_timing`. (Minor) added a trust-boundary
+    note (boundary held by instruction set + read-only toolset, not a sandbox
+    guarantee). (Test gap) pinned the `signal_fired` value domain
+    (`"1"|"2"|"3"|"none"`) via `POLLING_SIGNAL_FIRED_VALUES` +
+    `test_documented_signal_fired_values_match_domain`. Declined — rename
+    `new_threads` → `new_activity` (functionally correct; the observability-hint
+    callout already covers the empty-thread-id Signal-3 case; rename ripples
+    through the pinned contract, plan.md, and tests for no behavior change); the
+    "cosmetic" field-name test (it pins a real allow-list-hygiene invariant;
+    value-level leakage is a runtime property a prose skill can't unit-test,
+    already mitigated by the `note` constraint + main's re-fetch/re-screen).
+  - **Claude iteration 3:** re-ran a fresh self-review over the accumulated diff
+    after applying Copilot's findings to confirm convergence within the cap-3
+    budget. Verdict: **no Critical/Major**; 1 minor — a pre-existing prose
+    asymmetry where the inline Signal-2 clean-exit prose and auto-loop exit
+    condition #1 named only Signal 1 while the new subagent contract names Signal
+    1 **and** Signal 3 (behavior identical — inline Signal 3 loops back before any
+    clean exit — but a reader diffing the two would see the gap). Harmonized both
+    inline spots to name Signal 3. Reviewers converged; exited at the cap-3
+    budget.
 
 ---
 

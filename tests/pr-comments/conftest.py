@@ -850,6 +850,11 @@ POLLING_VERDICT_ALLOWED_FIELDS = frozenset({
     "note",
 })
 
+# The value domain of the VERDICT ``signal_fired`` field: the fired signal
+# number, or "none" when the poll ended (timeout) with no actionable signal.
+# Pinned like the outcome enum so the documented block can't drift silently.
+POLLING_SIGNAL_FIRED_VALUES = frozenset({"1", "2", "3", "none"})
+
 
 def should_spawn_polling_subagent(has_background_task_primitive: bool) -> bool:
     """Return True if the main agent should delegate the Shared polling loop.

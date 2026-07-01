@@ -153,10 +153,11 @@ The subagent holds no prior context; main passes the full poll state:
 
 Outcome → main's next action:
 
-- `new_threads` → loop back to Step 2 (`new_unresolved_thread_ids` names what to
-  re-fetch; main re-screens from scratch).
+- `new_threads` → loop back to Step 2 and re-fetch **all** comment surfaces;
+  `new_unresolved_thread_ids` is an observability hint (empty when only Signal 3
+  fired), **not** the re-fetch scope; main re-screens from scratch.
 - `all_clean` → all polled bots have a Signal-2 review since `snapshot_timestamp`
-  and Signal 1 never fired → Step 14 with a clean-exit note.
+  and **Signal 1 and Signal 3 never fired** → Step 14 with a clean-exit note.
 - `timeout` → Step 14 "re-invoke when ready" message.
 
 (The no-background-primitive case is handled *before* spawn in the Runtime

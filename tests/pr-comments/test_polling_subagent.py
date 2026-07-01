@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 from conftest import (
+    POLLING_SIGNAL_FIRED_VALUES,
     POLLING_VERDICT_ALLOWED_FIELDS,
     POLLING_VERDICT_OUTCOMES,
     should_spawn_polling_subagent,
@@ -207,6 +208,44 @@ class TestReferenceProse:
         section = _polling_subagent_section()
         assert "observability hint" in section
         assert "all** comment surfaces" in section or "all comment surfaces" in section
+
+    def test_all_clean_excludes_signal_3(self):
+        """`all_clean` must exclude Signal 3, not only Signal 1.
+
+        A mid-poll Signal-3 timeline comment is new bot activity that must route
+        to `new_threads`. If the `all_clean` criterion only excludes Signal 1, a
+        poll where Signal 3 fired could still resolve clean — dropping the
+        comment. The prose must name Signal 3 as an exclusion too.
+        """
+        section = _polling_subagent_section()
+        clean_line = next(
+            line for line in section.splitlines() if line.startswith("- **`all_clean`**")
+        )
+        assert "Signal 1 and Signal 3 never fired" in clean_line
+
+    def test_section_documents_prompt_return_timing(self):
+        """The subagent returns promptly on Signal 1/3, not at the timeout.
+
+        Without this, the verdict-timing contract is ambiguous: a reader can't
+        tell whether `new_threads` surfaces at the firing tick or is deferred to
+        the 10-minute cap. The prose must pin the prompt-return semantics.
+        """
+        section = _polling_subagent_section()
+        assert "promptly" in section
+        assert "does **not** keep polling to the timeout" in section
+
+    def test_documented_signal_fired_values_match_domain(self):
+        """The `signal_fired` enum in the VERDICT block must not drift.
+
+        Mirrors the outcome-enum drift guard: the documented `"1 | 2 | 3 | none"`
+        must equal the pinned value domain.
+        """
+        section = _polling_subagent_section()
+        marker = '"signal_fired": "'
+        start = section.index(marker) + len(marker)
+        end = section.index('"', start)
+        documented = {v.strip() for v in section[start:end].split("|")}
+        assert documented == POLLING_SIGNAL_FIRED_VALUES
 
     def test_tier0_documented_in_capability_check(self):
         text = BOT_POLLING_MD.read_text(encoding="utf-8")
