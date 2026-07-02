@@ -824,3 +824,76 @@ def should_present_nit_table(
         r.get("action") in _NIT_ELIGIBLE_ACTIONS and bool(r.get("nit"))
         for r in actionable
     )
+
+
+# ---------------------------------------------------------------------------
+# Polling subagent helpers (spec 49): Tier-0 delegation of the Shared polling
+# loop to a read-only background subagent. The subagent watches Signals 1/2/3
+# and returns a compact VERDICT; the main agent routes on the outcome.
+# ---------------------------------------------------------------------------
+
+# The three verdict outcomes the subagent may return (bot-polling.md ->
+# Polling subagent). The no-Tier-0 case is NOT an outcome — it is decided
+# pre-spawn in the Runtime capability check (see should_spawn_polling_subagent).
+POLLING_VERDICT_OUTCOMES = frozenset({"new_threads", "all_clean", "timeout"})
+
+# The only keys the VERDICT contract may carry — pure signal metadata. Any key
+# outside this set (comment bodies, classifications, plan rows) would breach the
+# security boundary that keeps all untrusted-content screening in the main agent.
+POLLING_VERDICT_ALLOWED_FIELDS = frozenset({
+    "outcome",
+    "new_unresolved_thread_ids",
+    "bots_with_new_review",
+    "bots_pending",
+    "signal_fired",
+    "polled_seconds",
+    "note",
+})
+
+# The value domain of the VERDICT ``signal_fired`` field: the fired signal
+# number, or "none" when the poll ended (timeout) with no actionable signal.
+# Pinned like the outcome enum so the documented block can't drift silently.
+POLLING_SIGNAL_FIRED_VALUES = frozenset({"1", "2", "3", "none"})
+
+
+def should_spawn_polling_subagent(has_background_task_primitive: bool) -> bool:
+    """Return True if the main agent should delegate the Shared polling loop.
+
+    Per bot-polling.md Runtime capability check: Tier 0 (a background task that
+    resumes the parent on completion) delegates to the polling subagent. A
+    runtime with **no** such primitive never spawns the subagent and runs the
+    inline Tier 1/2/3 loop instead — decided here, before any handoff, so
+    "can't background-poll" is never a verdict outcome.
+    """
+    return bool(has_background_task_primitive)
+
+
+def verdict_to_main_action(outcome: str) -> str:
+    """Map a polling-subagent VERDICT ``outcome`` to the main agent's next step.
+
+    Per bot-polling.md -> Polling subagent (Outcome -> main's next action):
+    - ``new_threads`` -> loop back to Step 2 (re-fetch + re-screen from scratch)
+    - ``all_clean``   -> Step 14 with a clean-exit note
+    - ``timeout``     -> Step 14 with the re-invoke message
+
+    Raises ``ValueError`` for any outcome outside
+    :data:`POLLING_VERDICT_OUTCOMES` — the no-Tier-0 branch is handled pre-spawn
+    and never reaches this mapping.
+    """
+    mapping = {
+        "new_threads": "step_2",
+        "all_clean": "step_14_clean",
+        "timeout": "step_14_timeout",
+    }
+    if outcome not in mapping:
+        raise ValueError(f"Unknown polling verdict outcome: {outcome!r}")
+    return mapping[outcome]
+
+
+def verdict_forbidden_fields(verdict: dict) -> set[str]:
+    """Return the set of VERDICT keys outside the allowed signal-metadata set.
+
+    A non-empty result means the contract is leaking untrusted content (comment
+    bodies, classifications, plan rows) across the subagent security boundary.
+    """
+    return set(verdict) - POLLING_VERDICT_ALLOWED_FIELDS

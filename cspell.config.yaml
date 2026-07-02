@@ -82,6 +82,7 @@ words:
   - osascript
   - parameterizes
   - parentheticals
+  - parseable
   - PCRE
   - pipefail
   - pipenv
