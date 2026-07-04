@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "passed": 2,
+    "failed": 2,
+    "total": 4,
+    "pass_rate": 0.5
+  },
+  "expectations": [
+    {
+      "text": "The guide flags the operative-markdown change under Security or Novel Patterns and does not exempt it as documentation",
+      "passed": true,
+      "evidence": "Baseline flagged the VERDICT allow-list edit as a security-boundary change in a free-form 'Reviewer's guide'; did not exempt it as documentation."
+    },
+    {
+      "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+      "passed": false,
+      "evidence": "No canonical markers; used a free-form '## Reviewer's guide' heading."
+    },
+    {
+      "text": "The guide links to the PR diff / files-changed view",
+      "passed": false,
+      "evidence": "No diff / files-changed link in the guide."
+    },
+    {
+      "text": "The guide is written into the PR description",
+      "passed": true,
+      "evidence": "Appended the guide beneath the existing PR description."
+    }
+  ],
+  "notes": "Judgment: on claude-opus-4-8 the baseline caught the trust boundary and elevated it as a security concern, so 'flags-the-boundary' passed without_skill (this assertion did NOT discriminate on opus-4-8). The baseline used a free-form format with no canonical markers and no diff link, so 'uses-html-markers' and 'includes-diff-link' failed. Those two are the discriminating assertions for eval 13."
+}

@@ -1,0 +1,26 @@
+{
+  "summary": {
+    "passed": 0,
+    "failed": 3,
+    "total": 3,
+    "pass_rate": 0.0
+  },
+  "expectations": [
+    {
+      "text": "The guide does NOT flag the wording tweak, spec doc, or cspell entry under any category",
+      "passed": false,
+      "evidence": "Baseline over-flagged the cspell.config.yaml 'prewarm' wordlist entry as the change to verify."
+    },
+    {
+      "text": "The body contains the message indicating no areas requiring special human review were identified",
+      "passed": false,
+      "evidence": "No bounded no-areas message; produced a free-form 'Reviewer's guide - where to focus' with a flagged item."
+    },
+    {
+      "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats)",
+      "passed": false,
+      "evidence": "No canonical markers; free-form format."
+    }
+  ],
+  "notes": "Judgment: the baseline over-flagged the cspell wordlist entry - exactly the over-flagging the negative eval guards against - and used a free-form format. All three assertions discriminate (with_skill emits the bounded no-areas message with canonical markers; baseline does neither)."
+}

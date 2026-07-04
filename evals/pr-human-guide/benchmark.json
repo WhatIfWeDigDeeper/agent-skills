@@ -29,6 +29,14 @@
         "timestamp": "2026-06-28T00:00:00Z",
         "runs_per_configuration": 1,
         "notes": "Spec 48 coverage addition: 4 new evals (9-12) x 2 configurations = 8 runs on SKILL.md v0.13, all run_number == 1. This is a partial set covering the two impact-risk Novel Patterns signals deferred by spec 40 (sweeping cross-cutting refactor, high-fanout core helper edit), a negative rename guardrail, and the previously-unmeasured Selectivity Threshold. Run only on claude-opus-4-8 by design (the historical evals 1-8 v0.7 Sonnet/Opus rows are left unchanged). Grading was performed inline by the controller (claude-opus-4-8) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors are extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). top-level metadata.skill_version stays '0.7' per the existing convention that it reflects the version of the recorded full-suite runs; this partial set is version-noted here and in benchmark.md."
+      },
+      {
+        "executor_model": "claude-opus-4-8",
+        "analyzer_model": "claude-opus-4-8",
+        "skill_version": "0.14",
+        "timestamp": "2026-07-04T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "Spec 50 coverage addition: 2 new evals (13-14) x 2 configurations = 4 runs on SKILL.md v0.14, all run_number == 1. Covers both branches of the refined Selectivity Threshold documentation exemption: eval 13 (positive) is a skills/**/references/*.md edit introducing a trust boundary that must now be flagged rather than exempted as documentation; eval 14 (negative) is a pure wording tweak to a SKILL.md plus a specs/** doc and a cspell wordlist entry that must stay exempt. Run only on claude-opus-4-8, folding into the run_summary_by_model['claude-opus-4-8'] set (now evals 9-14). Grading performed inline by the controller (claude-opus-4-8) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). On opus-4-8 the eval-13 'flags-the-boundary' assertion did not discriminate (the without_skill baseline also flagged the boundary); eval 13 discriminates on 'uses-html-markers' and 'includes-diff-link', and eval 14 discriminates on all three assertions. top-level metadata.skill_version stays '0.7' per the existing convention that it reflects the version of the recorded full-suite runs; this partial set is version-noted here and in benchmark.md."
       }
     ],
     "timestamp": "2026-04-28T00:00:00Z",
@@ -44,7 +52,9 @@
       9,
       10,
       11,
-      12
+      12,
+      13,
+      14
     ],
     "runs_per_configuration": 1
   },
@@ -1729,6 +1739,164 @@
         }
       ],
       "notes": "Strongest new discriminator: baseline enumerated all five changed files (including asking to verify the test stub), exactly the over-flagging failure mode; only flags-security-change passes."
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "operative-skill-source-boundary",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 56.35,
+        "tokens": 43698,
+        "cache_tokens": 411414,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The guide flags the operative-markdown change under Security or Novel Patterns and does not exempt it as documentation",
+          "passed": true,
+          "evidence": "Flagged under '### Security' as a new Tier-0 read-only polling-subagent trust boundary (VERDICT allow-list edit in bot-polling.md); treated as operative skill source, not documentation-exempt."
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "passed": true,
+          "evidence": "Guide wrapped in '<!-- pr-human-guide -->' ... '<!-- /pr-human-guide -->'."
+        },
+        {
+          "text": "The guide links to the PR diff / files-changed view",
+          "passed": true,
+          "evidence": "Entry links to the files-changed anchor '.../pull/245/files#diff-<sha>R60'."
+        },
+        {
+          "text": "The guide is written into the PR description",
+          "passed": true,
+          "evidence": "Rendered block written to the PR body via 'gh pr edit --body-file'."
+        }
+      ],
+      "notes": "Positive probe for the spec-50 operative-skill-source rule. with_skill flags the trust boundary under Security with canonical markers and a diff link. On claude-opus-4-8 the 'flags-the-boundary' assertion did NOT discriminate this run (the without_skill baseline also flagged the boundary as a security concern); the discriminating assertions here are 'uses-html-markers' and 'includes-diff-link' (baseline produced neither)."
+    },
+    {
+      "eval_id": 13,
+      "eval_name": "operative-skill-source-boundary",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 31.74,
+        "tokens": 10727,
+        "cache_tokens": 107454,
+        "tool_calls": 1,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The guide flags the operative-markdown change under Security or Novel Patterns and does not exempt it as documentation",
+          "passed": true,
+          "evidence": "Baseline flagged the VERDICT allow-list edit as a security-boundary change in a free-form 'Reviewer's guide'; did not exempt it as documentation."
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "passed": false,
+          "evidence": "No canonical markers; used a free-form '## Reviewer's guide' heading."
+        },
+        {
+          "text": "The guide links to the PR diff / files-changed view",
+          "passed": false,
+          "evidence": "No diff / files-changed link in the guide."
+        },
+        {
+          "text": "The guide is written into the PR description",
+          "passed": true,
+          "evidence": "Appended the guide beneath the existing PR description."
+        }
+      ],
+      "notes": "Baseline (no skill) caught the trust boundary but used a free-form format with no canonical markers and no diff link. Discriminates on 'uses-html-markers' and 'includes-diff-link'."
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "skill-doc-wording-exempt",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 23.24,
+        "tokens": 36581,
+        "cache_tokens": 264149,
+        "tool_calls": 5,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The guide does NOT flag the wording tweak, spec doc, or cspell entry under any category",
+          "passed": true,
+          "evidence": "No category flagged; the SKILL.md wording tweak, specs/** doc edit, and cspell.config.yaml entry all treated as exempt."
+        },
+        {
+          "text": "The body contains the message indicating no areas requiring special human review were identified",
+          "passed": true,
+          "evidence": "Body: 'No areas requiring special human review attention were identified.'"
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats)",
+          "passed": true,
+          "evidence": "Bounded no-areas body wrapped in '<!-- pr-human-guide -->' ... '<!-- /pr-human-guide -->'."
+        }
+      ],
+      "notes": "Negative probe: the refined rule must NOT over-flag pure wording on operative source, spec docs, or cspell entries. with_skill correctly emits the bounded no-areas message with canonical markers. Discriminates on all three assertions."
+    },
+    {
+      "eval_id": 14,
+      "eval_name": "skill-doc-wording-exempt",
+      "executor_model": "claude-opus-4-8",
+      "analyzer_model": "claude-opus-4-8",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 3,
+        "total": 3,
+        "time_seconds": 40.09,
+        "tokens": 11085,
+        "cache_tokens": 108870,
+        "tool_calls": 1,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The guide does NOT flag the wording tweak, spec doc, or cspell entry under any category",
+          "passed": false,
+          "evidence": "Baseline over-flagged the cspell.config.yaml 'prewarm' wordlist entry as the change to verify."
+        },
+        {
+          "text": "The body contains the message indicating no areas requiring special human review were identified",
+          "passed": false,
+          "evidence": "No bounded no-areas message; produced a free-form 'Reviewer's guide - where to focus' with a flagged item."
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats)",
+          "passed": false,
+          "evidence": "No canonical markers; free-form format."
+        }
+      ],
+      "notes": "Baseline over-flagged the cspell entry - exactly the over-flagging the negative eval guards against. Discriminates on all three assertions."
     }
   ],
   "run_summary_by_model": {
@@ -1861,55 +2029,55 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 66.29,
-          "stddev": 10.2732,
-          "min": 55.07,
+          "mean": 57.4583,
+          "stddev": 18.9775,
+          "min": 23.24,
           "max": 77.15
         },
         "tokens": {
-          "mean": 38559,
-          "stddev": 5876.7546,
+          "mean": 39085.8333,
+          "stddev": 5143.2523,
           "min": 30783,
           "max": 45038
         },
         "cache_tokens": {
-          "mean": 530470.5,
-          "stddev": 70513.2955,
-          "min": 487228,
+          "mean": 466240.8333,
+          "stddev": 122690.8844,
+          "min": 264149,
           "max": 635809
         }
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.4583,
-          "stddev": 0.2205,
-          "min": 0.25,
+          "mean": 0.3889,
+          "stddev": 0.2564,
+          "min": 0.0,
           "max": 0.75
         },
         "time_seconds": {
-          "mean": 42.8175,
-          "stddev": 10.7127,
-          "min": 32.85,
+          "mean": 40.5167,
+          "stddev": 9.4093,
+          "min": 31.74,
           "max": 55.16
         },
         "tokens": {
-          "mean": 19214.5,
-          "stddev": 376.3106,
-          "min": 18890,
+          "mean": 16445.0,
+          "stddev": 4301.8711,
+          "min": 10727,
           "max": 19752
         },
         "cache_tokens": {
-          "mean": 189815,
-          "stddev": 18358.2455,
-          "min": 173334,
+          "mean": 162597.3333,
+          "stddev": 44500.9991,
+          "min": 107454,
           "max": 207261
         }
       },
       "delta": {
-        "pass_rate": "+0.54",
-        "time_seconds": "+23.5",
-        "tokens": "+19344",
-        "cache_tokens": "+340656"
+        "pass_rate": "+0.61",
+        "time_seconds": "+16.9",
+        "tokens": "+22641",
+        "cache_tokens": "+303644"
       }
     }
   },
