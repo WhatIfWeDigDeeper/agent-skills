@@ -117,9 +117,9 @@ name the skill**. Follow the existing object shape:
 
 ### Steps
 
-- [ ] **Step 3.1:** Append eval 13 and eval 14 to the `evals` array (mind the
+- [x] **Step 3.1:** Append eval 13 and eval 14 to the `evals` array (mind the
   trailing comma on the previous element — the Edit tool does not validate JSON).
-- [ ] **Step 3.2:** `python3 -c "import json; json.load(open('evals/pr-human-guide/evals.json'))"`
+- [x] **Step 3.2:** `python3 -c "import json; json.load(open('evals/pr-human-guide/evals.json'))"`
   — valid JSON.
 
 ---
@@ -133,27 +133,27 @@ to be asked.
 
 ### Steps
 
-- [ ] **Step 4.1:** For each of evals 13, 14, spawn a `with_skill` and a
+- [x] **Step 4.1:** For each of evals 13, 14, spawn a `with_skill` and a
   `without_skill` executor subagent (`mode: "auto"`, executor must NOT call the
   `Skill` tool in either config). Feed the eval `prompt` verbatim. **Run on
   `claude-opus-4-8` (executor and analyzer both), matching the evals 9–12
   bucket** — this is the `run_summary_by_model["claude-opus-4-8"]` set and the
   README line-97 Opus 4.8 bullet that the docs step updates. Do not run on the
   legacy Sonnet 4.6 / Opus 4.7 buckets (those are frozen at evals 1–8).
-- [ ] **Step 4.2:** Grade each run's output against its assertions with an
+- [x] **Step 4.2:** Grade each run's output against its assertions with an
   analyzer subagent. Confirm each eval has ≥1 assertion that **passes with_skill
   and fails without_skill** (discrimination bar). If not, revise the eval fixture
   and re-run.
-- [ ] **Step 4.3:** Append run records to `benchmark.json` using the existing run
+- [x] **Step 4.3:** Append run records to `benchmark.json` using the existing run
   schema (`eval_id, eval_name, executor_model, analyzer_model, configuration,
   run_number, result, expectations`; expectation objects exactly
   `{text, passed, evidence}`). Use `null` (not `0`) for unrecorded stats.
-- [ ] **Step 4.4:** Bump `metadata.evals_run` and `metadata.skill_version`;
+- [x] **Step 4.4:** Bump `metadata.evals_run` and `metadata.skill_version`;
   recompute `run_summary` and `run_summary_by_model` (sample stddev N−1; signed
   2-decimal deltas from unrounded means).
-- [ ] **Step 4.5:** Commit judgment-call grading JSON selectively
+- [x] **Step 4.5:** Commit judgment-call grading JSON selectively
   (`grading-<model>-<config>-<N>.json`); never commit raw transcripts.
-- [ ] **Step 4.6:** Validate:
+- [x] **Step 4.6:** Validate:
   `python3 -c "import json; json.load(open('evals/pr-human-guide/benchmark.json'))"`
   and the expectation-schema jq check from `evals/CLAUDE.md` returns `0`.
 
@@ -165,10 +165,14 @@ to be asked.
 
 ### Steps
 
-- [ ] **Step 5.1:** `benchmark.md` — add Summary-table rows for evals 13/14, add
+- [x] **Step 5.1:** `benchmark.md` — add Summary-table rows for evals 13/14, add
   per-eval sections (fixture + discriminators), and update the "Token
-  statistics … N of M" denominator.
-- [ ] **Step 5.2:** `README.md` — there is **no eval-count field** to bump. Make
+  statistics … N of M" denominator. (Done: added a v0.14 subsection with the
+  2-eval increment Metric table + per-eval pass/fail table, plus Eval 13/14
+  Note sections; updated the Models-tested / Evals-count / Skill-version
+  headers. No "Token statistics … N of M" sentence exists in this benchmark.md
+  — every Opus 4.8 run has populated stats — so that denominator edit is N/A.)
+- [x] **Step 5.2:** `README.md` — there is **no eval-count field** to bump. Make
   two targeted edits:
   1. **Line ~97 Opus 4.8 bullet** — currently
      `**Opus 4.8** (coverage evals 9–12 only … the Selectivity Threshold):
@@ -189,12 +193,14 @@ to be asked.
 
 ### Steps
 
-- [ ] **Step 6.1:** `npx cspell skills/pr-human-guide/references/categories.md specs/50-*/plan.md specs/50-*/tasks.md`
-- [ ] **Step 6.2:** `uv run --with pytest pytest tests/` (lift sandbox if the uv
-  cache errors) — existing assertions pass.
-- [ ] **Step 6.3:** Manual spot check — feed the PR #202 diff to the updated
+- [x] **Step 6.1:** `npx cspell skills/pr-human-guide/references/categories.md specs/50-*/plan.md specs/50-*/tasks.md` — 0 issues.
+- [x] **Step 6.2:** `uv run --with pytest pytest tests/` (lift sandbox if the uv
+  cache errors) — existing assertions pass. (1240 passed, sandbox lifted for uv cache.)
+- [x] **Step 6.3:** Manual spot check — feed the PR #202 diff to the updated
   skill; confirm the `bot-polling.md` trust boundary is now flagged without a
-  manual override.
+  manual override. (Confirmed: flagged under Security + Novel Patterns directly
+  by the categories.md rule, no override; specs/49-**, test files, and the
+  cspell wordlist additions all correctly exempted.)
 - [ ] **Step 6.4:** Commit on a feature branch and open a PR. In the PR body,
   note: single version bump `0.13 → 0.14`, two new evals, and that no `CLAUDE.md`
   / copilot-instructions change is needed. Then run `/pr-comments {pr}` per repo
