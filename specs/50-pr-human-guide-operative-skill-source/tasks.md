@@ -201,7 +201,9 @@ to be asked.
   manual override. (Confirmed: flagged under Security + Novel Patterns directly
   by the categories.md rule, no override; specs/49-**, test files, and the
   cspell wordlist additions all correctly exempted.)
-- [ ] **Step 6.4:** Commit on a feature branch and open a PR. In the PR body,
+- [x] **Step 6.4:** Commit on a feature branch and open a PR. In the PR body,
   note: single version bump `0.13 → 0.14`, two new evals, and that no `CLAUDE.md`
   / copilot-instructions change is needed. Then run `/pr-comments {pr}` per repo
-  workflow.
+  workflow. (PR #205 opened; body records the single bump, two evals, no
+  CLAUDE.md/copilot change, and the frozen Eval-Δ column per Step 5.2.
+  `.claude/settings.json` kept out of the commit.)
