@@ -3,11 +3,11 @@
 **Models tested**:
 - `claude-sonnet-4-6` — full 8-eval suite × 2 configurations on 2026-04-28 (spec 28). Analyzer: **Sonnet 4.6**.
 - `claude-opus-4-7` — full 8-eval suite × 2 configurations on 2026-04-28 (spec 28). Analyzer: **Sonnet 4.6** (chosen up front for analyzer-uniformity, following the spec 27 precedent).
-- `claude-opus-4-8` — partial set: 4 new evals (9–12) × 2 configurations on 2026-06-28 (spec 48). Analyzer: **Opus 4.8** (graded inline by the controller). Covers the two impact-risk Novel Patterns signals (sweeping cross-cutting refactor, high-fanout core helper edit), a negative rename guardrail, and the Selectivity Threshold. See the v0.13 subsection under Known Eval Limitations.
+- `claude-opus-4-8` — partial set: 6 evals (9–14) × 2 configurations on Opus 4.8 (evals 9–12 on 2026-06-28, spec 48; evals 13–14 on 2026-07-04, spec 50). Analyzer: **Opus 4.8** (graded inline by the controller). Evals 9–12 cover the two impact-risk Novel Patterns signals (sweeping cross-cutting refactor, high-fanout core helper edit), a negative rename guardrail, and the Selectivity Threshold; evals 13–14 cover the refined operative-skill-source exemption (a positive trust-boundary case in a `skills/**/references/*.md` file, and a negative pure-wording case). See the v0.13 and v0.14 subsections under Known Eval Limitations.
 
-**Evals**: 8 evals × 2 configurations × 2 models = **32 canonical runs** (the full-suite headline), plus **8 partial-set runs** (evals 9–12 × 2 configurations on Opus 4.8, spec 48) = 40 runs total, all `run_number == 1`.
+**Evals**: 8 evals × 2 configurations × 2 models = **32 canonical runs** (the full-suite headline), plus **12 partial-set runs** (evals 9–14 × 2 configurations on Opus 4.8, specs 48+50) = 44 runs total, all `run_number == 1`.
 
-**Skill version**: full-suite rows under v0.7; the spec-48 partial set under v0.13. The previous Sonnet runs at v0.1 (16 entries) were removed in spec 28 Phase 1 so both full-suite models share an apples-to-apples skill version; git history retains the prior shape. `benchmark.json` `metadata.skill_version` stays `"0.7"` (the version of the recorded full-suite runs); the partial set is version-noted here and in the v0.13 subsection.
+**Skill version**: full-suite rows under v0.7; the spec-48 partial set (evals 9–12) under v0.13; the spec-50 additions (evals 13–14) under v0.14. The previous Sonnet runs at v0.1 (16 entries) were removed in spec 28 Phase 1 so both full-suite models share an apples-to-apples skill version; git history retains the prior shape. `benchmark.json` `metadata.skill_version` stays `"0.7"` (the version of the recorded full-suite runs); the partial sets are version-noted here and in the v0.13 / v0.14 subsections.
 
 ## Summary
 
@@ -88,6 +88,31 @@ Per-eval pass/fail (Opus 4.8):
 All four discriminate (≥1 assertion fails without_skill). Eval 11 is the weakest discriminator — the Opus baseline flags the high-fanout helper, its broad impact, and the behavior change on its own; only the canonical-marker assertion fails, so the skill's measured edge there is the structured marker format. Eval 12 (selectivity) is the strongest: the baseline emitted a guide entry for all five changed files — including asking a reviewer to verify a test stub — exactly the over-flagging failure mode the eval targets, while the skill flagged only the login rate-limit change. Eval 10 confirms the negative guardrail works: with-skill correctly did NOT flag the exhaustive single-token rename and emitted the bounded "no areas" body.
 
 A deliberately-omitted case: a *negative* high-fanout fixture (behavior change to a low-fanout, non-shared module) is not included — such a file would still legitimately flag under plain novelty, so the case cannot cleanly isolate "the high-fanout signal did not fire."
+
+### v0.14 — Opus 4.8 coverage for operative skill source vs documentation (spec 50)
+
+The v0.13 Selectivity Threshold exempted "changes that only affect comments or documentation" outright. In a **skills repository** that misfires: `SKILL.md` and reference files under a `skills/` tree are the *operative behavioral source* that defines what an agent does — its security/trust boundaries and workflow patterns — not prose *describing* code. Spec 50 refines the exemption so operative skill markdown (`skills/**/*.md`, including `skills/**/references/*.md`) is evaluated against the normal categories and flagged when it introduces a security boundary, a trust boundary, or a novel workflow pattern, while true documentation, spec/design docs (`specs/**`), and cspell/wordlist entries stay exempt. Two new evals (ids 13–14), one per branch of the conditional, executed and graded on **claude-opus-4-8** only. The evals 1–8 v0.7 rows and the evals 9–12 v0.13 rows are unchanged.
+
+Stats over the 2 new evals (13–14), sample stddev (N−1):
+
+| Metric | with-skill | without-skill | Delta |
+|--------|------------|---------------|-------|
+| Pass rate | **100%** ±0% | 25% ±35% | **+75%** |
+| Min / Max | 100% / 100% | 0% / 50% | |
+| Time (s) | 39.8 ±23.4 | 35.9 ±5.9 | +3.9 |
+| Tokens (input + output) | 40,140 ±5,032 | 10,906 ±253 | +29,234 |
+| Cache tokens (creation + reads) | 337,782 ±104,132 | 108,162 ±1,001 | +229,620 |
+
+Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means. The combined Opus 4.8 set is now evals 9–14 — that 6-eval aggregate drives `run_summary_by_model["claude-opus-4-8"]` (pass rate 100% with-skill vs 39% baseline, +0.61) and the README's Opus 4.8 Eval-cost bullet.
+
+Per-eval pass/fail (Opus 4.8):
+
+| # | Eval | With | Without |
+|---|------|------|---------|
+| 13 | operative-skill-source-boundary | **4/4 (100%)** | 2/4 (50%) |
+| 14 | skill-doc-wording-exempt | **3/3 (100%)** | 0/3 (0%) |
+
+Both discriminate (≥1 assertion fails without_skill). Eval 13 is the positive case: it proves the refined rule flags an operative `.md` trust-boundary change. Note that on the strong Opus 4.8 baseline the `flags-the-boundary` assertion did **not** discriminate — the baseline also caught the boundary in a free-form guide — so eval 13's measured discriminators are `uses-html-markers` and `includes-diff-link` (baseline produced neither). Eval 14 is the negative guardrail: a pure wording tweak to a `SKILL.md` plus a `specs/**` doc and a cspell entry must stay exempt; the baseline over-flagged the cspell `prewarm` wordlist entry and emitted no bounded no-areas message, so all three assertions discriminate.
 
 ### Non-discriminating evals on Sonnet 4.6
 
@@ -188,3 +213,11 @@ PR introduces worker threads with module-level shared mutable state. Both with-s
 ### Eval 12 — `selectivity-over-flagging`
 
 (Opus 4.8 only, spec 48.) A busy PR where only one change warrants a flag — rate limiting added to the login endpoint (Security) — alongside a `package-lock.json` patch bump, a README edit, a whitespace-only reformat of `src/utils/format.ts`, and a new test file, all of which fall under "What does NOT qualify" / Selectivity Threshold exceptions. With-skill (4/4) flagged only the login rate-limit change (one item, one Security category) and explicitly listed the four routine files as deliberately not flagged. Without-skill (1/4) flagged the security change correctly but then enumerated all four routine files in a "skim only" section — even asking the reviewer to confirm the test stub "asserts something before merge" — failing the omit-lockfile, omit-docs/test/formatting, and is-selective assertions. **Strongest new discriminator:** captures the over-flagging failure mode precisely (the baseline emitted an entry for every changed file).
+
+### Eval 13 — `operative-skill-source-boundary`
+
+(Opus 4.8 only, spec 50.) Positive case for the refined operative-skill-source rule. PR #245's only substantive change edits `skills/pr-comments/references/bot-polling.md` to add a new VERDICT allow-list rule — a Tier-0 read-only polling-subagent **trust boundary** that keeps untrusted-comment classification in the main agent, out of the subagent. Under the old v0.13 exemption this `.md`-only change would be exempted as documentation; the refined rule treats it as operative behavioral source. With-skill (4/4) flagged the change under Security as a new trust boundary, wrapped the guide in the canonical `<!-- pr-human-guide -->` markers, linked the files-changed diff view, and wrote it into the PR description. Without-skill (2/4) also caught the boundary — the strong Opus 4.8 baseline elevated the allow-list edit as a security concern in a free-form "Reviewer's guide" — so `flags-the-boundary` did **not** discriminate on this model; it used no canonical markers and no diff link, failing those two assertions. **Discriminates on:** marker format and diff-link (not `flags-the-boundary` on Opus 4.8, though that assertion exercises the new rule and would discriminate against the pre-change skill).
+
+### Eval 14 — `skill-doc-wording-exempt`
+
+(Opus 4.8 only, spec 50.) Negative guardrail for the refined rule. PR makes only a prose/wording tweak to a `SKILL.md`, plus a `specs/**` design-doc edit and a `cspell.config.yaml` wordlist addition (`prewarm`) — no new boundary or pattern. The refined rule must still emit the bounded no-areas body: pure wording on operative source, spec docs, and cspell entries all stay exempt. With-skill (3/3) flagged nothing, emitted "No areas requiring special human review attention were identified." inside canonical markers. Without-skill (0/3) over-flagged the cspell `prewarm` entry as the change to verify, produced a free-form "Reviewer's guide" with no bounded no-areas message and no canonical markers — failing all three assertions. **Discriminates on:** does-not-flag-skill-doc, the bounded no-areas message, and marker format. Confirms the refined rule does not over-flag pure wording, spec docs, or cspell entries.

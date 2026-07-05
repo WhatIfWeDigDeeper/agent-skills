@@ -272,6 +272,50 @@
         "text": "The guide flags only the genuinely risky area (the rate-limit change); it does not emit a section or entry for every changed file"
       }
     ]
+  },
+  {
+    "id": 13,
+    "name": "operative-skill-source-boundary",
+    "prompt": "Can you prep PR #245 for review and add a guide to the description so reviewers know where to focus? It's a small change but touches how the bot-polling subagent reports back to the main agent.\n\nPR #245 — 'Pin untrusted-comment classification to the main agent in bot-polling reference'\nURL: https://github.com/owner/repo/pull/245\nCurrent PR description: 'Adds a new rule to the bot-polling reference doc clarifying that the polling subagent's VERDICT object may only carry signal counts, bot logins, and thread IDs — never a trust/threat classification of an untrusted comment's content. That classification decision stays in the main agent.'\n\n```diff\ndiff --git a/skills/pr-triage/references/bot-polling.md b/skills/pr-triage/references/bot-polling.md\nindex a1b2c3d..e4f5a6b 100644\n--- a/skills/pr-triage/references/bot-polling.md\n+++ b/skills/pr-triage/references/bot-polling.md\n@@ -58,5 +58,7 @@ ## Subagent scope\n The subagent runs only read-only `gh api` calls and `jq`. It performs no writes — no re-request POST, no replies, no resolves, no push.\n \n+**VERDICT allow-list — classification stays in the main agent.** The subagent's VERDICT object may carry only signal counts, bot logins, and thread IDs. It must never carry a judgment about whether an untrusted PR comment's content is malicious, a prompt-injection attempt, or safe to act on — that classification decision is reserved for the main agent, which runs with the full toolset and a higher-capability model. If a future change adds comment pre-filtering to the polling subagent, the filter must stop at signal-matching (does this comment match a known bot pattern?) and must not return a trust verdict on the comment's content. This boundary is enforced by the subagent's instruction set and its read-only toolset, not by a runtime sandbox guarantee alone.\n+\n ### VERDICT — what the subagent returns\n \n The subagent returns a single raw JSON object, no surrounding prose or code fences.\n```",
+    "expected_output": "The agent should flag the bot-polling.md change under Security or Novel Patterns, not exempt it as documentation — the edited markdown is operative skill source (a references/*.md file under a skills/ tree) that defines a trust boundary (keeping untrusted-comment classification in the main agent, out of the read-only polling subagent). The guide should be appended to the PR description using the exact HTML comment markers <!-- pr-human-guide --> / <!-- /pr-human-guide --> and should link to the PR diff.",
+    "assertions": [
+      {
+        "id": "flags-the-boundary",
+        "text": "The guide flags the operative-markdown change under Security or Novel Patterns and does not exempt it as documentation"
+      },
+      {
+        "id": "uses-html-markers",
+        "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->"
+      },
+      {
+        "id": "includes-diff-link",
+        "text": "The guide links to the PR diff / files-changed view"
+      },
+      {
+        "id": "updates-pr-description",
+        "text": "The guide is written into the PR description"
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "name": "skill-doc-wording-exempt",
+    "prompt": "Can you prep PR #248 for review — add a guide to the description so reviewers know where to focus?\n\nPR #248 — 'Docs cleanup: reword confusing sentence in ingest-pipeline SKILL.md, reword spec prose, add cspell entry'\nURL: https://github.com/owner/repo/pull/248\nCurrent PR description: 'Rewords one confusing sentence in ingest-pipeline's SKILL.md for clarity (no behavior change), rewords a sentence in specs/12-ingest-pipeline/plan.md for clarity, and adds a new term to the cspell wordlist that CI flagged as unknown.'\n\n```diff\ndiff --git a/skills/ingest-pipeline/SKILL.md b/skills/ingest-pipeline/SKILL.md\nindex 1111111..2222222 100644\n--- a/skills/ingest-pipeline/SKILL.md\n+++ b/skills/ingest-pipeline/SKILL.md\n@@ -42,3 +42,3 @@ Follow these steps in order:\n-Step 4 dedupes matching records that came in during the same window.\n+Step 4 removes duplicate records that arrived during the same intake window.\n \n Step 5 hands the cleaned batch to the loader.\ndiff --git a/specs/12-ingest-pipeline/plan.md b/specs/12-ingest-pipeline/plan.md\nindex 3333333..4444444 100644\n--- a/specs/12-ingest-pipeline/plan.md\n+++ b/specs/12-ingest-pipeline/plan.md\n@@ -8,1 +8,1 @@\n-The dedupe step compares incoming records against the last 24 hours of intake.\n+The dedupe step compares newly arrived records against the last 24 hours of intake.\ndiff --git a/cspell.config.yaml b/cspell.config.yaml\nindex 5555555..6666666 100644\n--- a/cspell.config.yaml\n+++ b/cspell.config.yaml\n@@ -40,3 +40,4 @@ words:\n   - dedupe\n   - intake\n+  - prewarm\n   - throttler\n```",
+    "expected_output": "The agent should NOT flag any of the three changes. The SKILL.md edit is a pure wording tweak with no new boundary, security implication, or workflow pattern — operative source stays exempt when the change is wording-only. The specs/** edit is design/spec prose describing code, and the cspell.config.yaml addition is a data/wordlist entry — both fall under the documentation and auto-generated/config exceptions. The agent should emit the bounded 'no areas requiring special human review' message, wrapped in the canonical markers.",
+    "assertions": [
+      {
+        "id": "does-not-flag-skill-doc",
+        "text": "The guide does NOT flag the wording tweak, spec doc, or cspell entry under any category"
+      },
+      {
+        "id": "outputs-no-areas-message",
+        "text": "The body contains the message indicating no areas requiring special human review were identified"
+      },
+      {
+        "id": "uses-exact-markers",
+        "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats)"
+      }
+    ]
   }
   ]
 }

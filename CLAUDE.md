@@ -43,6 +43,10 @@ Evals live under `evals/` at the repo root, not inside `skills/` — they are de
 
 **Eval fixtures with intentionally old/pinned versions** (e.g. `evals/uv-deps/fixtures/`) may conflict when a skill like `uv-deps` runs on main and updates those same files. During a merge, keep `--ours` to preserve the intentionally pinned versions.
 
+## Planning Workflow
+
+For any change that warrants a spec (a new skill, or a behavior change to an existing one), use the **superpowers** skills to plan and create tasks: brainstorm and write the plan with `superpowers:brainstorming` / `superpowers:writing-plans`, capturing it as `specs/<N>-<topic>/plan.md` + `tasks.md`. **Do not start implementing until the user explicitly approves the plan** — producing `plan.md` and `tasks.md` is not itself approval to implement. Execute the tasks (optionally via `superpowers:executing-plans` / `superpowers:subagent-driven-development`) only after the user gives the go-ahead.
+
 ## Sandbox Workarounds
 
 - **GPG signing**: `git commit` may fail if GPG keyring is inaccessible. Use `--no-gpg-sign` **only as a fallback after a signing failure** — do not use it preemptively. `dangerouslyDisableSandbox: true` (for keyring/network access) and GPG signing are separate concerns; disabling the sandbox does not guarantee GPG will succeed.

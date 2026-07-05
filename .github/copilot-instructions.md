@@ -35,6 +35,11 @@ git fetch origin && git diff origin/main -- skills/<name>/SKILL.md | rg '^\+  ve
 - When working through `specs/*/tasks.md`, mark each checkbox complete immediately after completing that item.
 - After editing spec files, re-read all modified spec files before finishing.
 
+## Planning Workflow
+
+- For any change that warrants a spec (a new skill, or a behavior change to an existing one), use the **superpowers** skills to plan and create tasks: brainstorm and write the plan with `superpowers:brainstorming` / `superpowers:writing-plans`, capturing it as `specs/<N>-<topic>/plan.md` + `tasks.md`.
+- **Do not start implementing until the user explicitly approves the plan** — producing `plan.md` and `tasks.md` is not itself approval to implement. Execute the tasks (optionally via `superpowers:executing-plans` / `superpowers:subagent-driven-development`) only after the user gives the go-ahead.
+
 ## Evals And Benchmarks
 
 - Every skill with evals should keep `evals/<skill-name>/benchmark.json` in sync with the latest results.

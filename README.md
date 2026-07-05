@@ -94,7 +94,7 @@ cp -r skills/* ~/.claude/skills/
 - **Eval cost**:
   - **Sonnet 4.6**: +17.4 seconds, +835 tokens (input + output) over baseline for **+31% pass rate** — 6 of 8 evals discriminate (evals 2 and 6 non-discriminating because the Sonnet baseline coincidentally produces the structured section and exact phrasing). Cache tokens (creation + reads) add ~+299k more, billed separately and tracked as `cache_tokens` in benchmark.md.
   - **Opus 4.7**: +11.6 seconds, +1,060 tokens for **+42% pass rate** — all 8 evals discriminate (the baseline reliably misses HTML markers, SHA-256 diff anchors, and exact phrasing).
-  - **Opus 4.8** (coverage evals 9–12 only — the two impact-risk Novel Patterns signals, a negative rename guardrail, and the Selectivity Threshold): +19,344 tokens for **+54% pass rate** (100% with-skill vs 46% baseline) — all four discriminate; selectivity is the strongest (the baseline flags every changed file), the high-fanout helper the weakest (the baseline catches it unaided, so only the marker format differs). [Details](evals/pr-human-guide/benchmark.md).
+  - **Opus 4.8** (coverage evals 9–14 — the two impact-risk Novel Patterns signals, a negative rename guardrail, the Selectivity Threshold, and the operative-skill-source exemption): +22,641 tokens for **+61% pass rate** (100% with-skill vs 39% baseline) — all six discriminate; selectivity is the strongest (the baseline flags every changed file), the high-fanout helper the weakest (the baseline catches it unaided, so only the marker format differs). [Details](evals/pr-human-guide/benchmark.md).
 
 <details>
 <summary>pr-human-guide flow chart</summary>

@@ -240,9 +240,22 @@ reviewer has a meaningful yes/no decision to make about the transformation
 as a whole.
 
 Exceptions — never flag these regardless of content:
-- Changes that only affect comments or documentation
+- Changes that only affect code comments or true documentation prose — README
+  files, usage guides, and design/spec docs (e.g. `specs/**`) that *describe*
+  code rather than define behavior. **Operative source is not
+  documentation-exempt even when it is markdown:** in an agent-skills repo,
+  `SKILL.md` and reference files under a `skills/` tree (any `skills/**/*.md`,
+  including `skills/**/references/*.md`) are the operative behavioral source
+  that defines what an agent does — its security/trust boundaries and workflow
+  patterns — not prose about code (adjust the `skills/` prefix to match your
+  repo's skill directory layout). Evaluate such files against the normal
+  categories and this Selectivity Threshold: flag one only when the change
+  introduces a security boundary, a trust boundary, or a novel workflow
+  pattern. A pure wording, typo, or formatting edit to these files stays
+  exempt.
 - Test files (unless they contain security test fixtures with real credentials,
   or test infrastructure that affects production code paths)
 - Auto-generated files (lockfiles with only version changes, compiled output,
-  generated protobuf stubs)
+  generated protobuf stubs) and data/config entries such as cspell/wordlist
+  additions
 - Whitespace-only or formatting-only changes
