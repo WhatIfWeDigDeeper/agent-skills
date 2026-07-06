@@ -827,6 +827,39 @@ def should_present_nit_table(
 
 
 # ---------------------------------------------------------------------------
+# Step 8 helper: regression-test-with-every-substantive-code-fix (spec 51)
+# ---------------------------------------------------------------------------
+
+
+def requires_regression_test(action: str, body: str, touches_code: bool) -> bool:
+    """Return True if a planned row must carry a regression test (SKILL.md Step 8).
+
+    Per spec 51, when `pr-comments` applies a **substantive code-level fix** it
+    adds or updates a regression test in the same commit (test-first / TDD). A
+    row requires a test only when **all** of the following hold:
+
+    - the action is `fix` or `accept suggestion` (the two code-editing actions —
+      `reply` / `decline` / `skip` / `consistency` never edit the author's code
+      in this pass, so they never require a test), and
+    - it is **not** a nit (`is_nit` is False — cosmetic edits with no effect on
+      correctness/behavior/security/performance/public API need no guard), and
+    - the edit actually **touches executable code / behavior**
+      (``touches_code``) — a docs/prose/formatting/config-only fix has no runtime
+      surface to regress.
+
+    Layered on :func:`is_nit`; anything outside the code-editing actions, any
+    nit, and any non-code change returns False.
+    """
+    if action not in _NIT_ELIGIBLE_ACTIONS:
+        return False
+    if not touches_code:
+        return False
+    if is_nit(body, action):
+        return False
+    return True
+
+
+# ---------------------------------------------------------------------------
 # Polling subagent helpers (spec 49): Tier-0 delegation of the Shared polling
 # loop to a read-only background subagent. The subagent watches Signals 1/2/3
 # and returns a compact VERDICT; the main agent routes on the outcome.
