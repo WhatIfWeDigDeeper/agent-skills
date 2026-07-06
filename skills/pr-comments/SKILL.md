@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.49"
+  version: "1.50"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -276,6 +276,8 @@ Before touching anything, show a plan table:
 
 The `Nit` column shows `✓` for any `fix` / `accept suggestion` row tagged a nit in Step 6 (blank otherwise). It is informational in mixed rounds; when **every** actionable row is a nit, the Step 6d gate has already diverted to the nits-only table instead of this one.
 
+Rows that will get a regression test in Step 8 (non-nit `fix` / `accept suggestion` touching code) are flagged in the existing `Note` column (e.g. `+ regression test`) — informational only, like the `Nit` column, with **no new column** and **no separate confirmation**. The test rides along with the fix it guards, so the single `Proceed? [y/N/auto]` gate below confirms the fix and its test together (`--manual` mode), or proceeds for both (auto mode).
+
 **Confirmation prompt template.** When this prompt is required, emit `Proceed? [y/N/auto]` on its own line after the closing code fence — and **stop generating**. Do not supply an answer, do not assume `y`, do not continue to Step 8. Resume only after the user replies with `y`, `n`, or `auto`.
 
 Responses:
@@ -291,6 +293,15 @@ Responses:
 ### 8. Apply Changes
 
 Apply all changes in a single pass. GitHub suggestions embed the replacement as a `suggestion` code block — apply directly. Group same-file changes together. Track which thread and login correspond to each change.
+
+**Regression test with every substantive code fix.** For each `fix` / `accept suggestion` row that is **not** tagged a nit (Step 6) **and** whose edit touches executable code / behavior, default to adding or extending a regression test in the **same commit** as the fix (Step 10) — unless the change is a nit or has no runtime surface. Follow **test-first (TDD)** ordering:
+
+1. Write or extend the test that captures the bug **first**.
+2. Run it and confirm it **fails** for the expected reason (red) — proving the test actually guards the behavior and is not a tautology.
+3. Apply the code fix.
+4. Run it again and confirm it **passes** (green).
+
+The test must fail without the fix and pass with it; writing it first is what makes that guarantee real rather than assumed. **Skip** nit rows and non-code fixes (docs, comments, prose, formatting, config with no behavioral surface) — mirror the nit predicate's "no effect on correctness, behavior, security, performance, or public API" wording so the two stay consistent. **If the environment can't run the test** (e.g. a sandbox that can't launch a browser or a service), still write the test first, then validate red→green through whatever harness is available and **note in the commit and/or thread reply** that red/green could not be executed — rather than dropping the test.
 
 If no code changes, skip Steps 9–10 and proceed to Step 11.
 
@@ -318,7 +329,7 @@ Co-authored-by: alice <alice@users.noreply.github.com>
 Co-authored-by: bob <bob@users.noreply.github.com>
 ```
 
-Deduplicate co-authors — one entry per person. Accepted suggestions are included in the same commit.
+Deduplicate co-authors — one entry per person. Accepted suggestions are included in the same commit. Any regression test added in Step 8 for a substantive code fix is committed **here**, in the same commit as the fix it guards.
 
 `consistency` changes (from Step 6b) are included in the same commit as the originating comment's changes. Credit goes to the original commenter — their suggestion triggered the parallel change. No separate `Co-authored-by` entry is needed for the consistency item itself since it derives from the same reviewer's feedback.
 
