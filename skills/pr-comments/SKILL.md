@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.50"
+  version: "1.51"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -148,7 +148,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
   | jq -s '[.[] | .[] | {id, body, created_at, author: .user.login}]'
 ```
 
-Build your **actionable timeline comments** set by excluding PR author and authenticated user comments, deduplicating against Step 2b (same author + matching 200-char non-whitespace prefix → keep review body version), and marking `skip` when a later raw-list entry from the PR author or auth user `@mentions` the commenter or blockquotes their text. Keep the full raw list for linkage detection before applying the exclusions.
+Build your **actionable timeline comments** set by excluding PR author and authenticated user comments, deduplicating against Step 2b (same author + matching 200-char non-whitespace prefix → keep review body version), and marking `skip` when a later raw-list entry from the PR author or auth user `@mentions` the commenter or blockquotes their text. Replies to **bot** commenters carry no `@`-mention by design (see `references/reply-formats.md` — "Referring to the commenter"), so they link solely via the blockquote; do not treat a missing `@`-mention on a bot reply as a missing linkage. Keep the full raw list for linkage detection before applying the exclusions.
 
 Timeline comments share the same structural properties as review body comments: no GraphQL thread ID (cannot be resolved), no `diff_hunk` or file reference, and replies use the same `POST .../issues/{pr_number}/comments` endpoint (see Step 11).
 
@@ -329,6 +329,8 @@ Co-authored-by: alice <alice@users.noreply.github.com>
 Co-authored-by: bob <bob@users.noreply.github.com>
 ```
 
+Credit lines name the commenter as `{commenter_ref}` (see `references/reply-formats.md` — "Referring to the commenter"): `@alice` for a human, a **bare handle for a bot** — write `(suggested by Copilot)`, never `(suggested by @Copilot)`. <!-- bot-mention-example --> An `@`-mention of a bot in a pushed commit message is still a live mention on GitHub. `Co-authored-by:` trailers are unaffected — they carry a noreply email, not a mention, and remain `Co-authored-by: <login> <<login>@users.noreply.github.com>` for bots and humans alike.
+
 Deduplicate co-authors — one entry per person. Accepted suggestions are included in the same commit. Any regression test added in Step 8 for a substantive code fix is committed **here**, in the same commit as the fix it guards.
 
 `consistency` changes (from Step 6b) are included in the same commit as the originating comment's changes. Credit goes to the original commenter — their suggestion triggered the parallel change. No separate `Co-authored-by` entry is needed for the consistency item itself since it derives from the same reviewer's feedback.
@@ -342,6 +344,8 @@ Deduplicate co-authors — one entry per person. Accepted suggestions are includ
 ---
 🤖 Generated with [AssistantName](url)
 ```
+
+**Never `@`-mention a bot in a reply body.** Refer to a bot commenter by a bare handle — `Copilot`, not `@Copilot` — in the template wrapper **and in your own free-form prose** ("Good catch, Copilot", never "Good catch @Copilot"). <!-- bot-mention-example --> `@copilot` in a PR comment is a command that dispatches a Copilot coding agent onto the PR, not an attribution. Human commenters keep `@alice`. See `references/reply-formats.md` — "Referring to the commenter".
 
 `consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
 
@@ -359,10 +363,14 @@ File a follow-up GitHub issue for the out-of-scope suggestion from @reviewer? [y
 
 If confirmed:
 ```bash
+# commenter_ref: "@alice" for a human commenter; a bare handle (e.g. "Copilot")
+# for a bot — an @-mention of a bot in an issue body is a live mention.
+# See references/reply-formats.md — "Referring to the commenter".
+commenter_ref="@reviewer"
 issue_body_file="$(mktemp "${TMPDIR:-/private/tmp}/pr-comments-issue-XXXXXX")"
 trap 'rm -f "$issue_body_file"' EXIT
 {
-  printf 'Suggested in PR #%s by @%s.\n\n' "N" "reviewer"
+  printf 'Suggested in PR #%s by %s.\n\n' "N" "$commenter_ref"
   printf '%s\n' "<comment body>"
 } >"$issue_body_file"
 
