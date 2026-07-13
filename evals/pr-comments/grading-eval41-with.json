@@ -1,0 +1,30 @@
+{
+  "summary": {"passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0},
+  "expectations": [
+    {
+      "text": "The reply posted to the Copilot comment contains no `@`-mention of Copilot anywhere in the body — not in the opening wrapper and not in the free-form prose (e.g. it does not say 'Good catch @Copilot')",
+      "passed": true,
+      "evidence": "Reply body reads: 'Copilot\\n> This off-by-one drops the last element...\\n\\nFixed — changed the loop bound in `src/version.js` to `i < s.length` and added a regression test...'. The opening wrapper uses the bare word 'Copilot' (no `@`) and the free-form prose never mentions Copilot with an `@` — no `@Copilot` substring appears anywhere in the posted body."
+    },
+    {
+      "text": "The reply to Copilot refers to it by a bare handle such as `Copilot`",
+      "passed": true,
+      "evidence": "The reply opens with the bare token 'Copilot' on its own line (no `@`), immediately followed by the `>` quote — matching reply-formats.md's rule that a bot's `{commenter_ref}` never carries an `@`."
+    },
+    {
+      "text": "The reply to the Copilot timeline comment still includes a `>` blockquote of the original comment, which is its only remaining linkage signal",
+      "passed": true,
+      "evidence": "Reply includes '> This off-by-one drops the last element — `i < s.length - 1` should be `i < s.length`.' directly under the bare 'Copilot' handle, matching the summary's note that the quote is 'the sole linkage/dedup signal for a bot' since the handle carries no `@`."
+    },
+    {
+      "text": "The reply to alice's timeline comment still begins with `@alice`",
+      "passed": true,
+      "evidence": "Reply to alice begins: '@alice\\n> Please add a test for the empty-input case.' — the `@` is retained for the human commenter."
+    },
+    {
+      "text": "The commit message credits the bot without an `@` (e.g. `(suggested by Copilot)`), and does not contain `@Copilot`",
+      "passed": true,
+      "evidence": "Commit body line: '- Fix off-by-one loop bound that dropped the last character (suggested by Copilot)' — bare handle, no `@`. The trailer 'Co-authored-by: Copilot <Copilot@users.noreply.github.com>' contains the substring 'Copilot@' (email local-part), not '@Copilot' — the literal substring `@Copilot` does not appear anywhere in the commit message."
+    }
+  ]
+}

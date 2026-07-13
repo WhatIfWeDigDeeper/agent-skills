@@ -160,6 +160,7 @@ cp -r skills/* ~/.claude/skills/
 - **Eval cost**:
   - **Sonnet 4.6**: +25.9 seconds, +6,291 tokens over baseline; +63 pp pass rate (39 of 40 evals discriminate). Time aggregate covers 11 of 80 primary runs (5 with-skill, 6 without-skill); token aggregate covers 8 of 80 (3 with-skill, 5 without-skill). The remaining runs use simulated transcripts with null instrumentation.
   - **Opus 4.7**: time/tokens not preserved at the parent level (subagent usage data only visible in transient task notifications); observed wall-clock was ~115s with-skill vs ~45s without-skill, and ~60–100k tokens with-skill vs ~28–68k tokens without-skill. +39 pp pass rate (29 of 38 evals discriminate; 9 are non-discriminating because the Opus baseline has internalized those behaviors). [Details](evals/pr-comments/benchmark.md).
+  - **Sonnet 5**: eval 41 only (added at v1.51, after the Sonnet 4.6 and Opus 4.7 executors were retired and could no longer be pinned) — +60 pp pass rate on that one eval (5/5 with-skill vs 2/5 without-skill). A single-eval track, so it does not move the two suite deltas above and is excluded from both. [Details](evals/pr-comments/benchmark.md).
 
 <details>
 <summary>Flow Chart</summary>

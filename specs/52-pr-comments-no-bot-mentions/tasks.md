@@ -373,7 +373,7 @@ git commit -m "feat(pr-comments): define {commenter_ref} — bots get a bare han
 - Consumes: `{commenter_ref}` and the "Referring to the commenter" section from Task 2.
 - Produces: nothing new — this task only applies the rule.
 
-- [ ] **Step 1: Bump the version**
+- [x] **Step 1: Bump the version**
 
 In the frontmatter, change:
 
@@ -389,7 +389,7 @@ to:
 
 This is the **only** version bump in this PR. Do not add another in Task 4 or 5.
 
-- [ ] **Step 2: Note the bot-linkage asymmetry in Step 2c**
+- [x] **Step 2: Note the bot-linkage asymmetry in Step 2c**
 
 Find the Step 2c paragraph beginning "Build your **actionable timeline comments** set by excluding PR author...". Append this sentence to the end of that paragraph, immediately after "...or blockquotes their text." and before "Keep the full raw list for linkage detection before applying the exclusions.":
 
@@ -397,7 +397,7 @@ Find the Step 2c paragraph beginning "Build your **actionable timeline comments*
 Replies to **bot** commenters carry no `@`-mention by design (see `references/reply-formats.md` — "Referring to the commenter"), so they link solely via the blockquote; do not treat a missing `@`-mention on a bot reply as a missing linkage.
 ```
 
-- [ ] **Step 3: Fix the commit-credit surface (Step 10)**
+- [x] **Step 3: Fix the commit-credit surface (Step 10)**
 
 In `### 10. (If Changes Were Made) Commit with Commenter Credit`, immediately after the example commit's closing fence and before the line beginning "Deduplicate co-authors", insert:
 
@@ -407,7 +407,7 @@ Credit lines name the commenter as `{commenter_ref}` (see `references/reply-form
 
 The existing `@alice` / `@bob` examples in the commit block are humans and stay as they are.
 
-- [ ] **Step 4: Fix the reply-prose surface (Step 11)**
+- [x] **Step 4: Fix the reply-prose surface (Step 11)**
 
 In `### 11. Reply to Comments`, immediately after the byline block (the fenced block containing `🤖 Generated with [AssistantName](url)`) and before the line beginning "`consistency` items (from Step 6b) have no associated review thread", insert:
 
@@ -415,7 +415,7 @@ In `### 11. Reply to Comments`, immediately after the byline block (the fenced b
 **Never `@`-mention a bot in a reply body.** Refer to a bot commenter by a bare handle — `Copilot`, not `@Copilot` — in the template wrapper **and in your own free-form prose** ("Good catch, Copilot", never "Good catch @Copilot"). `@copilot` in a PR comment is a command that dispatches a Copilot coding agent onto the PR, not an attribution. Human commenters keep `@alice`. See `references/reply-formats.md` — "Referring to the commenter".
 ```
 
-- [ ] **Step 5: Fix the follow-up-issue surface (Step 11)**
+- [x] **Step 5: Fix the follow-up-issue surface (Step 11)**
 
 Replace the `gh issue create` bash block's body-file construction. Change:
 
@@ -447,7 +447,7 @@ Note the format string loses its literal `@` — it now comes from `$commenter_r
 
 The confirmation prompt just above it (`File a follow-up GitHub issue for the out-of-scope suggestion from @reviewer? [y/n]`) is **terminal output, not posted content** — leave it unchanged.
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 ```bash
 rg -n 'version:' skills/pr-comments/SKILL.md | head -1
@@ -456,7 +456,7 @@ rg -n 'suggested by @Copilot|by @%s' skills/pr-comments/SKILL.md
 
 Expected: version reads `"1.51"`; the second command produces no output.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add skills/pr-comments/SKILL.md
@@ -476,7 +476,7 @@ Removing the `@` for bots leaves the `>` quote as the sole linkage signal for a 
 **Interfaces:**
 - Consumes: `is_already_addressed(comment, all_timeline_comments, pr_author, auth_user)` from `conftest.py` — **unchanged by this spec**. Its `@`-mention branch keeps its `(?<![A-Za-z0-9-])@{login}(?![A-Za-z0-9-])` regex for humans; bots resolve via its blockquote branch.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/pr-comments/test_bot_mentions.py`:
 
@@ -520,7 +520,7 @@ class TestBotTimelineNitSelfTermination:
         assert is_already_addressed(comment, [comment, reply], pr_author="prowner", auth_user="skillbot") is True
 ```
 
-- [ ] **Step 2: Run it**
+- [x] **Step 2: Run it**
 
 ```bash
 uv run --with pytest pytest tests/pr-comments/test_bot_mentions.py::TestBotTimelineNitSelfTermination -v
@@ -528,7 +528,7 @@ uv run --with pytest pytest tests/pr-comments/test_bot_mentions.py::TestBotTimel
 
 Expected: **all three PASS immediately.** `is_already_addressed` already accepts a blockquote as linkage, so no matcher change is needed — that is exactly the property this spec relies on, and these tests pin it against future regression. If `test_bot_reply_without_at_mention_links_via_quote` fails, the blockquote branch is broken and the spec's core assumption is wrong — **stop and report**, do not "fix" it by matching bare logins (see plan.md, "Explicitly rejected").
 
-- [ ] **Step 3: Reword the two `skip-all` / `issue-all` wrapper references**
+- [x] **Step 3: Reword the two `skip-all` / `issue-all` wrapper references**
 
 In `nit-gate.md`, in the `### skip-all` section, replace:
 
@@ -556,7 +556,7 @@ matches the comment's origin (a timeline-originated nit needs the
 `{commenter_ref}` + `>` quote wrapper). Do **not** commit code; leave
 ```
 
-- [ ] **Step 4: Reword the load-bearing note**
+- [x] **Step 4: Reword the load-bearing note**
 
 In the "Thread state on skip/issue" bullet list, replace the whole **Timeline** sub-bullet:
 
@@ -583,7 +583,7 @@ with:
     subsequent run.
 ```
 
-- [ ] **Step 5: Run the whole skill-file scan — it should now be green**
+- [x] **Step 5: Run the whole skill-file scan — it should now be green**
 
 ```bash
 uv run --with pytest pytest tests/pr-comments/test_bot_mentions.py -v
@@ -593,7 +593,7 @@ Expected: **all** tests PASS — including `test_no_at_prefixed_login_placeholde
 
 If `test_no_at_prefixed_login_placeholder` still reports offenders, they are surfaces this plan missed. Fix them in this same commit if they are genuinely posted content. If an offender is terminal-only output (a status line or `[y/N]` prompt in `bot-polling.md` / `report-templates.md` — these use `@bot1` placeholders, which the scan does not match), it is a **false positive**: exclude that file from the scan rather than rewriting the terminal copy, and say why in the commit message.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add skills/pr-comments/references/nit-gate.md tests/pr-comments/test_bot_mentions.py
@@ -674,12 +674,52 @@ git commit -m "test(pr-comments): eval for bot credit without an @-mention (spec
 
 ---
 
+### Task 5b: Run eval 41 and update the benchmark
+
+**Added mid-flight.** The original plan stopped at *authoring* eval 41. `evals/CLAUDE.md` binds us further: "When adding new evals to `evals.json`, run them immediately — do not wait for the user to ask… update `benchmark.json` as part of the same task," and "When evals are listed in a spec's tasks.md or plan, run them without asking — inclusion in the plan/tasks constitutes prior approval." An unrun eval also proves nothing: it is the only artifact that can tell us whether the fixed skill actually stops writing `@Copilot` in free-form prose, which is the failure this whole spec exists to prevent.
+
+**Files:**
+- Modify: `evals/pr-comments/benchmark.json`
+- Modify: `evals/pr-comments/benchmark.md`
+- Modify: `README.md` (Eval Δ column + Eval cost bullet, only if the delta changes)
+- Create (only if the grader made a judgment call): `evals/pr-comments/grading-eval41-{with,without}.json`
+
+**Run it in two stages** (splitting keeps the numeric benchmark surgery away from the execution):
+
+- [x] **Stage A — execute and grade.** Run eval 41 in both configurations per `evals/CLAUDE.md`. Binding rules: spawn executors with `mode: "auto"`; each works in a `mktemp -d` workspace; the executor is given ONLY the eval prompt and fixtures — **never** the assertion text; the `without_skill` executor may not read `skills/pr-comments/**`; **neither** executor may call the `Skill` tool (for `with_skill`, read SKILL.md and do the work directly). Then grade both transcripts against eval 41's five assertions, passing the grader the **full assertion text strings**, not the ids.
+
+- [x] **Stage B — update the benchmark.** Using Stage A's real numbers only — **never fabricate a measurement**: append the two run entries; set `metadata.skill_version` to `"1.51"` and append `41` to `metadata.evals_run`; recompute `run_summary` (sample stddev, N−1; deltas from unrounded means, 2-decimal `pass_rate`); add eval 41's section to `benchmark.md` and update the "N of M" token-count denominator; update README's Eval Δ and Eval cost bullet if the delta moved.
+
+**Acceptance:** eval 41 must **discriminate** — at least one assertion must FAIL in `without_skill`. If it passes 100% in both configurations it is non-discriminating: do not quietly bank it. Record that fact in `benchmark.json`'s notes and report it, since it would mean the baseline model already avoids `@`-mentioning bots and the skill's rule is belt-and-braces rather than load-bearing.
+
+**Outcome (met):** eval 41 discriminates — `with_skill` 5/5, `without_skill` 2/5 (+0.60). Assertions 2 (bare handle), 3 (`>` blockquote) and 4 (`@alice` preserved) all FAIL without the skill.
+
+Three deviations from the Stage B text above, each forced by what the data actually showed:
+
+1. **A third executor-model track.** The Agent tool can only dispatch current models, so the retired `claude-sonnet-4-6` / `claude-opus-4-7` executors can no longer be pinned and eval 41 could not be appended to either existing track. It is recorded under `claude-sonnet-5` with its own `run_summary_by_model` block (N = 1, so `stddev` is `null` — sample stddev is undefined at N = 1).
+2. **`run_summary` was not recomputed, and README's Eval Δ column did not move.** Both are scoped to the full-suite tracks, which eval 41 is not part of; changing either would have misreported one eval as a suite result. The "N of M" token denominator is likewise a Sonnet 4.6 figure and is unchanged for the same reason. README's *Eval cost* bullet did gain a Sonnet 5 sub-bullet.
+3. **The recorded token delta is negative (−2,761) and must not be read as a saving.** `tokens` counts input + output only, and the with-skill run served nearly all its input from cache (62 uncached input tokens against 2,459,308 cache tokens, vs 1,296,190 for the baseline). Noted in both `benchmark.json` and `benchmark.md`.
+
+One finding worth carrying to final review: assertion 1 (no `@`-mention of the bot) **passed in both configurations** — but only *vacuously* in the baseline, which referenced no commenter at all. An earlier variant of this scenario *did* make the baseline write a literal `@Copilot`, reproducing the production incident. The hazard is real but intermittent, so assertion 1 is a guard, not a discriminator; assertions 2–4 carry the delta. Recorded in the benchmark notes so a later reader does not mistake it for dead weight.
+
+---
+
 ### Task 6: Repo hygiene — docs sync, spell check, full suite
 
 **Files:**
 - Modify: `cspell.config.yaml` (only if new terms appear)
 - Modify: `README.md` (only if its `pr-comments` notes describe the reply format)
 - Modify: `specs/52-pr-comments-no-bot-mentions/tasks.md` (check off completed items as you go)
+
+- [ ] **Step 0: Sync the spec with the mid-flight marker decision**
+
+Task 2 surfaced a conflict this plan created: the belt-and-braces scan test forbade the literal `@Copilot` anywhere in skill markdown, which stopped the skill's **own documentation** from showing the concrete anti-example — the strongest instruction against the exact failure this spec exists to prevent. Resolution (human decision): the scan skips lines carrying `<!-- bot-mention-example -->`, mirroring the repo's existing `<!-- cspell:disable-line -->` convention, and the anti-example is restored on a marked line.
+
+Update both spec files so they describe what was actually built:
+- In `plan.md`, extend the **Testing** section to record the allow-marker and why it exists.
+- In `tasks.md`, update Task 1's `TestSkillFilesHaveNoLiveBotMentions` code block to match the shipped implementation (the `_scan_lines_for_bot_mentions` helper and the marker tests).
+
+A spec that no longer matches the code is worse than no spec.
 
 - [ ] **Step 1: Check whether README describes the reply format**
 
@@ -732,12 +772,14 @@ Expected: exactly one line, `+  version: "1.51"`.
 
 - [ ] **Step 7: Commit any hygiene changes**
 
+Stage **explicit paths only** — never `git add -A`. The working tree has untracked scratch directories (`.pnpm-store/`, `node_modules/`) that are not git-ignored; `-A` would commit them.
+
 ```bash
-git add -A
+git add cspell.config.yaml README.md specs/52-pr-comments-no-bot-mentions/tasks.md
 git commit -m "chore(pr-comments): spell check and docs sync (spec 52)"
 ```
 
-Skip this commit if Steps 1–6 produced no file changes.
+Drop any of those paths that you did not actually change. Skip this commit entirely if Steps 1–6 produced no file changes.
 
 ---
 

@@ -1,0 +1,30 @@
+{
+  "summary": {"passed": 2, "failed": 3, "total": 5, "pass_rate": 0.4},
+  "expectations": [
+    {
+      "text": "The reply posted to the Copilot comment contains no `@`-mention of Copilot anywhere in the body — not in the opening wrapper and not in the free-form prose (e.g. it does not say 'Good catch @Copilot')",
+      "passed": true,
+      "evidence": "Full reply body: 'Good catch — this was an off-by-one. Fixed in the latest commit: the loop condition is now `i < s.length` instead of `i < s.length - 1`, so the last character is no longer dropped. Added a regression test (`parseParts('123')` now returns `[1, 2, 3]`) to cover it.' No `@Copilot` (or any mention of the word 'Copilot' at all) appears. Passes vacuously: the reply never references Copilot by name in any form, opening wrapper or prose, so the literal 'no @-mention' condition holds without the model ever making a deliberate bare-handle choice."
+    },
+    {
+      "text": "The reply to Copilot refers to it by a bare handle such as `Copilot`",
+      "passed": false,
+      "evidence": "The reply text ('Good catch — this was an off-by-one. Fixed in the latest commit...') never contains the word 'Copilot' anywhere — there is no bare-handle reference to the commenter at all, so this assertion fails outright."
+    },
+    {
+      "text": "The reply to the Copilot timeline comment still includes a `>` blockquote of the original comment, which is its only remaining linkage signal",
+      "passed": false,
+      "evidence": "The posted reply to Copilot contains no `>` character or quoted excerpt at all: 'Good catch — this was an off-by-one. Fixed in the latest commit... Added a regression test... to cover it.' There is no linkage signal back to the original comment in the posted body."
+    },
+    {
+      "text": "The reply to alice's timeline comment still begins with `@alice`",
+      "passed": false,
+      "evidence": "Posted reply to alice reads in full: 'Added a test for the empty-input case — `parseParts('')` now asserts it returns `[]`. Thanks for flagging it!' — it does not begin with `@alice` or contain any `@`-mention of alice."
+    },
+    {
+      "text": "The commit message credits the bot without an `@` (e.g. `(suggested by Copilot)`), and does not contain `@Copilot`",
+      "passed": true,
+      "evidence": "Commit message's final line reads 'Addresses review feedback from Copilot and alice.' — credits the bot as bare 'Copilot' with no `@`, and the substring `@Copilot` does not appear anywhere in the commit message."
+    }
+  ]
+}
