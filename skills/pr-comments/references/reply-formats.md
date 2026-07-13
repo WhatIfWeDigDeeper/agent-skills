@@ -24,11 +24,14 @@ commenter as `{commenter_ref}`:
 | Human | `@` + login | `@alice` |
 | Bot | bare display handle, **no `@`** | `Copilot`, `claude`, `renovate` |
 
-**A bot is any comment author with `user.type == "Bot"`.** Do not test for a
+**A bot is any comment author with `user.type == "Bot"`** — the Step 2/2b/2c
+fetches project this field as `author_type`, so that is the key to test on a
+fetched comment. Do not test for a
 `[bot]` login suffix instead — the same bot reports different logins on different
 endpoints (Copilot is `Copilot` on `/pulls/{pr_number}/comments` but
 `copilot-pull-request-reviewer[bot]` on `/pulls/{pr_number}/reviews`), so a
-suffix-only check misses it exactly where it matters. Derive the display handle
+suffix-only check misses it exactly where it matters. Fall back to the suffix
+only for a source that carries no type. Derive the display handle
 with the **Bot Display Names** algorithm in `references/bot-polling.md` (strip
 `[bot]`; if hyphens remain, keep the first hyphen-separated token).
 
@@ -55,9 +58,16 @@ issue**, reply to the originating bot comment with the byline footer, using the
 endpoint **and format** that match where the nit originated: an inline (Step 2)
 nit via the inline replies endpoint below; a review-body (Step 2b) or timeline
 (Step 2c) nit via the issue comments endpoint, with a **timeline** reply
-following the Timeline comment format below — start with `{commenter_ref}` and
-include a `>` quote, or the reply loses its link to the originating comment (and,
-for a human commenter, they are not notified). When the nit came from an inline comment, its review thread is left
+following the Timeline comment format below.
+
+Both templates below open with `{commenter_ref}` and a `>` quote. On a
+review-body or timeline reply that wrapper is **mandatory**: the quote is what
+links the reply back to the originating comment, and for a **bot** commenter —
+whose `{commenter_ref}` carries no `@` — it is the *only* linkage signal there
+is. Drop it and the nit re-surfaces as unaddressed on every subsequent run. (For
+a human, the `@` also notifies them.) On an *inline* reply the thread itself
+carries the link, so the wrapper is redundant but harmless — keep it for
+consistency. When the nit came from an inline comment, its review thread is left
 **open** (not resolved); review-body and timeline comments have no thread to
 resolve.
 
