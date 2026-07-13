@@ -140,6 +140,46 @@ def split_human_bot(reviewers: list[str]) -> tuple[list[str], list[str]]:
     return humans, bots
 
 
+def is_bot_author(author: dict) -> bool:
+    """Returns True if a comment author is a bot account.
+
+    Primary signal is the GitHub ``user.type`` field. The ``[bot]`` login suffix
+    is only a fallback: the same bot reports different logins on different
+    endpoints (Copilot is ``Copilot`` on /pulls/{n}/comments but
+    ``copilot-pull-request-reviewer[bot]`` on /pulls/{n}/reviews), so a
+    suffix-only check misses it exactly where it matters.
+    """
+    if author.get("type") == "Bot":
+        return True
+    return is_bot_login(author.get("login", ""))
+
+
+def bot_display_name(login: str) -> str:
+    """Short display handle for a bot login.
+
+    Implements the Bot Display Names algorithm in references/bot-polling.md:
+    strip the ``[bot]`` suffix, then keep the first hyphen-separated token.
+    """
+    name = login[: -len("[bot]")] if login.endswith("[bot]") else login
+    if "-" in name:
+        name = name.split("-", 1)[0]
+    return name
+
+
+def commenter_ref(author: dict) -> str:
+    """How a body posted to GitHub refers to a commenter (spec 52).
+
+    Humans get an ``@``-mention — on the flat PR timeline it is the only thing
+    that notifies them of a reply. Bots get a bare display handle: ``@copilot``
+    in a PR comment is a *command* that dispatches a Copilot coding agent, not a
+    notification.
+    """
+    login = author.get("login", "")
+    if is_bot_author(author):
+        return bot_display_name(login)
+    return f"@{login}"
+
+
 def should_offer_poll(bot_reviewers: list[str]) -> bool:
     """Returns True if the poll prompt should be offered after re-requesting review.
 
