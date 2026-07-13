@@ -64,6 +64,9 @@ resolve.
 - **Skipped nit** (`skip-all`, or a `select` row chosen as skip):
 
   ```
+  {commenter_ref}
+  > [relevant excerpt from their comment]
+
   Noted as a nit — leaving as-is for now.
 
   ---
@@ -73,6 +76,9 @@ resolve.
 - **Nit deferred to an issue** (`issue-all`, or a `select` row chosen as issue):
 
   ```
+  {commenter_ref}
+  > [relevant excerpt from their comment]
+
   Filed as #NNN.
 
   ---

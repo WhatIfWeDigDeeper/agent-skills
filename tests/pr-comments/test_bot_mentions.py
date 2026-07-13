@@ -13,7 +13,17 @@ from conftest import bot_display_name, commenter_ref, is_already_addressed, is_b
 
 SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "pr-comments"
 
-KNOWN_BOT_HANDLES = ["copilot", "claude", "coderabbitai", "gemini", "renovate", "dependabot"]
+KNOWN_BOT_HANDLES = [
+    "copilot",
+    "claude",
+    "codecov",
+    "coderabbitai",
+    "gemini",
+    "github-actions",
+    "renovate",
+    "dependabot",
+    "sonarcloud",
+]
 BOT_MENTION_MARKER = "<!-- bot-mention-example -->"
 _BOT_MENTION_PATTERN = re.compile(r"@(" + "|".join(KNOWN_BOT_HANDLES) + r")\b", re.IGNORECASE)
 
@@ -113,15 +123,19 @@ class TestSkillFilesHaveNoLiveBotMentions:
         return offenders
 
     def test_no_at_prefixed_login_placeholder(self):
-        """`@{commenter_login}` expands to `@Copilot` for a bot commenter.
+        """`@{commenter_login}` (or any other `@{placeholder}`) expands to `@Copilot`
+        for a bot commenter.
 
         This is how the `@` actually reached the posted body — not a hardcoded
-        `@Copilot` literal. Templates must use `{commenter_ref}`, which drops
-        the `@` for bots.
+        `@Copilot` literal. A future template written as `@{login}` or `@{author}`
+        is the same bug under a different placeholder name, so match any
+        `@{` immediately followed by a placeholder identifier, not just the
+        literal `@{commenter_login}` spelling. Templates must use bare
+        `{commenter_ref}` (no leading `@`), which drops the `@` for bots.
         """
-        offenders = self._scan(lambda line: "@{commenter_login}" in line)
+        offenders = self._scan(lambda line: re.search(r"@\{[a-zA-Z_]+\}", line))
         assert offenders == [], (
-            "Template @-mentions a raw login (expands to @Copilot for a bot); "
+            "Template @-mentions a raw placeholder (expands to @Copilot for a bot); "
             "use {commenter_ref}:\n" + "\n".join(offenders)
         )
 
@@ -147,6 +161,43 @@ class TestSkillFilesHaveNoLiveBotMentions:
             for lineno in _scan_lines_for_bot_mentions(lines):
                 offenders.append(f"{md.relative_to(SKILL_DIR)}:{lineno}: {lines[lineno - 1].strip()}")
         assert offenders == [], "Live @-mention of a bot in skill content:\n" + "\n".join(offenders)
+
+
+class TestCommentFetchProjectionsCarryAuthorType:
+    """The primary bot signal (`user.type == "Bot"`) is unusable unless it's fetched.
+
+    is_bot_author's primary test is `author.get("type") == "Bot"` (reply-formats.md
+    line ~27: "Do not test for a `[bot]` login suffix instead"). Each of the three
+    comment-fetch jq projections in SKILL.md (Step 2 inline comments, Step 2b review
+    bodies, Step 2c timeline comments) must therefore project `.user.type` alongside
+    `.user.login`, or the agent only ever has a login string at runtime — and a bare
+    `Copilot` (no `[bot]` suffix) is misclassified as human.
+    """
+
+    SKILL_MD = SKILL_DIR / "SKILL.md"
+
+    def test_all_three_fetch_projections_carry_author_type(self):
+        lines = self.SKILL_MD.read_text().splitlines()
+        author_login_lines = [
+            (lineno, line) for lineno, line in enumerate(lines, 1) if "author: .user.login" in line
+        ]
+        # Sanity check: if this drops to zero, the projections were removed or
+        # renamed and this test would otherwise pass vacuously.
+        assert len(author_login_lines) == 3, (
+            "Expected exactly 3 comment-fetch jq projections with 'author: .user.login' "
+            f"in SKILL.md (Steps 2/2b/2c); found {len(author_login_lines)}:\n"
+            + "\n".join(f"{lineno}: {line.strip()}" for lineno, line in author_login_lines)
+        )
+        offenders = [
+            f"{lineno}: {line.strip()}"
+            for lineno, line in author_login_lines
+            if "author_type: .user.type" not in line
+        ]
+        assert offenders == [], (
+            "Comment-fetch jq projection drops '.user.type' — is_bot_author's primary "
+            "signal is unfetchable, so a bare 'Copilot' login is misclassified as human:\n"
+            + "\n".join(offenders)
+        )
 
 
 class TestBotMentionMarker:

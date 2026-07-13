@@ -117,7 +117,7 @@ Pull all review comments on the PR using the REST endpoint:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate \
-  --jq '.[] | {id, body, path, line, original_line, start_line, original_start_line, side, start_side, position, original_position, diff_hunk, in_reply_to_id, created_at, updated_at, author: .user.login}' \
+  --jq '.[] | {id, body, path, line, original_line, start_line, original_start_line, side, start_side, position, original_position, diff_hunk, in_reply_to_id, created_at, updated_at, author: .user.login, author_type: .user.type}' \
   | jq -s '.'
 ```
 
@@ -131,7 +131,7 @@ Also fetch review body comments (summaries submitted with the review, e.g. "Requ
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  --jq '.[] | select((.state == "CHANGES_REQUESTED" or .state == "COMMENTED") and .body and (.body | length > 0)) | {id, body, state, submitted_at, author: .user.login}' \
+  --jq '.[] | select((.state == "CHANGES_REQUESTED" or .state == "COMMENTED") and .body and (.body | length > 0)) | {id, body, state, submitted_at, author: .user.login, author_type: .user.type}' \
   | jq -s '.'
 ```
 
@@ -145,7 +145,7 @@ Also fetch plain PR timeline comments — top-level conversation comments not at
 
 ```bash
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
-  | jq -s '[.[] | .[] | {id, body, created_at, author: .user.login}]'
+  | jq -s '[.[] | .[] | {id, body, created_at, author: .user.login, author_type: .user.type}]'
 ```
 
 Build your **actionable timeline comments** set by excluding PR author and authenticated user comments, deduplicating against Step 2b (same author + matching 200-char non-whitespace prefix → keep review body version), and marking `skip` when a later raw-list entry from the PR author or auth user `@mentions` the commenter or blockquotes their text. Replies to **bot** commenters carry no `@`-mention by design (see `references/reply-formats.md` — "Referring to the commenter"), so they link solely via the blockquote; do not treat a missing `@`-mention on a bot reply as a missing linkage. Keep the full raw list for linkage detection before applying the exclusions.
@@ -345,7 +345,7 @@ Deduplicate co-authors — one entry per person. Accepted suggestions are includ
 🤖 Generated with [AssistantName](url)
 ```
 
-**Never `@`-mention a bot in a reply body.** Refer to a bot commenter by a bare handle — `Copilot`, not `@Copilot` — in the template wrapper **and in your own free-form prose** ("Good catch, Copilot", never "Good catch @Copilot"). <!-- bot-mention-example --> `@copilot` in a PR comment is a command that dispatches a Copilot coding agent onto the PR, not an attribution. Human commenters keep `@alice`. See `references/reply-formats.md` — "Referring to the commenter".
+**Never `@`-mention a bot in a reply body.** Refer to a bot commenter by a bare handle — `Copilot`, not `@Copilot` — in the template wrapper **and in your own free-form prose** ("Good catch, Copilot", never "Good catch @Copilot"). <!-- bot-mention-example --> `@copilot` in a PR comment is a command that dispatches a Copilot coding agent onto the PR, not an attribution. Human commenters keep `@alice`. Determine bot status from the `author_type` field fetched in Steps 2/2b/2c (`== "Bot"`) — a `[bot]` login suffix is only a fallback for sources that don't carry a type. See `references/reply-formats.md` — "Referring to the commenter".
 
 `consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
 
@@ -366,7 +366,7 @@ If confirmed:
 # commenter_ref: "@alice" for a human commenter; a bare handle (e.g. "Copilot")
 # for a bot — an @-mention of a bot in an issue body is a live mention.
 # See references/reply-formats.md — "Referring to the commenter".
-commenter_ref="@reviewer"
+commenter_ref="@reviewer"  # or "Copilot" for a bot — no @
 issue_body_file="$(mktemp "${TMPDIR:-/private/tmp}/pr-comments-issue-XXXXXX")"
 trap 'rm -f "$issue_body_file"' EXIT
 {

@@ -372,6 +372,8 @@ When building display prompts for bot accounts (e.g., the push/re-request prompt
 
 Use the full login (including any `[bot]` suffix) for the actual API calls.
 
+**Not terminal-only.** This algorithm is also the source of truth for the bot branch of `{commenter_ref}` used in content **posted** to GitHub (replies, commit messages, follow-up issues) — see `references/reply-formats.md` — "Referring to the commenter". Don't narrow this section to terminal-display use only; a future edit that does so would silently break the posted-content bot handle derivation.
+
 ## Known limitations: silent no-op POST for re-reviewed bots
 
 `POST /repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers` returns HTTP 201 with no `review_requested` event when the bot has already reviewed this PR. The verification gate in **Entry from Step 13b**, step 4 detects this at runtime; the notes below cover what's not in that step.

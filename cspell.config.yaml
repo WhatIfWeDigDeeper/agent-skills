@@ -118,6 +118,7 @@ words:
   - skillname
   - skillshortname
   - snyk
+  - sonarcloud
   - splitlines
   - startswith
   - stddev
@@ -136,6 +137,7 @@ words:
   - undercounted
   - underspecification
   - underspecified
+  - unfetchable
   - unmatch
   - unredacted
   - unrun
