@@ -37,7 +37,7 @@ Mirrors the skill's bot-reference rule as pure Python in `conftest.py`, the way 
 
   where `author` is a comment-author dict shaped like the GitHub API's `user` object: `{"login": "Copilot", "type": "Bot"}`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/pr-comments/test_bot_mentions.py`:
 
@@ -56,6 +56,32 @@ from pathlib import Path
 from conftest import bot_display_name, commenter_ref, is_bot_author
 
 SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "pr-comments"
+
+KNOWN_BOT_HANDLES = ["copilot", "claude", "coderabbitai", "gemini", "renovate", "dependabot"]
+BOT_MENTION_MARKER = "<!-- bot-mention-example -->"
+_BOT_MENTION_PATTERN = re.compile(r"@(" + "|".join(KNOWN_BOT_HANDLES) + r")\b", re.IGNORECASE)
+
+
+def _scan_lines_for_bot_mentions(lines: list[str]) -> list[int]:
+    """Return 1-indexed line numbers that contain a live `@`-mention of a known bot.
+
+    Any line containing the literal marker `<!-- bot-mention-example -->` is
+    skipped, even if it also matches the bot-mention pattern. The marker exists
+    so documentation prose can show the concrete anti-example (e.g. "never
+    write: Good catch @Copilot") that the guard otherwise exists to catch —
+    mirroring `<!-- cspell:disable-line -->` for intentional non-ASCII text.
+
+    Only use this marker on documentation prose lines. Never add it to a
+    template body: templates are interpolated and posted verbatim, so marking
+    one would let a real `@`-mention slip through into a posted GitHub comment.
+    """
+    offenders = []
+    for lineno, line in enumerate(lines, 1):
+        if BOT_MENTION_MARKER in line:
+            continue
+        if _BOT_MENTION_PATTERN.search(line):
+            offenders.append(lineno)
+    return offenders
 
 
 class TestIsBotAuthor:
@@ -117,7 +143,7 @@ class TestCommenterRef:
 class TestSkillFilesHaveNoLiveBotMentions:
     """No posted-body template may @-mention a raw login, which expands to @Copilot for a bot."""
 
-    KNOWN_BOT_HANDLES = ["copilot", "claude", "coderabbitai", "gemini", "renovate", "dependabot"]
+    KNOWN_BOT_HANDLES = KNOWN_BOT_HANDLES
 
     def _skill_md_files(self) -> list[Path]:
         return sorted(SKILL_DIR.rglob("*.md"))
@@ -149,13 +175,44 @@ class TestSkillFilesHaveNoLiveBotMentions:
         assert "Referring to the commenter" in text
 
     def test_no_hardcoded_at_mention_of_known_bot(self):
-        """Belt-and-braces: no literal `@Copilot` anywhere in skill content."""
-        pattern = re.compile(r"@(" + "|".join(self.KNOWN_BOT_HANDLES) + r")\b", re.IGNORECASE)
-        offenders = self._scan(lambda line: bool(pattern.search(line)))
+        """Belt-and-braces: no literal `@Copilot` anywhere in skill content.
+
+        A line is exempt only if it carries the literal marker
+        `<!-- bot-mention-example -->` (see `_scan_lines_for_bot_mentions`),
+        which lets documentation prose show the concrete anti-example the
+        model must never write. This marker is for documentation prose only —
+        never place it in a template body, since a template is interpolated
+        and posted verbatim and the marker would suppress the exact literal
+        this guard exists to catch.
+        """
+        offenders = []
+        for md in self._skill_md_files():
+            lines = md.read_text().splitlines()
+            for lineno in _scan_lines_for_bot_mentions(lines):
+                offenders.append(f"{md.relative_to(SKILL_DIR)}:{lineno}: {lines[lineno - 1].strip()}")
         assert offenders == [], "Live @-mention of a bot in skill content:\n" + "\n".join(offenders)
+
+
+class TestBotMentionMarker:
+    """Proves `<!-- bot-mention-example -->` suppresses only the line it's on."""
+
+    def test_unmarked_mention_is_flagged(self):
+        assert _scan_lines_for_bot_mentions(["Never write: Good catch @Copilot"]) == [1]
+
+    def test_marked_mention_is_not_flagged(self):
+        lines = [f"Never write: Good catch @Copilot {BOT_MENTION_MARKER}"]
+        assert _scan_lines_for_bot_mentions(lines) == []
+
+    def test_marker_does_not_suppress_other_lines(self):
+        """The marker is not a blanket escape hatch — it only exempts its own line."""
+        lines = [
+            f"Never write: Good catch @Copilot {BOT_MENTION_MARKER}",
+            "Also bad: @Copilot thanks",
+        ]
+        assert _scan_lines_for_bot_mentions(lines) == [2]
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 ```bash
 uv run --with pytest pytest tests/pr-comments/test_bot_mentions.py -v
@@ -163,7 +220,7 @@ uv run --with pytest pytest tests/pr-comments/test_bot_mentions.py -v
 
 Expected: collection error — `ImportError: cannot import name 'bot_display_name' from 'conftest'`.
 
-- [ ] **Step 3: Add the three helpers to `conftest.py`**
+- [x] **Step 3: Add the three helpers to `conftest.py`**
 
 Insert immediately after the existing `split_human_bot` function (before `should_offer_poll`):
 
@@ -208,7 +265,7 @@ def commenter_ref(author: dict) -> str:
     return f"@{login}"
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 uv run --with pytest pytest tests/pr-comments/test_bot_mentions.py -v
@@ -225,7 +282,7 @@ Expected, precisely:
 
 Record the offender list the two failing tests print and confirm every offender is a line Task 2 or Task 4 will touch. **If an offender appears in a file no later task touches, stop and report it** — the plan missed a surface.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/pr-comments/conftest.py tests/pr-comments/test_bot_mentions.py
@@ -247,7 +304,7 @@ The canonical definition lives here. Every other surface points at it.
 - Consumes: the Bot Display Names algorithm in `references/bot-polling.md` (referenced, not duplicated).
 - Produces: the token `{commenter_ref}` and the section title **"Referring to the commenter"**, which Tasks 3 and 4 cite by name.
 
-- [ ] **Step 1: Add the canonical rule section**
+- [x] **Step 1: Add the canonical rule section**
 
 Insert a new section immediately after the `## Byline` section (after the line `For example, Claude Code uses ...`) and before `## Nit replies (Step 6d nits-only gate)`:
 
@@ -286,7 +343,7 @@ Terminal output — status lines, confirmation prompts, the plan table — is ne
 posted to GitHub and is unaffected; it keeps using `@bot1`.
 ```
 
-- [ ] **Step 2: Update the nit-replies pointer**
+- [x] **Step 2: Update the nit-replies pointer**
 
 In the `## Nit replies (Step 6d nits-only gate)` section, replace this sentence fragment:
 
@@ -306,7 +363,7 @@ include a `>` quote, or the reply loses its link to the originating comment (and
 for a human commenter, they are not notified).
 ```
 
-- [ ] **Step 3: Update the Timeline comment template**
+- [x] **Step 3: Update the Timeline comment template**
 
 In `## Timeline comment (Step 2c)`, replace the whole body of the section (the prose sentence, the "Required format" block, and the `bash` block) with:
 
@@ -347,7 +404,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
 ```
 ````
 
-- [ ] **Step 4: Verify no stale token remains in this file**
+- [x] **Step 4: Verify no stale token remains in this file**
 
 ```bash
 rg -n 'commenter_login|@Copilot|@copilot' skills/pr-comments/references/reply-formats.md
@@ -355,7 +412,7 @@ rg -n 'commenter_login|@Copilot|@copilot' skills/pr-comments/references/reply-fo
 
 Expected: no output.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add skills/pr-comments/references/reply-formats.md
@@ -612,7 +669,7 @@ The unit tests guard the *templates*. They cannot guard the route that actually 
 **Interfaces:**
 - Consumes: nothing from earlier tasks (evals exercise the skill end-to-end).
 
-- [ ] **Step 1: Read the eval conventions**
+- [x] **Step 1: Read the eval conventions**
 
 ```bash
 cat evals/CLAUDE.md
@@ -620,7 +677,7 @@ cat evals/CLAUDE.md
 
 Follow whatever it says about adding cases and about whether a benchmark baseline re-run is required. If it requires a baseline run for a new case, note that in the final report rather than silently skipping it.
 
-- [ ] **Step 2: Append the eval case**
+- [x] **Step 2: Append the eval case**
 
 Add to the `evals` array in `evals/pr-comments/evals.json` (remember: the preceding element's `}` needs a trailing `,`):
 
@@ -655,7 +712,7 @@ Add to the `evals` array in `evals/pr-comments/evals.json` (remember: the preced
 }
 ```
 
-- [ ] **Step 3: Validate the JSON**
+- [x] **Step 3: Validate the JSON**
 
 The Edit tool does not check JSON syntax — a missing comma only surfaces at parse time.
 
@@ -665,7 +722,7 @@ python3 -c 'import json; d = json.load(open("evals/pr-comments/evals.json")); pr
 
 Expected: `41 evals; last id: 41`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add evals/pr-comments/evals.json
@@ -710,8 +767,10 @@ One finding worth carrying to final review: assertion 1 (no `@`-mention of the b
 - Modify: `cspell.config.yaml` (only if new terms appear)
 - Modify: `README.md` (only if its `pr-comments` notes describe the reply format)
 - Modify: `specs/52-pr-comments-no-bot-mentions/tasks.md` (check off completed items as you go)
+- Modify: `specs/52-pr-comments-no-bot-mentions/plan.md` (record the allow-marker in Testing, per Step 0)
+- Modify: `tests/pr-comments/test_bot_mentions.py` (only if Step 5 surfaces a real cross-suite regression, not anticipated when this task was planned)
 
-- [ ] **Step 0: Sync the spec with the mid-flight marker decision**
+- [x] **Step 0: Sync the spec with the mid-flight marker decision**
 
 Task 2 surfaced a conflict this plan created: the belt-and-braces scan test forbade the literal `@Copilot` anywhere in skill markdown, which stopped the skill's **own documentation** from showing the concrete anti-example — the strongest instruction against the exact failure this spec exists to prevent. Resolution (human decision): the scan skips lines carrying `<!-- bot-mention-example -->`, mirroring the repo's existing `<!-- cspell:disable-line -->` convention, and the anti-example is restored on a marked line.
 
@@ -721,7 +780,7 @@ Update both spec files so they describe what was actually built:
 
 A spec that no longer matches the code is worse than no spec.
 
-- [ ] **Step 1: Check whether README describes the reply format**
+- [x] **Step 1: Check whether README describes the reply format**
 
 ```bash
 rg -n -A 12 'pr-comments' README.md | rg -n 'mention|@|reply|timeline'
@@ -729,7 +788,7 @@ rg -n -A 12 'pr-comments' README.md | rg -n 'mention|@|reply|timeline'
 
 If the `pr-comments` notes section describes the `@{commenter_login}` timeline reply format, update it to `{commenter_ref}` with a one-line note that bots get a bare handle. If it does not mention the reply format, **make no change** — do not pad the README.
 
-- [ ] **Step 2: Confirm CI actually runs this suite**
+- [x] **Step 2: Confirm CI actually runs this suite**
 
 ```bash
 ls .github/workflows/ | rg 'pr-comments'
@@ -738,7 +797,7 @@ rg -n 'tests/pr-comments' .github/workflows/
 
 Expected: a workflow (e.g. `test-pr-comments-skill.yml`) that runs `pytest tests/pr-comments/`. `test_bot_mentions.py` is picked up automatically by directory glob — no workflow edit needed. If **no** workflow runs this suite, stop and report: the new tests would not be CI-gated.
 
-- [ ] **Step 3: Spell check every file touched**
+- [x] **Step 3: Spell check every file touched**
 
 ```bash
 npx cspell skills/pr-comments/SKILL.md skills/pr-comments/references/reply-formats.md skills/pr-comments/references/nit-gate.md specs/52-pr-comments-no-bot-mentions/plan.md specs/52-pr-comments-no-bot-mentions/tasks.md README.md
@@ -746,7 +805,7 @@ npx cspell skills/pr-comments/SKILL.md skills/pr-comments/references/reply-forma
 
 Add any unknown word to the `words` list in `cspell.config.yaml` **in alphabetical position**. (`coderabbitai` was already added when plan.md was committed.) Do not pipe this through `grep -v` — an npm cache EPERM would be silently swallowed and read as "clean".
 
-- [ ] **Step 4: Run the full pr-comments suite**
+- [x] **Step 4: Run the full pr-comments suite**
 
 ```bash
 uv run --with pytest pytest tests/pr-comments/ -v
@@ -754,7 +813,7 @@ uv run --with pytest pytest tests/pr-comments/ -v
 
 Expected: all tests pass — the pre-existing suites (notably `test_timeline_comments.py`, whose human `@mention` linkage tests must be untouched, and `test_nit_gate.py`) plus the new `test_bot_mentions.py`.
 
-- [ ] **Step 5: Run the whole test suite**
+- [x] **Step 5: Run the whole test suite**
 
 ```bash
 uv run --with pytest pytest tests/ -q
@@ -762,7 +821,9 @@ uv run --with pytest pytest tests/ -q
 
 Expected: no failures. `conftest.py` gained three helpers and changed none, so no other skill's suite should be affected — if one is, that is a real regression, not a flake.
 
-- [ ] **Step 6: Verify the version bumped exactly once**
+**Found and fixed:** running `tests/pr-comments/` alone passed (552/552), but the full `tests/` tree failed 3 tests in `TestBotTimelineNitSelfTermination` with `ImportError: cannot import name 'is_already_addressed' from 'conftest' (.../tests/uv-deps/conftest.py)`. Cause: every `tests/<skill>/` directory has its own `conftest.py` and none of the directories have `__init__.py`, so the bare module name `conftest` is shared across the whole `tests/` tree (see `tests/CLAUDE.md`'s basename-collision warning — it applies to `conftest.py` itself, not just `test_*.py` files). `TestBotTimelineNitSelfTermination`'s three test methods each did a **function-scoped** `from conftest import is_already_addressed` (unlike the rest of the file, which imports at module level); by the time those deferred imports ran, `sys.modules['conftest']` had been overwritten by a later directory's `conftest.py`. Fix: moved `is_already_addressed` into the file's existing top-level `from conftest import (...)` statement and deleted the three function-scoped imports — matching the pattern every other test in the file already uses. No assertions changed.
+
+- [x] **Step 6: Verify the version bumped exactly once**
 
 ```bash
 git fetch origin && git diff origin/main -- skills/pr-comments/SKILL.md | rg '^\+  version:'
@@ -775,11 +836,13 @@ Expected: exactly one line, `+  version: "1.51"`.
 Stage **explicit paths only** — never `git add -A`. The working tree has untracked scratch directories (`.pnpm-store/`, `node_modules/`) that are not git-ignored; `-A` would commit them.
 
 ```bash
-git add cspell.config.yaml README.md specs/52-pr-comments-no-bot-mentions/tasks.md
+git add cspell.config.yaml specs/52-pr-comments-no-bot-mentions/tasks.md specs/52-pr-comments-no-bot-mentions/plan.md
 git commit -m "chore(pr-comments): spell check and docs sync (spec 52)"
 ```
 
 Drop any of those paths that you did not actually change. Skip this commit entirely if Steps 1–6 produced no file changes.
+
+The `tests/pr-comments/test_bot_mentions.py` cross-suite import fix found in Step 5 is a separate concern (a bug fix, not hygiene) and is committed on its own — see that step's note.
 
 ---
 
@@ -788,5 +851,5 @@ Drop any of those paths that you did not actually change. Skip this commit entir
 - Every `- [ ]` above is checked.
 - `uv run --with pytest pytest tests/ -q` passes.
 - `rg -n '@\{commenter_login\}' skills/pr-comments/` returns nothing — this is the construct that put the `@` in front of `Copilot`, and it is the thing this spec exists to remove.
-- `rg -ni '@(copilot|claude|coderabbitai)\b' skills/pr-comments/` returns nothing (true before this change too — keep it true).
+- Every `@Copilot`-style hit from `rg -ni '@(copilot|claude|coderabbitai)\b' skills/pr-comments/` is on a line carrying the literal `<!-- bot-mention-example -->` marker. Unmarked hits are not permitted (this is what `test_no_hardcoded_at_mention_of_known_bot` enforces); a hit that is *not* on a marked line is a genuine bug — stop and report it rather than papering over it. The bullet no longer requires the raw `rg` to return nothing: the marker convention (mirroring `<!-- cspell:disable-line -->`) was adopted mid-flight in Task 2 specifically so `reply-formats.md` and `SKILL.md` could keep showing the concrete `@Copilot` anti-example — the strongest instruction against the exact failure this spec exists to prevent.
 - `skills/pr-comments/SKILL.md` reads `version: "1.51"`.

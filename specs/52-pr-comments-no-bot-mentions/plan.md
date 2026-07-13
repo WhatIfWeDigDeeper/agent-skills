@@ -99,6 +99,20 @@ Extend `tests/pr-comments/`:
 - Regression guard on the asymmetry: a human commenter still gets `@alice`.
 - The existing human `@mention` linkage tests continue to pass unchanged.
 
+**Allow-marker for the belt-and-braces scan.** The literal-`@Copilot` scan
+(`test_no_hardcoded_at_mention_of_known_bot`) initially forbade the string
+anywhere in `skills/pr-comments/`, which also blocked the skill's own
+documentation from showing the concrete anti-example it exists to prevent —
+e.g. "never write: Good catch @Copilot". Resolution: a line carrying the
+literal marker `<!-- bot-mention-example -->` is skipped by the scan, mirroring
+the repo's existing `<!-- cspell:disable-line -->` convention. The helper
+(`_scan_lines_for_bot_mentions` in `tests/pr-comments/test_bot_mentions.py`)
+implements the skip, and `TestBotMentionMarker` pins it in both directions: an
+unmarked mention is still flagged, a marked one is not, and the marker does not
+suppress mentions on other lines. The marker is documentation-only — it must
+never appear on a template body, since templates are interpolated and posted
+verbatim to GitHub, and marking one would let a real `@`-mention slip through.
+
 ## Non-goals
 
 - Changing how humans are mentioned or notified.
