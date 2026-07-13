@@ -13,6 +13,39 @@ Append this footer to **every** reply body (inline, review body, and timeline). 
 
 For example, Claude Code uses `[Claude Code](https://claude.com/claude-code)`.
 
+## Referring to the commenter — `{commenter_ref}`
+
+Every body this skill posts to GitHub — inline reply, review-body reply, timeline
+reply, nit skip/defer reply, commit message, follow-up issue — refers to a
+commenter as `{commenter_ref}`:
+
+| Commenter | `{commenter_ref}` | Example |
+|---|---|---|
+| Human | `@` + login | `@alice` |
+| Bot | bare display handle, **no `@`** | `Copilot`, `claude`, `renovate` |
+
+**A bot is any comment author with `user.type == "Bot"`.** Do not test for a
+`[bot]` login suffix instead — the same bot reports different logins on different
+endpoints (Copilot is `Copilot` on `/pulls/{pr_number}/comments` but
+`copilot-pull-request-reviewer[bot]` on `/pulls/{pr_number}/reviews`), so a
+suffix-only check misses it exactly where it matters. Derive the display handle
+with the **Bot Display Names** algorithm in `references/bot-polling.md` (strip
+`[bot]`; if hyphens remain, keep the first hyphen-separated token).
+
+**Why the asymmetry.** On a human, `@login` is a notification — on the flat PR
+timeline it is the only thing that tells them you replied. On a bot, `@login` is
+a **command**: prefixing a bot's login with `@` in a PR comment dispatches its
+coding agent (for Copilot, this starts it pushing its own commits to the PR).
+Never emit a live `@`-mention of a bot in posted content.
+
+**This binds your own prose, not just the templates below.** Do not `@`-mention
+a bot's login in the free-form part of a reply, a commit message, or an issue
+body — use the bare display handle instead. Write "Good catch, Copilot" or "as
+Copilot noted," never a live `@`-mention of the bot's login.
+
+Terminal output — status lines, confirmation prompts, the plan table — is never
+posted to GitHub and is unaffected; it keeps using `@bot1`.
+
 ## Nit replies (Step 6d nits-only gate)
 
 When the Step 6d gate resolves a nit by **skipping** or **deferring to an
@@ -20,9 +53,9 @@ issue**, reply to the originating bot comment with the byline footer, using the
 endpoint **and format** that match where the nit originated: an inline (Step 2)
 nit via the inline replies endpoint below; a review-body (Step 2b) or timeline
 (Step 2c) nit via the issue comments endpoint, with a **timeline** reply
-following the Timeline comment format below — start with `@{commenter_login}` and
-include a `>` quote, or the commenter is not notified and the reply loses
-context. When the nit came from an inline comment, its review thread is left
+following the Timeline comment format below — start with `{commenter_ref}` and
+include a `>` quote, or the reply loses its link to the originating comment (and,
+for a human commenter, they are not notified). When the nit came from an inline comment, its review thread is left
 **open** (not resolved); review-body and timeline comments have no thread to
 resolve.
 
@@ -75,11 +108,21 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
 
 ## Timeline comment (Step 2c)
 
-Use the same issue comments endpoint. **The reply body must start with `@{commenter_login}` and include a `>` quote of the relevant excerpt**, since the timeline is flat and has no thread nesting. Do not post a bare reply without the `@mention` and quote — the commenter will not be notified and there will be no context linking your reply to their comment.
+Use the same issue comments endpoint. **The reply body must start with
+`{commenter_ref}` (see "Referring to the commenter" above — `@alice` for a human,
+a bare handle like `Copilot` for a bot) and include a `>` quote of the relevant
+excerpt**, since the timeline is flat and has no thread nesting.
+
+Both parts are required. Without them a human commenter is not notified, and —
+for **any** commenter — the reply loses the context linking it to their comment.
+The `>` quote is also what the Step 2c linkage dedup keys on to mark the comment
+`skip` on the next run; for a bot commenter, whose `{commenter_ref}` carries no
+`@`-mention by design, **the quote is the only linkage signal there is**. Never
+drop it.
 
 Required format:
 ```
-@{commenter_login}
+{commenter_ref}
 > [relevant excerpt from their comment]
 
 [Your response]
@@ -91,7 +134,7 @@ Required format:
 ```bash
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
   --method POST \
-  --field 'body=@{commenter_login}
+  --field 'body={commenter_ref}
 > [relevant excerpt]
 
 [Your response]
