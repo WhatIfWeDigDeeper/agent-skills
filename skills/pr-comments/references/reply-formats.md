@@ -40,8 +40,10 @@ Never emit a live `@`-mention of a bot in posted content.
 
 **This binds your own prose, not just the templates below.** Do not `@`-mention
 a bot's login in the free-form part of a reply, a commit message, or an issue
-body — use the bare display handle instead. Write "Good catch, Copilot" or "as
-Copilot noted," never a live `@`-mention of the bot's login.
+body — use the bare display handle instead. For example, never write: "Good
+catch, @Copilot" <!-- bot-mention-example --> — that live `@`-mention dispatches
+Copilot's coding agent instead of crediting it. Write "Good catch, Copilot" or
+"as Copilot noted" instead.
 
 Terminal output — status lines, confirmation prompts, the plan table — is never
 posted to GitHub and is unaffected; it keeps using `@bot1`.
