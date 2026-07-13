@@ -831,7 +831,7 @@ git fetch origin && git diff origin/main -- skills/pr-comments/SKILL.md | rg '^\
 
 Expected: exactly one line, `+  version: "1.51"`.
 
-- [ ] **Step 7: Commit any hygiene changes**
+- [x] **Step 7: Commit any hygiene changes**
 
 Stage **explicit paths only** — never `git add -A`. The working tree has untracked scratch directories (`.pnpm-store/`, `node_modules/`) that are not git-ignored; `-A` would commit them.
 
