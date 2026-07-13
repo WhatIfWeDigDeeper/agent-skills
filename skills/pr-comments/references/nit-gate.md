@@ -50,7 +50,7 @@ simply shows this table again; the user can pick `skip-all` then to terminate.
 Do **not** commit. For each nit's originating bot comment, post the skip-nit
 reply from `references/reply-formats.md` ("Noted as a nit — leaving as-is for
 now") — using the endpoint/format that matches the comment's origin (a
-timeline-originated nit needs the `@{commenter_login}` + `>` quote wrapper).
+timeline-originated nit needs the `{commenter_ref}` + `>` quote wrapper).
 Leave each thread **open** (do not resolve — see thread semantics below).
 Then **exit the loop** and go to **Step 14** (report).
 
@@ -69,7 +69,7 @@ Resume only after the user replies (same discipline as the "Present the table"
 prompt above). Then, for each nit, post the issue-link reply from
 `references/reply-formats.md` ("Filed as #NNN") — using the endpoint/format that
 matches the comment's origin (a timeline-originated nit needs the
-`@{commenter_login}` + `>` quote wrapper). Do **not** commit code; leave
+`{commenter_ref}` + `>` quote wrapper). Do **not** commit code; leave
 each thread **open**. Then **exit the loop** and go to **Step 14**.
 
 ### `select`
@@ -115,10 +115,15 @@ produced); if every selected row was skip/issue, exit to Step 14 like
     exact-`login` match self-terminates it on the next run, and an
     edit-after-reply re-surfaces it if the bot follows up.
   - **Timeline** nits have no thread, but the skip/issue reply's
-    `@{commenter_login}` + `>` quote (required by `references/reply-formats.md`)
-    is recognized by the Step 2c linkage dedup, which marks the comment `skip`
-    next run. The `@mention` + quote is therefore load-bearing for
-    self-termination, not just notification.
+    `{commenter_ref}` + `>` quote (required by `references/reply-formats.md`) is
+    recognized by the Step 2c linkage dedup, which marks the comment `skip` next
+    run. The wrapper is therefore load-bearing for self-termination, not just
+    notification — and note the asymmetry. For a **human** commenter either
+    signal alone suffices: the dedup accepts an `@`-mention **or** a blockquote.
+    A **bot** commenter's `{commenter_ref}` carries no `@`-mention by design, so
+    the `>` quote is its **sole** linkage signal. Never post a bot nit reply
+    without the quote — it would re-surface and re-trigger this gate on every
+    subsequent run.
   - **Review-body** nits have neither a thread nor a Step 2b dedup, so a
     skipped/issued review-body nit can re-trigger this gate on a later run if it
     remains the only actionable row. This is a pre-existing skill limitation

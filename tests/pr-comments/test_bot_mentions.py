@@ -166,3 +166,42 @@ class TestBotMentionMarker:
             "Also bad: @Copilot thanks",
         ]
         assert _scan_lines_for_bot_mentions(lines) == [2]
+
+
+class TestBotTimelineNitSelfTermination:
+    """A bot nit reply has no @-mention, so the '>' quote is its only linkage signal."""
+
+    def _c(self, author: str, body: str, created_at: str) -> dict:
+        return {"author": author, "body": body, "created_at": created_at}
+
+    def test_bot_reply_without_at_mention_links_via_quote(self):
+        from conftest import is_already_addressed
+
+        nit = self._c("Copilot", "nit: rename `tmp` to `filtered`.", "2026-01-01T10:00:00Z")
+        # The Task 2 template: bare handle, no "@", plus the mandatory '>' quote.
+        reply = self._c(
+            "skillbot",
+            "Copilot\n> nit: rename `tmp` to `filtered`.\n\nNoted as a nit — leaving as-is for now.",
+            "2026-01-01T11:00:00Z",
+        )
+        assert is_already_addressed(nit, [nit, reply], pr_author="prowner", auth_user="skillbot") is True
+
+    def test_bot_reply_without_quote_does_not_link(self):
+        """Dropping the quote on a bot reply loses the only linkage signal — it re-surfaces."""
+        from conftest import is_already_addressed
+
+        nit = self._c("Copilot", "nit: rename `tmp` to `filtered`.", "2026-01-01T10:00:00Z")
+        reply = self._c(
+            "skillbot",
+            "Copilot\n\nNoted as a nit — leaving as-is for now.",
+            "2026-01-01T11:00:00Z",
+        )
+        assert is_already_addressed(nit, [nit, reply], pr_author="prowner", auth_user="skillbot") is False
+
+    def test_human_reply_still_links_via_at_mention_alone(self):
+        """The human path is unchanged: @mention alone suffices, no quote needed."""
+        from conftest import is_already_addressed
+
+        comment = self._c("alice", "Please add tests.", "2026-01-01T10:00:00Z")
+        reply = self._c("skillbot", "@alice tests added, see latest commit.", "2026-01-01T11:00:00Z")
+        assert is_already_addressed(comment, [comment, reply], pr_author="prowner", auth_user="skillbot") is True
