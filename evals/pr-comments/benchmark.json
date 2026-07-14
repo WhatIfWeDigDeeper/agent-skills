@@ -81,7 +81,7 @@
       24
     ],
     "skill_version": "1.51",
-    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check); evals 39-40 (nits-only gate) run on Sonnet 4.6 only under v1.48 on 2026-06-27 (spec 47)",
+    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check); evals 39-40 (nits-only gate) run on Sonnet 4.6 only under v1.48 on 2026-06-27 (spec 47); eval 41 (bot-credit-no-at-mention) run on Sonnet 5 only under v1.51 on 2026-07-13 (spec 52) \u2014 a single-eval track, not a suite run: the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned by then, so eval 41 is excluded from both full-suite tracks and from the top-level run_summary",
     "last_updated": "2026-07-13T00:00:00Z"
   },
   "runs": [
