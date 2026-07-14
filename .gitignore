@@ -2,12 +2,16 @@
 *-workspace/
 evals/*/workspace/
 __pycache__/
+.pytest_cache/
+.pnpm-store/
+node_modules/
 .agents/
 .superpowers/
 .claude/skills/
 .claude/worktrees/
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
+.claude/.cc-writes/
 tests/learn/fixtures/
 tests/js-deps/fixtures/
 .venv/
