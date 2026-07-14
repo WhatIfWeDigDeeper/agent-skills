@@ -347,7 +347,7 @@ Deduplicate co-authors — one entry per person. Accepted suggestions are includ
 🤖 Generated with [AssistantName](url)
 ```
 
-Address the commenter as `{commenter_ref}` — in the template wrapper and in your own prose.
+Address the commenter as `{commenter_ref}`, in your own prose and in the opening `{commenter_ref}` + `>` quote wrapper **where the format has one** — timeline and nit replies require it; the inline and review-body templates have no wrapper. See `references/reply-formats.md` for which is which.
 
 `consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
 
