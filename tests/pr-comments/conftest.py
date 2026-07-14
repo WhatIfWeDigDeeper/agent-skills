@@ -647,10 +647,19 @@ def is_already_addressed(
         # Check for a blockquote that quotes the original comment's text.
         # A bare ">" with no matching content does not count — the quoted
         # line must overlap with the original comment's body.
+        #
+        # Up to 3 leading spaces still make a blockquote in CommonMark, and the nit
+        # reply templates are nested in a markdown list, so their quote line carries
+        # two. Such a reply renders as a real blockquote on GitHub; matching only at
+        # column 1 would miss it — and for a bot, whose reply carries no @-mention,
+        # the quote is the only linkage signal, so the comment would re-surface as
+        # unaddressed forever. At 4+ spaces it becomes an indented code block, not a
+        # blockquote, and genuinely does not link.
         original_body = comment.get("body", "")
         for line in body.splitlines():
-            if line.startswith(">"):
-                quoted = line[1:].strip()
+            stripped = line.lstrip(" ")
+            if stripped.startswith(">") and len(line) - len(stripped) <= 3:
+                quoted = stripped[1:].strip()
                 if quoted and quoted in original_body:
                     return True
     return False

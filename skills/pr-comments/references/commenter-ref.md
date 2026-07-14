@@ -42,7 +42,11 @@ posted the mention this rule exists to prevent.
 - **Reply bodies (Steps 6d and 11)** — wrapper and prose both use `{commenter_ref}`. A
   bot reply carries no `@`, so its `>` blockquote is the **sole** linkage signal Step 2c
   uses to recognize the comment as addressed; drop the quote and the comment re-surfaces
-  as unaddressed on every future run.
+  as unaddressed on every future run. When matching that quote, allow up to **3 leading
+  spaces** before the `>` — CommonMark still renders it as a blockquote (the nit
+  templates are nested in a markdown list, so their quote line is indented), and a
+  column-1-only match would miss a reply that is correctly quoted on GitHub. At 4+ spaces
+  it is an indented code block, not a quote, and does not link.
 - **Commit messages (Step 10)** — credit lines read `(suggested by Copilot)`, never
   `(suggested by @Copilot)` <!-- bot-mention-example --> — an `@`-mention in a pushed
   commit message is still a live mention on GitHub. `Co-authored-by:` trailers are

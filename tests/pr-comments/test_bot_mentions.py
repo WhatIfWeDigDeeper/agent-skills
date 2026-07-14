@@ -25,6 +25,10 @@ KNOWN_BOT_HANDLES = [
     "sonarcloud",
 ]
 BOT_MENTION_MARKER = "<!-- bot-mention-example -->"
+# An `@`-prefixed template placeholder — `@{commenter_login}` and friends — expands to
+# `@Copilot` for a bot. Identifiers may contain digits after the first character, so the
+# character class must not stop at the first one.
+_AT_PLACEHOLDER_PATTERN = re.compile(r"@\{[a-zA-Z_][a-zA-Z0-9_]*\}")
 _BOT_MENTION_PATTERN = re.compile(r"@(" + "|".join(KNOWN_BOT_HANDLES) + r")\b", re.IGNORECASE)
 
 
@@ -133,7 +137,7 @@ class TestSkillFilesHaveNoLiveBotMentions:
         literal `@{commenter_login}` spelling. Templates must use bare
         `{commenter_ref}` (no leading `@`), which drops the `@` for bots.
         """
-        offenders = self._scan(lambda line: re.search(r"@\{[a-zA-Z_]+\}", line))
+        offenders = self._scan(lambda line: _AT_PLACEHOLDER_PATTERN.search(line))
         assert offenders == [], (
             "Template @-mentions a raw placeholder (expands to @Copilot for a bot); "
             "use {commenter_ref}:\n" + "\n".join(offenders)
@@ -149,6 +153,21 @@ class TestSkillFilesHaveNoLiveBotMentions:
         text = (SKILL_DIR / "references" / "reply-formats.md").read_text()
         assert "{commenter_ref}" in text
         assert "references/commenter-ref.md" in text
+
+    def test_placeholder_scan_catches_identifiers_containing_digits(self):
+        """The guard claims to catch *any* `@{placeholder}`, so it must actually do so.
+
+        `@\\{[a-zA-Z_]+\\}` stops at the first digit, so `@{commenter_login2}` — a
+        perfectly ordinary identifier — slipped through the scan that exists to keep an
+        `@`-prefixed placeholder out of a posted template. A guard with a hole in it is
+        worse than no guard, because it reports clean.
+        """
+        pattern = _AT_PLACEHOLDER_PATTERN
+        for placeholder in ("@{commenter_login}", "@{commenter_login2}", "@{login_2}", "@{a1}"):
+            assert pattern.search(placeholder), f"scan misses {placeholder}"
+        # A digit may not *lead* an identifier, and a bare mention is not a placeholder.
+        assert not pattern.search("@{2login}")
+        assert not pattern.search("@alice")
 
     def test_commenter_ref_never_seeded_with_an_at_prefixed_literal(self):
         """A `commenter_ref` assignment must not model the `@`-prefixed human form.
@@ -193,6 +212,56 @@ class TestSkillFilesHaveNoLiveBotMentions:
             for lineno in _scan_lines_for_bot_mentions(lines):
                 offenders.append(f"{md.relative_to(SKILL_DIR)}:{lineno}: {lines[lineno - 1].strip()}")
         assert offenders == [], "Live @-mention of a bot in skill content:\n" + "\n".join(offenders)
+
+
+class TestIndentedBlockquoteStillLinks:
+    """A blockquote indented up to 3 spaces is still a blockquote.
+
+    CommonMark (and GitHub) render `  > quoted` as a real blockquote — the reply looks
+    correctly linked to its commenter. But the Step 2c linkage dedup used to test
+    `line.startswith(">")`, so it saw no quote at all. For a **bot** the quote is the
+    sole linkage signal (there is no `@`-mention to fall back on), so the comment
+    re-surfaces as unaddressed on every subsequent run: a non-terminating loop.
+
+    The nit templates in `reply-formats.md` are nested in a markdown list, so their
+    quote line carries two leading spaces — copying one verbatim walks straight into
+    this. Fixing the matcher fixes every template at once.
+    """
+
+    ORIG = {
+        "author": "Copilot",
+        "body": "This off-by-one drops the last element.",
+        "created_at": "2026-01-01T00:00:00Z",
+    }
+
+    def _reply(self, body: str) -> dict:
+        return {"author": "me", "body": body, "created_at": "2026-01-02T00:00:00Z"}
+
+    def _addressed(self, reply_body: str) -> bool:
+        reply = self._reply(reply_body)
+        return is_already_addressed(self.ORIG, [self.ORIG, reply], "me", "me")
+
+    def test_quote_at_column_one_links(self):
+        assert self._addressed("Copilot\n> This off-by-one drops the last element.\n\nFixed.")
+
+    def test_quote_indented_two_spaces_still_links(self):
+        """Two spaces is exactly what the nit templates' list nesting produces."""
+        assert self._addressed("Copilot\n  > This off-by-one drops the last element.\n\nFixed.")
+
+    def test_quote_indented_three_spaces_still_links(self):
+        """Three spaces is the CommonMark limit — still a blockquote, must still link."""
+        assert self._addressed("Copilot\n   > This off-by-one drops the last element.\n\nFixed.")
+
+    def test_four_space_indent_is_a_code_block_not_a_quote(self):
+        """At four spaces CommonMark makes it an indented *code block* — not a
+        blockquote, so it genuinely does not link, and we must not pretend it does."""
+        assert not self._addressed(
+            "Copilot\n    > This off-by-one drops the last element.\n\nFixed."
+        )
+
+    def test_unrelated_reply_still_does_not_link(self):
+        """Negative control: tolerating indentation must not make everything match."""
+        assert not self._addressed("Copilot\n> Something he never said.\n\nFixed.")
 
 
 class TestCommenterRefRuleIsCentralized:
