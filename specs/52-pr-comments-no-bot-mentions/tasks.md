@@ -488,10 +488,11 @@ trap 'rm -f "$issue_body_file"' EXIT
 to:
 
 ```bash
-# commenter_ref: "@alice" for a human commenter; a bare handle (e.g. "Copilot")
-# for a bot — an @-mention of a bot in an issue body is a live mention.
-# See references/reply-formats.md — "Referring to the commenter".
-commenter_ref="@reviewer"
+# Substitute {commenter_ref} the same way as {owner}/{repo} below: "@alice" for a
+# human commenter; a bare handle (e.g. "Copilot") for a bot — never seed this with
+# an @-prefixed literal, since an @-mention of a bot in an issue body is a live
+# mention. See references/reply-formats.md — "Referring to the commenter".
+commenter_ref="{commenter_ref}"
 issue_body_file="$(mktemp "${TMPDIR:-/private/tmp}/pr-comments-issue-XXXXXX")"
 trap 'rm -f "$issue_body_file"' EXIT
 {

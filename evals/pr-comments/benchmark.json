@@ -7524,7 +7524,7 @@
         }
       ],
       "notes": [
-        "5/5 (100%). Reply to Copilot opens with the bare handle `Copilot` and a `>` quote of the original comment; no `@` appears anywhere in either posted body. Reply to alice keeps `@alice`. Commit credits `(suggested by Copilot)` and `(suggested by @alice)`, with Co-authored-by trailers for both. The one `@Copilot` the run emits is in the poll-timeout status line, which is terminal-only and never posted to GitHub \u00e2\u0080\u0094 correct per spec 52."
+        "5/5 (100%). Reply to Copilot opens with the bare handle `Copilot` and a `>` quote of the original comment; no `@` appears anywhere in either posted body. Reply to alice keeps `@alice`. Commit credits `(suggested by Copilot)` and `(suggested by @alice)`, with Co-authored-by trailers for both. The one `@Copilot` the run emits is in the poll-timeout status line, which is terminal-only and never posted to GitHub \u2014 correct per spec 52."
       ]
     },
     {

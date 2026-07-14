@@ -144,6 +144,32 @@ class TestSkillFilesHaveNoLiveBotMentions:
         assert "{commenter_ref}" in text
         assert "Referring to the commenter" in text
 
+    def test_commenter_ref_never_seeded_with_an_at_prefixed_literal(self):
+        """A `commenter_ref` assignment must not model the `@`-prefixed human form.
+
+        `commenter_ref` is *defined* as "@alice for a human, bare handle for a
+        bot". Seeding it in an example with a hardcoded `@`-prefixed literal
+        (`commenter_ref="@reviewer"`) models the human shape as the default in a
+        snippet the agent fills in by substitution — so a bot commenter copied
+        into it reintroduces the live `@`-mention this whole skill exists to
+        prevent. Assign the `{commenter_ref}` placeholder instead, matching the
+        `{owner}`/`{repo}` convention used elsewhere in the same snippet.
+
+        Deliberately narrow — anchored to a shell *assignment*, so it cannot fire
+        on prose. Explanatory text that documents the human mapping (`# commenter_ref:
+        "@alice" for a human...`) is correct and must stay legal, `@reviewer` is a
+        legitimate *human* placeholder throughout the evals (eval 35 asserts a reply
+        body starts with `@reviewer`), and terminal-only prompts keep their `@` too.
+        """
+        offenders = self._scan(
+            lambda line: re.match(r"""\s*commenter_ref\s*=\s*["']?@""", line)
+        )
+        assert offenders == [], (
+            "`commenter_ref` is seeded with an @-prefixed literal; for a bot commenter "
+            'that posts a live @-mention. Use commenter_ref="{commenter_ref}":\n'
+            + "\n".join(offenders)
+        )
+
     def test_no_hardcoded_at_mention_of_known_bot(self):
         """Belt-and-braces: no literal `@Copilot` anywhere in skill content.
 
