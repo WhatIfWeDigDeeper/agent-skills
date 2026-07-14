@@ -15,41 +15,10 @@ For example, Claude Code uses `[Claude Code](https://claude.com/claude-code)`.
 
 ## Referring to the commenter — `{commenter_ref}`
 
-Every body this skill posts to GitHub — inline reply, review-body reply, timeline
-reply, nit skip/defer reply, commit message, follow-up issue — refers to a
-commenter as `{commenter_ref}`:
-
-| Commenter | `{commenter_ref}` | Example |
-|---|---|---|
-| Human | `@` + login | `@alice` |
-| Bot | bare display handle, **no `@`** | `Copilot`, `claude`, `renovate` |
-
-**A bot is any comment author with `user.type == "Bot"`** — the Step 2/2b/2c
-fetches project this field as `author_type`, so that is the key to test on a
-fetched comment. Do not test for a
-`[bot]` login suffix instead — the same bot reports different logins on different
-endpoints (Copilot is `Copilot` on `/pulls/{pr_number}/comments` but
-`copilot-pull-request-reviewer[bot]` on `/pulls/{pr_number}/reviews`), so a
-suffix-only check misses it exactly where it matters. Fall back to the suffix
-only for a source that carries no type. Derive the display handle
-with the **Bot Display Names** algorithm in `references/bot-polling.md` (strip
-`[bot]`; if hyphens remain, keep the first hyphen-separated token).
-
-**Why the asymmetry.** On a human, `@login` is a notification — on the flat PR
-timeline it is the only thing that tells them you replied. On a bot, `@login` is
-a **command**: prefixing a bot's login with `@` in a PR comment dispatches its
-coding agent (for Copilot, this starts it pushing its own commits to the PR).
-Never emit a live `@`-mention of a bot in posted content.
-
-**This binds your own prose, not just the templates below.** Do not `@`-mention
-a bot's login in the free-form part of a reply, a commit message, or an issue
-body — use the bare display handle instead. For example, never write: "Good
-catch, @Copilot" <!-- bot-mention-example --> — that live `@`-mention dispatches
-Copilot's coding agent instead of crediting it. Write "Good catch, Copilot" or
-"as Copilot noted" instead.
-
-Terminal output — status lines, confirmation prompts, the plan table — is never
-posted to GitHub and is unaffected; it keeps using `@bot1`.
+The templates below name the commenter as `{commenter_ref}` — `@alice` for a
+human, a bare handle with no `@` for a bot. The rule, the bot test, and the
+per-surface notes live in **`references/commenter-ref.md`**; read it before
+filling in any template here.
 
 ## Nit replies (Step 6d nits-only gate)
 

@@ -139,10 +139,16 @@ class TestSkillFilesHaveNoLiveBotMentions:
             "use {commenter_ref}:\n" + "\n".join(offenders)
         )
 
-    def test_commenter_ref_is_defined(self):
+    def test_reply_templates_use_commenter_ref_and_cite_the_rule(self):
+        """reply-formats.md hosts the templates; commenter-ref.md hosts the rule.
+
+        The templates interpolate `{commenter_ref}`, so the file that carries them
+        must keep pointing at the file that defines it — otherwise the placeholder
+        is filled in from memory, which is how the `@` got out.
+        """
         text = (SKILL_DIR / "references" / "reply-formats.md").read_text()
         assert "{commenter_ref}" in text
-        assert "Referring to the commenter" in text
+        assert "references/commenter-ref.md" in text
 
     def test_commenter_ref_never_seeded_with_an_at_prefixed_literal(self):
         """A `commenter_ref` assignment must not model the `@`-prefixed human form.
@@ -187,6 +193,74 @@ class TestSkillFilesHaveNoLiveBotMentions:
             for lineno in _scan_lines_for_bot_mentions(lines):
                 offenders.append(f"{md.relative_to(SKILL_DIR)}:{lineno}: {lines[lineno - 1].strip()}")
         assert offenders == [], "Live @-mention of a bot in skill content:\n" + "\n".join(offenders)
+
+
+class TestCommenterRefRuleIsCentralized:
+    """The rule is defined in one file and reaches SKILL.md through one pointer.
+
+    SKILL.md used to restate the rule at each posting site (commit credit, reply
+    bodies, follow-up issue snippet), repeating the same rationale three times.
+    Centralizing removes that duplication and introduces a new failure mode in its
+    place: the guardrail now reaches the agent through a *single* line, so deleting
+    that line silently deletes the whole rule — with no template left behind to
+    catch it. These tests pin the pointer.
+
+    The pointer must be imperative. `skills/CLAUDE.md`: "Agents treat passive
+    cross-references as informational and will skip them" — a rule stated once, in
+    another file, behind a "see also", is a rule that does not fire.
+    """
+
+    SKILL_MD = SKILL_DIR / "SKILL.md"
+    CANONICAL = SKILL_DIR / "references" / "commenter-ref.md"
+
+    def _mandatory_pointers(self) -> list[str]:
+        """Lines that *order* the agent to read the rule, not merely mention the file.
+
+        A plain cross-reference is legal and useful — Step 2c's linkage dedup cites the
+        file to explain why a bot reply carries no `@`. What must be unique is the
+        mandatory pointer: the one line that makes the agent actually read the rule
+        before posting.
+        """
+        return [
+            line
+            for line in self.SKILL_MD.read_text().splitlines()
+            if "you must now execute" in line.lower() and "references/commenter-ref.md" in line
+        ]
+
+    def test_canonical_file_defines_the_rule(self):
+        assert self.CANONICAL.exists(), f"{self.CANONICAL} is the rule's canonical home"
+        text = self.CANONICAL.read_text()
+        assert "{commenter_ref}" in text
+        assert "Referring to the commenter" in text
+
+    def test_skill_md_has_exactly_one_mandatory_pointer_to_the_rule(self):
+        pointers = self._mandatory_pointers()
+        assert len(pointers) == 1, (
+            "SKILL.md must carry exactly one mandatory pointer to "
+            "references/commenter-ref.md ('you must now execute'). Zero means the rule "
+            "no longer reaches the agent at all — it is stated nowhere else, and no "
+            "template is left behind to catch the omission. More than one means the "
+            "duplication this refactor removed is creeping back. "
+            f"Found {len(pointers)}:\n" + "\n".join(pointers)
+        )
+
+    def test_the_pointer_precedes_every_posting_step(self):
+        """The pointer must sit ahead of Step 6d, Step 10, and Step 11 — the surfaces
+        that post. A pointer placed at Step 10 would not cover Step 6d's nit replies.
+        """
+        lines = self.SKILL_MD.read_text().splitlines()
+        pointer_at = next(
+            i
+            for i, line in enumerate(lines)
+            if "you must now execute" in line.lower() and "references/commenter-ref.md" in line
+        )
+        first_posting_step = next(
+            i for i, line in enumerate(lines) if line.startswith("### 6d.")
+        )
+        assert pointer_at < first_posting_step, (
+            "The mandatory pointer must come before the first step that posts to GitHub "
+            f"(Step 6d, line {first_posting_step + 1}); it is at line {pointer_at + 1}."
+        )
 
 
 class TestCommentFetchProjectionsCarryAuthorType:

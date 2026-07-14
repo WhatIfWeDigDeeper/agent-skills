@@ -61,8 +61,10 @@ actually attributes the commit. Terminal-only output (status lines in
 `references/report-templates.md` and `references/bot-polling.md`, confirmation
 prompts) is also unchanged: it never reaches GitHub.
 
-`{commenter_ref}` is defined once, in `references/reply-formats.md`, and the
-other surfaces refer to that definition rather than restating the rule.
+`{commenter_ref}` is defined once, in `references/commenter-ref.md`, and the
+other surfaces refer to that definition rather than restating the rule. SKILL.md
+cites it exactly once, imperatively, in the Process preamble — ahead of every
+surface that posts (Steps 6d, 10, 11).
 
 ## Consequence: self-termination of bot timeline nits
 

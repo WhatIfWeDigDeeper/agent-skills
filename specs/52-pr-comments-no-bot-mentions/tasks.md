@@ -4,7 +4,7 @@
 
 **Goal:** Make `/pr-comments` refer to bot commenters by a bare display handle (`Copilot`) instead of a live `@`-mention (`@Copilot`) in everything it posts to GitHub, so crediting a bot stops dispatching a coding agent.
 
-**Architecture:** Introduce one canonical concept — `{commenter_ref}` — defined once in `skills/pr-comments/references/reply-formats.md`: `@login` for humans, bare display handle for bots. Every surface that posts to GitHub (reply templates, free-form reply prose, commit credit lines, follow-up issue bodies, nit skip/defer replies) refers to that definition rather than restating the rule. Bot detection keys on `user.type == "Bot"`, not the `[bot]` login suffix. Terminal-only output is untouched.
+**Architecture:** Introduce one canonical concept — `{commenter_ref}` — defined once in `skills/pr-comments/references/commenter-ref.md`: `@login` for humans, bare display handle for bots. Every surface that posts to GitHub (reply templates, free-form reply prose, commit credit lines, follow-up issue bodies, nit skip/defer replies) refers to that definition rather than restating the rule; SKILL.md cites it exactly once, imperatively, in the Process preamble. Bot detection keys on `user.type == "Bot"`, not the `[bot]` login suffix. Terminal-only output is untouched.
 
 **Tech Stack:** Markdown skill definitions; pytest (`uv run --with pytest`) for the classifiable logic mirrored in `tests/pr-comments/conftest.py`; JSON eval cases under `evals/pr-comments/`.
 
@@ -17,6 +17,37 @@
 - **Terminal-only output is unchanged** — status lines, confirmation prompts, and the plan table never reach GitHub and keep using `@bot1`.
 - **Version bump:** `skills/pr-comments/SKILL.md` frontmatter `version: "1.50"` → `"1.51"`. Exactly **one** bump for the whole PR (Task 3), covering SKILL.md and both reference files. Do not bump again in later tasks or follow-up commits.
 - Run tests with sandbox lifted (in Claude Code: `dangerouslyDisableSandbox: true`) — `uv run --with pytest` hits a cache EPERM otherwise.
+
+## Amendment: the rule moved out of `reply-formats.md` (post-review)
+
+Tasks 2–4 below were implemented as written: `{commenter_ref}` was defined in a
+"Referring to the commenter" section inside `references/reply-formats.md`, and SKILL.md
+restated the rule at each of its three posting sites (commit credit, reply bodies,
+follow-up issue snippet). Review feedback on the PR flagged the obvious consequence —
+the same rationale appears three times in one file — and it was right.
+
+Two changes, applied after those tasks landed. The task bodies below are left as the
+historical record of the first pass; where they conflict with this section, this section
+governs.
+
+1. **The rule has its own file: `references/commenter-ref.md`.** It outgrew
+   `reply-formats.md`, which hosts *reply* templates — the rule also governs commit
+   messages and follow-up issue bodies, which are not replies. `reply-formats.md` keeps
+   the templates and points at the new file.
+2. **SKILL.md cites it exactly once**, imperatively ("you must now execute"), in the
+   Process preamble — which precedes every posting surface (Step 6d nit replies, Step 10
+   commit credit, Step 11 replies and issue bodies). The three restatements shrink to
+   their site-specific deltas only: the `Co-authored-by:` exemption (Step 10) and the
+   "don't seed the variable with an `@`-literal" trap (Step 11).
+
+**The tradeoff, stated plainly.** Three restatements were redundant, but they were
+redundant *at the point of action* — and a rule stated once, in another file, is exactly
+the kind of rule `skills/CLAUDE.md` warns that agents skip ("agents treat passive
+cross-references as informational"). That is why the single citation must stay
+imperative, and why `TestCommenterRefRuleIsCentralized` pins it: with the rule stated
+nowhere else, deleting that one line now deletes the whole guardrail, and no template is
+left behind to catch it. Eval 41 (`bot-credit-no-at-mention`) is the empirical check that
+the behavior survived the move.
 
 ---
 

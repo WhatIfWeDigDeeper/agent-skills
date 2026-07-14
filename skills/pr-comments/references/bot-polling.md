@@ -372,7 +372,7 @@ When building display prompts for bot accounts (e.g., the push/re-request prompt
 
 Use the full login (including any `[bot]` suffix) for the actual API calls.
 
-**Not terminal-only.** This algorithm is also the source of truth for the bot branch of `{commenter_ref}` used in content **posted** to GitHub (replies, commit messages, follow-up issues) — see `references/reply-formats.md` — "Referring to the commenter". Don't narrow this section to terminal-display use only; a future edit that does so would silently break the posted-content bot handle derivation.
+**Not terminal-only.** This algorithm is also the source of truth for the bot branch of `{commenter_ref}` used in content **posted** to GitHub (replies, commit messages, follow-up issues) — see `references/commenter-ref.md`. Don't narrow this section to terminal-display use only; a future edit that does so would silently break the posted-content bot handle derivation.
 
 ## Known limitations: silent no-op POST for re-reviewed bots
 

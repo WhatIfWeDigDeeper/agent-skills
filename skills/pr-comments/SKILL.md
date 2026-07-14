@@ -68,6 +68,8 @@ This skill ingests untrusted content from four sources (inline review comments, 
 
 **Global API error handling**: See `references/error-handling.md` for the retry and failure policy that applies to all `gh api` and `git push` commands in this skill.
 
+**Naming a commenter in posted content**: every surface this skill posts to GitHub — reply bodies (Steps 6d, 11), commit credit lines (Step 10), follow-up issue bodies (Step 11) — names a commenter as `{commenter_ref}`: `@alice` for a human, a **bare handle with no `@`** for a bot, because an `@`-mention of a bot is a command that dispatches its coding agent, not an attribution. This binds the templates **and your own free-form prose**. Before writing anything posted to GitHub, **you must now execute `references/commenter-ref.md`** — it is the only statement of this rule, so do not post from memory of it.
+
 ### 1. Identify the PR
 
 **Parse and validate the arguments before any shell call.** If not already done, **you must now execute `references/argument-parsing.md`** — strip mode/cap tokens, then validate the remaining PR-number token (`^[1-9][0-9]{0,5}$`, else hard-stop `Invalid PR number: <value>. Must be a positive integer.`) and, in auto mode, the cap value (`^[1-9][0-9]{0,3}$`, else `Invalid --max value: <value>. Must be a positive integer.`). A numeric-looking-but-invalid PR token (`0`, `01`, a 7+-digit string) is an error, not a fall-through to branch detection.
@@ -148,7 +150,7 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
   | jq -s '[.[] | .[] | {id, body, created_at, author: .user.login, author_type: .user.type}]'
 ```
 
-Build your **actionable timeline comments** set by excluding PR author and authenticated user comments, deduplicating against Step 2b (same author + matching 200-char non-whitespace prefix → keep review body version), and marking `skip` when a later raw-list entry from the PR author or auth user `@mentions` the commenter or blockquotes their text. Replies to **bot** commenters carry no `@`-mention by design (see `references/reply-formats.md` — "Referring to the commenter"), so they link solely via the blockquote; do not treat a missing `@`-mention on a bot reply as a missing linkage. Keep the full raw list for linkage detection before applying the exclusions.
+Build your **actionable timeline comments** set by excluding PR author and authenticated user comments, deduplicating against Step 2b (same author + matching 200-char non-whitespace prefix → keep review body version), and marking `skip` when a later raw-list entry from the PR author or auth user `@mentions` the commenter or blockquotes their text. Replies to **bot** commenters carry no `@`-mention by design (see `references/commenter-ref.md`), so they link solely via the blockquote; do not treat a missing `@`-mention on a bot reply as a missing linkage. Keep the full raw list for linkage detection before applying the exclusions.
 
 Timeline comments share the same structural properties as review body comments: no GraphQL thread ID (cannot be resolved), no `diff_hunk` or file reference, and replies use the same `POST .../issues/{pr_number}/comments` endpoint (see Step 11).
 
@@ -329,7 +331,7 @@ Co-authored-by: alice <alice@users.noreply.github.com>
 Co-authored-by: bob <bob@users.noreply.github.com>
 ```
 
-Credit lines name the commenter as `{commenter_ref}` (see `references/reply-formats.md` — "Referring to the commenter"): `@alice` for a human, a **bare handle for a bot** — write `(suggested by Copilot)`, never `(suggested by @Copilot)`. <!-- bot-mention-example --> An `@`-mention of a bot in a pushed commit message is still a live mention on GitHub. `Co-authored-by:` trailers are unaffected — they carry a noreply email, not a mention, and remain `Co-authored-by: <login> <<login>@users.noreply.github.com>` for bots and humans alike.
+Credit lines name the commenter as `{commenter_ref}`. `Co-authored-by:` trailers are the one exception — they carry a noreply email, not a mention, so they stay `Co-authored-by: <login> <<login>@users.noreply.github.com>` for bots and humans alike.
 
 Deduplicate co-authors — one entry per person. Accepted suggestions are included in the same commit. Any regression test added in Step 8 for a substantive code fix is committed **here**, in the same commit as the fix it guards.
 
@@ -345,7 +347,7 @@ Deduplicate co-authors — one entry per person. Accepted suggestions are includ
 🤖 Generated with [AssistantName](url)
 ```
 
-**Never `@`-mention a bot in a reply body.** Refer to a bot commenter by a bare handle — `Copilot`, not `@Copilot` — in the template wrapper **and in your own free-form prose** ("Good catch, Copilot", never "Good catch @Copilot"). <!-- bot-mention-example --> `@copilot` in a PR comment is a command that dispatches a Copilot coding agent onto the PR, not an attribution. Human commenters keep `@alice`. Determine bot status from the `author_type` field fetched in Steps 2/2b/2c (`== "Bot"`) — a `[bot]` login suffix is only a fallback for sources that don't carry a type. See `references/reply-formats.md` — "Referring to the commenter".
+Address the commenter as `{commenter_ref}` — in the template wrapper and in your own prose.
 
 `consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
 
@@ -363,10 +365,8 @@ File a follow-up GitHub issue for the out-of-scope suggestion from @reviewer? [y
 
 If confirmed:
 ```bash
-# Substitute {commenter_ref} the same way as {owner}/{repo} below: "@alice" for a
-# human commenter; a bare handle (e.g. "Copilot") for a bot — never seed this with
-# an @-prefixed literal, since an @-mention of a bot in an issue body is a live
-# mention. See references/reply-formats.md — "Referring to the commenter".
+# Substitute {commenter_ref} the same way as {owner}/{repo} below — never seed it
+# with an @-prefixed literal.
 commenter_ref="{commenter_ref}"
 issue_body_file="$(mktemp "${TMPDIR:-/private/tmp}/pr-comments-issue-XXXXXX")"
 trap 'rm -f "$issue_body_file"' EXIT
