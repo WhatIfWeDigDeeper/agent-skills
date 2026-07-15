@@ -18,6 +18,13 @@
         "timestamp": "2026-04-24T00:00:00Z",
         "runs_per_configuration": 1,
         "notes": "All 38 evals \u00d7 2 configurations run on Opus 4.7 on 2026-04-24. Per-run time/tokens not captured at the parent level (subagent usage data was not preserved structurally); observed wall-clock ranges per eval pair: with_skill ~115s / 60-100k tokens, without_skill ~45s / 28-68k tokens. Analyzer model is claude-sonnet-4-6 because Opus 4.7 grader runs hit the rate limit mid-batch; Sonnet was used to grade all 76 transcripts uniformly for analyzer-model consistency."
+      },
+      {
+        "executor_model": "claude-sonnet-5",
+        "analyzer_model": "claude-sonnet-5",
+        "timestamp": "2026-07-13T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "Eval 41 (bot-credit-no-at-mention) only, run at v1.51 for spec 52 on 2026-07-13. This is a single-eval track, NOT a full-suite run: the retired claude-sonnet-4-6 and claude-opus-4-7 executors can no longer be pinned, so new evals cannot be appended to either existing track. N=1 per configuration, so stddev is null and this track's pass-rate delta is not comparable to the two full-suite deltas."
       }
     ],
     "timestamp": "2026-04-24T00:00:00Z",
@@ -61,7 +68,8 @@
       37,
       38,
       39,
-      40
+      40,
+      41
     ],
     "runs_per_configuration": 1,
     "regression_run_evals": [
@@ -72,9 +80,9 @@
       23,
       24
     ],
-    "skill_version": "1.48",
-    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check); evals 39-40 (nits-only gate) run on Sonnet 4.6 only under v1.48 on 2026-06-27 (spec 47)",
-    "last_updated": "2026-06-27T00:00:00Z"
+    "skill_version": "1.51",
+    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check); evals 39-40 (nits-only gate) run on Sonnet 4.6 only under v1.48 on 2026-06-27 (spec 47); eval 41 (bot-credit-no-at-mention) run on Sonnet 5 only under v1.51 on 2026-07-13 (spec 52) \u2014 a single-eval track, not a suite run: the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned by then, so eval 41 is excluded from both full-suite tracks and from the top-level run_summary",
+    "last_updated": "2026-07-13T00:00:00Z"
   },
   "runs": [
     {
@@ -7471,6 +7479,100 @@
           "evidence": "The baseline applied the off-by-one fix and the rename and committed both without halting \u2014 no decision table exists in the baseline workflow."
         }
       ]
+    },
+    {
+      "eval_id": 41,
+      "eval_name": "bot-credit-no-at-mention",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 228.03,
+        "tokens": 9685,
+        "tool_calls": 20,
+        "errors": 1
+      },
+      "expectations": [
+        {
+          "text": "The reply posted to the Copilot comment contains no `@`-mention of Copilot anywhere in the body \u2014 not in the opening wrapper and not in the free-form prose (e.g. it does not say 'Good catch @Copilot')",
+          "passed": true,
+          "evidence": "Reply body reads: 'Copilot\\n> This off-by-one drops the last element...\\n\\nFixed \u2014 changed the loop bound in `src/version.js` to `i < s.length` and added a regression test...'. The opening wrapper uses the bare word 'Copilot' (no `@`) and the free-form prose never mentions Copilot with an `@` \u2014 no `@Copilot` substring appears anywhere in the posted body."
+        },
+        {
+          "text": "The reply to Copilot refers to it by a bare handle such as `Copilot`",
+          "passed": true,
+          "evidence": "The reply opens with the bare token 'Copilot' on its own line (no `@`), immediately followed by the `>` quote \u2014 matching reply-formats.md's rule that a bot's `{commenter_ref}` never carries an `@`."
+        },
+        {
+          "text": "The reply to the Copilot timeline comment still includes a `>` blockquote of the original comment, which is its only remaining linkage signal",
+          "passed": true,
+          "evidence": "Reply includes '> This off-by-one drops the last element \u2014 `i < s.length - 1` should be `i < s.length`.' directly under the bare 'Copilot' handle, matching the summary's note that the quote is 'the sole linkage/dedup signal for a bot' since the handle carries no `@`."
+        },
+        {
+          "text": "The reply to alice's timeline comment still begins with `@alice`",
+          "passed": true,
+          "evidence": "Reply to alice begins: '@alice\\n> Please add a test for the empty-input case.' \u2014 the `@` is retained for the human commenter."
+        },
+        {
+          "text": "The commit message credits the bot without an `@` (e.g. `(suggested by Copilot)`), and does not contain `@Copilot`",
+          "passed": true,
+          "evidence": "Commit body line: '- Fix off-by-one loop bound that dropped the last character (suggested by Copilot)' \u2014 bare handle, no `@`. The trailer 'Co-authored-by: Copilot <Copilot@users.noreply.github.com>' contains the substring 'Copilot@' (email local-part), not '@Copilot' \u2014 the literal substring `@Copilot` does not appear anywhere in the commit message."
+        }
+      ],
+      "notes": [
+        "5/5 (100%). Reply to Copilot opens with the bare handle `Copilot` and a `>` quote of the original comment; no `@` appears anywhere in either posted body. Reply to alice keeps `@alice`. Commit credits `(suggested by Copilot)` and `(suggested by @alice)`, with Co-authored-by trailers for both. The one `@Copilot` the run emits is in the poll-timeout status line, which is terminal-only and never posted to GitHub \u2014 correct per spec 52."
+      ]
+    },
+    {
+      "eval_id": 41,
+      "eval_name": "bot-credit-no-at-mention",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
+        "total": 5,
+        "time_seconds": 155.45,
+        "tokens": 12446,
+        "tool_calls": 15,
+        "errors": 2
+      },
+      "expectations": [
+        {
+          "text": "The reply posted to the Copilot comment contains no `@`-mention of Copilot anywhere in the body \u2014 not in the opening wrapper and not in the free-form prose (e.g. it does not say 'Good catch @Copilot')",
+          "passed": true,
+          "evidence": "Full reply body: 'Good catch \u2014 this was an off-by-one. Fixed in the latest commit: the loop condition is now `i < s.length` instead of `i < s.length - 1`, so the last character is no longer dropped. Added a regression test (`parseParts('123')` now returns `[1, 2, 3]`) to cover it.' No `@Copilot` (or any mention of the word 'Copilot' at all) appears. Passes vacuously: the reply never references Copilot by name in any form, opening wrapper or prose, so the literal 'no @-mention' condition holds without the model ever making a deliberate bare-handle choice."
+        },
+        {
+          "text": "The reply to Copilot refers to it by a bare handle such as `Copilot`",
+          "passed": false,
+          "evidence": "The reply text ('Good catch \u2014 this was an off-by-one. Fixed in the latest commit...') never contains the word 'Copilot' anywhere \u2014 there is no bare-handle reference to the commenter at all, so this assertion fails outright."
+        },
+        {
+          "text": "The reply to the Copilot timeline comment still includes a `>` blockquote of the original comment, which is its only remaining linkage signal",
+          "passed": false,
+          "evidence": "The posted reply to Copilot contains no `>` character or quoted excerpt at all: 'Good catch \u2014 this was an off-by-one. Fixed in the latest commit... Added a regression test... to cover it.' There is no linkage signal back to the original comment in the posted body."
+        },
+        {
+          "text": "The reply to alice's timeline comment still begins with `@alice`",
+          "passed": false,
+          "evidence": "Posted reply to alice reads in full: 'Added a test for the empty-input case \u2014 `parseParts('')` now asserts it returns `[]`. Thanks for flagging it!' \u2014 it does not begin with `@alice` or contain any `@`-mention of alice."
+        },
+        {
+          "text": "The commit message credits the bot without an `@` (e.g. `(suggested by Copilot)`), and does not contain `@Copilot`",
+          "passed": true,
+          "evidence": "Commit message's final line reads 'Addresses review feedback from Copilot and alice.' \u2014 credits the bot as bare 'Copilot' with no `@`, and the substring `@Copilot` does not appear anywhere in the commit message."
+        }
+      ],
+      "notes": [
+        "2/5 (40%). Assertions 2, 3 and 4 fail: the baseline replies in generic prose (\"Good catch \u2014 this was an off-by-one. Fixed in the latest commit...\") with no bare handle, no `>` blockquote, and no `@alice` prefix, leaving no linkage signal back to either originating comment. Assertion 1 passes only vacuously \u2014 the reply never references Copilot at all, so no `@`-mention is present. Assertion 5 passes: the commit says \"Addresses review feedback from Copilot and alice.\" with no `@`."
+      ]
     }
   ],
   "run_summary": {
@@ -7614,6 +7716,53 @@
         "time_seconds": null,
         "tokens": null
       }
+    },
+    "claude-sonnet-5": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 1.0,
+          "stddev": null,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 228.03,
+          "stddev": null,
+          "min": 228.03,
+          "max": 228.03
+        },
+        "tokens": {
+          "mean": 9685,
+          "stddev": null,
+          "min": 9685,
+          "max": 9685
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.4,
+          "stddev": null,
+          "min": 0.4,
+          "max": 0.4
+        },
+        "time_seconds": {
+          "mean": 155.45,
+          "stddev": null,
+          "min": 155.45,
+          "max": 155.45
+        },
+        "tokens": {
+          "mean": 12446,
+          "stddev": null,
+          "min": 12446,
+          "max": 12446
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.60",
+        "time_seconds": "+72.6",
+        "tokens": "-2761"
+      }
     }
   },
   "notes": [
@@ -7647,6 +7796,7 @@
     "Evals 7, 9, 11: existing v1.17 executor outputs re-graded under v1.20 auto Step 13 assertions (no-prompt path). All with_skill runs pass 100%. Without_skill: eval 7 (2/5), eval 9 (1/5), eval 11 (3/5). These are re-grades only; no new executor runs were added, so run entries and metadata.skill_version correctly remain at v1.17.",
     "Eval 37 covers post-edit drift re-scan (Step 9): after fixing SKILL.md, the skill scans PR-modified files for the replaced substring and folds drift fixes into the same commit. with_skill 4/4 (100%), without_skill 3/4 (75%) \u2014 discriminating (+25%). The differentiating assertion is Co-authored-by credit for the bot reviewer, which is a skill-specific convention. The drift detection itself passes in both configurations since the prompt explicitly names the stale file.",
     "Eval 38 covers convention sanity-check (Step 6): when a reviewer proposes a \"must\" rule for CLAUDE.md, the skill searches for counter-examples before adopting it. with_skill 4/4 (100%), without_skill 4/4 (100%) \u2014 non-discriminating (delta 0%). The baseline naturally checks the existing CLAUDE.md text before editing and finds the already-softened rule. Non-discriminating evals establish a regression baseline but do not contribute to the pass-rate delta.",
-    "Evals 39 (all-nits-gate-halts) and 40 (mixed-round-no-nit-gate) were added at v1.48 for the nits-only gate (spec 47) and run on Sonnet 4.6 only; Opus 4.7 runs for these two evals are a pending follow-up, so the top-level run_summary and the claude-opus-4-7 by-model block continue to reflect the Opus baseline over evals 1-38. Eval 39 is fully discriminating (with_skill 4/4, without_skill 0/4): the baseline has no nit concept, so it tags nothing as a nit, never enters the nits-only gate, and auto-applies/commits both cosmetic fixes. Eval 40 is partially discriminating (with_skill 4/4, without_skill 3/4): the baseline fails only `cosmetic-tagged-nit` (no nit vocabulary); the other three without_skill assertions pass vacuously because the baseline lacks the gate it would otherwise have to suppress."
+    "Evals 39 (all-nits-gate-halts) and 40 (mixed-round-no-nit-gate) were added at v1.48 for the nits-only gate (spec 47) and run on Sonnet 4.6 only; Opus 4.7 runs for these two evals are a pending follow-up, so the top-level run_summary and the claude-opus-4-7 by-model block continue to reflect the Opus baseline over evals 1-38. Eval 39 is fully discriminating (with_skill 4/4, without_skill 0/4): the baseline has no nit concept, so it tags nothing as a nit, never enters the nits-only gate, and auto-applies/commits both cosmetic fixes. Eval 40 is partially discriminating (with_skill 4/4, without_skill 3/4): the baseline fails only `cosmetic-tagged-nit` (no nit vocabulary); the other three without_skill assertions pass vacuously because the baseline lacks the gate it would otherwise have to suppress.",
+    "Eval 41 (bot-credit-no-at-mention) was added at v1.51 for spec 52 (never emit a live @-mention of a bot in anything posted to GitHub) and run on a THIRD executor model, claude-sonnet-5 \u2014 the retired claude-sonnet-4-6 and claude-opus-4-7 executors can no longer be pinned, so it could not be appended to either existing track. It is therefore excluded from the top-level run_summary and from both full-suite by-model blocks, which continue to cover evals 1\u201340 (Sonnet 4.6) and 1\u201338 (Opus 4.7). Eval 41 discriminates: with_skill 5/5, without_skill 2/5 (+0.60). Assertions 2, 3 and 4 differentiate \u2014 the baseline replies in generic prose with no bare handle, no `>` blockquote, and no `@alice` prefix, leaving no linkage signal back to either originating comment. Assertion 1 (no `@`-mention of the bot) passes in BOTH configurations, but only vacuously without the skill: that baseline happened to reference no commenter at all. An earlier variant of this scenario did produce a literal `@Copilot` in the baseline reply, reproducing the production incident that motivated the spec, so treat assertion 1 as guarding a real and intermittently-reproducing hazard rather than as a non-discriminating assertion. Token caveat: the recorded `tokens` delta is NEGATIVE (-2761) because `tokens` counts input+output only, and the with_skill run served almost all of its input from cache (62 uncached input tokens against 2,459,308 cache tokens, vs 1,296,190 for the baseline). The skill run is more expensive, not cheaper; the input+output metric simply cannot see it here."
   ]
 }

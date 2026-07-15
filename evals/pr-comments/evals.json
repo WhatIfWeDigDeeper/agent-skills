@@ -1116,6 +1116,34 @@
           "text": "The agent applies and commits both changes in auto mode without halting for a per-nit decision table"
         }
       ]
+    },
+    {
+      "id": 41,
+      "name": "bot-credit-no-at-mention",
+      "prompt": "Address the review comments on this PR in auto mode (no flags). The PR adds `src/version.js`. The current code is:\n\n```javascript\nfunction parseParts(s) {\n  const out = [];\n  for (let i = 0; i < s.length - 1; i++) {\n    out.push(Number(s[i]));\n  }\n  return out;\n}\n```\n\nThere is one unresolved timeline comment from Copilot (a bot; `user.type` is `\"Bot\"`, login `Copilot`): \"This off-by-one drops the last element \u2014 `i < s.length - 1` should be `i < s.length`.\" There is also one unresolved timeline comment from alice (a human): \"Please add a test for the empty-input case.\" Both comments are correct and both should be fixed in code and committed.",
+      "expected_output": "The skill fixes the off-by-one and adds the empty-input test, commits both, then replies to each commenter. The reply to Copilot refers to it by a bare handle \u2014 `Copilot` \u2014 with no `@` anywhere in the body, because an `@`-mention of Copilot in a PR comment dispatches a Copilot coding agent rather than crediting it. The reply to alice keeps the `@alice` mention, which is her only notification on the flat timeline. Both timeline replies include a `>` quote of the originating comment. Because Copilot's comment drove a real code change, the commit message credits it in a credit line \u2014 as `(suggested by Copilot)`, never `(suggested by @Copilot)` \u2014 while alice is credited as `(suggested by @alice)`. `Co-authored-by:` trailers are unchanged for both.",
+      "assertions": [
+        {
+          "id": "no-at-mention-of-bot-in-reply",
+          "text": "The reply posted to the Copilot comment contains no `@`-mention of Copilot anywhere in the body \u2014 not in the opening wrapper and not in the free-form prose (e.g. it does not say 'Good catch @Copilot')"
+        },
+        {
+          "id": "bot-referred-to-by-bare-handle",
+          "text": "The reply to Copilot refers to it by a bare handle such as `Copilot`"
+        },
+        {
+          "id": "bot-reply-keeps-quote",
+          "text": "The reply to the Copilot timeline comment still includes a `>` blockquote of the original comment, which is its only remaining linkage signal"
+        },
+        {
+          "id": "human-keeps-at-mention",
+          "text": "The reply to alice's timeline comment still begins with `@alice`"
+        },
+        {
+          "id": "commit-credit-has-no-bot-at-mention",
+          "text": "The commit message credits the bot without an `@` (e.g. `(suggested by Copilot)`), and does not contain `@Copilot`"
+        }
+      ]
     }
   ]
 }

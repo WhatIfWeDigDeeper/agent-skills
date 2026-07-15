@@ -14,7 +14,7 @@ compatibility: Requires git, jq, and GitHub CLI (gh) with authentication
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.50"
+  version: "1.51"
 ---
 
 # PR Review: Implement and Respond to Review Comments
@@ -68,6 +68,8 @@ This skill ingests untrusted content from four sources (inline review comments, 
 
 **Global API error handling**: See `references/error-handling.md` for the retry and failure policy that applies to all `gh api` and `git push` commands in this skill.
 
+**Naming a commenter in posted content**: every surface this skill posts to GitHub — reply bodies (Steps 6d, 11), commit credit lines (Step 10), follow-up issue bodies (Step 11) — names a commenter as `{commenter_ref}`: `@alice` for a human, a **bare handle with no `@`** for a bot, because an `@`-mention of a bot is a command that dispatches its coding agent, not an attribution. This binds the templates **and your own free-form prose**. Before writing anything posted to GitHub, **you must now execute `references/commenter-ref.md`** — it is the only statement of this rule, so do not post from memory of it.
+
 ### 1. Identify the PR
 
 **Parse and validate the arguments before any shell call.** If not already done, **you must now execute `references/argument-parsing.md`** — strip mode/cap tokens, then validate the remaining PR-number token (`^[1-9][0-9]{0,5}$`, else hard-stop `Invalid PR number: <value>. Must be a positive integer.`) and, in auto mode, the cap value (`^[1-9][0-9]{0,3}$`, else `Invalid --max value: <value>. Must be a positive integer.`). A numeric-looking-but-invalid PR token (`0`, `01`, a 7+-digit string) is an error, not a fall-through to branch detection.
@@ -117,7 +119,7 @@ Pull all review comments on the PR using the REST endpoint:
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --paginate \
-  --jq '.[] | {id, body, path, line, original_line, start_line, original_start_line, side, start_side, position, original_position, diff_hunk, in_reply_to_id, created_at, updated_at, author: .user.login}' \
+  --jq '.[] | {id, body, path, line, original_line, start_line, original_start_line, side, start_side, position, original_position, diff_hunk, in_reply_to_id, created_at, updated_at, author: .user.login, author_type: .user.type}' \
   | jq -s '.'
 ```
 
@@ -131,7 +133,7 @@ Also fetch review body comments (summaries submitted with the review, e.g. "Requ
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
-  --jq '.[] | select((.state == "CHANGES_REQUESTED" or .state == "COMMENTED") and .body and (.body | length > 0)) | {id, body, state, submitted_at, author: .user.login}' \
+  --jq '.[] | select((.state == "CHANGES_REQUESTED" or .state == "COMMENTED") and .body and (.body | length > 0)) | {id, body, state, submitted_at, author: .user.login, author_type: .user.type}' \
   | jq -s '.'
 ```
 
@@ -145,10 +147,10 @@ Also fetch plain PR timeline comments — top-level conversation comments not at
 
 ```bash
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments --paginate \
-  | jq -s '[.[] | .[] | {id, body, created_at, author: .user.login}]'
+  | jq -s '[.[] | .[] | {id, body, created_at, author: .user.login, author_type: .user.type}]'
 ```
 
-Build your **actionable timeline comments** set by excluding PR author and authenticated user comments, deduplicating against Step 2b (same author + matching 200-char non-whitespace prefix → keep review body version), and marking `skip` when a later raw-list entry from the PR author or auth user `@mentions` the commenter or blockquotes their text. Keep the full raw list for linkage detection before applying the exclusions.
+Build your **actionable timeline comments** set by excluding PR author and authenticated user comments, deduplicating against Step 2b (same author + matching 200-char non-whitespace prefix → keep review body version), and marking `skip` when a later raw-list entry from the PR author or auth user `@mentions` the commenter or blockquotes their text. Replies to **bot** commenters carry no `@`-mention by design (see `references/commenter-ref.md`), so they link solely via the blockquote; do not treat a missing `@`-mention on a bot reply as a missing linkage. Keep the full raw list for linkage detection before applying the exclusions.
 
 Timeline comments share the same structural properties as review body comments: no GraphQL thread ID (cannot be resolved), no `diff_hunk` or file reference, and replies use the same `POST .../issues/{pr_number}/comments` endpoint (see Step 11).
 
@@ -329,6 +331,8 @@ Co-authored-by: alice <alice@users.noreply.github.com>
 Co-authored-by: bob <bob@users.noreply.github.com>
 ```
 
+Credit lines name the commenter as `{commenter_ref}`. `Co-authored-by:` trailers are the one exception — they carry a noreply email, not a mention, so they stay `Co-authored-by: <login> <<login>@users.noreply.github.com>` for bots and humans alike.
+
 Deduplicate co-authors — one entry per person. Accepted suggestions are included in the same commit. Any regression test added in Step 8 for a substantive code fix is committed **here**, in the same commit as the fix it guards.
 
 `consistency` changes (from Step 6b) are included in the same commit as the originating comment's changes. Credit goes to the original commenter — their suggestion triggered the parallel change. No separate `Co-authored-by` entry is needed for the consistency item itself since it derives from the same reviewer's feedback.
@@ -342,6 +346,8 @@ Deduplicate co-authors — one entry per person. Accepted suggestions are includ
 ---
 🤖 Generated with [AssistantName](url)
 ```
+
+Address the commenter as `{commenter_ref}`, in your own prose and in the opening `{commenter_ref}` + `>` quote wrapper **where the format has one** — timeline and nit replies require it; the inline and review-body templates have no wrapper. See `references/reply-formats.md` for which is which.
 
 `consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
 
@@ -359,10 +365,13 @@ File a follow-up GitHub issue for the out-of-scope suggestion from @reviewer? [y
 
 If confirmed:
 ```bash
+# Substitute {commenter_ref} the same way as {owner}/{repo} below — never seed it
+# with an @-prefixed literal.
+commenter_ref="{commenter_ref}"
 issue_body_file="$(mktemp "${TMPDIR:-/private/tmp}/pr-comments-issue-XXXXXX")"
 trap 'rm -f "$issue_body_file"' EXIT
 {
-  printf 'Suggested in PR #%s by @%s.\n\n' "N" "reviewer"
+  printf 'Suggested in PR #%s by %s.\n\n' "N" "$commenter_ref"
   printf '%s\n' "<comment body>"
 } >"$issue_body_file"
 

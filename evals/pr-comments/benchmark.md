@@ -3,10 +3,11 @@
 **Models tested**:
 - `claude-sonnet-4-6` — primary suite 2026-03-29; spec 15 update 2026-04-03; eval 10 v1.24 re-run 2026-04-07; evals 37–38 v1.28 run 2026-04-12. Analyzer: Sonnet 4.6.
 - `claude-opus-4-7` — full 38-eval suite × 2 configurations on 2026-04-24 (spec 26). Analyzer: **Sonnet 4.6** (deviation from spec — Opus 4.7 hit the rate-limit mid-grading; Sonnet was used to grade all 76 transcripts uniformly for analyzer-model consistency).
+- `claude-sonnet-5` — eval 41 only × 2 configurations on 2026-07-13 (spec 52). Analyzer: Sonnet 5. A single-eval track, not a suite: the retired Sonnet 4.6 and Opus 4.7 executors can no longer be pinned, so eval 41 could not be appended to either existing track.
 
-**Evals**: 38 dual-model evals (the canonical subset, evals 1–38) × 2 configurations × 2 models = **152 canonical runs**, plus 13 Sonnet-only regression run entries across 6 evals (12, 14, 20, 22, 23, 24, all with `run_number > 1`), plus 4 Sonnet-only runs for the two nits-only-gate evals (39, 40 × 2 configurations; spec 47). Total: 169 entries in `runs[]`. Evals 39–40 were run on Sonnet 4.6 only; Opus 4.7 runs for them are a pending follow-up, so the Opus aggregates below still cover evals 1–38.
+**Evals**: 38 dual-model evals (the canonical subset, evals 1–38) × 2 configurations × 2 models = **152 canonical runs**, plus 13 Sonnet-only regression run entries across 6 evals (12, 14, 20, 22, 23, 24, all with `run_number > 1`), plus 4 Sonnet 4.6-only runs for the two nits-only-gate evals (39, 40 × 2 configurations; spec 47), plus 2 Sonnet 5-only runs for the bot-mention eval (41 × 2 configurations; spec 52). Total: 171 entries in `runs[]`. Evals 39–40 were run on Sonnet 4.6 only and eval 41 on Sonnet 5 only, so the Opus aggregates below still cover evals 1–38 and the Sonnet 4.6 aggregates cover evals 1–40.
 
-**Skill version**: v1.48 (current). Sonnet runs for evals 1–38 were produced under v1.21/v1.24/v1.28 as noted above; Opus runs were produced under v1.36; the two nits-only-gate evals (39, 40) were produced under v1.48.
+**Skill version**: v1.51 (current). Sonnet 4.6 runs for evals 1–38 were produced under v1.21/v1.24/v1.28 as noted above; Opus runs were produced under v1.36; the two nits-only-gate evals (39, 40) were produced under v1.48; eval 41 was produced under v1.51. Only eval 41 has been run at v1.51 — the other 40 evals' recorded results predate it.
 
 > **Pending refresh — `without_skill` arm redefinition (spec 46).** The numbers below are the v1.36 run. The spec-46 refresh (deferred; not yet executed) **redefines the `without_skill` arm**: instead of the *true no-skill* baseline used here (a general assistant with no SKILL.md — Opus 59.9% pass, delta **+39 pts**), the refresh will measure `without_skill` as the **pre-edit v-current snapshot** of the skill (the v1.46 snapshot captured in task 0.3; re-create it in a scratchpad dir at refresh time). Because both arms of the refresh then run essentially the same skill — differing only by spec-46's small edits (Step 13 consolidation, `--auto 42` doc reduction, the edited-after-reply skip exception) — the refreshed delta is expected to be **near zero by design**. That near-zero delta measures *this pass's marginal change to an already-strong skill*, **not a regression** against the +39 pt true-baseline value. When the refresh lands, replace this note with the new run's Summary and keep the +39 pt true-baseline figure cited explicitly so the two measurements are not conflated.
 
@@ -31,6 +32,18 @@ Sonnet time and token statistics are computed only over primary runs (`run_numbe
 | Tokens | N/A | N/A | — |
 
 Opus per-run time and token measurements are `null` because subagent usage data was visible only in the runtime's per-task completion notifications and was not captured at the parent level. Observed wall-clock ranges from those notifications: with_skill ~115s and ~60–100k tokens per run; without_skill ~45s and ~28–68k tokens per run. The pass-rate aggregates remain fully reliable.
+
+### `claude-sonnet-5` — eval 41 only
+
+| Metric | With Skill | Without Skill | Delta |
+|--------|------------|---------------|-------|
+| Pass Rate | **100%** (5/5) | 40% (2/5) | **+60%** |
+| Time | 228.0s | 155.5s | +72.6s |
+| Tokens | 9,685 | 12,446 | −2,761 |
+
+**This is one eval, not a suite — do not compare its delta to the two above.** N = 1 per configuration, so `stddev` is `null` throughout (sample stddev is undefined at N = 1) and min = max = mean. It exists as a separate track only because eval 41 was added at v1.51 (spec 52), by which point the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned; it is excluded from the top-level `run_summary` and from both full-suite by-model blocks. The Sonnet 4.6 token denominators quoted above are therefore unchanged by eval 41's arrival.
+
+The negative token delta is a measurement artifact, not a saving: `tokens` counts input + output only, and the with-skill run served nearly all of its input from cache (62 uncached input tokens against 2,459,308 cache tokens, versus 1,296,190 for the baseline). Reading SKILL.md and its ten reference files makes the skill run *more* expensive, not less — the input + output metric simply cannot see cached input.
 
 The skill improves correctness on Sonnet 4.6 by **+63 percentage points** (37% → 100%) and on Opus 4.7 by **+39 percentage points** (60% → 99%). The Opus baseline is materially stronger than Sonnet's, so the marginal value of the skill on Opus is smaller — this matches the prediction in `specs/26-pr-comments-dual-model-benchmark/plan.md` and is consistent with the pattern observed when the `learn` skill was benchmarked on Opus 4.7 (spec 25). Of the 38 evals run on both models, 9 are non-discriminating on Opus 4.7 (delta = 0); on Sonnet 4.6 — which additionally ran evals 39–40, 40 total — only 1 is non-discriminating (eval 38; eval 40 is partially discriminating, not non-discriminating). See **Known Eval Limitations** below.
 
@@ -80,8 +93,9 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 | 38 | convention-sanity-check | **4/4 (100%)** | **4/4 (100%)** | **4/4 (100%)** | **4/4 (100%)** |
 | 39 | all-nits-gate-halts | **4/4 (100%)** | 0/4 (0%) | N/A | N/A |
 | 40 | mixed-round-no-nit-gate | **4/4 (100%)** | 3/4 (75%) | N/A | N/A |
+| 41 | bot-credit-no-at-mention | N/A | N/A | N/A | N/A |
 
-Evals 39–40 (spec 47) were run on Sonnet 4.6 only; Opus 4.7 runs are a pending follow-up, hence `N/A` in the Opus columns.
+Evals 39–40 (spec 47) were run on Sonnet 4.6 only; Opus 4.7 runs are a pending follow-up, hence `N/A` in the Opus columns. Eval 41 (spec 52) ran on neither model — it was added after both were retired — so it is `N/A` in all four columns; its Sonnet 5 result (**5/5** with-skill vs **2/5** without-skill) is in the `claude-sonnet-5` summary above.
 
 ## Known Eval Limitations
 
@@ -308,6 +322,13 @@ Tests Step 6d (nits-only gate): when every actionable comment is a nit, the auto
 **Prompt**: Two bot comments on src/parser.py — a substantive off-by-one bug (`range(len(s) - 1)` skips the last element) and a `nit:` rename for readability. Address the review in auto mode.
 
 Tests the gate's negative branch: a round with at least one non-nit actionable comment must *not* trigger the nits-only gate. The agent tags only the rename as a nit, leaves the off-by-one as a substantive fix, and proceeds to apply and commit both in auto mode with no decision table. Partially discriminating on Sonnet 4.6 (+25%): with_skill 4/4, without_skill 3/4. The baseline fails only `cosmetic-tagged-nit` (it has no nit vocabulary); the other three without_skill assertions pass vacuously because the baseline lacks the gate it would otherwise have to suppress. Opus 4.7 run pending.
+
+### Eval 41 — `bot-credit-no-at-mention`
+**Prompt**: A PR adds `src/version.js` with an off-by-one loop bound (`i < s.length - 1`) that drops the last element. Copilot (a bot; `user.type` is `"Bot"`) flags the off-by-one in a timeline comment; alice (a human) asks for an empty-input test. Address the review in auto mode.
+
+Tests spec 52: nothing posted to GitHub may carry a live `@`-mention of a bot, because GitHub reads `@copilot` in a PR comment as a *command* and dispatches a coding agent rather than crediting one. The skill refers to Copilot by the bare handle `Copilot`, keeps `@alice` for the human (on the flat timeline the `@` is her only notification), keeps the `>` blockquote on the bot reply — which, with the `@` gone, is that reply's sole linkage signal for the Step 2c dedup — and credits the commit as `(suggested by Copilot)` / `(suggested by @alice)`. Discriminating on Sonnet 5 (+60%): with_skill 5/5, without_skill 2/5. Assertions 2, 3 and 4 differentiate; the baseline replies in generic prose with no handle, no blockquote and no `@alice`, leaving nothing to link either reply back to its originating comment.
+
+The no-`@`-mention assertion itself passes in both configurations, but only *vacuously* without the skill — that baseline referenced no commenter at all. An earlier variant of this scenario did produce a literal `@Copilot` in the baseline reply, reproducing the production incident that motivated the spec. Treat that assertion as guarding a real, intermittently-reproducing hazard, not as a non-discriminating assertion.
 
 ## Notes
 

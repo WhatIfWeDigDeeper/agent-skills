@@ -13,6 +13,13 @@ Append this footer to **every** reply body (inline, review body, and timeline). 
 
 For example, Claude Code uses `[Claude Code](https://claude.com/claude-code)`.
 
+## Referring to the commenter — `{commenter_ref}`
+
+The templates below name the commenter as `{commenter_ref}` — `@alice` for a
+human, a bare handle with no `@` for a bot. The rule, the bot test, and the
+per-surface notes live in **`references/commenter-ref.md`**; read it before
+filling in any template here.
+
 ## Nit replies (Step 6d nits-only gate)
 
 When the Step 6d gate resolves a nit by **skipping** or **deferring to an
@@ -20,15 +27,25 @@ issue**, reply to the originating bot comment with the byline footer, using the
 endpoint **and format** that match where the nit originated: an inline (Step 2)
 nit via the inline replies endpoint below; a review-body (Step 2b) or timeline
 (Step 2c) nit via the issue comments endpoint, with a **timeline** reply
-following the Timeline comment format below — start with `@{commenter_login}` and
-include a `>` quote, or the commenter is not notified and the reply loses
-context. When the nit came from an inline comment, its review thread is left
+following the Timeline comment format below.
+
+Both templates below open with `{commenter_ref}` and a `>` quote. On a
+review-body or timeline reply that wrapper is **mandatory**: the quote is what
+links the reply back to the originating comment, and for a **bot** commenter —
+whose `{commenter_ref}` carries no `@` — it is the *only* linkage signal there
+is. Drop it and the nit re-surfaces as unaddressed on every subsequent run. (For
+a human, the `@` also notifies them.) On an *inline* reply the thread itself
+carries the link, so the wrapper is redundant but harmless — keep it for
+consistency. When the nit came from an inline comment, its review thread is left
 **open** (not resolved); review-body and timeline comments have no thread to
 resolve.
 
 - **Skipped nit** (`skip-all`, or a `select` row chosen as skip):
 
   ```
+  {commenter_ref}
+  > [relevant excerpt from their comment]
+
   Noted as a nit — leaving as-is for now.
 
   ---
@@ -38,6 +55,9 @@ resolve.
 - **Nit deferred to an issue** (`issue-all`, or a `select` row chosen as issue):
 
   ```
+  {commenter_ref}
+  > [relevant excerpt from their comment]
+
   Filed as #NNN.
 
   ---
@@ -75,11 +95,21 @@ gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
 
 ## Timeline comment (Step 2c)
 
-Use the same issue comments endpoint. **The reply body must start with `@{commenter_login}` and include a `>` quote of the relevant excerpt**, since the timeline is flat and has no thread nesting. Do not post a bare reply without the `@mention` and quote — the commenter will not be notified and there will be no context linking your reply to their comment.
+Use the same issue comments endpoint. **The reply body must start with
+`{commenter_ref}` (see "Referring to the commenter" above — `@alice` for a human,
+a bare handle like `Copilot` for a bot) and include a `>` quote of the relevant
+excerpt**, since the timeline is flat and has no thread nesting.
+
+Both parts are required. Without them a human commenter is not notified, and —
+for **any** commenter — the reply loses the context linking it to their comment.
+The `>` quote is also what the Step 2c linkage dedup keys on to mark the comment
+`skip` on the next run; for a bot commenter, whose `{commenter_ref}` carries no
+`@`-mention by design, **the quote is the only linkage signal there is**. Never
+drop it.
 
 Required format:
 ```
-@{commenter_login}
+{commenter_ref}
 > [relevant excerpt from their comment]
 
 [Your response]
@@ -91,7 +121,7 @@ Required format:
 ```bash
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
   --method POST \
-  --field 'body=@{commenter_login}
+  --field 'body={commenter_ref}
 > [relevant excerpt]
 
 [Your response]

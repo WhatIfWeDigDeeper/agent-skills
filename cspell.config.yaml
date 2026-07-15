@@ -4,6 +4,7 @@ dictionaryDefinitions: []
 dictionaries: []
 words:
   - actioned
+  - agentic
   - AKIA
   - akiamatashotokugawamotoharu
   - ALLSKIP
@@ -21,6 +22,7 @@ words:
   - codegen
   - codemod
   - codepoints
+  - coderabbitai
   - commenters
   - conftest
   - continuerc
@@ -57,6 +59,7 @@ words:
   - heredocs
   - homoglyphs
   - idempotently
+  - IGNORECASE
   - informationally
   - isdigit
   - isoformat
@@ -83,6 +86,7 @@ words:
   - parameterizes
   - parentheticals
   - parseable
+  - pathlib
   - PCRE
   - pipefail
   - pipenv
@@ -92,6 +96,7 @@ words:
   - preconfigure
   - PREOF
   - prhumanreview
+  - prowner
   - PRRT
   - psql
   - PYEOF
@@ -105,13 +110,16 @@ words:
   - repolls
   - rerequest
   - rescan
+  - rglob
   - rootdir
   - runbooks
   - sandboxed
   - SIGPIPE
+  - skillbot
   - skillname
   - skillshortname
   - snyk
+  - sonarcloud
   - splitlines
   - startswith
   - stddev
@@ -130,8 +138,10 @@ words:
   - undercounted
   - underspecification
   - underspecified
+  - unfetchable
   - unmatch
   - unredacted
+  - unrun
   - unsoftenable
   - untrusted_diff
   - untrusted_files
