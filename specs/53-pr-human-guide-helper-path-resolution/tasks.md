@@ -358,7 +358,9 @@ git commit -m "chore(security): refresh pr-human-guide baseline after helper-pat
 
 - [x] **Step 1: Confirm every spec task above is checked off**
 
-Re-read this file. Every `- [ ]` must be `- [x]`.
+Re-read this file. Every step in Tasks 1–3 must be `- [x]` before shipping.
+Task 4's own steps are checked off as they complete, so unchecked items
+remaining *below this one* are expected.
 
 - [x] **Step 2: Commit the spec itself**
 
@@ -367,7 +369,7 @@ git add specs/53-pr-human-guide-helper-path-resolution/
 git commit -m "spec(53): pr-human-guide helper-script path resolution"
 ```
 
-- [ ] **Step 3: Open the PR**
+- [x] **Step 3: Open the PR**
 
 Use the `ship-it` skill. The PR body must reference `Closes #206`.
 
