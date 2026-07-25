@@ -126,12 +126,13 @@ with:
 
 ```bash
 # marker-helper.py sits beside this file, in this skill's references/ directory.
-# Substitute the absolute path of the directory you read this file from (in
-# Claude Code: the "Base directory for this skill" line in the SKILL.md header).
-# It works for every install layout — project-level, user-level, plugin cache,
-# or a checkout of the skills repo. Never hardcode a `skills/` prefix.
-# A pre-set SKILL_DIR in the environment overrides resolution.
-SKILL_DIR="${SKILL_DIR:-<absolute path of this skill's base directory>}"
+# SKILL_DIR is the skill's base directory — the PARENT of the references/
+# directory you read this file from, not references/ itself (in Claude Code:
+# the "Base directory for this skill" line in the SKILL.md header). Substitute
+# its absolute path below. It works for every install layout — project-level,
+# user-level, plugin cache, or a checkout of the skills repo. Never hardcode a
+# `skills/` prefix. A pre-set SKILL_DIR in the environment overrides resolution.
+SKILL_DIR="${SKILL_DIR:-<absolute path of this skill's base directory, the parent of references/>}"
 HELPER="$SKILL_DIR/references/marker-helper.py"
 [ -f "$HELPER" ] || { echo "marker-helper.py not found at $HELPER. Set SKILL_DIR to this skill's base directory and retry." >&2; exit 1; }
 python3 "$HELPER" \
@@ -373,10 +374,10 @@ git commit -m "spec(53): pr-human-guide helper-script path resolution"
 
 Use the `ship-it` skill. The PR body must reference `Closes #206`.
 
-- [ ] **Step 4: Address review feedback**
+- [x] **Step 4: Address review feedback**
 
 Immediately after the PR is created, invoke `/pr-comments {pr_number}` without asking — this repo requires it after any push to a PR branch, including initial creation. Do not add a second version bump in reviewer-fix commits.
 
-- [ ] **Step 5: Prepare for human review**
+- [x] **Step 5: Prepare for human review**
 
 Once `/pr-comments` iterations complete and `gh pr checks {pr_number}` is clean, run `/pr-human-guide {pr_number}`. This is also the end-to-end smoke test of the fix — the skill exercising its own repaired Step 5.
