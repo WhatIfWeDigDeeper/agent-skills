@@ -93,8 +93,8 @@ Three properties make this the right shape:
 - **Strictly narrower execution surface than today.** The current invocation is
   cwd-relative, so a checkout that ships `skills/pr-human-guide/references/marker-helper.py`
   has that copy executed unconditionally. After this change the only path ever
-  executed is the skill's own directory (or an explicit `SKILL_DIR` the operator
-  set). Nothing repo-supplied is reachable.
+  executed is the skill's own directory, unless an operator deliberately points
+  `SKILL_DIR` elsewhere. Nothing repo-supplied is reachable by default.
 
 ### `SKILL_DIR` as an escape hatch
 
@@ -160,7 +160,8 @@ nothing and would require carving an exception into that rule.
 
 The change *reduces* exposure, so the Security model section in `SKILL.md` gains
 one sentence rather than a new mitigation bullet: helper resolution is confined
-to the skill's own directory, so no repo-supplied file is executed — closing the
+to the skill's own directory by default, so no repo-supplied file is executed
+unless an operator sets `SKILL_DIR` to one — closing the
 cwd-relative behavior described above. `evals/security/pr-human-guide.baseline.json`
 is refreshed in the same PR per the rule in `CLAUDE.md`; the pinned `W011`
 finding is expected to be unchanged, since it fires on the presence of
