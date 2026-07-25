@@ -147,6 +147,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 - Consider whether new tests are needed to cover the changed behavior.
 - **When adding a new skill or substantially modifying an existing skill**, propose adding or updating tests under `tests/<skill-name>/`. Tests should cover help trigger detection, argument parsing, and any classifiable logic (workflow routing, comment classification, etc.). Follow the patterns in existing test suites (e.g. `tests/js-deps/`, `tests/ship-it/`).
 - See `tests/CLAUDE.md` for test file naming conventions and CI workflow requirements (auto-loads when working in that directory).
+- **Exercising a skill that shells out to a bundled script, from a worktree**: `.claude/skills/` is gitignored and absent in a fresh worktree, so the assistant loads the skill from the main checkout and silently runs *that* copy of the script — your worktree edits are not under test. Export the worktree copy first: `export SKILL_DIR="$(git rev-parse --show-toplevel)/skills/<skill-name>"`.
 
 ## Portability
 
