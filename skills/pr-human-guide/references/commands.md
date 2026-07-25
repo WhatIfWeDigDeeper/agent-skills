@@ -92,8 +92,9 @@ to the PR so it is stable across the two tool calls below (resolve `$TMPDIR` and
 ${TMPDIR:-/private/tmp}/pr-human-guide-guide-${pr_number}.md
 ```
 
-Then assemble and post the body (the `marker-helper.py` path is repo-root-relative
-— adjust the prefix to match your repo's layout if it differs):
+Then assemble and post the body. `marker-helper.py` is resolved from this
+skill's own directory — never a fixed `skills/` prefix — so the block works for
+every install layout:
 
 ```bash
 # GUIDE_FILE was written above by your file-writing tool — not via the shell.
@@ -108,7 +109,16 @@ printf '%s' "$pr_body" > "$BODY_FILE"
 # resulting OUT_FILE is still non-empty, so the body would silently lose its
 # guide and anchor markers.
 [ -s "$GUIDE_FILE" ] || { echo "Guide file missing or empty ($GUIDE_FILE); write the Step 4 guide block with your file-writing tool before running marker-helper. Aborting." >&2; exit 1; }
-python3 skills/pr-human-guide/references/marker-helper.py \
+# marker-helper.py sits beside this file, in this skill's references/ directory.
+# Substitute the absolute path of the directory you read this file from (in
+# Claude Code: the "Base directory for this skill" line in the SKILL.md header).
+# It works for every install layout — project-level, user-level, plugin cache,
+# or a checkout of the skills repo. Never hardcode a `skills/` prefix.
+# A pre-set SKILL_DIR in the environment overrides resolution.
+SKILL_DIR="${SKILL_DIR:-<absolute path of this skill's base directory>}"
+HELPER="$SKILL_DIR/references/marker-helper.py"
+[ -f "$HELPER" ] || { echo "marker-helper.py not found at $HELPER. Set SKILL_DIR to this skill's base directory and retry." >&2; exit 1; }
+python3 "$HELPER" \
   --body-file "$BODY_FILE" \
   --guide-file "$GUIDE_FILE" \
   --out "$OUT_FILE"

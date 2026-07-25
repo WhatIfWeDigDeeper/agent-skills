@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq, python3; sha256sum (Linux) or shasum (macOS
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.14"
+  version: "0.15"
 ---
 
 # PR Human Guide
@@ -46,7 +46,9 @@ Mitigations in place:
 - **Marker-replacement bounds** — `references/marker-helper.py` selects the last
   anchored `<!-- pr-human-guide -->` block; extra or incomplete markers in
   `pr_body` are treated as untrusted text after canonical-block extraction and
-  cannot shift replacement bounds (Step 5).
+  cannot shift replacement bounds. The helper is resolved from this skill's own
+  directory — never a repo-relative `skills/…` path — so a checkout that ships a
+  same-named file cannot have it executed (Step 5).
 - **Body written via file, not argv** — the rendered guide block is written to a
   temp file with the agent's file-writing tool (never a double-quoted shell
   variable, which interactive zsh corrupts `<!--` → `<\!--`), and
