@@ -62,12 +62,13 @@ of any vendor directory.
 
 ```bash
 # marker-helper.py sits beside this file, in this skill's references/ directory.
-# Substitute the absolute path of the directory you read this file from (in
-# Claude Code: the "Base directory for this skill" line in the SKILL.md header).
-# It works for every install layout — project-level, user-level, plugin cache,
-# or a checkout of the skills repo. Never hardcode a `skills/` prefix.
-# A pre-set SKILL_DIR in the environment overrides resolution.
-SKILL_DIR="${SKILL_DIR:-<absolute path of this skill's base directory>}"
+# SKILL_DIR is the skill's base directory — the PARENT of the references/
+# directory you read this file from, not references/ itself (in Claude Code:
+# the "Base directory for this skill" line in the SKILL.md header). Substitute
+# its absolute path below. It works for every install layout — project-level,
+# user-level, plugin cache, or a checkout of the skills repo. Never hardcode a
+# `skills/` prefix. A pre-set SKILL_DIR in the environment overrides resolution.
+SKILL_DIR="${SKILL_DIR:-<absolute path of this skill's base directory, the parent of references/>}"
 HELPER="$SKILL_DIR/references/marker-helper.py"
 [ -f "$HELPER" ] || { echo "marker-helper.py not found at $HELPER. Set SKILL_DIR to this skill's base directory and retry." >&2; exit 1; }
 python3 "$HELPER" --body-file "$BODY_FILE" --guide-file "$GUIDE_FILE" --out "$OUT_FILE"

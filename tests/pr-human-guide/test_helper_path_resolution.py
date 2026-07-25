@@ -32,6 +32,16 @@ class TestHelperPathResolution:
         assert '[ -f "$HELPER" ]' in text
         assert text.index('[ -f "$HELPER" ]') < text.index('python3 "$HELPER"')
 
+    def test_skill_dir_placeholder_disambiguates_from_references_dir(self):
+        """`HELPER` appends `references/`, so SKILL_DIR must be its parent.
+
+        Guidance that reads "the directory you read this file from" points at
+        `references/` itself and yields `references/references/marker-helper.py`.
+        """
+        text = COMMANDS_MD.read_text()
+        assert "parent of references/" in text
+        assert "absolute path of the directory you read this file from" not in text
+
     def test_resolution_names_no_vendor_directory(self):
         """Portability: the distributed skill must not hardcode an assistant's layout."""
         text = COMMANDS_MD.read_text()
