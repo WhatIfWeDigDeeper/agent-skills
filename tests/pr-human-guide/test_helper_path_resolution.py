@@ -6,10 +6,26 @@ every installed layout (.claude/skills/, .agents/skills/, ~/.claude/skills/,
 plugin cache).
 """
 
+import re
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "pr-human-guide"
 COMMANDS_MD = SKILL_DIR / "references" / "commands.md"
+
+# Install layouts a harness might be steered toward. None may appear in a file
+# that ships with the skill — the resolution logic is layout-agnostic by design.
+VENDOR_INSTALL_PATHS = (".claude/skills", ".agents/skills", "~/.claude")
+
+
+def shipped_files():
+    """Every text file distributed with the skill (SKILL.md + references/)."""
+    paths = [SKILL_DIR / "SKILL.md"]
+    paths += sorted(
+        p
+        for p in (SKILL_DIR / "references").iterdir()
+        if p.is_file() and p.suffix in {".md", ".py"}
+    )
+    return paths
 
 
 class TestHelperPathResolution:
@@ -45,5 +61,37 @@ class TestHelperPathResolution:
     def test_resolution_names_no_vendor_directory(self):
         """Portability: the distributed skill must not hardcode an assistant's layout."""
         text = COMMANDS_MD.read_text()
-        for vendor in (".claude/skills", ".agents/skills", "~/.claude"):
+        for vendor in VENDOR_INSTALL_PATHS:
             assert vendor not in text
+
+
+class TestShippedFilesArePortable:
+    """Every file distributed with the skill, not just the one carrying Step 5.
+
+    A vendor install path anywhere in the shipped tree can send a non-Claude
+    harness looking under a directory that does not exist for it.
+    """
+
+    def test_no_shipped_file_names_a_vendor_install_path(self):
+        offenders = []
+        for path in shipped_files():
+            text = path.read_text()
+            for vendor in VENDOR_INSTALL_PATHS:
+                if vendor in text:
+                    offenders.append(f"{path.name}: {vendor}")
+        assert not offenders, f"vendor install paths in shipped files: {offenders}"
+
+    def test_assistant_names_appear_only_as_scoped_qualifiers(self):
+        """A harness name must sit inside a parenthetical, never carry the instruction.
+
+        `(e.g. in Claude Code: ...)` and `(in Claude Code: ...)` are the two forms
+        the repo's Portability rules sanction.
+        """
+        offenders = []
+        for path in shipped_files():
+            for lineno, line in enumerate(path.read_text().splitlines(), 1):
+                for match in re.finditer(r"Claude Code", line):
+                    prefix = line[: match.start()]
+                    if not re.search(r"\((?:e\.g\.\s+)?in $", prefix):
+                        offenders.append(f"{path.name}:{lineno}: {line.strip()}")
+        assert not offenders, f"unscoped assistant references: {offenders}"

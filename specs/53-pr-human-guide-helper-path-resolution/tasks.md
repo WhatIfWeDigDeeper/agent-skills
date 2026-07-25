@@ -42,7 +42,11 @@ Expected: no output. If a `+  version:` line appears, a bump already landed — 
 
 - [x] **Step 2: Write the failing regression test**
 
-Create `tests/pr-human-guide/test_helper_path_resolution.py`:
+Create `tests/pr-human-guide/test_helper_path_resolution.py`. The snippet below
+is the **red** state for this task — the file gained further assertions during
+review (a `SKILL_DIR`-vs-`references/` disambiguation check and a
+`TestShippedFilesArePortable` sweep over every shipped file). Treat the file on
+disk as canonical; do not restore it to this snippet:
 
 ```python
 """Regression tests for marker-helper.py path resolution (issue #206).

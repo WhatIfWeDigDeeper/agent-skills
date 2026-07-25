@@ -138,6 +138,14 @@ nothing and would require carving an exception into that rule.
   no `python3 skills/pr-human-guide` invocation and does invoke `python3 "$HELPER"`.
   Matches this repo's convention of shipping a TDD regression test with every
   substantive code fix (spec 51).
+- **Portability guard across the whole shipped tree.** `commands.md` carries the
+  resolution logic, but any shipped file can steer a non-Claude harness toward a
+  layout that does not exist for it. `TestShippedFilesArePortable` sweeps
+  `SKILL.md` plus every `references/*.{md,py}` and fails if one names an install
+  path (`.claude/skills`, `.agents/skills`, `~/.claude`) or mentions an assistant
+  outside a `(in …)` / `(e.g. in …)` qualifier — the two forms the Portability
+  rules sanction. Both assertions were confirmed to fail on an injected
+  violation, not merely to pass on current content.
 - **CI workflow for the suite.** Implementation surfaced that no
   `test-pr-human-guide-skill.yml` existed — the entire `tests/pr-human-guide/`
   suite (8 files, 135 tests) was never CI-gated, so the new regression test would
