@@ -64,7 +64,10 @@ Residual risks: Snyk Agent Scan's `W011` fires on the presence of
 `evals/security/pr-human-guide.baseline.json` (currently `W011`, high) and CI
 gates on regressions beyond it; the substantive defense is the Step 3
 `<untrusted_pr_content>` boundary framing plus the static marker helper. Refresh
-and rationale guidance live in `evals/security/CLAUDE.md`.
+and rationale guidance live in `evals/security/CLAUDE.md`. (Both `evals/` paths
+sit in this skill's source repository, which is not distributed alongside an
+installed copy — they are pointers for maintainers, not files to look for next
+to this one.)
 
 ## Process
 
