@@ -340,7 +340,7 @@ git diff --stat evals/security/
 
 If `evals/security/pr-human-guide.baseline.json` changed, append a sentence to its `notes` field recording that spec 53 confined helper resolution to the skill's own directory. If a finding was **removed**, that requires a PR-comment justification explaining why the mitigation actually closed it — do not silently drop it.
 
-Note: this file stores `—` as `—`. Edit it with Python and `json.dump(..., ensure_ascii=True)`, not the Edit tool.
+Note: this file stores `—` escaped as `\u2014` (six ASCII characters), so the Edit tool cannot match a literal `—`. Rewrite it with Python and `json.dump(..., ensure_ascii=True)`; `ensure_ascii=False` would un-escape every unicode character and explode the diff.
 
 - [x] **Step 5: Run the full test suite**
 
