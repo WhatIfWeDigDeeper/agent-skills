@@ -47,11 +47,11 @@ Mitigations in place:
   anchored `<!-- pr-human-guide -->` block; extra or incomplete markers in
   `pr_body` are treated as untrusted text after canonical-block extraction and
   cannot shift replacement bounds. By default the helper is resolved from this
-  skill's own directory — never a repo-relative `skills/…` path — so a checkout
-  that ships a same-named file is not the copy executed. The guarantee is scoped
-  to that default: a pre-set `SKILL_DIR` in the environment overrides
-  resolution, so an operator who points it at a checkout is choosing that copy
-  deliberately (Step 5).
+  skill's own directory — never a repo-relative `skills/…` path — so an
+  unrelated checkout in the working directory that happens to ship a same-named
+  file is not the copy executed. The guarantee is scoped to that default: a
+  pre-set `SKILL_DIR` in the environment overrides resolution, so an operator
+  who points it at a checkout is choosing that copy deliberately (Step 5).
 - **Body written via file, not argv** — the rendered guide block is written to a
   temp file with the agent's file-writing tool (never a double-quoted shell
   variable, which interactive zsh corrupts `<!--` → `<\!--`), and

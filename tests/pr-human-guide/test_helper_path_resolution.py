@@ -81,6 +81,23 @@ class TestShippedFilesArePortable:
                     offenders.append(f"{path.name}: {vendor}")
         assert not offenders, f"vendor install paths in shipped files: {offenders}"
 
+    def test_no_shipped_file_cites_absent_skill_md_text(self):
+        """A pointer to quoted text "in ... SKILL.md" must resolve inside SKILL.md.
+
+        `Base directory for this skill:` is emitted by the harness *above* the
+        skill content at load time; it is not in the file. Telling the agent to
+        find it "in the SKILL.md header" sends it grepping for a string that is
+        not there, and the base directory it must substitute goes unresolved.
+        """
+        skill_md = (SKILL_DIR / "SKILL.md").read_text()
+        claim = re.compile(r'"([^"\n]+)"[^\n]{0,40}?in the SKILL\.md')
+        offenders = []
+        for path in shipped_files():
+            for quoted in claim.findall(path.read_text()):
+                if quoted not in skill_md:
+                    offenders.append(f"{path.name}: {quoted!r} is absent from SKILL.md")
+        assert not offenders, f"pointers to text SKILL.md does not contain: {offenders}"
+
     def test_assistant_names_appear_only_as_scoped_qualifiers(self):
         """A harness name must sit inside a parenthetical, never carry the instruction.
 

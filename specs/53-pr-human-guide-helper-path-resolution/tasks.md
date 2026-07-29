@@ -130,12 +130,13 @@ with:
 
 ```bash
 # marker-helper.py sits beside this file, in this skill's references/ directory.
-# SKILL_DIR is the skill's base directory — the PARENT of the references/
-# directory you read this file from, not references/ itself (in Claude Code:
-# the "Base directory for this skill" line in the SKILL.md header). Substitute
-# its absolute path below. It works for every install layout — project-level,
-# user-level, plugin cache, or a checkout of the skills repo. Never hardcode a
-# `skills/` prefix. A pre-set SKILL_DIR in the environment overrides resolution.
+# SKILL_DIR is the skill's base directory — the directory containing SKILL.md,
+# i.e. the PARENT of the references/ directory you read this file from, not
+# references/ itself (in Claude Code: the base-directory path announced above
+# the skill content when the skill loads). Substitute its absolute path below.
+# It works for every install layout — project-level, user-level, plugin cache,
+# or a checkout of the skills repo. Never hardcode a `skills/` prefix. A pre-set
+# SKILL_DIR in the environment overrides resolution.
 SKILL_DIR="${SKILL_DIR:-<absolute path of this skill's base directory, the parent of references/>}"
 HELPER="$SKILL_DIR/references/marker-helper.py"
 [ -f "$HELPER" ] || { echo "marker-helper.py not found at $HELPER. Set SKILL_DIR to this skill's base directory and retry." >&2; exit 1; }
@@ -166,11 +167,11 @@ Find the bullet beginning `- **Marker-replacement bounds**` and replace it with:
   anchored `<!-- pr-human-guide -->` block; extra or incomplete markers in
   `pr_body` are treated as untrusted text after canonical-block extraction and
   cannot shift replacement bounds. By default the helper is resolved from this
-  skill's own directory — never a repo-relative `skills/…` path — so a checkout
-  that ships a same-named file is not the copy executed. The guarantee is scoped
-  to that default: a pre-set `SKILL_DIR` in the environment overrides
-  resolution, so an operator who points it at a checkout is choosing that copy
-  deliberately (Step 5).
+  skill's own directory — never a repo-relative `skills/…` path — so an
+  unrelated checkout in the working directory that happens to ship a same-named
+  file is not the copy executed. The guarantee is scoped to that default: a
+  pre-set `SKILL_DIR` in the environment overrides resolution, so an operator
+  who points it at a checkout is choosing that copy deliberately (Step 5).
 ```
 
 The wording above is the shipped text, scoped during review to the non-overridden
