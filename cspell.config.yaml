@@ -41,6 +41,7 @@ words:
   - endswith
   - ensurepip
   - EPERM
+  - Errno
   - esac
   - evals
   - exfiltration

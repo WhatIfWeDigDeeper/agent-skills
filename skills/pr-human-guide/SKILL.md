@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq, python3; sha256sum (Linux) or shasum (macOS
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.14"
+  version: "0.15"
 ---
 
 # PR Human Guide
@@ -46,7 +46,12 @@ Mitigations in place:
 - **Marker-replacement bounds** — `references/marker-helper.py` selects the last
   anchored `<!-- pr-human-guide -->` block; extra or incomplete markers in
   `pr_body` are treated as untrusted text after canonical-block extraction and
-  cannot shift replacement bounds (Step 5).
+  cannot shift replacement bounds. By default the helper is resolved from this
+  skill's own directory — never a repo-relative `skills/…` path — so an
+  unrelated checkout in the working directory that happens to ship a same-named
+  file is not the copy executed. The guarantee is scoped to that default: a
+  pre-set `SKILL_DIR` in the environment overrides resolution, so an operator
+  who points it at a checkout is choosing that copy deliberately (Step 5).
 - **Body written via file, not argv** — the rendered guide block is written to a
   temp file with the agent's file-writing tool (never a double-quoted shell
   variable, which interactive zsh corrupts `<!--` → `<\!--`), and
@@ -59,7 +64,10 @@ Residual risks: Snyk Agent Scan's `W011` fires on the presence of
 `evals/security/pr-human-guide.baseline.json` (currently `W011`, high) and CI
 gates on regressions beyond it; the substantive defense is the Step 3
 `<untrusted_pr_content>` boundary framing plus the static marker helper. Refresh
-and rationale guidance live in `evals/security/CLAUDE.md`.
+and rationale guidance live in `evals/security/CLAUDE.md`. (Both `evals/` paths
+sit in this skill's source repository, which is not distributed alongside an
+installed copy — they are pointers for maintainers, not files to look for next
+to this one.)
 
 ## Process
 
