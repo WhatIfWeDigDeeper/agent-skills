@@ -129,14 +129,11 @@ python3 skills/pr-human-guide/references/marker-helper.py \
 with:
 
 ```bash
-# marker-helper.py sits beside this file, in this skill's references/ directory.
 # SKILL_DIR is the skill's base directory — the directory containing SKILL.md,
 # i.e. the PARENT of the references/ directory you read this file from, not
 # references/ itself (in Claude Code: the base-directory path announced above
-# the skill content when the skill loads). Substitute its absolute path below.
-# It works for every install layout — project-level, user-level, plugin cache,
-# or a checkout of the skills repo. Never hardcode a `skills/` prefix. A pre-set
-# SKILL_DIR in the environment overrides resolution.
+# the skill content when the skill loads). Substitute its absolute path below;
+# never hardcode a `skills/` prefix.
 SKILL_DIR="${SKILL_DIR:-<absolute path of this skill's base directory, the parent of references/>}"
 HELPER="$SKILL_DIR/references/marker-helper.py"
 [ -f "$HELPER" ] || { echo "marker-helper.py not found at $HELPER. Set SKILL_DIR to this skill's base directory and retry." >&2; exit 1; }
