@@ -153,7 +153,9 @@ Do **not** add a `trap` here — the existing `trap 'rm -f "$BODY_FILE" "$OUT_FI
 uv run --with pytest pytest tests/pr-human-guide/test_helper_path_resolution.py -v
 ```
 
-Expected: PASS, 6 passed.
+Expected: PASS. The Step 2 snippet is the 6-assertion red state; the file on disk
+is canonical and gained three more during review (see the Step 2 note), so the
+current expectation is `9 passed`.
 
 - [x] **Step 7: Extend the Security model bullet in `SKILL.md`**
 
@@ -163,10 +165,16 @@ Find the bullet beginning `- **Marker-replacement bounds**` and replace it with:
 - **Marker-replacement bounds** — `references/marker-helper.py` selects the last
   anchored `<!-- pr-human-guide -->` block; extra or incomplete markers in
   `pr_body` are treated as untrusted text after canonical-block extraction and
-  cannot shift replacement bounds. The helper is resolved from this skill's own
-  directory — never a repo-relative `skills/…` path — so a checkout that ships a
-  same-named file cannot have it executed (Step 5).
+  cannot shift replacement bounds. By default the helper is resolved from this
+  skill's own directory — never a repo-relative `skills/…` path — so a checkout
+  that ships a same-named file is not the copy executed. The guarantee is scoped
+  to that default: a pre-set `SKILL_DIR` in the environment overrides
+  resolution, so an operator who points it at a checkout is choosing that copy
+  deliberately (Step 5).
 ```
+
+The wording above is the shipped text, scoped during review to the non-overridden
+default. Treat `SKILL.md` on disk as canonical if the two ever diverge.
 
 - [x] **Step 8: Bump the skill version**
 
