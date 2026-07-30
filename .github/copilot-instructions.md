@@ -1,16 +1,10 @@
 # Copilot Instructions
 
-**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to the appropriate `CLAUDE.md` — the root `CLAUDE.md` for repo-wide rules, or a subdirectory `CLAUDE.md` (e.g. `skills/CLAUDE.md`, `evals/CLAUDE.md`, `tests/CLAUDE.md`) for context-specific rules (skill authoring, eval benchmarks, test conventions). Claude Code auto-loads subdirectory `CLAUDE.md` files when working in those directories; Copilot has only one instructions file, so all rules — including those whose canonical home is a subdirectory `CLAUDE.md` — must also appear here. The two assistants (Copilot vs. Claude Code) should encode the same project conventions. When running `/learn` in this project, always update **both** the appropriate `CLAUDE.md` and `.github/copilot-instructions.md` without asking which to update. The `instruction-sync` CI check enforces this pairing for any `CLAUDE.md` path in the repo.
+**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to the appropriate `CLAUDE.md` — the root `CLAUDE.md` for repo-wide rules, or a subdirectory `CLAUDE.md` (e.g. `skills/CLAUDE.md`, `evals/CLAUDE.md`, `tests/CLAUDE.md`, `specs/CLAUDE.md`) for context-specific rules (skill authoring, eval benchmarks, test conventions, spec editing). Claude Code auto-loads subdirectory `CLAUDE.md` files when working in those directories; Copilot has only one instructions file, so all rules — including those whose canonical home is a subdirectory `CLAUDE.md` — must also appear here. The two assistants (Copilot vs. Claude Code) should encode the same project conventions. When running `/learn` in this project, always update **both** the appropriate `CLAUDE.md` and `.github/copilot-instructions.md` without asking which to update. The `instruction-sync` CI check enforces this pairing for any `CLAUDE.md` path in the repo.
 
 ## Project Overview
 
-This repository contains reusable agent skills for Claude Code and other coding assistants. Skills are defined in `skills/<skill-name>/SKILL.md`. Development artifacts live separately:
-
-- `evals/<skill-name>/`: eval cases, benchmark data, and benchmark docs
-- `tests/<skill-name>/`: unit tests for classifiable logic
-- `specs/<N>-<topic>/`: design specs and task tracking
-
-Evals belong under `evals/` at the repo root, not inside skill directories.
+Evals belong under `evals/` at the repo root, not inside skill directories — they are development artifacts and should not be bundled when a skill is distributed.
 
 ## Core Editing Rules
 

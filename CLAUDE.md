@@ -2,50 +2,25 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Keep `.github/copilot-instructions.md` in sync**: whenever you add, update, or remove a rule in this file **or in any subdirectory `CLAUDE.md` (e.g. `skills/CLAUDE.md`, `evals/CLAUDE.md`, `tests/CLAUDE.md`)**, apply the equivalent change to `.github/copilot-instructions.md`, and ensure `.github/copilot-instructions.md` includes the reciprocal reminder to mirror rule changes made there back into the appropriate `CLAUDE.md`. Subdirectory `CLAUDE.md` files are the canonical home for context-specific rules (skill authoring, eval benchmarks, test conventions); Copilot has only one instructions file, so subdirectory rules still mirror into `.github/copilot-instructions.md`. The two assistants (Claude Code vs. Copilot) should encode the same project conventions. This applies to `/learn` as well — when running `/learn` in this project, always update **both** the appropriate `CLAUDE.md` and `.github/copilot-instructions.md` without asking which to update. The `instruction-sync` CI check enforces this pairing for any `CLAUDE.md` path in the repo.
-
-## Project Overview
-
-This is a collection of reusable skill definitions for Claude Code and other coding assistants. Skills are automated workflows defined in SKILL.md files that agents can invoke to perform specific tasks.
+**Keep `.github/copilot-instructions.md` in sync**: whenever you add, update, or remove a rule in this file **or in any subdirectory `CLAUDE.md` (e.g. `skills/CLAUDE.md`, `evals/CLAUDE.md`, `tests/CLAUDE.md`, `specs/CLAUDE.md`)**, apply the equivalent change to `.github/copilot-instructions.md`, and ensure `.github/copilot-instructions.md` includes the reciprocal reminder to mirror rule changes made there back into the appropriate `CLAUDE.md`. Subdirectory `CLAUDE.md` files are the canonical home for context-specific rules (skill authoring, eval benchmarks, test conventions); Copilot has only one instructions file, so subdirectory rules still mirror into `.github/copilot-instructions.md`. The two assistants (Claude Code vs. Copilot) should encode the same project conventions. This applies to `/learn` as well — when running `/learn` in this project, always update **both** the appropriate `CLAUDE.md` and `.github/copilot-instructions.md` without asking which to update. The `instruction-sync` CI check enforces this pairing for any `CLAUDE.md` path in the repo.
 
 ## Repository Structure
 
-```
-skills/
-  <skill-name>/
-    SKILL.md     # Skill definition with frontmatter + workflow
-evals/
-  <skill-name>/
-    evals.json   # Test cases for the skill (not distributed with the skill)
-specs/
-  <N>-<topic>/  # Design specs: plan.md and tasks.md for planned changes
-tests/
-  <skill-name>/  # Unit tests for classifiable skill logic
-```
-
 Evals live under `evals/` at the repo root, not inside `skills/` — they are development artifacts and should not be bundled when a skill is distributed.
 
-**Subdirectory CLAUDE.md files**: `skills/CLAUDE.md` (skill format, version bumping, design patterns), `evals/CLAUDE.md` (benchmarking rules), and `tests/CLAUDE.md` (test naming conventions, CI workflow requirements) auto-load in Claude Code when working in those directories — they are omitted from this root file to reduce context.
+**Subdirectory CLAUDE.md files**: `skills/CLAUDE.md` (skill format, version bumping, design patterns), `evals/CLAUDE.md` (benchmarking rules), `tests/CLAUDE.md` (test naming conventions, CI workflow requirements), and `specs/CLAUDE.md` (spec-editing rules) auto-load in Claude Code when working in those directories — they are omitted from this root file to reduce context.
 
 **New subdirectory CLAUDE.md format**: Use `# <Name>` as the first heading and make the first paragraph note that the file auto-loads when working in `<dir>/` — matches the existing pattern in `skills/CLAUDE.md` and `evals/CLAUDE.md`.
-
-**Spec step numbers drift**: When editing or reviewing specs for an existing skill, verify step numbers (e.g. "Step 5", "Step 6") against the current SKILL.md — they shift as skills evolve and specs can silently fall out of sync.
-
-**Check off spec tasks as you complete them**: When working through a `specs/*/tasks.md`, mark each `- [ ]` item as `- [x]` immediately after completing it — do not batch updates at the end.
-
-**When editing a spec that has both `plan.md` and `tasks.md`**, apply every fix to both files in the same pass and re-read both before finishing — a fix applied to only one file is incomplete and will require a follow-up consistency pass to catch what was missed.
-
-**After implementing review suggestions to spec files**, re-read all modified files before reporting done — catch consistency gaps yourself rather than leaving them for the next review round. For plan/tasks pairs, re-read both files end-to-end even when only one was edited.
-
-**Use phrase anchors, not line numbers, when referencing locations in files under active development** — hardcoded line numbers shift the moment the first edit lands. Write "find the sentence containing 'X'" rather than "edit line N." This applies to spec task descriptions referencing benchmark.md, SKILL.md, or any file that will be edited in the same phase.
-
-**Before writing or reviewing a spec for an existing skill**, verify the current version (`rg '^  version:' skills/<name>/SKILL.md`), line count (`wc -l skills/<name>/SKILL.md`), and run `git log --oneline -3 -- skills/<name>/` to catch any commits that landed since the planning session. Also verify eval baseline pass rates directly from `benchmark.json` run entries — not from `benchmark.md` prose, which can silently fall behind the data. Stale line counts produce incorrect impact tables; stale prose rates produce wrong problem-statement framing.
 
 **Eval fixtures with intentionally old/pinned versions** (e.g. `evals/uv-deps/fixtures/`) may conflict when a skill like `uv-deps` runs on main and updates those same files. During a merge, keep `--ours` to preserve the intentionally pinned versions.
 
 ## Planning Workflow
 
 For any change that warrants a spec (a new skill, or a behavior change to an existing one), use the **superpowers** skills to plan and create tasks: brainstorm and write the plan with `superpowers:brainstorming` / `superpowers:writing-plans`, capturing it as `specs/<N>-<topic>/plan.md` + `tasks.md`. **Do not start implementing until the user explicitly approves the plan** — producing `plan.md` and `tasks.md` is not itself approval to implement. Execute the tasks (optionally via `superpowers:executing-plans` / `superpowers:subagent-driven-development`) only after the user gives the go-ahead.
+
+**Before writing or reviewing a spec for an existing skill**, verify the current version (`rg '^  version:' skills/<name>/SKILL.md`), line count (`wc -l skills/<name>/SKILL.md`), and run `git log --oneline -3 -- skills/<name>/` to catch any commits that landed since the planning session. Also verify eval baseline pass rates directly from `benchmark.json` run entries — not from `benchmark.md` prose, which can silently fall behind the data. Stale line counts produce incorrect impact tables; stale prose rates produce wrong problem-statement framing.
+
+Rules for editing spec files once you are working under `specs/` live in `specs/CLAUDE.md`, which auto-loads there.
 
 ## Sandbox Workarounds
 
@@ -108,8 +83,6 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 `evals/security/` pins per-skill `snyk-agent-scan` output so CI catches *new* findings without forcing pre-existing ones to be fixed first. See `evals/security/CLAUDE.md` for directory rules.
 
 - **Refresh the baseline in the same PR as a security-relevant skill change.** Run `bash evals/security/scan.sh --update-baselines --confirm` and commit the updated `evals/security/<skill>.baseline.json`. Drifted baselines silently mask future regressions.
-- **Removing a finding from a baseline requires a PR-comment justification** explaining why the underlying mitigation actually closed it (vs. the scanner moved on between versions).
-- **Severity escalations are regressions** — `medium` → `high` fails CI even when the finding ID is unchanged.
 - The shared `## Security model` section template lives at `specs/36-snyk-scan-baseline/template.md` — mirror it into the SKILL.md of any skill that ingests untrusted content, placed immediately above the first ingestion step.
 - **Pin doc-example tool invocations to the same version as the CI-pinned counterpart** (e.g., `uvx snyk-agent-scan==0.5.1` rather than `@latest`) when CI compares output against a baseline. `@latest` drifts from CI.
 
@@ -157,14 +130,7 @@ Skills in this repo should work with any coding assistant, not just Claude Code.
 - **Sandbox**: "Requires OS keyring/network access — lift any sandbox restrictions (in Claude Code: `dangerouslyDisableSandbox: true`)" — not "requires `dangerouslyDisableSandbox: true`"
 - **PR attribution**: Use a neutral placeholder like `Generated with [AssistantName](url)` that each assistant substitutes with its own name and link — not a brand-specific string
 
-## Available Skills
-
-When the user's request matches a skill's trigger phrases, read the skill file and follow its workflow exactly.
-
-| Skill | File | Trigger phrases |
-|-------|------|-----------------|
-| peer-review | `skills/peer-review/SKILL.md` | "peer review", "fresh review", "another set of eyes", "sanity check", "quick review before I push", "review with Gemini/Copilot/Codex" |
-| pr-human-guide | `skills/pr-human-guide/SKILL.md` | "review guide", "human review guide", "prep for review", "flag for review", "flag for human review", "add review guide" |
+## Skill Routing
 
 **Do NOT trigger** `peer-review` on bare "review" phrases like "review my changes" or "review PR N" — those route to `code-review`.
 
