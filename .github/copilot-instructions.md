@@ -1,16 +1,10 @@
 # Copilot Instructions
 
-**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to the appropriate `CLAUDE.md` — the root `CLAUDE.md` for repo-wide rules, or a subdirectory `CLAUDE.md` (e.g. `skills/CLAUDE.md`, `evals/CLAUDE.md`, `tests/CLAUDE.md`) for context-specific rules (skill authoring, eval benchmarks, test conventions). Claude Code auto-loads subdirectory `CLAUDE.md` files when working in those directories; Copilot has only one instructions file, so all rules — including those whose canonical home is a subdirectory `CLAUDE.md` — must also appear here. The two assistants (Copilot vs. Claude Code) should encode the same project conventions. When running `/learn` in this project, always update **both** the appropriate `CLAUDE.md` and `.github/copilot-instructions.md` without asking which to update. The `instruction-sync` CI check enforces this pairing for any `CLAUDE.md` path in the repo.
+**Keep `CLAUDE.md` in sync**: whenever you add, update, or remove a rule in this file, apply the equivalent change to the appropriate `CLAUDE.md` — the root `CLAUDE.md` for repo-wide rules, or a subdirectory `CLAUDE.md` (e.g. `skills/CLAUDE.md`, `evals/CLAUDE.md`, `tests/CLAUDE.md`, `specs/CLAUDE.md`) for context-specific rules (skill authoring, eval benchmarks, test conventions, spec editing). Claude Code auto-loads subdirectory `CLAUDE.md` files when working in those directories; Copilot has only one instructions file, so all rules — including those whose canonical home is a subdirectory `CLAUDE.md` — must also appear here; a rule dropped from a `CLAUDE.md` because a subdirectory `CLAUDE.md` covers it stays here. The two assistants (Copilot vs. Claude Code) should encode the same project conventions. When running `/learn` in this project, always update **both** the appropriate `CLAUDE.md` and `.github/copilot-instructions.md` without asking which to update. The `instruction-sync` CI check enforces this pairing for any `CLAUDE.md` path in the repo — it does not compare the two files' content.
 
 ## Project Overview
 
-This repository contains reusable agent skills for Claude Code and other coding assistants. Skills are defined in `skills/<skill-name>/SKILL.md`. Development artifacts live separately:
-
-- `evals/<skill-name>/`: eval cases, benchmark data, and benchmark docs
-- `tests/<skill-name>/`: unit tests for classifiable logic
-- `specs/<N>-<topic>/`: design specs and task tracking
-
-Evals belong under `evals/` at the repo root, not inside skill directories.
+Evals belong under `evals/` at the repo root, not inside skill directories — they are development artifacts and should not be bundled when a skill is distributed.
 
 ## Core Editing Rules
 
@@ -127,6 +121,7 @@ uv run --with pytest pytest tests/
 - After merging a PR, run the whole sync **on `main`** — a `--delete-branch` merge already leaves you there; otherwise `git checkout main` first, since `git pull` updates whatever branch is checked out. Once on `main`, use `git pull --ff-only origin main` (not `git reset --hard`). Run `git status --porcelain` as its own standalone step first (never chain it with `&&`); if it outputs anything, **STOP** — stash (`git stash -u`, so untracked files are included and can't block the pull) → pull → pop, or ask the user. Stash and pop on the **same** branch (`main`) — stashing on a feature branch and popping on `main` moves the changes across branches. If `--ff-only` fails (main diverged), investigate — don't force.
 - **When `gh pr merge` errors locally** (e.g. uncommitted changes prevent the local branch update, the local branch can't be checked out because it's already in use by a worktree, or `--delete-branch` fails with `cannot delete branch X used by worktree`), check `gh pr view --json state,mergedAt` — the GitHub merge may have already succeeded. If so: for the worktree-lock case `git worktree remove -f -f <path>` then `git branch -D <branch>`; otherwise run `git fetch origin && git diff origin/main` (fetch first — a stale local `origin/main` makes the diff misleading) — empty diff means the "uncommitted" files are the squash-merged content and `git pull --ff-only` is safe; non-empty, stash → pull → pop.
 - **`gh pr merge --delete-branch` from the worktree on the branch being merged flips that worktree to the default branch and deletes the local head branch** — silently, no error.
+- **`git branch --merged main` never lists a squash-merged branch** — the squash commit shares no ancestry. Before deleting a stale branch, confirm it landed via `gh pr view <n> --json mergedAt`.
 
 ## Command And Tooling Gotchas
 
