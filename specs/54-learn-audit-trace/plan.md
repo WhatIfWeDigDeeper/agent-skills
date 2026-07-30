@@ -137,6 +137,8 @@ Eval 9 goes from 5 assertions to 6. Because assertion sets changed, the existing
 
 **If `turn1-rule-under-200-chars` still fails:** record the observed char counts in `benchmark.json` and `benchmark.md` and ship the change on the strength of `plan-shows-cut-in-audit` alone. **Do not loosen the 200-char threshold.** `benchmark.md` documents the strictness as deliberate ("loosening it would weaken the signal that the audit ran unprompted"), and relaxing it would erase the measurement this change exists to move. A partial result is a real result; it does not get converted into a pass by moving the bar.
 
+**Outcome:** the failure branch is what happened. `turn1-rule-under-200-chars` did not flip, and a same-model v1.2 control showed rules got marginally *longer* (239 → 243 Sonnet 5, 264 → 270 Opus 5). The threshold was left unchanged. `plan-shows-cut-in-audit` is fully discriminating, so the change ships as a transparency win, not a concision one. Full results and the model-generation caveat: `evals/learn/benchmark.md`, sections "Eval 9 — Min-char audit (two-turn)" and "v1.2 Control Runs (same-model A/B)". Claude 4.6/4.7 were unreachable from the harness, so the v1.3 runs are on `claude-sonnet-5` / `claude-opus-5` and are labeled as such.
+
 ## Files to Modify
 
 | File | Change |

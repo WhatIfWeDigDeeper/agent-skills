@@ -1647,7 +1647,7 @@
       "notes": [
         "Re-run at skill v1.3 (spec 54 audit step) with the added plan-shows-cut-in-audit assertion, replacing the v1.0 five-assertion entry in place.",
         "Executed on claude-opus-5 on 2026-07-30. The claude-opus-4-7 executor used for evals 0-8 is no longer reachable from this harness (the runner's model aliases now resolve to the Claude 5 family), so this row is filed under a claude-opus-5 model group and its pass rate is not directly comparable to the v1.0 rows for evals 0-8.",
-        "turn1-rule-under-200-chars still FAILS at v1.3: turn-1 rule body measured 270 chars (the v1.0 claude-opus-4-7 run measured 308). The audit step narrowed the rule but did not bring it under 200. The threshold and assertion wording were left unchanged.",
+        "turn1-rule-under-200-chars still FAILS at v1.3: turn-1 rule body measured 270 chars. The v1.0 claude-opus-4-7 run measured 308, but on a different model generation - that difference cannot be attributed to the audit step. The same-model v1.2 control ran the other way: 264 -> 270 (longer). The threshold and assertion wording were left unchanged.",
         "tokens is input_tokens + output_tokens per the repo convention. Near-total prompt caching on this run moves almost all input into cache reads (95,921 cache-creation + 743,516 cache-read = 839,437 cache tokens), so the headline tokens figure is far lower than the v1.0 rows for evals 0-8 and must not be subtracted from them."
       ]
     },
