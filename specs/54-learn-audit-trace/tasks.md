@@ -24,7 +24,7 @@
 **Interfaces:**
 - Produces: an eight-step `## Process` section in `skills/learn/SKILL.md` whose Step 5 is `Audit Rule Text` and whose Step 6 plan template carries a `- Cut in audit:` field. Task 2's eval assertion depends on that exact field spelling, including the capital `C` and the trailing colon.
 
-- [ ] **Step 1: Write the failing structural test**
+- [x] **Step 1: Write the failing structural test**
 
 Create `tests/learn/test_audit_trace.py`:
 
@@ -140,7 +140,7 @@ class TestCrossReferences:
         )
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run (sandbox lifted — `uv` cache hits EPERM otherwise; in Claude Code: `dangerouslyDisableSandbox: true`):
 
@@ -150,7 +150,7 @@ uv run --with pytest pytest tests/learn/test_audit_trace.py -v
 
 Expected: failures in `TestStepNumbering::test_audit_step_exists`, `TestAuditStepContent::*`, `TestPlanTemplate::*`, and `TestCrossReferences::*`. `test_steps_are_sequential_from_one` passes already (1–7 is gapless today) — that one is a drift guard, not a red test.
 
-- [ ] **Step 3: Insert the new audit step in `skills/learn/SKILL.md`**
+- [x] **Step 3: Insert the new audit step in `skills/learn/SKILL.md`**
 
 Delete the paragraph beginning `Before showing the plan, **audit each drafted rule body` (the second "Before showing the plan" paragraph, immediately above `Then show everything you plan to do:`), and insert this new step immediately **before** the `### 5. Present Plan and Wait for Confirmation` heading:
 
@@ -164,7 +164,7 @@ Record the result in the next step's `Cut in audit:` line. If the user has to as
 
 Keep the deduplicate-candidates paragraph where it is — it stays in the Present-Plan step.
 
-- [ ] **Step 4: Renumber the downstream step headings**
+- [x] **Step 4: Renumber the downstream step headings**
 
 Three edits in `skills/learn/SKILL.md`, applied individually (do **not** use `replace_all` — the same digits appear in Route/Principle text):
 
@@ -176,7 +176,7 @@ Three edits in `skills/learn/SKILL.md`, applied individually (do **not** use `re
 
 Apply bottom-up (`7. Summarize` first, then `6. Apply Changes`, then `5. Present Plan`) so no intermediate edit creates two headings with the same number.
 
-- [ ] **Step 5: Add the `Cut in audit:` field to the plan template**
+- [x] **Step 5: Add the `Cut in audit:` field to the plan template**
 
 In the fenced plan template inside the now-Step-6 section, insert one line between `Proposed change` and `Destination`:
 
@@ -188,17 +188,17 @@ In the fenced plan template inside the now-Step-6 section, insert one line betwe
 - Destination: [file] ([current lines] → [projected lines])
 ```
 
-- [ ] **Step 6: Bump the skill version**
+- [x] **Step 6: Bump the skill version**
 
 In `skills/learn/SKILL.md` frontmatter: `  version: "1.2"` → `  version: "1.3"`.
 
-- [ ] **Step 7: Update the two live cross-references**
+- [x] **Step 7: Update the two live cross-references**
 
 In `skills/learn/references/multiconfig-routing.md`, the sentence `If the user later expresses a narrower scope at the Step 5` / `confirmation, that also binds.` wraps across two lines — change `Step 5` to `Step 6` on its line.
 
 In `tests/learn/test_multiconfig_routing.py`, the `TestIssuesFiledRegex` docstring: `"""Step 7: extract GitHub issue URLs filed during the session.` → `"""Step 8: extract GitHub issue URLs filed during the session.`
 
-- [ ] **Step 8: Run the new tests to verify they pass**
+- [x] **Step 8: Run the new tests to verify they pass**
 
 ```bash
 uv run --with pytest pytest tests/learn/test_audit_trace.py -v
@@ -206,7 +206,7 @@ uv run --with pytest pytest tests/learn/test_audit_trace.py -v
 
 Expected: all 11 tests PASS.
 
-- [ ] **Step 9: Run the full suite for regressions**
+- [x] **Step 9: Run the full suite for regressions**
 
 ```bash
 uv run --with pytest pytest tests/ -q
@@ -214,7 +214,7 @@ uv run --with pytest pytest tests/ -q
 
 Expected: no failures. If `tests/learn/test_multiconfig_routing.py` fails, the docstring edit in Step 7 changed executable content by mistake — revert and re-apply to the docstring only.
 
-- [ ] **Step 10: Verify the structural invariants by hand**
+- [x] **Step 10: Verify the structural invariants by hand**
 
 ```bash
 rg -c '^### [0-9]+\. [A-Z]' skills/learn/SKILL.md    # expect 8 ([A-Z] excludes the fenced "### 1. [First Step]")
@@ -225,7 +225,7 @@ rg -n 'Step 5 confirmation' skills/learn/references/multiconfig-routing.md  # ex
 rg '^  version:' skills/learn/SKILL.md               # expect "1.3"
 ```
 
-- [ ] **Step 11: Spell check**
+- [x] **Step 11: Spell check**
 
 ```bash
 npx cspell skills/learn/SKILL.md skills/learn/references/multiconfig-routing.md \
@@ -235,7 +235,7 @@ npx cspell skills/learn/SKILL.md skills/learn/references/multiconfig-routing.md 
 
 Add any flagged term to the `words` list in `cspell.config.yaml` **in alphabetical position**. Do not pipe the output through `grep -v` — an npm cache EPERM would be silently swallowed.
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```bash
 git add skills/learn/SKILL.md skills/learn/references/multiconfig-routing.md \
@@ -261,7 +261,7 @@ If GPG signing fails, retry once with `--no-gpg-sign` (fallback only, not preemp
 - Consumes: the `- Cut in audit:` plan field produced by Task 1.
 - Produces: four replaced eval-9 run entries in `benchmark.json` with recomputed `run_summary` / `run_summary_by_model`. Task 3 reads the resulting pass rates and deltas.
 
-- [ ] **Step 1: Confirm the assertion does not already exist**
+- [x] **Step 1: Confirm the assertion does not already exist**
 
 ```bash
 rg '"id":.*cut-in-audit' evals/learn/evals.json
@@ -269,7 +269,7 @@ rg '"id":.*cut-in-audit' evals/learn/evals.json
 
 Expected: no output. If it matches, stop — the task is a no-op and the spec needs revising.
 
-- [ ] **Step 2: Add the assertion to eval 9**
+- [x] **Step 2: Add the assertion to eval 9**
 
 In `evals/learn/evals.json`, append to eval 9's `assertions` array (add a trailing comma to the current last element — the Edit tool does not validate JSON):
 
@@ -280,7 +280,7 @@ In `evals/learn/evals.json`, append to eval 9's `assertions` array (add a traili
 }
 ```
 
-- [ ] **Step 3: Validate the JSON**
+- [x] **Step 3: Validate the JSON**
 
 ```bash
 python3 -c 'import json; d=json.load(open("evals/learn/evals.json")); \
@@ -289,7 +289,7 @@ python3 -c 'import json; d=json.load(open("evals/learn/evals.json")); \
 
 Expected: `6`.
 
-- [ ] **Step 4: Run eval 9 across both configurations and both models**
+- [x] **Step 4: Run eval 9 across both configurations and both models**
 
 Four executor runs: `{with_skill, without_skill}` × `{claude-sonnet-4-6, claude-opus-4-7}`. Spawn each with `mode: "auto"`.
 
@@ -300,7 +300,7 @@ Executor prompt requirements (per `evals/CLAUDE.md`):
 - Do **not** call the `Skill` tool in either configuration. For `with_skill`, read `skills/learn/SKILL.md` and follow it directly. For `without_skill`, forbid reading `skills/learn/SKILL.md`.
 - Report the exact character count of the turn-1 rule body written to `CLAUDE.md`, and quote the plan block verbatim.
 
-- [ ] **Step 5: Grade each run**
+- [x] **Step 5: Grade each run**
 
 Spawn a grader per run with the **full assertion text strings** from `evals.json` (not the IDs — grader output uses `text` verbatim). Grader writes `grading.json` shaped as:
 
@@ -313,20 +313,20 @@ Spawn a grader per run with the **full assertion text strings** from `evals.json
 
 Evidence strings must be repo-relative — no absolute `/Users/...` paths.
 
-- [ ] **Step 6: Replace the four eval-9 entries in `benchmark.json`**
+- [x] **Step 6: Replace the four eval-9 entries in `benchmark.json`**
 
 Replace in place at `run_number: 1` — do **not** add `run_number: 2` entries and do **not** introduce a `regression_run_evals` field. The assertion set changed, so the prior entries are superseded, not supplemented.
 
 Per entry set `total: 6` and the observed `passed` / `failed` / `pass_rate` / `time_seconds` / `tokens` / `tool_calls` / `errors`. Use `null` for any stat not actually measured — never `0`.
 
-- [ ] **Step 7: Update `metadata`**
+- [x] **Step 7: Update `metadata`**
 
 - `metadata.skill_version`: `"1.0"` → `"1.3"`
 - `metadata.timestamp`: the run date
 - Append a sentence to each `models_tested[].notes` recording that eval 9 was re-run at v1.3 with the added `plan-shows-cut-in-audit` assertion.
 - `metadata.evals_run` already contains `9` — leave it.
 
-- [ ] **Step 8: Recompute `run_summary` and `run_summary_by_model`**
+- [x] **Step 8: Recompute `run_summary` and `run_summary_by_model`**
 
 Compute from the `runs` array, not from the stored rounded means:
 
@@ -336,7 +336,7 @@ Compute from the `runs` array, not from the stored rounded means:
 
 Write the file with `json.dump(..., indent=1)` and default `ensure_ascii=True` so the existing `\uXXXX` escapes are preserved.
 
-- [ ] **Step 9: Validate schema and JSON**
+- [x] **Step 9: Validate schema and JSON**
 
 ```bash
 python3 -c 'import json; json.load(open("evals/learn/benchmark.json"))'
@@ -346,13 +346,13 @@ jq '[.runs[] | .expectations[] | select((. | keys) != ["evidence","passed","text
 
 Expected: no error, and `0` from the jq check.
 
-- [ ] **Step 10: Record the acceptance outcome**
+- [x] **Step 10: Record the acceptance outcome**
 
 If `turn1-rule-under-200-chars` passes on both models with_skill → target met, note it in the run `notes`.
 
 If it still fails → record the observed character counts in the run `notes` and carry the result into Task 3 honestly. **Do not loosen the 200-char threshold**, and do not reword the assertion to make it pass. A partial result ships as a partial result.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add evals/learn/evals.json evals/learn/benchmark.json
@@ -370,37 +370,37 @@ git commit -m "test(learn): add plan-shows-cut-in-audit assertion and re-run eva
 **Interfaces:**
 - Consumes: the recomputed `run_summary` / `run_summary_by_model` and per-run pass rates from Task 2.
 
-- [ ] **Step 1: Update the per-eval summary table row**
+- [x] **Step 1: Update the per-eval summary table row**
 
 In `evals/learn/benchmark.md`, the row beginning `| 9 | Min-char audit (two-turn) |` — replace all four cells with the new `N/6 (XX%)` values.
 
-- [ ] **Step 2: Update the per-model Summary tables**
+- [x] **Step 2: Update the per-model Summary tables**
 
 Both the `claude-sonnet-4-6` and `claude-opus-4-7` tables: `Pass rate`, `Time`, `Tokens` rows and their `Delta` column must mirror `run_summary_by_model` exactly. These values are not auto-generated and drift silently.
 
-- [ ] **Step 3: Update the per-model prose paragraphs**
+- [x] **Step 3: Update the per-model prose paragraphs**
 
 The sentences listing discriminating `without_skill` cells name eval 9 with its old figures (`eval 9 min-char-audit (2/5 — 370-char rule + 38% trim + embedded incident narrative)`). Update to the new denominator and observed numbers.
 
-- [ ] **Step 4: Rewrite the `### Eval 9 — Min-char audit (two-turn)` section**
+- [x] **Step 4: Rewrite the `### Eval 9 — Min-char audit (two-turn)` section**
 
 Cover: what the added assertion tests, the observed turn-1 character counts per model, and whether `turn1-rule-under-200-chars` flipped.
 
-- [ ] **Step 5: Update the Known-limitations bullet**
+- [x] **Step 5: Update the Known-limitations bullet**
 
 The bullet beginning `- **Eval 9 has one known false-negative at v1.0.**` describes the ≤200-char failure. If the assertion now passes, replace the bullet with a note that v1.3's audit-trace step closed it. If it still fails, update the version reference to v1.3 and keep the deliberate-strictness rationale intact.
 
-- [ ] **Step 6: Update the `Models tested` / `Evals` header lines**
+- [x] **Step 6: Update the `Models tested` / `Evals` header lines**
 
 Note that eval 9 was re-run at v1.3 with 6 assertions. Total run count stays 36 — the eval-9 entries were replaced, not added. Eval count stays 9, so the "Token statistics are computed only over N of M" denominator does not change.
 
-- [ ] **Step 7: Update `README.md`**
+- [x] **Step 7: Update `README.md`**
 
 Two places:
 - The `learn` row's Eval Δ column: `[+22% Sonnet 4.6 / +11% Opus 4.7](evals/learn/benchmark.md)` → the new percentages.
 - The `learn` Skill Notes **Eval cost** bullet: the pass-rate percentages, the seconds/token deltas, and the discriminating-eval counts. Spell out "seconds", not "s".
 
-- [ ] **Step 8: Cross-check the numbers against `benchmark.json`**
+- [x] **Step 8: Cross-check the numbers against `benchmark.json`**
 
 ```bash
 rg -n 'Min-char audit|Pass rate|Eval cost|Eval Δ|\+2[0-9]%|\+1[0-9]%' \
@@ -409,7 +409,7 @@ rg -n 'Min-char audit|Pass rate|Eval cost|Eval Δ|\+2[0-9]%|\+1[0-9]%' \
 
 Every percentage shown must match a `pass_rate` or `delta` in `benchmark.json`. `benchmark.json` is authoritative; prose is not.
 
-- [ ] **Step 9: Spell check and commit**
+- [x] **Step 9: Spell check and commit**
 
 ```bash
 npx cspell evals/learn/benchmark.md README.md
