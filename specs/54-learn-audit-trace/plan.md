@@ -16,7 +16,7 @@
 - Branch is `spec/learn-audit-trace`. Never commit to `main`.
 - No hardcoded `/tmp/` in any command — use `mktemp`, `$TMPDIR`, or `/private/tmp`.
 - Temp/scratch files must not be committed; `evals/learn/` keeps only `evals.json`, `benchmark.json`, `benchmark.md`, `fixtures/`.
-- `benchmark.json` writes go through `json.dump(...)` with default `ensure_ascii=True` (the file stores `—` as `—`).
+- `benchmark.json` writes go through `json.dump(...)` with default `ensure_ascii=True` — the file stores `—` as a `\uXXXX` escape and contains no non-ASCII bytes, so the escapes must be preserved.
 - New rule text added to any `CLAUDE.md` must itself pass Principle 5 — this spec changes the audit, so its own prose is held to it.
 
 ## Problem
