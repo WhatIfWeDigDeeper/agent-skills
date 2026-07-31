@@ -22,6 +22,7 @@
       {
         "executor_model": "claude-sonnet-4-6",
         "analyzer_model": "claude-sonnet-4-6",
+        "skill_version": "1.0",
         "timestamp": "2026-04-23T00:00:00Z",
         "runs_per_configuration": 1,
         "notes": "v0.9 Sonnet 4.6 runs (evals 0-4 without_skill dated 2026-03-14 / 2026-04-22) carried over for without_skill 0-4; with_skill 0-4 re-run at v1.0 on 2026-04-23; new evals 5/7/8/9 both configurations dated 2026-04-23. Eval 9 (min-char-audit) was re-run at v1.3 on 2026-07-30 with the added plan-shows-cut-in-audit assertion (5 assertions \u2192 6); because this executor is no longer reachable from the runner, those four rows moved to the claude-sonnet-5 model group and this group now covers evals 0-5, 7, and 8."
@@ -29,6 +30,7 @@
       {
         "executor_model": "claude-opus-4-7",
         "analyzer_model": "claude-opus-4-7",
+        "skill_version": "1.0",
         "timestamp": "2026-04-23T00:00:00Z",
         "runs_per_configuration": 1,
         "notes": "v0.9 Opus 4.7 without_skill runs (evals 0-4 dated 2026-04-22) carried over; with_skill 0-4 re-run at v1.0 on 2026-04-23; new evals 5/7/8/9 both configurations dated 2026-04-23. Eval 9 (min-char-audit) was re-run at v1.3 on 2026-07-30 with the added plan-shows-cut-in-audit assertion (5 assertions \u2192 6); because this executor is no longer reachable from the runner, those four rows moved to the claude-opus-5 model group and this group now covers evals 0-5, 7, and 8."
@@ -36,6 +38,7 @@
       {
         "executor_model": "claude-sonnet-5",
         "analyzer_model": "claude-sonnet-5",
+        "skill_version": "1.3",
         "timestamp": "2026-07-30T00:00:00Z",
         "runs_per_configuration": 1,
         "notes": "Eval 9 (min-char-audit) only, both configurations, run at skill v1.3 on 2026-07-30 with the added plan-shows-cut-in-audit assertion. Run on claude-sonnet-5 because claude-sonnet-4-6 \u2014 the executor behind this suite's evals 0-5, 7, 8 \u2014 is no longer reachable from the runner, whose model aliases now resolve to the Claude 5 family. Graded by a separate grader agent, not self-graded."
@@ -43,6 +46,7 @@
       {
         "executor_model": "claude-opus-5",
         "analyzer_model": "claude-opus-5",
+        "skill_version": "1.3",
         "timestamp": "2026-07-30T00:00:00Z",
         "runs_per_configuration": 1,
         "notes": "Eval 9 (min-char-audit) only, both configurations, run at skill v1.3 on 2026-07-30 with the added plan-shows-cut-in-audit assertion. Run on claude-opus-5 because claude-opus-4-7 \u2014 the executor behind this suite's evals 0-5, 7, 8 \u2014 is no longer reachable from the runner, whose model aliases now resolve to the Claude 5 family. Graded by a separate grader agent, not self-graded."

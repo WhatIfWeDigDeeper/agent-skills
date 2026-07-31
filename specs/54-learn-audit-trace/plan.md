@@ -16,7 +16,7 @@
 - Branch is `spec/learn-audit-trace`. Never commit to `main`.
 - No hardcoded `/tmp/` in any command — use `mktemp`, `$TMPDIR`, or `/private/tmp`.
 - Temp/scratch files must not be committed; `evals/learn/` keeps only `evals.json`, `benchmark.json`, `benchmark.md`, `fixtures/`.
-- `benchmark.json` writes go through `json.dump(...)` with default `ensure_ascii=True` — the file stores `—` as a `\uXXXX` escape and contains no non-ASCII bytes, so the escapes must be preserved.
+- `benchmark.json` writes go through `json.dump(..., indent=2)` with default `ensure_ascii=True` — the file stores `—` as a `\uXXXX` escape and contains no non-ASCII bytes, so the escapes must be preserved, and `indent=2` is its on-disk indentation (verify with `head -3`; a wrong value reformats all ~2,000 lines).
 - New rule text added to any `CLAUDE.md` must itself pass Principle 5 — this spec changes the audit, so its own prose is held to it.
 
 ## Problem
@@ -150,7 +150,7 @@ The v1.0 baseline was measured on `claude-sonnet-4-6` / `claude-opus-4-7`, but t
 | `tests/learn/test_audit_trace.py` | **New** — structural regression tests |
 | `tests/learn/test_multiconfig_routing.py` | Docstring `Step 7:` → `Step 8:` |
 | `evals/learn/evals.json` | Add `plan-shows-cut-in-audit` assertion to eval 9 |
-| `evals/learn/benchmark.json` | Replace 4 eval-9 run entries; recompute `run_summary` + `run_summary_by_model`; `metadata.skill_version` → `"1.3"`; refresh `metadata.timestamp` and per-model `notes` |
+| `evals/learn/benchmark.json` | Replace 4 eval-9 run entries; recompute `run_summary` + `run_summary_by_model`; `metadata.skill_version` → `"1.3"`; refresh `metadata.timestamp` and per-model `notes`; add a per-track `skill_version` to each `models_tested[]` entry |
 | `evals/learn/benchmark.md` | Eval-9 summary-table row, Eval 9 section, Known-limitations bullet, per-model prose |
 | `README.md` | `learn` row Eval Δ column; `learn` Skill Notes **Eval cost** bullet |
 | `cspell.config.yaml` | Any new unknown words, inserted alphabetically |

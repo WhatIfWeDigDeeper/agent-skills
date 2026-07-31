@@ -9,7 +9,7 @@
 - Bump `skills/learn/SKILL.md` `metadata.version` `"1.2"` → `"1.3"` exactly once, in Task 1. No further bumps on later tasks or reviewer-fix commits.
 - Never commit to `main`.
 - No hardcoded `/tmp/` — use `mktemp`, `$TMPDIR`, or `/private/tmp`.
-- `benchmark.json` rewrites use `json.dump(...)` with default `ensure_ascii=True`.
+- `benchmark.json` rewrites use `json.dump(..., indent=2)` with default `ensure_ascii=True`.
 
 ---
 
@@ -327,8 +327,9 @@ Per entry set `total: 6` and the observed `passed` / `failed` / `pass_rate` / `t
 
 - [x] **Step 7: Update `metadata`**
 
-- `metadata.skill_version`: `"1.0"` → `"1.3"`
+- `metadata.skill_version`: `"1.0"` → `"1.3"` — required by `evals/CLAUDE.md` whenever new run entries are added.
 - `metadata.timestamp`: the run date
+- Give **every** `models_tested[]` entry its own `skill_version`, placed after `analyzer_model` (the shape `evals/pr-human-guide/benchmark.json` uses): `"1.0"` for the two v1.0 groups, `"1.3"` for the two Claude 5 groups. Without it the top-level block reads as one tuple — `claude-opus-4-7` at v1.3 dated 2026-07-30 — and no such run exists.
 - Append a sentence to each `models_tested[].notes` recording that eval 9 was re-run at v1.3 with the added `plan-shows-cut-in-audit` assertion.
 - `metadata.evals_run` already contains `9` — leave it.
 
@@ -340,7 +341,7 @@ Compute from the `runs` array, not from the stored rounded means:
 - `delta` values are **signed strings** at 2-decimal precision for `pass_rate` (e.g. `"+0.24"`), and signed strings for `time_seconds` / `tokens`.
 - Derive deltas from exact unrounded means. If the stored means are rounded for display, Task 3 must add the "Summary-table Delta values are computed from unrounded means" sentence to `benchmark.md`.
 
-Write the file with `json.dump(..., indent=1)` and default `ensure_ascii=True` so the existing `\uXXXX` escapes are preserved.
+Write the file with `json.dump(..., indent=2)` — the on-disk indentation, verified with `head -3 evals/learn/benchmark.json`, not assumed — and default `ensure_ascii=True` so the existing `\uXXXX` escapes are preserved. A wrong `indent` reformats all ~2,000 lines and buries the real change.
 
 - [x] **Step 9: Validate schema and JSON**
 
