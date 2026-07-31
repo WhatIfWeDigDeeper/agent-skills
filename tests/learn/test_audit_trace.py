@@ -64,7 +64,11 @@ class TestStepNumbering:
         assert step_number("Audit Rule Text") < step_number("Present Plan")
 
     def test_old_preamble_audit_sentence_is_gone(self):
-        assert "the audit is not optional" not in SKILL_MD.read_text(), (
+        # Anchor on the removed paragraph's distinctive opener, not on its closing
+        # "the audit is not optional" — that phrase is generic enough to reappear
+        # legitimately elsewhere and false-fail this test. "Before showing the plan"
+        # alone is not usable either: it still opens the dedup sentence in Present Plan.
+        assert "audit each drafted rule body" not in SKILL_MD.read_text(), (
             "the preamble audit paragraph should have been replaced by the numbered step"
         )
 
