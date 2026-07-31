@@ -129,7 +129,9 @@ Verified absent today: `rg '"id":.*cut-in-audit' evals/learn/evals.json` returns
 
 Eval 9 goes from 5 assertions to 6. Because assertion sets changed, the existing eval 9 entries are **replaced** (still `run_number: 1`), not supplemented — no `regression_run_evals` field is introduced.
 
-**Runs required:** eval 9 × {`with_skill`, `without_skill`} × {`claude-sonnet-4-6`, `claude-opus-4-7`} = 4 runs. Per `evals/CLAUDE.md`, a new assertion needs observed-transcript evidence, so `without_skill` is re-run too rather than inferred.
+**Runs required:** eval 9 × {`with_skill`, `without_skill`} × {`claude-sonnet-5`, `claude-opus-5`} = 4 runs. Per `evals/CLAUDE.md`, a new assertion needs observed-transcript evidence, so `without_skill` is re-run too rather than inferred.
+
+The v1.0 baseline was measured on `claude-sonnet-4-6` / `claude-opus-4-7`, but those executors are no longer reachable from the runner — the v1.3 runs and the v1.2 same-model control both used the Claude 5 pair, and future re-runs must too. A v1.0-vs-v1.3 comparison therefore crosses a model generation and cannot be attributed to the skill change; that is why the same-model v1.2 control exists.
 
 ### Acceptance target and the honest failure branch
 
@@ -160,7 +162,7 @@ Eval 9 goes from 5 assertions to 6. Because assertion sets changed, the existing
 1. `rg -c '^### [0-9]+\. [A-Z]' skills/learn/SKILL.md` → `8` (the `[A-Z]` guard excludes the literal `### 1. [First Step]` inside the Route C template fence, which a bare `^### [0-9]+\.` would miscount)
 2. `rg -n 'Audit Rule Text' skills/learn/SKILL.md` → exactly one match
 3. `rg -n 'Cut in audit' skills/learn/SKILL.md` → two matches (audit step body + plan template)
-4. `rg -n 'the audit is not optional' skills/learn/SKILL.md` → no matches (old paragraph removed)
+4. `rg -n 'audit each drafted rule body' skills/learn/SKILL.md` → no matches (old paragraph removed). Anchor on the removed paragraph's distinctive opener, not its closing "the audit is not optional" — that phrase is generic enough to reappear legitimately.
 5. `rg -n 'Step 5 confirmation' skills/learn/references/multiconfig-routing.md` → no matches
 6. `rg '^  version:' skills/learn/SKILL.md` → `"1.3"`
 7. `python3 -c 'import json; json.load(open("evals/learn/evals.json"))'` → no error

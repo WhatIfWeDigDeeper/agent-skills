@@ -95,7 +95,11 @@ class TestStepNumbering:
         assert step_number("Audit Rule Text") < step_number("Present Plan")
 
     def test_old_preamble_audit_sentence_is_gone(self):
-        assert "the audit is not optional" not in SKILL_MD.read_text(), (
+        # Anchor on the removed paragraph's distinctive opener, not on its closing
+        # "the audit is not optional" — that phrase is generic enough to reappear
+        # legitimately and false-fail this test. "Before showing the plan" alone is
+        # not usable either: it still opens the dedup sentence in Present Plan.
+        assert "audit each drafted rule body" not in SKILL_MD.read_text(), (
             "the preamble audit paragraph should have been replaced by the numbered step"
         )
 
@@ -220,7 +224,7 @@ Expected: no failures. If `tests/learn/test_multiconfig_routing.py` fails, the d
 rg -c '^### [0-9]+\. [A-Z]' skills/learn/SKILL.md    # expect 8 ([A-Z] excludes the fenced "### 1. [First Step]")
 rg -n 'Audit Rule Text' skills/learn/SKILL.md        # expect 1 match
 rg -n 'Cut in audit' skills/learn/SKILL.md           # expect 2 matches
-rg -n 'the audit is not optional' skills/learn/SKILL.md   # expect 0 matches
+rg -n 'audit each drafted rule body' skills/learn/SKILL.md  # expect 0 matches (removed paragraph's distinctive opener)
 rg -n 'Step 5 confirmation' skills/learn/references/multiconfig-routing.md  # expect 0 matches
 rg '^  version:' skills/learn/SKILL.md               # expect "1.3"
 ```
@@ -291,7 +295,9 @@ Expected: `6`.
 
 - [x] **Step 4: Run eval 9 across both configurations and both models**
 
-Four executor runs: `{with_skill, without_skill}` × `{claude-sonnet-4-6, claude-opus-4-7}`. Spawn each with `mode: "auto"`.
+Four executor runs: `{with_skill, without_skill}` × `{claude-sonnet-5, claude-opus-5}`. Spawn each with `mode: "auto"`.
+
+The v1.0 baseline was measured on `claude-sonnet-4-6` / `claude-opus-4-7`, but those executors are no longer reachable from the runner — the v1.3 runs and the v1.2 same-model control both used the Claude 5 pair, and future re-runs must too. A v1.0-vs-v1.3 comparison therefore crosses a model generation and cannot be attributed to the skill change; that is why the same-model v1.2 control exists.
 
 Executor prompt requirements (per `evals/CLAUDE.md`):
 - `mktemp -d` a workspace under `${TMPDIR:-/private/tmp}`, Write eval 9's `files` fixture (`CLAUDE.md`) there, `cd` in, and forbid reads outside the workspace.
@@ -376,7 +382,7 @@ In `evals/learn/benchmark.md`, the row beginning `| 9 | Min-char audit (two-turn
 
 - [x] **Step 2: Update the per-model Summary tables**
 
-Both the `claude-sonnet-4-6` and `claude-opus-4-7` tables: `Pass rate`, `Time`, `Tokens` rows and their `Delta` column must mirror `run_summary_by_model` exactly. These values are not auto-generated and drift silently.
+Every per-model table — the `claude-sonnet-4-6` / `claude-opus-4-7` groups (evals 0-5, 7, 8 at v1.0) **and** the `claude-sonnet-5` / `claude-opus-5` groups (eval 9 at v1.3): `Pass rate`, `Time`, `Tokens` rows and their `Delta` column must mirror `run_summary_by_model` exactly. Moving eval 9 into its own model groups changes the v1.0 groups' numbers too. These values are not auto-generated and drift silently.
 
 - [x] **Step 3: Update the per-model prose paragraphs**
 
@@ -421,13 +427,13 @@ git commit -m "docs(learn): update benchmark and README for v1.3 eval 9 results"
 
 ## Task 4: Ship
 
-- [ ] **Step 1: Confirm the branch is ahead of `main` and clean**
+- [x] **Step 1: Confirm the branch is ahead of `main` and clean**
 
 ```bash
 git fetch origin && git log origin/main..HEAD --oneline && git status --porcelain
 ```
 
-- [ ] **Step 2: Open the PR**
+- [x] **Step 2: Open the PR**
 
 Run `/ship-it`. The PR body must describe all three commits — the skill change, the eval assertion, and the doc propagation — and state the acceptance outcome from Task 2 Step 10 plainly, including the case where the 200-char assertion did not flip.
 
