@@ -12,6 +12,8 @@ Design specs live at `specs/<N>-<topic>/`, normally as a `plan.md` + `tasks.md` 
 
 **When editing a spec that has both `plan.md` and `tasks.md`**, apply every fix to both files in the same pass and re-read both before finishing — a fix applied to only one file is incomplete and will require a follow-up consistency pass to catch what was missed.
 
+**Update a spec's embedded copy of a real file (test snippet, verification command) in the same commit as the file** — a re-runner follows the spec, not the code.
+
 **After implementing review suggestions to spec files**, re-read all modified files before reporting done — catch consistency gaps yourself rather than leaving them for the next review round. For plan/tasks pairs, re-read both files end-to-end even when only one was edited.
 
 **Use phrase anchors, not line numbers, when referencing locations in files under active development** — hardcoded line numbers shift the moment the first edit lands. Write "find the sentence containing 'X'" rather than "edit line N." This applies to spec task descriptions referencing benchmark.md, SKILL.md, or any file that will be edited in the same phase.
