@@ -76,5 +76,5 @@ Which should I update? (enter number, or "all")
 If one config contains a mirror-rule naming another (from Step 1a) without
 the "always both" phrase, surface that in the prompt as informational context
 — but the user's answer always binds, regardless of any partial mirror-rule
-signal. If the user later expresses a narrower scope at the Step 5
+signal. If the user later expresses a narrower scope at the Step 6
 confirmation, that also binds.

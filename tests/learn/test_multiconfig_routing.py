@@ -393,7 +393,7 @@ class TestShouldAutoSkip:
 
 
 class TestIssuesFiledRegex:
-    """Step 7: extract GitHub issue URLs filed during the session.
+    """Step 8: extract GitHub issue URLs filed during the session.
 
     SKILL.md specifies dedup by ``(owner, repo, number)`` tuple — capturing
     all three groups lets the rendering step distinguish between e.g.

@@ -16,7 +16,7 @@ compatibility: Requires bash shell and file system write access
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Learn from Conversation
@@ -96,11 +96,15 @@ Within the Markdown scope, when multiple configs are present:
 
 **Why:** The mirror-rule is load-bearing — it is how future sessions know to keep configs in sync. Silently updating one config without the other, or deleting the mirror-rule during a rewrite, lets the configs drift and the rule die. User choice still binds because narrower scoping is often legitimate.
 
-### 5. Present Plan and Wait for Confirmation
+### 5. Audit Rule Text
+
+Split each drafted rule at sentence and em-dash boundaries. For every fragment, name what it contributes — rule, fix, non-obvious why, or concrete example — or cut it. Incident narratives, multi-clause rationales, and restated triggers fail the check.
+
+Record the result in the next step's `Cut in audit:` line. If the user has to ask whether a draft is minimal, the audit was skipped, not just light.
+
+### 6. Present Plan and Wait for Confirmation
 
 Before showing the plan, **deduplicate candidates by underlying observation.** If two candidates describe the same fact under different routings (e.g., a CLAUDE.md bullet vs. a skill reference rule, or a kept candidate plus a "rejected alternative routing" of the same observation), pick exactly one route and drop the others — do not list rejected alternative routes for the same fact as separate items in the plan or rejection list. One observation, one row.
-
-Before showing the plan, **audit each drafted rule body against the Principles' "Minimum viable rule text" check** — apply "is this the min chars necessary?" to every clause and cut any clause you can't defend (incident narratives, multi-clause rationales, explanatory prose beyond a concrete example). First-draft text routinely needs trimming; the audit is not optional.
 
 Then show everything you plan to do:
 
@@ -108,6 +112,7 @@ Then show everything you plan to do:
 **[Category]**: [Brief description]
 - Source: [what triggered this learning]
 - Proposed change: [exact text to add, post-audit]
+- Cut in audit: [clauses cut, or "none" + one-word defense per kept clause]
 - Destination: [file] ([current lines] → [projected lines])
 ```
 
@@ -118,7 +123,7 @@ Ready to apply. Approve all, or review each one?
 
 **Do not modify any files until the user responds to this step.**
 
-### 6. Apply Changes
+### 7. Apply Changes
 
 **Route A — Config file** (CLAUDE.md, GEMINI.md, etc.): **MANDATORY: read [`references/assistant-configs.md`](references/assistant-configs.md) in full** for format and section conventions before writing. Do NOT load `refactoring.md` for this route unless the file is also over 500 lines. Before appending, search the existing config for related content — if found, propose an update-in-place rather than a duplicate entry, and if the new rule contradicts an existing one, name the conflict explicitly in the summary (Principle 4). Then find the appropriate section, preserve existing structure, append or create a section. Apply Step 4's sync-rule preservation during every write.
 
@@ -140,7 +145,7 @@ description: [WHAT it does + WHEN to use it + trigger keywords]
 [Details]
 ```
 
-### 7. Summarize
+### 8. Summarize
 
 List files modified with before/after line counts, sections updated or created, and any skills created with their names. If a contradiction was resolved, name it explicitly — which rule conflicted with which, and which version was kept. If cross-config sync rules were honored (preserved or reciprocated), mention that too.
 

@@ -324,6 +324,10 @@
         {
           "id": "no-incident-narrative-in-rule",
           "text": "Turn-1 rule text does not embed the incident narrative (no mention of 'Thursday', '14 hours', 'search relevance', 'EFS throttling event', 'silently', or similar story-context phrasing) — the incident is context, not rule body"
+        },
+        {
+          "id": "plan-shows-cut-in-audit",
+          "text": "The turn-1 plan shown before any file write includes a 'Cut in audit:' line for the proposed rule, naming either the clauses removed or 'none' with a per-clause defense. Fail if the plan omits the field entirely"
         }
       ]
     }
