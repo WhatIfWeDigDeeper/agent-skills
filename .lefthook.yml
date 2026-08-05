@@ -41,6 +41,14 @@ pre-commit:
         - "specs/**/*.md"
       run: npx --yes cspell@8.14.2 {staged_files}
 
+    # The job above lints only the staged .md files, so it never fires when
+    # cspell.config.yaml is the only staged change — yet removing a wordlist
+    # entry breaks files that commit does not touch. CI triggers on the config
+    # for exactly that reason, so mirror it: rescan the whole CI corpus.
+    - name: cspell-config
+      glob: "cspell.config.yaml"
+      run: npx --yes cspell@8.14.2 "skills/**/*.md" "specs/**/*.md"
+
     # Catches the trailing-comma breakage described in CLAUDE.md, which
     # otherwise only surfaces as a JSONDecodeError at parse time.
     - name: json-syntax
