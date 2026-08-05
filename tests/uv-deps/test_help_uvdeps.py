@@ -84,7 +84,8 @@ class TestInteractiveHelpStructure:
     """Validate interactive-help.md has correct structure for AskUserQuestion."""
 
     @pytest.fixture(scope="class")
-    def help_content(self):
+    @staticmethod
+    def help_content():
         return (SKILL_DIR / "references" / "interactive-help.md").read_text()
 
     def test_file_exists(self):
