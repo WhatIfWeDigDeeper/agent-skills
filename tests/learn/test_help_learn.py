@@ -55,7 +55,8 @@ class TestOptionsFileStructure:
     """Validate the options.md reference file has correct structure."""
 
     @pytest.fixture(scope="class")
-    def options_content(self):
+    @staticmethod
+    def options_content():
         return (SKILL_DIR / "references" / "options.md").read_text()
 
     def test_options_file_exists(self):
