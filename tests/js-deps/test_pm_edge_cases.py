@@ -174,7 +174,7 @@ class TestNotGitRepo:
     """Test behavior outside a git repo."""
 
     def test_branch_fails_outside_git(self, temp_dir):
-        """git branch should fail when not in a git repo."""
+        """git checkout -b should fail when not in a git repo."""
         (temp_dir / "package.json").write_text(generate_package_json("test"))
         # Git exports GIT_DIR (and friends) to hook subprocesses. Inheriting them
         # makes this command operate on the real repo despite cwd=temp_dir, so it
