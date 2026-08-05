@@ -1,0 +1,93 @@
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+#
+# These hooks mirror the CI gates in .github/workflows/ so failures surface
+# locally instead of after a push. Anything needing network or secrets
+# (evals/security/scan.sh, eval benchmarks) stays in CI only.
+
+pre-commit:
+  parallel: true
+  # Mid-merge/rebase trees are partial; hooks there produce noise, not signal.
+  # pre-push re-runs the suite, so merge results are still covered.
+  skip:
+    - merge
+    - rebase
+  jobs:
+    - name: no-commit-to-main
+      run: |
+        branch=$(git rev-parse --abbrev-ref HEAD)
+        case "$branch" in
+          main|master)
+            echo "Refusing to commit directly to $branch. Create a feature branch (CLAUDE.md: Git Workflow)."
+            exit 1
+            ;;
+        esac
+
+    # lefthook does not stash unstaged changes, so this tests the working tree
+    # rather than the staged snapshot. It is fast feedback, not the real gate —
+    # pre-push is what verifies the history actually being published.
+    - name: pytest
+      glob:
+        - "skills/**"
+        - "tests/**"
+        - "evals/**"
+      run: uv run --with pytest pytest tests/ -q
+
+    - name: cspell
+      # Scope MUST match .github/workflows/cspell.yml. Root files such as
+      # CLAUDE.md contain words the shared wordlist was never curated against.
+      glob:
+        - "skills/**/*.md"
+        - "specs/**/*.md"
+      run: npx --yes cspell@8.14.2 {staged_files}
+
+    # Catches the trailing-comma breakage described in CLAUDE.md, which
+    # otherwise only surfaces as a JSONDecodeError at parse time.
+    - name: json-syntax
+      glob: "*.json"
+      run: python3 -c 'import json,sys;[json.load(open(f)) for f in sys.argv[1:]]' {staged_files}
+
+pre-push:
+  parallel: true
+  skip:
+    - merge
+    - rebase
+  jobs:
+    - name: pytest
+      run: uv run --with pytest pytest tests/ -q
+
+    # Mirrors .github/workflows/instruction-sync.yml.
+    - name: instruction-sync
+      run: |
+        set -euo pipefail
+        git fetch -q origin main || true
+        base=$(git merge-base origin/main HEAD)
+        changed=$(git diff --name-only "$base"...HEAD)
+        claude=0; copilot=0
+        printf '%s\n' "$changed" | grep -Eq '(^|/)CLAUDE\.md$' && claude=1 || true
+        printf '%s\n' "$changed" | grep -Fxq '.github/copilot-instructions.md' && copilot=1 || true
+        if [ "$claude" -ne "$copilot" ]; then
+          echo "CLAUDE.md and .github/copilot-instructions.md must change together."
+          exit 1
+        fi
+
+    # Diffs cumulatively against the merge-base, so the "bump once per PR"
+    # rule is satisfied by a single bump anywhere on the branch.
+    - name: skill-version-bump
+      run: |
+        set -euo pipefail
+        git fetch -q origin main || true
+        base=$(git merge-base origin/main HEAD)
+        rc=0
+        for skill in $(git diff --name-only "$base"...HEAD -- 'skills/*' | cut -d/ -f2 | sort -u); do
+          f="skills/$skill/SKILL.md"
+          if [ ! -f "$f" ]; then continue; fi
+          st=$(git diff --name-status "$base"...HEAD -- "$f" | cut -f1)
+          # 'A' = skill first introduced on this branch; initial version is exempt.
+          if [ "$st" = "A" ]; then continue; fi
+          git diff "$base"...HEAD -- "$f" | grep -q '^+  version:' || {
+            echo "skills/$skill changed with no version bump in $f"
+            rc=1
+          }
+        done
+        exit $rc
