@@ -174,15 +174,24 @@ class TestNotGitRepo:
     """Test behavior outside a git repo."""
 
     def test_branch_fails_outside_git(self, temp_dir):
-        """git branch should fail when not in a git repo."""
+        """git checkout -b should fail when not in a git repo."""
         (temp_dir / "package.json").write_text(generate_package_json("test"))
+        # Git exports GIT_DIR (and friends) to hook subprocesses. Inheriting them
+        # makes this command operate on the real repo despite cwd=temp_dir, so it
+        # succeeds and creates a stray 'test-branch' there. Strip them, and cap
+        # upward discovery in case TMPDIR itself sits inside a repo.
+        env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        env["GIT_CEILING_DIRECTORIES"] = str(temp_dir.parent)
         result = subprocess.run(
             ["git", "checkout", "-b", "test-branch"],
             cwd=temp_dir,
             capture_output=True,
             text=True,
+            env=env,
         )
-        assert result.returncode != 0
+        assert result.returncode != 0, (
+            f"expected failure outside a git repo, got: {result.stderr!r}"
+        )
 
 
 class TestSymlinks:
