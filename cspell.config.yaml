@@ -92,6 +92,7 @@ words:
   - parentheticals
   - parseable
   - pathlib
+  - pathspec
   - PCRE
   - pipefail
   - pipenv
