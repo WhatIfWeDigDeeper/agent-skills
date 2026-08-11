@@ -696,6 +696,120 @@ def is_previously_handled(
     return True
 
 
+_DETAILS_BLOCK_RE = re.compile(
+    r"<details>\s*<summary>(?P<summary>.*?)</summary>(?P<inner>.*?)</details>",
+    re.DOTALL | re.IGNORECASE,
+)
+
+# The one recognized finding container. Keyed on the literal summary string so
+# the carve-out cannot generalize to other collapsed blocks — Copilot ships a
+# "Show a summary per file" block in the same review body.
+_SUPPRESSED_SUMMARY_RE = re.compile(
+    r"^Comments suppressed due to low confidence \(\d+\)$"
+)
+
+# An entry header is a whole line of the form **path:line**.
+_ENTRY_HEADER_RE = re.compile(r"^\*\*(?P<pointer>[^*\n]+:\d+)\*\*[ \t]*$", re.MULTILINE)
+
+# Structural markers of a bot review *summary* — a file-count headline and the
+# changed-files table. Named by shape, never by bot login.
+_SUMMARY_HEADLINE_RE = re.compile(r"reviewed \d+ out of \d+ changed files", re.I)
+_SUMMARY_PER_FILE_RE = re.compile(r"<summary>\s*Show a summary per file\s*</summary>", re.I)
+
+# A claude[bot] timeline verdict numbers its findings as "### N. <title>".
+_FINDING_SECTION_RE = re.compile(r"^###\s+\d+\.\s+\S", re.MULTILINE)
+
+
+def extract_suppressed_entries(review: dict) -> list[dict]:
+    """Expand a review body's suppressed-confidence block into candidate entries.
+
+    Mirrors Step 2b / ``references/bot-review-surfaces.md``. Only a ``<details>``
+    whose ``<summary>`` is exactly ``Comments suppressed due to low confidence
+    (N)`` is treated as a finding container; every other collapsed block yields
+    nothing. Within it, each ``**path:line**`` header starts one entry that runs
+    to the next header (or the end of the block).
+
+    The returned ``pointer`` is untrusted prose from the comment body, not a
+    validated API field — it is a hint for a human/agent to verify by reading
+    the file, never an input to a path/line gate.
+    """
+    body = review.get("body") or ""
+    entries: list[dict] = []
+    for block in _DETAILS_BLOCK_RE.finditer(body):
+        if not _SUPPRESSED_SUMMARY_RE.match(block.group("summary").strip()):
+            continue
+        inner = block.group("inner")
+        headers = list(_ENTRY_HEADER_RE.finditer(inner))
+        for i, header in enumerate(headers):
+            end = headers[i + 1].start() if i + 1 < len(headers) else len(inner)
+            prose = inner[header.end() : end].strip()
+            if not prose:
+                continue
+            entries.append(
+                {
+                    "pointer": header.group("pointer").strip(),
+                    "body": prose,
+                    "author": review.get("author", ""),
+                    "created_at": review.get("submitted_at", ""),
+                    "review_id": review.get("id"),
+                    "source": "review body (suppressed)",
+                }
+            )
+    return entries
+
+
+def dedupe_suppressed_entries(entries: list[dict]) -> list[dict]:
+    """Collapse the same finding repeated across review bodies to its earliest sighting.
+
+    Defensive, not observed: across every suppressed-confidence block on PR #218
+    no entry repeated between reviews. If Copilot does re-post an unaddressed
+    entry, this keeps it from producing duplicate plan rows.
+
+    Key on (pointer, 200-char non-whitespace prose prefix) and keep the entry
+    with the **oldest** ``created_at``, preserving first-appearance order.
+    Earliest, not latest: :func:`is_already_addressed` requires an operator
+    reply strictly newer than ``created_at``, so keeping a re-posted entry's
+    newest timestamp would push it past its own acknowledgment and re-surface
+    it on every run — reopening the exact loop the dedup exists to close.
+    """
+    earliest: dict[tuple[str, str], dict] = {}
+    for entry in entries:
+        key = (entry.get("pointer", ""), _nonwhitespace_prefix(entry.get("body", "")))
+        previous = earliest.get(key)
+        if previous is None or entry.get("created_at", "") < previous.get(
+            "created_at", ""
+        ):
+            earliest[key] = entry
+    return list(earliest.values())
+
+
+def is_actionable_review_body(body: str) -> bool:
+    """True when a review body/timeline comment carries structural findings.
+
+    This is a *positive* structural signal only: suppressed-confidence entries,
+    or numbered ``### N.`` finding sections. ``False`` does **not** mean
+    ``skip`` — a plain "please rename this before merging" body has no marker
+    and is still actionable. Step 6 classifies semantically; this only stops an
+    agent from reading a findings-bearing body as a summary.
+    """
+    if extract_suppressed_entries({"body": body}):
+        return True
+    return bool(_FINDING_SECTION_RE.search(body))
+
+
+def is_bot_summary_body(body: str) -> bool:
+    """True when a body is structurally a review *summary* and carries no findings.
+
+    Keyed on what a summary looks like — a file-count headline, a changed-files
+    table — never on the author's login. A findings-bearing body is never a
+    summary, however its headline reads: on PR #218 "generated no new comments"
+    co-occurred with four suppressed findings.
+    """
+    if is_actionable_review_body(body):
+        return False
+    return bool(_SUMMARY_HEADLINE_RE.search(body) or _SUMMARY_PER_FILE_RE.search(body))
+
+
 def should_signal3_fire(new_bot_timeline_comments: list[dict]) -> bool:
     """Return True if Signal 3 should trigger a loop-back to Step 2.
 

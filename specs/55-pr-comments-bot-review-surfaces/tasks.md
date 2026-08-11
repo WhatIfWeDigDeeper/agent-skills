@@ -38,7 +38,7 @@ Build the classifiable logic first so the SKILL.md prose in Tasks 2–3 has a te
   - `is_actionable_review_body(body: str) -> bool`
   - `is_bot_summary_body(body: str) -> bool`
 
-- [ ] **Step 1: Write the failing test file**
+- [x] **Step 1: Write the failing test file**
 
 Create `tests/pr-comments/test_bot_review_surfaces.py`. The fixtures are real PR #218 payloads, trimmed in prose but exact in structure:
 
@@ -233,7 +233,7 @@ def test_quote_spanning_a_source_newline_does_not_link():
     assert is_already_addressed(entry, spanning, "greg", "greg") is False
 ````
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 ```bash
 uv run --with pytest pytest tests/pr-comments/test_bot_review_surfaces.py -v
@@ -243,7 +243,7 @@ Expected: collection error — `ImportError: cannot import name 'extract_suppres
 
 (Run with sandbox lifted; in Claude Code: `dangerouslyDisableSandbox: true`.)
 
-- [ ] **Step 3: Add the helpers to `tests/pr-comments/conftest.py`**
+- [x] **Step 3: Add the helpers to `tests/pr-comments/conftest.py`**
 
 Append after `is_previously_handled`:
 
@@ -362,7 +362,7 @@ def is_bot_summary_body(body: str) -> bool:
     return bool(_SUMMARY_HEADLINE_RE.search(body) or _SUMMARY_PER_FILE_RE.search(body))
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 ```bash
 uv run --with pytest pytest tests/pr-comments/ -v
@@ -370,7 +370,7 @@ uv run --with pytest pytest tests/pr-comments/ -v
 
 Expected: all tests in `test_bot_review_surfaces.py` PASS, and the pre-existing `tests/pr-comments/` suites still PASS.
 
-- [ ] **Step 5: Confirm the suite is CI-gated**
+- [x] **Step 5: Confirm the suite is CI-gated**
 
 ```bash
 grep -n 'tests/pr-comments' .github/workflows/*.yml
@@ -378,7 +378,7 @@ grep -n 'tests/pr-comments' .github/workflows/*.yml
 
 Expected: `.github/workflows/test-pr-comments-skill.yml` matches `tests/pr-comments/**` and runs `pytest tests/pr-comments/ -v`, so the new file is already gated — no workflow change needed. Confirm rather than assume; if the filter has been narrowed to individual files since, add the new path.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/pr-comments/conftest.py tests/pr-comments/test_bot_review_surfaces.py
