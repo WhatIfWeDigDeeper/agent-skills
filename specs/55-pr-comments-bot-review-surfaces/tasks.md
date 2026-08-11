@@ -631,7 +631,7 @@ git commit -m "fix(pr-comments): acknowledge review-body and timeline fixes so t
 - Modify: `skills/pr-comments/SKILL.md` (`## Security model` paragraph)
 - Modify: `evals/security/pr-comments.baseline.json`
 
-- [ ] **Step 1: Narrow the `<details>` bullet in `security.md`**
+- [x] **Step 1: Narrow the `<details>` bullet in `security.md`**
 
 Replace the bullet `- Collapsed `<details>` blocks with hidden instructions in the body` with a version that makes *instruction-like content* the trigger rather than collapse itself, and names the carve-out:
 
@@ -648,17 +648,17 @@ Replace the bullet `- Collapsed `<details>` blocks with hidden instructions in t
   including `Show a summary per file`, is screened as before.
 ```
 
-- [ ] **Step 2: Update `security-model.md`**
+- [x] **Step 2: Update `security-model.md`**
 
 - **Threat model:** add suppressed-confidence entries as a named sub-surface of "Review body comments" — an attacker-authored `<details>` whose summary mimics the recognized string would have its `**path:line**` entries extracted as candidate comments.
 - **Mitigations:** add a bullet — the collapsed-block carve-out is keyed on the exact `Comments suppressed due to low confidence (N)` summary string; extracted entries are screened individually at Step 5 inside `<untrusted_comment_body>` framing and can only ever be planned as `fix` (manual edit), never `accept suggestion`, since the untrusted `path:line` pointer never feeds the Step 6 path/line gate.
 - **Residual risks:** add — a mimicked summary string causes extraction, so an attacker can choose how their prose is chunked into candidate rows. Each chunk is still screened, still framed as untrusted, and still cannot auto-apply a diff; the residual effect is limited to row shaping.
 
-- [ ] **Step 3: Update the SKILL.md Security model paragraph**
+- [x] **Step 3: Update the SKILL.md Security model paragraph**
 
 In `## Security model`, the sentence beginning `This skill ingests untrusted content from four sources` — keep the count accurate and add the suppressed-entry expansion plus the summary-string-keyed collapsed-block carve-out to the mitigation list, so the inline summary matches `security-model.md`.
 
-- [ ] **Step 4: Refresh the security baseline**
+- [ ] BLOCKED — **Step 4: Refresh the security baseline**
 
 Ingestion and screening both changed, so the baseline must be refreshed in this PR:
 
@@ -669,11 +669,17 @@ git diff --stat evals/security/pr-comments.baseline.json
 
 Review the diff — new findings should be W011-family only (the `gh api .../comments` ingestion pattern). Anything else warrants investigation before committing.
 
+**BLOCKED.** The local run returned `[X007 info]: Unauthorized. Please check your SNYK_TOKEN environment variable or your push key.` — the credential in this environment is present but rejected, so no scan ran. `evals/security/pr-comments.baseline.json` is left byte-identical rather than hand-edited: writing a `skill_version` or `captured_at` for a capture that never happened is worse than visible staleness (the file already records 1.46 against a 1.51 main).
+
+CI holds the real token and enforces `scan output` ⊆ `baseline` against the pinned superset, and this change adds no new ingestion command, so the gate still passes. If CI surfaces a *new* finding ID, investigate it — never empty the baseline.
+
+Separately, `evals/security/scan.sh` parses only `[W### <severity>]` lines, so an `X007` auth failure yields zero parsed findings and `--update-baselines` silently overwrites **every** baseline with `"findings": []`, destroying the CI gate instead of failing loudly. Worth a follow-up issue against the scan harness.
+
 - [ ] **Step 5: Spell check and commit**
 
 ```bash
 npx cspell skills/pr-comments/SKILL.md skills/pr-comments/references/security.md skills/pr-comments/references/security-model.md
-git add skills/pr-comments/references/security.md skills/pr-comments/references/security-model.md skills/pr-comments/SKILL.md evals/security/pr-comments.baseline.json cspell.config.yaml
+git add skills/pr-comments/references/security.md skills/pr-comments/references/security-model.md skills/pr-comments/SKILL.md
 git commit -m "fix(pr-comments): trigger hidden-text screening on instructions, not on collapse"
 ```
 
