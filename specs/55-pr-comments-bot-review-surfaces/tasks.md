@@ -675,7 +675,7 @@ CI holds the real token and enforces `scan output` ⊆ `baseline` against the pi
 
 Separately, `evals/security/scan.sh` parses only `[W### <severity>]` lines, so an `X007` auth failure yields zero parsed findings and `--update-baselines` silently overwrites **every** baseline with `"findings": []`, destroying the CI gate instead of failing loudly. Worth a follow-up issue against the scan harness.
 
-- [ ] **Step 5: Spell check and commit**
+- [x] **Step 5: Spell check and commit**
 
 ```bash
 npx cspell skills/pr-comments/SKILL.md skills/pr-comments/references/security.md skills/pr-comments/references/security-model.md
@@ -728,17 +728,27 @@ python3 -c 'import json; json.load(open("evals/pr-comments/evals.json"))'
 
 (Inserting objects before the closing `]` requires a trailing comma on the previous element — the Edit tool does not validate JSON.)
 
-- [ ] **Step 4: Run both evals on Sonnet 5**
+- [x] **Step 4: Run both evals on Sonnet 5**
 
 Follow `evals/CLAUDE.md`. Run 42 and 43 as a **Sonnet 5 single-eval track**, the same treatment eval 41 already has — the Sonnet 4.6 and Opus 4.7 executors are retired and cannot be pinned, so these are excluded from both full-suite deltas.
 
-- [ ] **Step 5: Record the results**
+**Eval 42 was run twice.** The first fixture's entry 1 claimed `if (opts.retries > 0)` skips the
+retry on the default path and proposed `(opts.retries ?? 0) > 0` — but both guards evaluate
+identically for every input, so the proposed change is behavior-preserving. The with-skill run
+correctly falsified the claim with a probe, tagged both entries `nit`, and the all-nit round
+tripped the Step 6d gate and halted. That violates this task's own load-bearing fixture rule
+above, so the fixture was rewritten around a real defect (guard tests `opts.retry`; callers and
+docs use `retries`) and **both** configurations re-run — pairing a fresh with-skill run against
+the stale baseline would be the mismatch `evals/CLAUDE.md` forbids. The aborted round is recorded
+in `benchmark.md` as observed confirmation that Step 6d now fires routinely.
+
+- [x] **Step 5: Record the results**
 
 - `benchmark.json`: append run entries; update `metadata.evals_run` and `metadata.skill_version` to `"1.52"`; extend the Sonnet 5 `models_tested` note to cover 42 and 43. Rewrite with `json.dump(..., indent=2)` and the default `ensure_ascii=True` — `benchmark.json` stores `—` as `—` and `ensure_ascii=False` explodes the diff. Validate after: `python3 -c 'import json; json.load(open("evals/pr-comments/benchmark.json"))'`.
 - `benchmark.md`: update the Summary table from the `benchmark.json` run entries, not from the existing prose.
 - `README.md`: **only** the Skill Notes bullet gains the 42/43 mention. The `Eval Δ` percentages **must not move** — a single-eval track is excluded from both suite deltas by the eval 41 precedent. (`evals/CLAUDE.md`'s "immediately update the Eval Δ column" rule reads as universal and pulls the wrong way here.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add evals/pr-comments/ README.md
