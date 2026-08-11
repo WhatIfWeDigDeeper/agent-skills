@@ -396,7 +396,7 @@ git commit -m "test(pr-comments): extraction and classification helpers for bot 
 - Consumes: the Task 1 helpers as the reference semantics (the reference file is prose, but must not contradict them).
 - Produces: the file SKILL.md Step 2b will point at imperatively in Task 3.
 
-- [ ] **Step 1: Write the reference file**
+- [x] **Step 1: Write the reference file**
 
 The extraction rules exceed the ~15–20 line inline threshold in `skills/CLAUDE.md`, so they live here. Required content, in this order:
 
@@ -410,7 +410,7 @@ The extraction rules exceed the ~15–20 line inline threshold in `skills/CLAUDE
 8. **Cross-review dedup** — identical entries (same pointer + same 200-char non-whitespace prose prefix) appearing in more than one review body collapse to the **earliest** sighting. This is defensive, not observed: no entry repeated across #218's four suppressed blocks. Earliest rather than latest because the already-addressed check needs an operator reply strictly newer than the entry's timestamp — keeping a re-posted entry's newest timestamp would push it past its own acknowledgment and re-surface it forever.
 9. **Residual gap: `APPROVED` reviews.** Step 2b excludes `APPROVED` as a positive signal. Across PRs #199, #202, #209, #212, #218, #223, #226, #227, #228 every suppressed-confidence block was on a `COMMENTED` review (48 `COMMENTED` / 1 `APPROVED`), so the exclusion is safe today. If an `APPROVED` review is ever observed carrying the marker, narrow the Step 2b filter to "exclude `APPROVED` **without** a suppressed-confidence block" rather than dropping the exclusion.
 
-- [ ] **Step 2: Verify the file does not contradict the helpers**
+- [x] **Step 2: Verify the file does not contradict the helpers**
 
 ```bash
 npx cspell skills/pr-comments/references/bot-review-surfaces.md
@@ -418,7 +418,7 @@ npx cspell skills/pr-comments/references/bot-review-surfaces.md
 
 Re-read the file against `extract_suppressed_entries` in `tests/pr-comments/conftest.py` — the summary string, the header shape, the dedup key, and the normalized field names must match exactly.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add skills/pr-comments/references/bot-review-surfaces.md cspell.config.yaml
