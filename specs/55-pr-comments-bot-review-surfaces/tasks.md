@@ -759,7 +759,7 @@ git commit -m "test(pr-comments): evals for suppressed-confidence and bot timeli
 
 ### Task 7: Verification and PR
 
-- [ ] **Step 1: Full test suite**
+- [x] **Step 1: Full test suite**
 
 ```bash
 uv run --with pytest pytest tests/ -v
@@ -767,7 +767,7 @@ uv run --with pytest pytest tests/ -v
 
 Expected: all PASS. (Sandbox lifted; in Claude Code: `dangerouslyDisableSandbox: true`.)
 
-- [ ] **Step 2: Spell check every modified file**
+- [x] **Step 2: Spell check every modified file**
 
 ```bash
 npx cspell "skills/pr-comments/**/*.md" "specs/55-pr-comments-bot-review-surfaces/*.md"
@@ -775,7 +775,7 @@ npx cspell "skills/pr-comments/**/*.md" "specs/55-pr-comments-bot-review-surface
 
 Add any unknown terms to the `words` list in `cspell.config.yaml` in alphabetical position. Do **not** pipe through `grep -v` — an npm cache EPERM would be silently swallowed.
 
-- [ ] **Step 3: Confirm exactly one version bump**
+- [x] **Step 3: Confirm exactly one version bump**
 
 ```bash
 git fetch origin && git diff origin/main -- skills/pr-comments/SKILL.md | rg '^\+  version:'
@@ -783,7 +783,7 @@ git fetch origin && git diff origin/main -- skills/pr-comments/SKILL.md | rg '^\
 
 Expected: exactly one line, `+  version: "1.52"`.
 
-- [ ] **Step 4: Check off this file's tasks**
+- [x] **Step 4: Check off this file's tasks**
 
 Every `- [ ]` above should already be `- [x]` (checked off as completed, not batched at the end — `specs/CLAUDE.md`). Verify none were missed.
 
