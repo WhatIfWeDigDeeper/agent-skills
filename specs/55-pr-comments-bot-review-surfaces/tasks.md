@@ -791,7 +791,7 @@ Every `- [ ]` above should already be `- [x]` (checked off as completed, not bat
 
 Run `/pr-comments` against a PR whose Copilot review carries a suppressed block. Confirm the entries reach the plan table, get fixed, get an acknowledgment reply, and that an immediate second invocation classifies them `skip` rather than re-planning.
 
-- [ ] **Step 6: Push and open the PR**
+- [x] **Step 6: Push and open the PR**
 
 ```bash
 git add specs/55-pr-comments-bot-review-surfaces/
@@ -800,3 +800,8 @@ git push -u origin HEAD
 ```
 
 Open the PR with `Closes #220` in the body. Then invoke `/pr-comments {pr_number}` immediately, per the repo's Git Workflow rule, and `/pr-human-guide` before reporting it ready for human review.
+
+Opened as PR #232. The body records the two deviations from this plan: eval 42's fixture was
+rewritten mid-flight after its "substantive" finding turned out to be behavior-preserving (both
+configurations re-run, stale baseline not reused), and the Snyk baseline ships stale at `1.46`
+because `scan.sh` has no working `SNYK_TOKEN` here — documented as BLOCKED, not faked.
