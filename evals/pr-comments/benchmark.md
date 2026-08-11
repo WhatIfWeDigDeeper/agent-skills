@@ -37,12 +37,12 @@ Opus per-run time and token measurements are `null` because subagent usage data 
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** (11/11) | 38% (5/11) | **+62%** |
+| Pass Rate | **100%** | 38% | **+62%** |
 | Time | 284.3s ± 58.9 | 112.7s ± 46.0 | +171.6s |
 | Tokens | 12,309 ± 9,462 | 8,870 ± 3,888 | +3,439 |
 | Cache tokens | 3,210,864 ± 900,504 | 913,159 ± 371,553 | +2,297,705 |
 
-Per-eval pass rates: eval 41 **5/5** vs 2/5, eval 42 **4/4** vs 3/4, eval 43 **2/2** vs 0/2.
+Pass rate is the **mean of the three per-eval rates**, the convention `benchmark.json`'s `run_summary` uses throughout this file: eval 41 **100%** (5/5) vs 40% (2/5), eval 42 **100%** (4/4) vs 75% (3/4), eval 43 **100%** (2/2) vs 0% (0/2). Aggregating by raw assertion count instead would put the baseline at 5/11 = 45% and the delta at +55%. The two aggregations coincide at N = 1 (which is why eval 41's original `40% (2/5)` row was self-consistent) and diverge at N = 3 — do not mix them.
 
 **This is a three-eval track, not a suite — do not compare its delta to the two above.** N = 3 per configuration. It exists as a separate track only because evals 41–43 were added at v1.51/v1.52 (specs 52 and 55), by which point the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned; it is excluded from the top-level `run_summary` and from both full-suite by-model blocks. The Sonnet 4.6 token denominators quoted above are therefore unchanged by these evals' arrival.
 
