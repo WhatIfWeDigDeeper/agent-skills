@@ -436,7 +436,7 @@ git commit -m "docs(pr-comments): add bot-review-surfaces extraction reference"
 - Consumes: `references/bot-review-surfaces.md` (Task 2).
 - Produces: normalized entry rows that Task 4's Step 11 invariant terminates.
 
-- [ ] **Step 1: Bump the version**
+- [x] **Step 1: Bump the version**
 
 Confirm no bump exists yet on this branch, then bump:
 
@@ -446,7 +446,7 @@ git fetch origin && git diff origin/main -- skills/pr-comments/SKILL.md | rg '^\
 
 Expected: no output. Then change the frontmatter `version: "1.51"` to `version: "1.52"`. This is the **only** bump for the entire PR.
 
-- [ ] **Step 2: Expand Step 2b**
+- [x] **Step 2: Expand Step 2b**
 
 In `### 2b. Fetch PR-Level Review Body Comments`, after the sentence beginning `Filter: `CHANGES_REQUESTED` or `COMMENTED``, add:
 
@@ -457,7 +457,7 @@ In `### 2b. Fetch PR-Level Review Body Comments`, after the sentence beginning `
 
 Replace the existing sentence `Classify like inline comments in Step 6. Two differences: no GraphQL thread ID (skip Step 12), and replies use the issue comments API (see Step 11).` with one that keeps both differences and adds the third: a `fix` on these surfaces terminates only via the Step 11 acknowledgment reply (Task 4).
 
-- [ ] **Step 3: Rewrite the Step 6 review-body/timeline branch**
+- [x] **Step 3: Rewrite the Step 6 review-body/timeline branch**
 
 Replace this paragraph verbatim:
 
@@ -473,11 +473,11 @@ with prose that:
 
 Then edit the action bullets in the same branch: drop `rare;` from the `fix` bullet so it reads `**`fix`** — the comment contains a clear, actionable code-level request with enough context to act on`. Leave `skip` / `reply` / `decline` unchanged.
 
-- [ ] **Step 4: Note the Step 6d consequence**
+- [x] **Step 4: Note the Step 6d consequence**
 
 In `### 6d. Nits-only gate`, after the **Trigger** paragraph, add one sentence: a suppressed-confidence round is now a common way this gate fires — doc-phrasing entries tag as `nit`, so an all-nit round halts auto mode with the nits table instead of auto-applying. This is the gate working as designed, not a regression.
 
-- [ ] **Step 5: Verify no other Step 6 text still names the bots as skip examples**
+- [x] **Step 5: Verify no other Step 6 text still names the bots as skip examples**
 
 ```bash
 rg -n 'bot PR summaries|lean toward `skip`|rare; only if' skills/pr-comments/SKILL.md
@@ -485,7 +485,7 @@ rg -n 'bot PR summaries|lean toward `skip`|rare; only if' skills/pr-comments/SKI
 
 Expected: no output.
 
-- [ ] **Step 6: Run the tests and spell check**
+- [x] **Step 6: Run the tests and spell check**
 
 ```bash
 uv run --with pytest pytest tests/pr-comments/ -v
@@ -494,7 +494,7 @@ npx cspell skills/pr-comments/SKILL.md
 
 Expected: PASS; no unknown words (add any to `cspell.config.yaml` in alphabetical order).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add skills/pr-comments/SKILL.md cspell.config.yaml
