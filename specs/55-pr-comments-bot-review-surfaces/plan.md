@@ -104,6 +104,12 @@ that blockquotes the entry's prose — which the existing Step 2c linkage dedup
 already recognizes (`is_already_addressed` matches a `>` line at ≤3 leading
 spaces whose content appears in the original body). No new matcher.
 
+That match is a plain substring test with **no newline tolerance**, and for a
+bot the `@`-mention half of the matcher never fires — so the quote must be a
+verbatim run from a single line of the entry. Reflowing it, or joining an
+entry's prose to its following code fence, links nothing and re-opens the loop.
+The reply template states this, and a negative test pins it.
+
 State it as an **invariant that binds every terminal path**, not a Step 11-local
 rule: *any path that resolves a review-body or timeline entry must post a reply
 blockquoting that entry's prose.* It binds Step 11 `reply`, Step 11 `decline`,
@@ -153,8 +159,8 @@ observed.
 
 | File | Change |
 | --- | --- |
-| `skills/pr-comments/references/bot-review-surfaces.md` | **New.** Extraction rules, non-evidence rule, structural summary predicates, entry normalization, cross-review dedup, `APPROVED` residual gap. |
-| `skills/pr-comments/SKILL.md` | Step 2b expansion + already-addressed check; Step 6 branch rewrite; Step 6d behavior note; Step 11 acknowledgment invariant; Security model paragraph; `version` `1.51` -> `1.52`. |
+| `skills/pr-comments/references/bot-review-surfaces.md` | **New.** Extraction rules, non-evidence rule, structural summary predicates, entry normalization, cross-review dedup (keep the **earliest** sighting — a re-posted entry keeping its newest timestamp would outrun its own acknowledgment; defensive only, no entry repeated across #218's four blocks), `APPROVED` residual gap. |
+| `skills/pr-comments/SKILL.md` | Step 2b expansion (entries are an *additional* stream — Step 2c's dedup keeps receiving unexpanded review bodies) + already-addressed check; Step 6 branch rewrite; Step 6d behavior note; Step 11 acknowledgment invariant; Security model paragraph; `version` `1.51` -> `1.52`. |
 | `skills/pr-comments/references/security.md` | Narrow the hidden-text `<details>` bullet; add the summary-string-keyed carve-out. |
 | `skills/pr-comments/references/security-model.md` | Suppressed entries as a named ingestion surface; carve-out under Mitigations; mimicked-summary residual risk. |
 | `skills/pr-comments/references/reply-formats.md` | Step 2b template gains the mandatory `{commenter_ref}` + `>` wrapper; add the acknowledgment-reply form. |

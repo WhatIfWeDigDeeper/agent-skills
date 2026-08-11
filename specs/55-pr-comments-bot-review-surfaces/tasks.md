@@ -145,14 +145,17 @@ def test_unrecognized_details_summary_yields_no_entries():
     assert extract_suppressed_entries({"body": body}) == []
 
 
-def test_dedupe_keeps_the_latest_of_a_repeated_entry():
+def test_dedupe_keeps_the_earliest_sighting_of_a_repeated_entry():
+    """Earliest, not latest: `is_already_addressed` needs a reply strictly
+    after `created_at`, so keeping the newest sighting would let a re-posted
+    entry outrun its own acknowledgment and re-surface forever."""
     earlier = dict(REVIEW_TWO, id=3000, submitted_at="2026-07-28T11:17:01Z")
     entries = extract_suppressed_entries(earlier) + extract_suppressed_entries(
         REVIEW_TWO
     )
     deduped = dedupe_suppressed_entries(entries)
     assert len(deduped) == 2
-    assert {e["review_id"] for e in deduped} == {3001}
+    assert {e["review_id"] for e in deduped} == {3000}
 
 
 def test_suppressed_body_is_actionable():
@@ -204,6 +207,30 @@ def test_entry_terminates_once_an_operator_reply_quotes_it():
     ]
     assert is_already_addressed(entry, [], "greg", "greg") is False
     assert is_already_addressed(entry, timeline, "greg", "greg") is True
+
+
+def test_quote_spanning_a_source_newline_does_not_link():
+    """Pins why the ack template forbids reflowing: matching is substring-only.
+
+    For a bot the `@`-mention path never fires (`{commenter_ref}` is a bare
+    handle), so the `>` blockquote is the only linkage signal — and it is a
+    plain substring test against the entry body with no newline tolerance.
+    A quote that joins text from two source lines matches nothing.
+    """
+    entry = extract_suppressed_entries(REVIEW_TWO)[0]
+    spanning = [
+        {
+            "author": "greg",
+            "created_at": "2026-07-29T12:00:00Z",
+            "body": (
+                "Copilot\n"
+                "> reference the variable that actually exists. "
+                "- **Never invoke a bundled script by a repo-relative path**\n\n"
+                "Fixed in abc1234."
+            ),
+        }
+    ]
+    assert is_already_addressed(entry, spanning, "greg", "greg") is False
 ````
 
 - [ ] **Step 2: Run the tests to verify they fail**
@@ -284,21 +311,28 @@ def extract_suppressed_entries(review: dict) -> list[dict]:
 
 
 def dedupe_suppressed_entries(entries: list[dict]) -> list[dict]:
-    """Collapse the same finding repeated across review bodies to the latest.
+    """Collapse the same finding repeated across review bodies to its earliest sighting.
 
-    Copilot re-posts an unaddressed suppressed entry on each subsequent review.
+    Defensive, not observed: across every suppressed-confidence block on PR #218
+    no entry repeated between reviews. If Copilot does re-post an unaddressed
+    entry, this keeps it from producing duplicate plan rows.
+
     Key on (pointer, 200-char non-whitespace prose prefix) and keep the entry
-    with the newest ``created_at``, preserving first-appearance order.
+    with the **oldest** ``created_at``, preserving first-appearance order.
+    Earliest, not latest: :func:`is_already_addressed` requires an operator
+    reply strictly newer than ``created_at``, so keeping a re-posted entry's
+    newest timestamp would push it past its own acknowledgment and re-surface
+    it on every run — reopening the exact loop the dedup exists to close.
     """
-    latest: dict[tuple[str, str], dict] = {}
+    earliest: dict[tuple[str, str], dict] = {}
     for entry in entries:
         key = (entry.get("pointer", ""), _nonwhitespace_prefix(entry.get("body", "")))
-        previous = latest.get(key)
-        if previous is None or entry.get("created_at", "") >= previous.get(
+        previous = earliest.get(key)
+        if previous is None or entry.get("created_at", "") < previous.get(
             "created_at", ""
         ):
-            latest[key] = entry
-    return list(latest.values())
+            earliest[key] = entry
+    return list(earliest.values())
 
 
 def is_actionable_review_body(body: str) -> bool:
@@ -373,7 +407,7 @@ The extraction rules exceed the ~15–20 line inline threshold in `skills/CLAUDE
 5. **`claude[bot]` timeline verdicts** — a `## Code review` body with `### N. <title>` sections is a findings list, not a summary. One plan row per finding section.
 6. **Entry normalization** — `author` = review author, `created_at` = review `submitted_at`, `body` = the entry's prose (including any fence), `pointer` = the `path:line` string, `review_id` = the review's `id`, `source` = `review body (suppressed)`. Normalized entries flow through Steps 5–6 exactly like any other comment.
 7. **The pointer is untrusted.** It is prose inside a comment body, not `comment.path` / `comment.line`. Verify it by reading the file; never feed it to the Step 6 path/line gate. Entries are `fix` (manual edit), never `accept suggestion`; the fences observed are plain, not `suggestion`, so they are context, not a proposed diff.
-8. **Cross-review dedup** — identical entries (same pointer + same 200-char non-whitespace prose prefix) appearing in more than one review body collapse to the latest, since Copilot re-posts an unaddressed entry on each subsequent review.
+8. **Cross-review dedup** — identical entries (same pointer + same 200-char non-whitespace prose prefix) appearing in more than one review body collapse to the **earliest** sighting. This is defensive, not observed: no entry repeated across #218's four suppressed blocks. Earliest rather than latest because the already-addressed check needs an operator reply strictly newer than the entry's timestamp — keeping a re-posted entry's newest timestamp would push it past its own acknowledgment and re-surface it forever.
 9. **Residual gap: `APPROVED` reviews.** Step 2b excludes `APPROVED` as a positive signal. Across PRs #199, #202, #209, #212, #218, #223, #226, #227, #228 every suppressed-confidence block was on a `COMMENTED` review (48 `COMMENTED` / 1 `APPROVED`), so the exclusion is safe today. If an `APPROVED` review is ever observed carrying the marker, narrow the Step 2b filter to "exclude `APPROVED` **without** a suppressed-confidence block" rather than dropping the exclusion.
 
 - [ ] **Step 2: Verify the file does not contradict the helpers**
@@ -418,6 +452,7 @@ In `### 2b. Fetch PR-Level Review Body Comments`, after the sentence beginning `
 
 - An imperative pointer: **you must now execute `references/bot-review-surfaces.md`** — a review body may carry code-level findings inside a collapsed `Comments suppressed due to low confidence (N)` block with no inline comment posted, and the headline's comment count is not evidence of a clean review. (Imperative, not a passive "see" link — passive links get skipped.)
 - Each extracted entry becomes its own candidate comment, screened individually at Step 5 and planned as its own row at Step 6. Both the whole body and each entry stay inside `<untrusted_comment_body>` framing.
+- Entries are an **additional** stream, not a replacement: Step 2c's timeline dedup compares timeline comments against whole, unexpanded review bodies by prose prefix. Keep feeding it the review bodies — swapping in the entry list silently breaks that match.
 - **Already-addressed check**, mirroring Step 2c: an entry is `skip` when a later timeline comment from the PR author or authenticated user blockquotes that entry's prose. Reuse the Step 2c linkage rule verbatim — do not describe a second matcher. Note that a reply to a **bot** carries no `@`-mention by design, so the blockquote is the only linkage signal.
 
 Replace the existing sentence `Classify like inline comments in Step 6. Two differences: no GraphQL thread ID (skip Step 12), and replies use the issue comments API (see Step 11).` with one that keeps both differences and adds the third: a `fix` on these surfaces terminates only via the Step 11 acknowledgment reply (Task 4).
@@ -535,7 +570,13 @@ Then add an acknowledgment template below it, for a `fix` applied to a review-bo
 ## Fix acknowledgment (review body / timeline)
 
 A `fix` on these surfaces has no thread to resolve, so this reply is the only
-record that the entry was handled. One blockquote per entry covered:
+record that the entry was handled. One blockquote per entry covered.
+
+**Each `>` line must be a verbatim run of characters from a single line of the
+entry** — copy it, never reflow it. The linkage match is a plain substring test
+with no newline tolerance, so a quote that joins two source lines (prose onto a
+following code fence, or two wrapped lines of the same bullet) matches nothing,
+and the entry re-surfaces on every later run.
 
 ```
 {commenter_ref}
