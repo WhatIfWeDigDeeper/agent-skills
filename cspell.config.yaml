@@ -17,6 +17,7 @@ words:
   - baselined
   - basenames
   - blockquotes
+  - blockquoting
   - bunx
   - cmdline
   - codegen
@@ -116,6 +117,7 @@ words:
   - repolls
   - rerequest
   - rescan
+  - rewordings
   - rglob
   - rootdir
   - runbooks
