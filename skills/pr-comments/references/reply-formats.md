@@ -82,15 +82,57 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
 
 ## Review body comment (Step 2b)
 
-Use the issue comments endpoint (replies go to the PR timeline):
+Use the issue comments endpoint (replies go to the PR timeline). **The reply body
+must start with `{commenter_ref}` and include a `>` quote of the relevant
+excerpt** — a review body has no thread, so the quote is what links the reply to
+it and what the Step 2b linkage dedup keys on next run. For a bot commenter,
+whose `{commenter_ref}` carries no `@`-mention by design, the quote is the only
+linkage signal there is. Never drop it.
+
+Required format:
+```
+{commenter_ref}
+> [relevant excerpt from their comment]
+
+[Your response]
+
+---
+🤖 Generated with [AssistantName](url)
+```
 
 ```bash
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
   --method POST \
-  --field 'body=[Your reply]
+  --field 'body={commenter_ref}
+> [relevant excerpt]
+
+[Your response]
 
 ---
 🤖 Generated with [AssistantName](url)'
+```
+
+## Fix acknowledgment (review body / timeline)
+
+A `fix` on these surfaces has no thread to resolve, so this reply is the only
+record that the entry was handled. One blockquote per entry covered.
+
+**Each `>` line must be a verbatim run of characters from a single line of the
+entry** — copy it, never reflow it. The linkage match is a plain substring test
+with no newline tolerance, so a quote that joins two source lines (prose onto a
+following code fence, or two wrapped lines of the same bullet) matches nothing,
+and the entry re-surfaces on every later run.
+
+```
+{commenter_ref}
+> [entry 1 excerpt]
+
+> [entry 2 excerpt]
+
+Both findings were valid and are fixed in <short sha>.
+
+---
+🤖 Generated with [AssistantName](url)
 ```
 
 ## Timeline comment (Step 2c)

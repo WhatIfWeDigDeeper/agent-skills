@@ -124,9 +124,13 @@ produced); if every selected row was skip/issue, exit to Step 14 like
     the `>` quote is its **sole** linkage signal. Never post a bot nit reply
     without the quote — it would re-surface and re-trigger this gate on every
     subsequent run.
-  - **Review-body** nits have neither a thread nor a Step 2b dedup, so a
-    skipped/issued review-body nit can re-trigger this gate on a later run if it
-    remains the only actionable row. This is a pre-existing skill limitation
-    (normal review-body replies/declines re-surface the same way), and review
-    bodies are rarely actionable nits, so the case is narrow — the next
-    invocation simply re-presents it.
+  - **Review-body** nits terminate the same way. The skip/issue reply's
+    `{commenter_ref}` + `>` quote is recognized by the Step 2b linkage dedup,
+    which marks the entry `skip` next run; for a bot commenter the quote is
+    again the sole linkage signal, so never post the reply without it.
+  - The `fix` outcomes — `fix-all` and `select`-with-fix — route through
+    Steps 8–13, where Step 11's acknowledgment reply supplies the same
+    blockquote linkage. Every outcome of this gate therefore leaves a quote
+    behind; a review-body or timeline nit re-surfaces only if one was omitted.
+  - A suppressed-confidence round (Step 2b) is a common trigger for this gate —
+    doc-phrasing entries tag as `nit` — so this case is no longer narrow.

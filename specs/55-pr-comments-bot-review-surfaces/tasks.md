@@ -516,7 +516,7 @@ Without this task the fix is worse than the bug: extracted entries get fixed, no
 - Consumes: the Step 2c linkage dedup already described in SKILL.md Step 2c and mirrored by `is_already_addressed` in `conftest.py`.
 - Produces: the terminator that Task 1's `test_entry_terminates_once_an_operator_reply_quotes_it` asserts.
 
-- [ ] **Step 1: State the invariant in Step 11**
+- [x] **Step 1: State the invariant in Step 11**
 
 At the top of `### 11. Reply to Comments`, immediately after the byline block, add the invariant and the paths it binds:
 
@@ -526,7 +526,7 @@ Then add the `fix` acknowledgment itself, next to the existing `For review body 
 
 Update the sentence `Address the commenter as `{commenter_ref}`, in your own prose and in the opening `{commenter_ref}` + `>` quote wrapper **where the format has one** — timeline and nit replies require it; the inline and review-body templates have no wrapper.` — the review-body template now has one. It should read: inline replies have no wrapper (the thread carries the link); timeline, review-body, and nit replies all require it.
 
-- [ ] **Step 2: Give the Step 2b reply template the wrapper**
+- [x] **Step 2: Give the Step 2b reply template the wrapper**
 
 In `references/reply-formats.md`, replace the `## Review body comment (Step 2b)` body template with one that matches the Timeline template's required format, carrying the same rationale already written there (for a bot the quote is the only linkage signal):
 
@@ -591,13 +591,13 @@ Both findings were valid and are fixed in <short sha>.
 ```
 ````
 
-- [ ] **Step 3: Rewrite the nit-gate review-body bullet**
+- [x] **Step 3: Rewrite the nit-gate review-body bullet**
 
 In `references/nit-gate.md`, under `## Loop & thread semantics` → **Thread state on skip/issue**, the **Review-body** bullet currently says review bodies have "neither a thread nor a Step 2b dedup" and that "review bodies are rarely actionable nits, so the case is narrow." Both halves are now false. Replace it with the same mechanism the **Timeline** bullet describes: the skip/issue reply's `{commenter_ref}` + `>` quote is recognized by the Step 2b linkage dedup and marks the entry `skip` next run; for a bot the quote is the sole linkage signal, so never post the reply without it.
 
 Add, in the same bullet or immediately after it, the `fix` outcome: `fix-all` and `select`-with-fix route through Steps 8–13, where the Step 11 acknowledgment reply provides the same blockquote linkage. Note that a suppressed-confidence round is now a common trigger for this gate, so the case is no longer narrow.
 
-- [ ] **Step 4: Verify every terminal path is covered**
+- [x] **Step 4: Verify every terminal path is covered**
 
 ```bash
 rg -n 'commenter_ref|blockquote|> quote' skills/pr-comments/references/reply-formats.md skills/pr-comments/references/nit-gate.md
@@ -606,7 +606,7 @@ rg -n 'Terminal-path invariant' skills/pr-comments/SKILL.md
 
 Expected: the review-body template now carries the wrapper; the nit-gate review-body bullet references the Step 2b dedup; SKILL.md Step 11 states the invariant once.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 ```bash
 uv run --with pytest pytest tests/pr-comments/ -v
@@ -614,7 +614,7 @@ uv run --with pytest pytest tests/pr-comments/ -v
 
 Expected: PASS, including `test_entry_terminates_once_an_operator_reply_quotes_it` and the pre-existing `test_nit_gate.py` and `test_timeline_comments.py` suites.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add skills/pr-comments/SKILL.md skills/pr-comments/references/reply-formats.md skills/pr-comments/references/nit-gate.md

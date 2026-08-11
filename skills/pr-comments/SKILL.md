@@ -359,13 +359,17 @@ Deduplicate co-authors — one entry per person. Accepted suggestions are includ
 🤖 Generated with [AssistantName](url)
 ```
 
-Address the commenter as `{commenter_ref}`, in your own prose and in the opening `{commenter_ref}` + `>` quote wrapper **where the format has one** — timeline and nit replies require it; the inline and review-body templates have no wrapper. See `references/reply-formats.md` for which is which.
+> **Terminal-path invariant (review body and timeline only).** These surfaces have no GraphQL thread ID, so Step 12 cannot mark them handled and Step 6's `in_reply_to_id` previously-handled skip does not apply. **Any path that resolves a review-body or timeline entry must post a reply blockquoting that entry's prose** — that blockquote is what the Step 2b/2c linkage dedup keys on to skip the entry next run. For a bot commenter, whose `{commenter_ref}` carries no `@`-mention by design, the quote is the *only* linkage signal. Paths bound: Step 11 `reply`, Step 11 `decline`, the `fix` acknowledgment below, and every Step 6d nit-gate outcome (`skip-all` / `issue-all` reply via `references/reply-formats.md`; `fix-all` and `select`-with-fix route through Steps 8–13 and land on the `fix` acknowledgment here). Omit it and the entry re-surfaces on every subsequent run.
+
+Address the commenter as `{commenter_ref}`, in your own prose and in the opening `{commenter_ref}` + `>` quote wrapper **where the format has one** — timeline, review-body, and nit replies all require it; only the inline template has no wrapper, because the thread itself carries the link. See `references/reply-formats.md` for which is which.
 
 `consistency` items (from Step 6b) have no associated review thread — skip them in this step. Nothing to reply to.
 
 For inline `reply` comments: post a direct answer; do not resolve.
 
 For review body `reply` items: post the answer (no thread to resolve).
+
+For review-body and timeline `fix` items: after the commit (Step 10), post an acknowledgment reply per originating review or timeline comment, quoting each entry that reply covers. One grouped reply covering several entries from the same review is correct and preferred — the dedup matches per blockquote, so every quoted entry is linked. Copy each quoted line verbatim from a single line of the entry; a reflowed quote, or one joining an entry's prose to its code fence, matches nothing and leaves the entry to re-surface.
 
 For each `decline` comment: reply explaining why. Be direct and specific; offer an alternative if appropriate (e.g., "I'll file a follow-up issue for this").
 
