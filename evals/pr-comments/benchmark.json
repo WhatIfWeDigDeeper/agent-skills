@@ -2532,7 +2532,7 @@
           "evidence": "Step 6 classification for a comment stating 'this function has a potential null pointer dereference' identifies a clear actionable code-level request, which maps to `fix` (or possibly `reply` if clarification is needed), not `skip`."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": true,
           "evidence": "The review body comment reads 'Summary: overall the changes look reasonable but there is one correctness issue' \u2014 this is a bot PR summary comment with no direct actionable request, matching the Step 6 `skip` criterion for bot PR summaries."
         }
@@ -2576,7 +2576,7 @@
           "evidence": "Since the prompt explicitly labels the timeline comment as 'actionable feedback' about a null pointer dereference, a baseline assistant would recognize this as requiring action and not skip it."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": false,
           "evidence": "A baseline assistant has no structured classification rules for bot PR summary comments. It might attempt to act on the review body comment ('one correctness issue') rather than correctly classifying it as a non-actionable summary, since it lacks skill-defined rules distinguishing summary comments from actionable ones."
         }
@@ -2933,7 +2933,7 @@
           "evidence": "Timeline comment (id 301) classified as 'fix' in Step 6 \u2014 'null pointer dereference' is a specific, actionable correctness concern."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": true,
           "evidence": "Review body comment (id 201) 'Summary: overall the changes look reasonable but there is one correctness issue.' classified as 'skip' in Step 6 \u2014 bot-generated PR summary with no specific actionable request."
         }
@@ -6232,7 +6232,7 @@
           "evidence": "Step 6 Item B classification: 'Classification: `fix` (bot timeline comment, actionable null-check)'. Step 8 applies an edit to src/parser.ts and Step 10 commits the change."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": true,
           "evidence": "Step 6 Item A: 'Per Step 6 guidance: \"Most of these are non-actionable \u2014 classify them as skip... bot PR summaries (Copilot, Claude)\u2026\" Classification: `skip` (bot PR summary, non-actionable).'"
         }
@@ -6276,7 +6276,7 @@
           "evidence": "Step 4 classifies the timeline comment as 'Actionable. Needs investigation'. Steps 5-7 implement the null-guard fix, commit it, and push. Step 8 replies to the bot's comment."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": true,
           "evidence": "Step 4 plan table row 1: 'No concrete action requested \u2014 it's a meta-summary. I'll skip it.' Step 8 confirms: 'The review body summary doesn't really need a reply \u2014 it was a meta-summary, not an actionable comment.'"
         }

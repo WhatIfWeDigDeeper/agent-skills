@@ -177,6 +177,13 @@ observed.
 - No change to `CLAUDE.md` / `.github/copilot-instructions.md` — both surface
   facts are already recorded and mirrored there, so `instruction-sync` has
   nothing to enforce here.
-- No change to eval 24's `review-body-summary-skipped` assertion: it targets a
-  genuine summary body and stays correct. Eval 31 targets HTML comments, not
-  `<details>`, and is likewise untouched.
+- No re-run of eval 24. Its `review-body-summary-skipped` assertion targets a
+  genuine summary body and stays correct under the new prose — the body carries
+  no `**path:line**` entries, no `### N.` finding sections, and no code-level
+  request, so it satisfies the third structural summary predicate. Its
+  assertion *text* does get an in-place swap: the trailing rationale read
+  `(bot PR summary, non-actionable)`, which is exactly the vocabulary this
+  change deletes from SKILL.md, and `evals/CLAUDE.md` requires propagating
+  removed vocabulary into `evals.json` assertion text and the matching
+  `benchmark.json` expectation strings. Semantics are unchanged, so no new run
+  is needed. Eval 31 targets HTML comments, not `<details>`, and is untouched.

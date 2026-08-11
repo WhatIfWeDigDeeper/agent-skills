@@ -693,7 +693,7 @@ git commit -m "fix(pr-comments): trigger hidden-text screening on instructions, 
 - Modify: `evals/pr-comments/benchmark.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Add eval 42 — `suppressed-confidence-findings`**
+- [x] **Step 1: Add eval 42 — `suppressed-confidence-findings`**
 
 A Copilot review body whose headline reads `Copilot reviewed N out of N changed files in this pull request and generated no new comments.` with a 2-entry `Comments suppressed due to low confidence (2)` block, no inline comments, and a `Show a summary per file` block in the same body.
 
@@ -705,7 +705,7 @@ Assertions:
 - The `Show a summary per file` block produces no rows.
 - The `generated no new comments` headline does not appear as justification for skipping.
 
-- [ ] **Step 2: Add eval 43 — `bot-timeline-verdict-findings`**
+- [x] **Step 2: Add eval 43 — `bot-timeline-verdict-findings`**
 
 A `claude[bot]` `## Code review` timeline comment with three `### N. <title>` finding sections.
 
@@ -713,7 +713,14 @@ Assertions:
 - Each finding is planned as `fix` or `reply` — not `skip` as a "bot PR summary".
 - An acknowledgment reply is posted quoting each finding, so a second run classifies them `skip`.
 
-- [ ] **Step 3: Validate the JSON**
+- [x] **Step 3: Validate the JSON**
+
+Also propagate the vocabulary this PR removes: eval 24's `review-body-summary-skipped`
+assertion text ends `(bot PR summary, non-actionable)` — the exact rationale deleted from
+SKILL.md. Swap that trailing clause for the structural reason (no `**path:line**` entries, no
+`### N.` sections, no code-level request) in `evals.json` **and** in every matching
+`benchmark.json` expectation `text`. Semantics are unchanged, so no re-run — but leaving the
+old wording invites a future grader to score against a rule the skill no longer states.
 
 ```bash
 python3 -c 'import json; json.load(open("evals/pr-comments/evals.json"))'
