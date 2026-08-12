@@ -110,6 +110,7 @@ uv run --with pytest pytest tests/
 ## Git And PR Workflow
 
 - Never commit directly to `main`. Always create a feature branch and open a PR for review.
+- `git commit` with no pathspec commits the whole index, not just what you staged this turn. A file the user staged before the session is swept into your commit. Restrict the commit with `git commit -m ... -- <paths>` whenever `git status --porcelain` shows a staged path you did not stage.
 - Do not rewrite history on a PR that already has review comments. Avoid force-push, rebase, and `git commit --amend` on pushed commits.
 - **When a PR branch has merge conflicts and rebase is forbidden** (review comments exist), run `git fetch origin && git merge origin/main` — not rebase — to resolve them.
 - **The auto-mode classifier blocks branch deletion and force-push even when the user authorized them in conversation** (it needs a Bash permission rule). Don't retry via an alternate tool (e.g. `gh api -X DELETE` after `git push --delete` is denied) — surface it for the user to run via the `!` prefix.
