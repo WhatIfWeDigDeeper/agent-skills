@@ -1,5 +1,17 @@
 # Spec 55 — pr-comments: stop discarding bot review findings at Step 6
 
+> **Amendment (2026-08-12, during `/pr-comments` on PR #232).** Copilot renamed
+> the container on 2026-07-31: `Comments suppressed due to low confidence (N)`
+> became `Suppressed comments (N)`. This spec states the predicate against the
+> legacy string throughout, because that is what the original exploration on PR
+> #218 observed. **Both strings are recognized.** A predicate carrying only the
+> legacy one extracts nothing from any current Copilot review — verified against
+> PR #232's own review body, which returned 0 entries before the widening. Where
+> this spec quotes the legacy string as *the* container summary, read it as *a*
+> container summary. The fixture strings in the test and eval snippets keep the
+> legacy wording deliberately: it remains a recognized form, and rewriting eval
+> 42's fixture would invalidate its recorded with/without runs.
+
 ## Problem
 
 `/pr-comments` fetches review bodies (Step 2b) and PR timeline comments
@@ -80,8 +92,9 @@ Step 6, so extraction alone would relabel every suppressed finding `decline`
 while the plan table still *looked* right.
 
 The fix moves the trigger from *presence of a collapsed block* to *presence of
-hidden instructions*, and carves out the one recognized container by its exact
-`<summary>` string — `Comments suppressed due to low confidence (N)`. Never a
+hidden instructions*, and carves out the recognized containers by their exact
+`<summary>` strings — `Suppressed comments (N)` and, for older reviews,
+`Comments suppressed due to low confidence (N)`. Never a
 blanket `<details>` bypass: Copilot's own `Show a summary per file` block proves
 other collapsed content ships in the same body.
 

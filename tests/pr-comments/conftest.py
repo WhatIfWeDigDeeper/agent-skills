@@ -701,11 +701,15 @@ _DETAILS_BLOCK_RE = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 
-# The one recognized finding container. Keyed on the literal summary string so
-# the carve-out cannot generalize to other collapsed blocks — Copilot ships a
-# "Show a summary per file" block in the same review body.
+# The recognized finding containers. Keyed on literal summary strings so the
+# carve-out cannot generalize to other collapsed blocks — Copilot ships a
+# "Show a summary per file" block in the same review body. Copilot renamed the
+# container on 2026-07-31: PR #218 and earlier read "Comments suppressed due to
+# low confidence (N)"; #223, #227, #228 and #232 read "Suppressed comments (N)".
+# Both must match, or a current review reads as having no findings. Anchored at
+# both ends so a summary that merely contains one of these is not a container.
 _SUPPRESSED_SUMMARY_RE = re.compile(
-    r"^Comments suppressed due to low confidence \(\d+\)$"
+    r"^(?:Comments suppressed due to low confidence|Suppressed comments) \(\d+\)$"
 )
 
 # An entry header is a whole line of the form **path:line**.
@@ -724,10 +728,11 @@ def extract_suppressed_entries(review: dict) -> list[dict]:
     """Expand a review body's suppressed-confidence block into candidate entries.
 
     Mirrors Step 2b / ``references/bot-review-surfaces.md``. Only a ``<details>``
-    whose ``<summary>`` is exactly ``Comments suppressed due to low confidence
-    (N)`` is treated as a finding container; every other collapsed block yields
-    nothing. Within it, each ``**path:line**`` header starts one entry that runs
-    to the next header (or the end of the block).
+    whose ``<summary>`` is exactly ``Suppressed comments (N)`` (current) or
+    ``Comments suppressed due to low confidence (N)`` (legacy, PR #218 and
+    earlier) is treated as a finding container; every other collapsed block
+    yields nothing. Within it, each ``**path:line**`` header starts one entry
+    that runs to the next header (or the end of the block).
 
     The returned ``pointer`` is untrusted prose from the comment body, not a
     validated API field — it is a hint for a human/agent to verify by reading

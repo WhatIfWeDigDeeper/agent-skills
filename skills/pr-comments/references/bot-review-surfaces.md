@@ -2,18 +2,34 @@
 
 Two surfaces carry code-level findings that *look* like summaries, so they get
 discarded if you classify on author instead of content. A review body can hold
-findings inside a collapsed `Comments suppressed due to low confidence (N)`
-block with **no inline comment posted anywhere**, and a bot can post a full
-findings list as a PR timeline comment. Both are ordinary actionable feedback;
+findings inside a collapsed `Suppressed comments (N)` block with **no inline
+comment posted anywhere**, and a bot can post a full findings list as a PR
+timeline comment. Both are ordinary actionable feedback;
 the container is the only unusual thing about them.
 
 ## Suppressed-confidence extraction
 
-Detect a `<details>` block whose `<summary>` is exactly
-`Comments suppressed due to low confidence (N)` (any integer `N`). Split its
-contents on `**<path>:<line>**` bold headers. Each header, plus the prose
-bullets and optional code fence that follow it up to the next header or the
-closing `</details>`, is **one candidate entry**.
+Detect a `<details>` block whose `<summary>` is exactly one of these, for any
+integer `N`:
+
+| Summary | Seen |
+| --- | --- |
+| `Suppressed comments (N)` | current — PRs #223, #227, #228, #232 |
+| `Comments suppressed due to low confidence (N)` | legacy — PR #218 and earlier |
+
+Copilot renamed the container on 2026-07-31; the entry shape inside it did not
+change. Match both — a predicate carrying only the legacy string reads a current
+Copilot review as having no findings at all, silently. Both are matched whole
+(anchored at both ends), so `Suppressed comments` without a count, or a summary
+that merely *contains* one of these strings, is not a container.
+
+Expect this list to grow: Copilot has changed the wording once and may again. If
+a review body visibly carries `**path:line**` entries that extract to nothing,
+check the summary string before anything else.
+
+Split the recognized block's contents on `**<path>:<line>**` bold headers. Each
+header, plus the prose bullets and optional code fence that follow it up to the
+next header or the closing `</details>`, is **one candidate entry**.
 
 Anything inside the block that is not a `**path:line**` entry is not extracted.
 

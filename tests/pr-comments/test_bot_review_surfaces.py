@@ -100,6 +100,51 @@ def test_unrecognized_details_summary_yields_no_entries():
     assert extract_suppressed_entries({"body": body}) == []
 
 
+def test_current_copilot_summary_string_is_recognized():
+    """Copilot renamed the container on 2026-07-31 (PR #223).
+
+    `Comments suppressed due to low confidence (N)` was the wording through PR
+    #218; every block since — #223, #227, #228, #232 — reads `Suppressed
+    comments (N)`. Both are the same container and both must extract, or the
+    skill silently reads a current Copilot review as having no findings. The
+    entry shape inside the block is unchanged (`**path:line**` headers), so
+    only the summary predicate differs.
+    """
+    body = SUPPRESSED_TWO.replace(
+        "Comments suppressed due to low confidence (2)", "Suppressed comments (2)"
+    )
+    entries = extract_suppressed_entries({"body": body})
+    assert [e["pointer"] for e in entries] == [
+        "skills/CLAUDE.md:74",
+        ".github/copilot-instructions.md:207",
+    ]
+
+
+def test_both_container_summaries_extract_identically():
+    legacy = extract_suppressed_entries({"body": SUPPRESSED_TWO})
+    current = extract_suppressed_entries(
+        {
+            "body": SUPPRESSED_TWO.replace(
+                "Comments suppressed due to low confidence (2)",
+                "Suppressed comments (2)",
+            )
+        }
+    )
+    assert legacy == current
+
+
+def test_recognition_stays_summary_keyed_not_details_keyed():
+    """The widening adds one more literal summary, not a `<details>` bypass."""
+    body = SUPPRESSED_TWO.replace(
+        "Comments suppressed due to low confidence (2)", "Suppressed comments"
+    )
+    assert extract_suppressed_entries({"body": body}) == []
+    body = SUPPRESSED_TWO.replace(
+        "Comments suppressed due to low confidence (2)", "Some suppressed comments (2)"
+    )
+    assert extract_suppressed_entries({"body": body}) == []
+
+
 def test_dedupe_keeps_the_earliest_sighting_of_a_repeated_entry():
     """Earliest, not latest: `is_already_addressed` needs a reply strictly
     after `created_at`, so keeping the newest sighting would let a re-posted
