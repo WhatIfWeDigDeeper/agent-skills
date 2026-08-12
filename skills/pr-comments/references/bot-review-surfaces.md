@@ -51,16 +51,17 @@ marker; do not infer from the headline that there is nothing to read.
 ## Structural summary predicates
 
 A review body or timeline comment is non-actionable because of what it *is*, not
-who wrote it. These shapes are summaries:
+who wrote it. Two shapes are summaries:
 
 - A file-count headline with no findings.
 - A `Show a summary per file` changed-files table.
-- A body with no `**path:line**` entries, no `### N.` finding sections, and no
-  code-level request.
 
-The absence of a structural marker does **not** imply `skip`. A plain human
-request ("this should use the existing helper") carries no marker either and is
-fully actionable. The markers are positive evidence only.
+Both are **positive** evidence — something present in the body identifies it as
+a summary. Missing markers are not evidence of anything. A body carrying no
+`**path:line**` entries and no `### N.` finding sections is a summary only when
+its prose also makes no code-level request, and it is the prose that decides
+that, never the absent markers. A plain human request ("this should use the
+existing helper") carries no marker either and is fully actionable.
 
 ## `claude[bot]` timeline verdicts
 

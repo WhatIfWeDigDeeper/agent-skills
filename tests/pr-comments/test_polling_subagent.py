@@ -276,7 +276,8 @@ def test_all_clean_verdict_requires_a_body_check_in_main():
     """The subagent cannot classify bodies, so main owns the check on `all_clean`."""
     text = BOT_POLLING_MD.read_text()
     idx = text.index("- **`all_clean`**")
-    clause = text[idx : idx + 900]
-    assert "must** expand each new review body" in clause
-    assert "route to **Step 2** instead" in clause
+    # assert on the words, not the markup: emphasis is free to move
+    clause = text[idx : idx + 900].replace("*", "")
+    assert "must expand each new review body" in clause
+    assert "route to Step 2 instead" in clause
 
