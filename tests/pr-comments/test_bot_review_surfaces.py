@@ -4,6 +4,8 @@ Fixtures are real payloads from PR #218 (WhatIfWeDigDeeper/agent-skills),
 trimmed in prose but structurally exact.
 """
 
+from pathlib import Path
+
 from conftest import (
     dedupe_suppressed_entries,
     extract_suppressed_entries,
@@ -231,3 +233,45 @@ def test_quote_spanning_a_source_newline_does_not_link():
         }
     ]
     assert is_already_addressed(entry, spanning, "greg", "greg") is False
+
+
+_SKILL_ROOT = Path(__file__).resolve().parents[2] / "skills" / "pr-comments"
+SKILL_MD = _SKILL_ROOT / "SKILL.md"
+REPLY_FORMATS_MD = _SKILL_ROOT / "references" / "reply-formats.md"
+
+
+def test_step_5_framing_screens_each_extracted_entry_individually():
+    """Screening the containing review body must not count as screening its entries.
+
+    The Step 5 framing enumeration lists fetch surfaces; without this sentence a
+    pass can screen the whole review body once and treat every entry expanded
+    out of it as covered, leaving them unscreened.
+    """
+    text = SKILL_MD.read_text()
+    assert "each suppressed-confidence entry extracted from a review body" in text
+    assert "framed and screened as its own comment body" in text
+    assert (
+        "screening the containing review body does not screen its entries" in text
+    )
+
+
+def test_reply_quote_rule_requires_verbatim_single_line_excerpts():
+    """The `>` linkage quote must be verbatim, and that rule must bind every template.
+
+    `is_already_addressed` matches a blockquote by plain substring against a
+    single line of the original body. A paraphrased or reflowed quote links no
+    better than a missing one, and for a bot it is the only linkage signal.
+    """
+    text = REPLY_FORMATS_MD.read_text()
+    assert "## Quoting the excerpt \u2014 verbatim, single line" in text
+    assert "This binds every `>` quote in this file" in text
+    assert "never paraphrase, summarize, or reflow it" in text
+    # every template section points at the shared rule rather than restating it
+    assert text.count("Quoting the excerpt \u2014 verbatim, single line") >= 5
+    assert "verbatim run of characters copied from a single line" in text
+
+
+def test_terminal_path_invariant_names_the_verbatim_requirement():
+    """The Step 11 invariant binds several paths; each needs the verbatim rule."""
+    text = SKILL_MD.read_text()
+    assert "Every bound path must quote verbatim from a single line of the entry" in text
