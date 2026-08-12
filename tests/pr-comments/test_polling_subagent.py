@@ -257,3 +257,26 @@ class TestReferenceProse:
         assert "Tier 0" in cap
         # Tier 0 must be introduced above Tier 1.
         assert cap.index("Tier 0") < cap.index("**Tier 1**")
+
+
+def test_signal_2_exit_requires_reading_the_review_bodies():
+    """A Signal-2 exit must expand review bodies before proceeding to Step 14.
+
+    "No inline comments" is not "nothing to say": on PR #232 the Signal-2 review
+    carried a `Suppressed comments (5)` block and a blind exit would have dropped
+    all five findings — issue #220 reproduced inside the polling loop.
+    """
+    text = BOT_POLLING_MD.read_text()
+    assert "Read each new review body before exiting" in text
+    assert "reproduces issue #220 inside the polling loop" in text
+    assert "references/bot-review-surfaces.md" in text
+
+
+def test_all_clean_verdict_requires_a_body_check_in_main():
+    """The subagent cannot classify bodies, so main owns the check on `all_clean`."""
+    text = BOT_POLLING_MD.read_text()
+    idx = text.index("- **`all_clean`**")
+    clause = text[idx : idx + 900]
+    assert "must** expand each new review body" in clause
+    assert "route to **Step 2** instead" in clause
+

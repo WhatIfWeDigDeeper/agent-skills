@@ -24,7 +24,7 @@
         "analyzer_model": "claude-sonnet-5",
         "timestamp": "2026-07-13T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "Evals 41 (bot-credit-no-at-mention), 42 (suppressed-confidence-findings) and 43 (bot-timeline-verdict-findings) only. Eval 41 was run at v1.51 for spec 52 on 2026-07-13; evals 42-43 at v1.52 for spec 55 on 2026-08-11. This is a single-eval track, NOT a full-suite run: the retired claude-sonnet-4-6 and claude-opus-4-7 executors can no longer be pinned, so new evals cannot be appended to either existing track. N=3 per configuration; this track's pass-rate delta is not comparable to the two full-suite deltas and is excluded from the top-level run_summary and from both full-suite by-model blocks."
+        "notes": "Evals 41 (bot-credit-no-at-mention), 42 (suppressed-confidence-findings) and 43 (bot-timeline-verdict-findings) only. Eval 41 was run at v1.51 for spec 52 on 2026-07-13; evals 42-43 at v1.52 for spec 55 on 2026-08-11. This is a three-eval non-suite track, NOT a full-suite run: the retired claude-sonnet-4-6 and claude-opus-4-7 executors can no longer be pinned, so new evals cannot be appended to either existing track. N=3 per configuration; this track's pass-rate delta is not comparable to the two full-suite deltas and is excluded from the top-level run_summary and from both full-suite by-model blocks."
       }
     ],
     "timestamp": "2026-04-24T00:00:00Z",
@@ -83,8 +83,8 @@
       24
     ],
     "skill_version": "1.52",
-    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check); evals 39-40 (nits-only gate) run on Sonnet 4.6 only under v1.48 on 2026-06-27 (spec 47); eval 41 (bot-credit-no-at-mention) run on Sonnet 5 only under v1.51 on 2026-07-13 (spec 52) \u2014 a single-eval track, not a suite run: the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned by then, so eval 41 is excluded from both full-suite tracks and from the top-level run_summary",
-    "last_updated": "2026-08-11"
+    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check); evals 39-40 (nits-only gate) run on Sonnet 4.6 only under v1.48 on 2026-06-27 (spec 47); eval 41 (bot-credit-no-at-mention) run on Sonnet 5 only under v1.51 on 2026-07-13 (spec 52) \u2014 opening a non-suite track, not a suite run: the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned by then, so eval 41 is excluded from both full-suite tracks and from the top-level run_summary; evals 42-43 (suppressed-confidence-findings, bot-timeline-verdict-findings) run on Sonnet 5 only under v1.52 on 2026-08-11 (spec 55), joining eval 41 in that same non-suite track - that track is therefore three evals, not one. Runs in this file span v1.21 through v1.52; metadata.skill_version records the current version, not one shared by every run",
+    "last_updated": "2026-08-11T00:00:00Z"
   },
   "runs": [
     {

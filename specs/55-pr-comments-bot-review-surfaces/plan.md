@@ -180,7 +180,7 @@ observed.
 | `skills/pr-comments/references/nit-gate.md` | Rewrite the review-body bullet under "Thread state on skip/issue"; add the `fix`-outcome case. |
 | `tests/pr-comments/conftest.py` | `extract_suppressed_entries`, `dedupe_suppressed_entries`, `is_actionable_review_body`, `is_bot_summary_body`. |
 | `tests/pr-comments/test_bot_review_surfaces.py` | **New.** Real #218 payloads as fixtures. |
-| `evals/pr-comments/{evals.json,benchmark.json,benchmark.md}` | Evals 42 and 43, Sonnet 5 single-eval track. |
+| `evals/pr-comments/{evals.json,benchmark.json,benchmark.md}` | Evals 42 and 43, appended to the Sonnet 5 non-suite track (making it evals 41-43). |
 | `evals/security/pr-comments.baseline.json` | Refreshed in the same PR — ingestion and screening both change. |
 
 ## Out of scope

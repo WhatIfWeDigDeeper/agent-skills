@@ -203,7 +203,14 @@ If new thread IDs appear relative to the snapshot, the bot posted review comment
 gh api repos/{owner}/{repo}/pulls/{pr_number}/reviews --paginate \
   | jq -s --arg ts "$snapshot_timestamp" '[.[] | .[] | select(.user.login == "<bot_login>" and (.submitted_at | type == "string") and .submitted_at >= $ts)]'
 ```
-Evaluate Signal 2 **per bot**: track which bots have submitted a new review since `snapshot_timestamp`. If all polled bots have a new review with `submitted_at` at or after `snapshot_timestamp` but neither Signal 1 (new threads) nor Signal 3 (new timeline comment) has fired, all bots reviewed without inline comments (e.g., approved or left only review-body summaries). Exit the poll cleanly, note it in the report, and proceed to Step 14. If only some bots have responded, continue polling for the remaining ones.
+Evaluate Signal 2 **per bot**: track which bots have submitted a new review since `snapshot_timestamp`. If only some bots have responded, continue polling for the remaining ones.
+
+When all polled bots have a new review at or after `snapshot_timestamp` but neither Signal 1 (new threads) nor Signal 3 (new timeline comment) has fired, they reviewed **without inline comments** — which is not the same as reviewing with nothing to say. **Read each new review body before exiting.** Expand it per `references/bot-review-surfaces.md`: a `Suppressed comments (N)` block carries findings with no inline comment posted anywhere, and that is the single most common shape this signal fires on.
+
+- **Body yields entries, or is otherwise actionable** → **loop back to Step 2**, exactly as Signal 1 does. Do not exit.
+- **Every new body is a structural summary** (a bare approval, a file-count headline, a changed-files table) → exit the poll cleanly, note it in the report, and proceed to Step 14.
+
+Exiting on Signal 2 without reading the bodies reproduces issue #220 inside the polling loop: the findings were fetched and then discarded unread. Observed live on PR #232 — the Signal 2 review carried a `Suppressed comments (5)` block, and a blind exit would have dropped all five.
 
 **Signal 3 — New timeline comment from a polled bot:**
 
@@ -357,7 +364,7 @@ Return **only** this raw JSON object — no surrounding prose, explanation, or M
 ### Outcome → main's next action
 
 - **`new_threads`** (Signal 1 or Signal 3 fired) → loop back to **Step 2** and run the full **On new threads detected** behavior above: re-fetch **all** comment surfaces (not only the threads named in `new_unresolved_thread_ids` — that field is an observability hint and is empty when only Signal 3 fired), then re-screen and reprocess from scratch.
-- **`all_clean`** (every polled bot has a Signal-2 review since `snapshot_timestamp` and **Signal 1 and Signal 3 never fired**) → proceed to **Step 14** with a clean-exit note. Signal 3 is an exclusion here for the same reason Signal 1 is: a mid-poll timeline comment is new bot activity that must route to `new_threads`, so a poll in which it fired can never resolve to `all_clean`.
+- **`all_clean`** (every polled bot has a Signal-2 review since `snapshot_timestamp` and **Signal 1 and Signal 3 never fired**) → this means no *inline* activity, not an empty review. Before treating it as clean, main **must** expand each new review body per `references/bot-review-surfaces.md` — the subagent cannot do this, because the VERDICT carries only signal metadata and all untrusted-content classification stays in main. If any body yields entries or is otherwise actionable, route to **Step 2** instead; only when every new body is a structural summary does main proceed to **Step 14** with a clean-exit note. See the Signal 2 exit condition above for the same rule on the inline loop. Signal 3 is an exclusion here for the same reason Signal 1 is: a mid-poll timeline comment is new bot activity that must route to `new_threads`, so a poll in which it fired can never resolve to `all_clean`.
 - **`timeout`** (10-minute cap reached before every bot reported — `bots_pending` is non-empty; some bots may have posted Signal-2 reviews, so `signal_fired` reflects the last actionable signal or `none`) → proceed to **Step 14** and emit the "re-invoke when ready" message.
 
 The no-Tier-0 case is **not** a verdict outcome — it is decided in the **Runtime capability check** before any subagent is spawned (main runs the inline Tier 1/2/3 loop instead).

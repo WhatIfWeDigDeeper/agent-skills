@@ -744,7 +744,7 @@ python3 -c 'import json; json.load(open("evals/pr-comments/evals.json"))'
 
 - [x] **Step 4: Run both evals on Sonnet 5**
 
-Follow `evals/CLAUDE.md`. Run 42 and 43 as a **Sonnet 5 single-eval track**, the same treatment eval 41 already has — the Sonnet 4.6 and Opus 4.7 executors are retired and cannot be pinned, so these are excluded from both full-suite deltas.
+Follow `evals/CLAUDE.md`. Run 42 and 43 on the **Sonnet 5 non-suite track**, the same treatment eval 41 already has -- which makes that track three evals, not one — the Sonnet 4.6 and Opus 4.7 executors are retired and cannot be pinned, so these are excluded from both full-suite deltas.
 
 **Eval 42 was run twice.** The first fixture's entry 1 claimed `if (opts.retries > 0)` skips the
 retry on the default path and proposed `(opts.retries ?? 0) > 0` — but both guards evaluate
@@ -760,7 +760,7 @@ in `benchmark.md` as observed confirmation that Step 6d now fires routinely.
 
 - `benchmark.json`: append run entries; update `metadata.evals_run` and `metadata.skill_version` to `"1.52"`; extend the Sonnet 5 `models_tested` note to cover 42 and 43. Rewrite with `json.dump(..., indent=2)` and the default `ensure_ascii=True` — `benchmark.json` stores `—` as `—` and `ensure_ascii=False` explodes the diff. Validate after: `python3 -c 'import json; json.load(open("evals/pr-comments/benchmark.json"))'`.
 - `benchmark.md`: update the Summary table from the `benchmark.json` run entries, not from the existing prose.
-- `README.md`: **only** the Skill Notes bullet gains the 42/43 mention. The `Eval Δ` percentages **must not move** — a single-eval track is excluded from both suite deltas by the eval 41 precedent. (`evals/CLAUDE.md`'s "immediately update the Eval Δ column" rule reads as universal and pulls the wrong way here.)
+- `README.md`: **only** the Skill Notes bullet gains the 42/43 mention. The `Eval Δ` percentages **must not move** — a non-suite track is excluded from both suite deltas by the eval 41 precedent. (`evals/CLAUDE.md`'s "immediately update the Eval Δ column" rule reads as universal and pulls the wrong way here.)
 
 - [x] **Step 6: Commit**
 
