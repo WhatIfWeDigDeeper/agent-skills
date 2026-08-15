@@ -19,6 +19,8 @@ words:
   - blockquotes
   - blockquoting
   - bunx
+  - checkmark
+  - checkmarks
   - cmdline
   - codegen
   - codemod
@@ -53,6 +55,7 @@ words:
   - findall
   - finditer
   - frontmatter
+  - fullmatch
   - fullwidth
   - gapless
   - geminicli
@@ -61,17 +64,23 @@ words:
   - goroutines
   - gradings
   - hardlink
+  - hashlib
   - healthz
   - heredocs
+  - hexdigest
   - homoglyphs
   - idempotently
   - IGNORECASE
+  - imgs
   - informationally
   - inspectable
   - isdigit
   - isoformat
+  - jsonencode
+  - keepends
   - lockfiles
   - lookarounds
+  - lstrip
   - metacharacter
   - metacharacters
   - metaprogramming
@@ -90,6 +99,7 @@ words:
   - oneline
   - opusplan
   - osascript
+  - papercut
   - parameterizes
   - parentheticals
   - parseable
@@ -113,14 +123,17 @@ words:
   - PYSEC
   - pytest
   - REAUDIT
+  - reimplementation
   - reinvocation
   - repoll
   - repolls
+  - repost
   - rerequest
   - rescan
   - rewordings
   - rglob
   - rootdir
+  - rstrip
   - runbooks
   - sandboxed
   - SIGPIPE
@@ -134,6 +147,7 @@ words:
   - stddev
   - stddevs
   - stdev
+  - stdlib
   - submodel
   - subsetted
   - subshell
@@ -151,6 +165,7 @@ words:
   - unmatch
   - unprobed
   - unredacted
+  - unreviewed
   - unrun
   - unsoftenable
   - untrusted_diff

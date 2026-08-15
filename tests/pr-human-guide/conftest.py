@@ -47,6 +47,10 @@ def has_existing_guide(body: str) -> bool:
     return _select_guide_bounds(body) is not None
 
 
+# Checked-state preservation is deliberately NOT mirrored here. This module's
+# copy of the block-selection logic has already drifted from the shipped helper
+# (see the docstring in test_marker_helper.py); preservation is tested against
+# skills/pr-human-guide/references/marker-helper.py directly instead.
 def _select_guide_bounds(body: str) -> tuple[int, int] | None:
     """Return replacement bounds for the last complete guide block."""
     opening_positions = [match.start() for match in re.finditer(re.escape(OPENING_MARKER), body)]

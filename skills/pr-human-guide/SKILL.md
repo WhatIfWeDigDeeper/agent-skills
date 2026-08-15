@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq, python3; sha256sum (Linux) or shasum (macOS
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.15"
+  version: "0.16"
 ---
 
 # PR Human Guide
@@ -58,6 +58,17 @@ Mitigations in place:
   `gh pr edit --body-file` posts the result; a Step 5 guard aborts if a corrupted
   `<\!-- pr-human-guide` marker reaches the output. Temp paths come from `mktemp`
   or the temp dir (Step 5).
+- **Checked-state preservation is content-keyed and body-independent** — on re-run
+  the helper reads the previous canonical block only, extracts identity hashes
+  matching `^[0-9a-f]{16}$` from `- [x]` lines (capped at 500), and carries across a
+  single boolean per hash; no text from the untrusted body reaches the new guide.
+  Hashes are recomputed by the helper from the `gh pr diff` output, never read from
+  the body, so a forged identity cannot make a check survive a content change. The
+  helper also unchecks every box in the rendered guide before applying preservation,
+  so an id match against the previous block is the only way an item comes out
+  checked — a `- [x]` that reached the guide by any other route does not survive.
+  Preservation grants no capability a body editor lacks — anyone able to edit the
+  PR body can already type `- [x]` (Step 5).
 
 Residual risks: Snyk Agent Scan's `W011` fires on the presence of
 `gh pr view` / `gh pr diff` regardless of mitigations. The finding is pinned in
@@ -93,7 +104,9 @@ number, so Steps 2 and 5 receive a real PR ref instead of an empty `""`.
 
 **You must now execute the "Gather the diff" section of
 [`references/commands.md`](references/commands.md)** to run `gh pr diff` and
-capture the full diff and the changed-file list separately.
+capture the full diff and the changed-file list separately. The section also
+saves the diff to a temp file that Step 5 hands to `marker-helper.py` for
+checked-state preservation.
 
 ### 3. Analyze changes by category
 
@@ -155,7 +168,12 @@ with-items / no-items templates. Wrap the guide in the `<!-- pr-human-guide -->`
 / `<!-- /pr-human-guide -->` marker pair so `marker-helper.py` (Step 5) can
 replace it idempotently. Omit any category with no flagged items; if no category
 produced any item, emit the bounded "no areas" body so a future re-run still has
-an anchor.
+an anchor. Emit the per-item `<!-- pr-human-guide:item … -->` placeholder that
+`output-format.md` specifies on every entry — restate the path and line range,
+never a hash; Step 5 resolves it. Range the entry on exactly the changed lines,
+and render the block fresh from the current diff on every run rather than
+re-posting the previous one from the PR body — both are what let a reviewer's
+checkmark survive.
 
 ### 5. Append or replace the review guide in the PR description
 
@@ -166,7 +184,9 @@ the guide into the PR body" section of
 block to a temp file with your file-writing tool (never a double-quoted shell
 variable, which interactive zsh corrupts `<!--` → `<\!--`), runs
 `marker-helper.py`, guards against empty/corrupted output, and posts via
-`gh pr edit --body-file`. Do not pass the body via `--body "$VAR"`.
+`gh pr edit --body-file`. Do not pass the body via `--body "$VAR"`. The helper
+also resolves each item placeholder to a content hash and restores any box a
+reviewer had checked whose anchored content is unchanged.
 
 See [`references/marker-helper.py`](references/marker-helper.py) for
 selection-bounds and stray-marker handling (a smuggled fake marker cannot
@@ -183,4 +203,9 @@ MANDATORY — output the PR URL (`$pr_url`, captured in Step 1) as the last line
 
 ## Notes
 
-- **Idempotency**: Any `- [x]` items checked by reviewers are reset to `- [ ]` on re-run — checked state is not preserved.
+- **Idempotency**: Re-runs replace the whole `<!-- pr-human-guide -->` block, and
+  content outside it is preserved verbatim. A `- [x]` a reviewer checked is carried
+  across only when that item's anchored diff content is byte-identical to the
+  previous run — line numbers may shift, the content may not. Everything else
+  resets to `- [ ]`: an item whose code changed, an item whose identity could not
+  be recomputed, and every item in a block written before v0.16.

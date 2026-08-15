@@ -2,7 +2,7 @@
   "metadata": {
     "skill_name": "pr-human-guide",
     "skill_path": "skills/pr-human-guide",
-    "skill_version": "0.7",
+    "skill_version": "0.16",
     "executor_model": "claude-opus-4-7",
     "analyzer_model": "claude-sonnet-4-6",
     "models_tested": [
@@ -28,7 +28,7 @@
         "skill_version": "0.13",
         "timestamp": "2026-06-28T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "Spec 48 coverage addition: 4 new evals (9-12) x 2 configurations = 8 runs on SKILL.md v0.13, all run_number == 1. This is a partial set covering the two impact-risk Novel Patterns signals deferred by spec 40 (sweeping cross-cutting refactor, high-fanout core helper edit), a negative rename guardrail, and the previously-unmeasured Selectivity Threshold. Run only on claude-opus-4-8 by design (the historical evals 1-8 v0.7 Sonnet/Opus rows are left unchanged). Grading was performed inline by the controller (claude-opus-4-8) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors are extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). top-level metadata.skill_version stays '0.7' per the existing convention that it reflects the version of the recorded full-suite runs; this partial set is version-noted here and in benchmark.md."
+        "notes": "Spec 48 coverage addition: 4 new evals (9-12) x 2 configurations = 8 runs on SKILL.md v0.13, all run_number == 1. This is a partial set covering the two impact-risk Novel Patterns signals deferred by spec 40 (sweeping cross-cutting refactor, high-fanout core helper edit), a negative rename guardrail, and the previously-unmeasured Selectivity Threshold. Run only on claude-opus-4-8 by design (the historical evals 1-8 v0.7 Sonnet/Opus rows are left unchanged). Grading was performed inline by the controller (claude-opus-4-8) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors are extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). top-level metadata.skill_version stayed '0.7' when this set was recorded, per the then-current convention that it reflects the version of the recorded full-suite runs; spec 56 advanced it to '0.16' per the written rule in evals/CLAUDE.md. This partial set is version-noted here and in benchmark.md, which is where its version is authoritative."
       },
       {
         "executor_model": "claude-opus-4-8",
@@ -36,7 +36,15 @@
         "skill_version": "0.14",
         "timestamp": "2026-07-04T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "Spec 50 coverage addition: 2 new evals (13-14) x 2 configurations = 4 runs on SKILL.md v0.14, all run_number == 1. Covers both branches of the refined Selectivity Threshold documentation exemption: eval 13 (positive) is a skills/**/references/*.md edit introducing a trust boundary that must now be flagged rather than exempted as documentation; eval 14 (negative) is a pure wording tweak to a SKILL.md plus a specs/** doc and a cspell wordlist entry that must stay exempt. Run only on claude-opus-4-8, folding into the run_summary_by_model['claude-opus-4-8'] set (now evals 9-14). Grading performed inline by the controller (claude-opus-4-8) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). On opus-4-8 the eval-13 'flags-the-boundary' assertion did not discriminate (the without_skill baseline also flagged the boundary); eval 13 discriminates on 'uses-html-markers' and 'includes-diff-link', and eval 14 discriminates on all three assertions. top-level metadata.skill_version stays '0.7' per the existing convention that it reflects the version of the recorded full-suite runs; this partial set is version-noted here and in benchmark.md."
+        "notes": "Spec 50 coverage addition: 2 new evals (13-14) x 2 configurations = 4 runs on SKILL.md v0.14, all run_number == 1. Covers both branches of the refined Selectivity Threshold documentation exemption: eval 13 (positive) is a skills/**/references/*.md edit introducing a trust boundary that must now be flagged rather than exempted as documentation; eval 14 (negative) is a pure wording tweak to a SKILL.md plus a specs/** doc and a cspell wordlist entry that must stay exempt. Run only on claude-opus-4-8, folding into the run_summary_by_model['claude-opus-4-8'] set (now evals 9-14). Grading performed inline by the controller (claude-opus-4-8) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). On opus-4-8 the eval-13 'flags-the-boundary' assertion did not discriminate (the without_skill baseline also flagged the boundary); eval 13 discriminates on 'uses-html-markers' and 'includes-diff-link', and eval 14 discriminates on all three assertions. top-level metadata.skill_version stayed '0.7' when this set was recorded, per the then-current convention that it reflects the version of the recorded full-suite runs; spec 56 advanced it to '0.16' per the written rule in evals/CLAUDE.md. This partial set is version-noted here and in benchmark.md, which is where its version is authoritative."
+      },
+      {
+        "executor_model": "claude-opus-5",
+        "analyzer_model": "claude-opus-5",
+        "skill_version": "0.16",
+        "timestamp": "2026-08-15T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "Spec 56 checked-state preservation: 1 new eval (15) x 2 configurations = 2 runs on SKILL.md v0.16, all run_number == 1. Run only on claude-opus-5, in its own run_summary_by_model bucket; the historical Sonnet 4.6 / Opus 4.7 / Opus 4.8 rows are left unchanged, as is the top-level run_summary (the Opus 4.7 full suite). Grading performed inline by the controller (claude-opus-5) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). Because this bucket holds a single eval per configuration, its stddev values are 0.0 by construction and carry no information. Unlike the earlier partial sets, metadata.skill_version is advanced to 0.16: evals/CLAUDE.md requires it when adding runs and names this file's prior '0.7' as known drift rather than a convention to copy. Two earlier attempts at this eval were discarded before recording \u2014 the first narrated the answer in the prompt, the second anchored its reset case on a documentation file the Selectivity Threshold correctly never flags. A third with_skill attempt was discarded after the executor's recursive grep across evals/ returned eval 15's expected_output; the re-run added an explicit read fence and is the one recorded here. The without_skill run was verified uncontaminated by the same check."
       }
     ],
     "timestamp": "2026-04-28T00:00:00Z",
@@ -54,7 +62,8 @@
       11,
       12,
       13,
-      14
+      14,
+      15
     ],
     "runs_per_configuration": 1
   },
@@ -1897,6 +1906,78 @@
         }
       ],
       "notes": "Baseline over-flagged the cspell entry - exactly the over-flagging the negative eval guards against. Discriminates on all three assertions."
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "preserves-checked-unchanged-items",
+      "executor_model": "claude-opus-5",
+      "analyzer_model": "claude-opus-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 311.28,
+        "tokens": 13650,
+        "cache_tokens": 3704428,
+        "tool_calls": 32,
+        "errors": 3
+      },
+      "expectations": [
+        {
+          "text": "In the refreshed PR description, the src/auth/middleware.ts entry is still checked ('- [x]') even though its line numbers shifted",
+          "passed": true,
+          "evidence": "Turn 2 rendered '- [x] [`src/auth/middleware.ts` (L61-62)] ... <!-- pr-human-guide:id d1edb1ec63e7a848 -->'. The identity is byte-identical to turn 1's, where the same entry sat at L41-42, so the helper carried the reviewer's check across the 19-line license header that shifted the range."
+        },
+        {
+          "text": "In the refreshed PR description, the deploy/terraform/iam.tf entry is unchecked ('- [ ]') even though the reviewer had ticked it, because its content was rewritten",
+          "passed": true,
+          "evidence": "Turn 2 rendered '- [ ] [`deploy/terraform/iam.tf` (L13-13)] ... <!-- pr-human-guide:id 6298faeab8494d27 -->' against turn 1's fbfeeb0fd315a433. Same path, same hunk header, same changed line number; only the line's content differs (s3:DeleteObject added), so the identity changed and the item reset. The enclosing '### Config / Infrastructure' heading is identical in both turns, so the reset is attributable to content, not heading drift."
+        },
+        {
+          "text": "The refreshed PR description contains no literal 'pr-human-guide:item' placeholder text",
+          "passed": true,
+          "evidence": "Both posted bodies contain only resolved '<!-- pr-human-guide:id HASH -->' comments; no ':item' placeholder survived Step 5."
+        }
+      ]
+    },
+    {
+      "eval_id": 15,
+      "eval_name": "preserves-checked-unchanged-items",
+      "executor_model": "claude-opus-5",
+      "analyzer_model": "claude-opus-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": 197.5,
+        "tokens": 10305,
+        "cache_tokens": 979588,
+        "tool_calls": 7,
+        "errors": 2
+      },
+      "expectations": [
+        {
+          "text": "In the refreshed PR description, the src/auth/middleware.ts entry is still checked ('- [x]') even though its line numbers shifted",
+          "passed": true,
+          "evidence": "Turn 2 carried '- [x] **`verify(token, SECRET)` discards its return value ...**' under '### Security \u2014 `src/auth/middleware.ts`'. Passed, but not via content-keyed identity: turn 1 used plain bullets with no checkboxes at all, so the baseline converted the guide to a checklist in turn 2 and re-ticked from its own reading of which prose items were still open."
+        },
+        {
+          "text": "In the refreshed PR description, the deploy/terraform/iam.tf entry is unchecked ('- [ ]') even though the reviewer had ticked it, because its content was rewritten",
+          "passed": false,
+          "evidence": "Turn 2 left the iam.tf entry ticked: '- [x] **The `Resource` field still isn't in the diff.**' under '### Config / infrastructure \u2014 `deploy/terraform/iam.tf`', reasoning in prose that 'Ticked items are left ticked \u2014 the new commits did not change what they ask.' The policy line had in fact been rewritten to add s3:DeleteObject. This is the misleading failure the feature exists to prevent: a stale check on content that changed."
+        },
+        {
+          "text": "The refreshed PR description contains no literal 'pr-human-guide:item' placeholder text",
+          "passed": true,
+          "evidence": "Baseline invented its own '<!-- review-guide:start -->' / '<!-- review-guide:end -->' markers and never emitted the skill's placeholder syntax, so the assertion passes vacuously \u2014 it cannot leak a placeholder it never renders."
+        }
+      ]
     }
   ],
   "run_summary_by_model": {
@@ -2078,6 +2159,66 @@
         "time_seconds": "+16.9",
         "tokens": "+22641",
         "cache_tokens": "+303644"
+      }
+    },
+    "claude-opus-5": {
+      "with_skill": {
+        "pass_rate": {
+          "mean": 1.0,
+          "stddev": 0.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "time_seconds": {
+          "mean": 311.28,
+          "stddev": 0.0,
+          "min": 311.28,
+          "max": 311.28
+        },
+        "tokens": {
+          "mean": 13650,
+          "stddev": 0.0,
+          "min": 13650,
+          "max": 13650
+        },
+        "cache_tokens": {
+          "mean": 3704428,
+          "stddev": 0.0,
+          "min": 3704428,
+          "max": 3704428
+        }
+      },
+      "without_skill": {
+        "pass_rate": {
+          "mean": 0.6667,
+          "stddev": 0.0,
+          "min": 0.6667,
+          "max": 0.6667
+        },
+        "time_seconds": {
+          "mean": 197.5,
+          "stddev": 0.0,
+          "min": 197.5,
+          "max": 197.5
+        },
+        "tokens": {
+          "mean": 10305,
+          "stddev": 0.0,
+          "min": 10305,
+          "max": 10305
+        },
+        "cache_tokens": {
+          "mean": 979588,
+          "stddev": 0.0,
+          "min": 979588,
+          "max": 979588
+        }
+      },
+      "delta": {
+        "pass_rate": "+0.33",
+        "time_seconds": "+113.8",
+        "tokens": "+3345",
+        "cache_tokens": "+2724840"
       }
     }
   },

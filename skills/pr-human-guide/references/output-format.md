@@ -21,10 +21,52 @@ LINK="https://github.com/${OWNER}/${REPO_NAME}/pull/${pr_number}/files#diff-${AN
 Format each entry as:
 
 ```
-- [ ] [`path/to/file` (L{start}-{end})](link) — one-line reason
+- [ ] [`path/to/file` (L{start}-{end})](link) — one-line reason <!-- pr-human-guide:item lines={start}-{end} path=path/to/file -->
 ```
 
-Omit the line range if changes are spread across the whole file.
+Omit the line range if changes are spread across the whole file — from the label
+**and** from the placeholder (`<!-- pr-human-guide:item path=path/to/file -->`).
+
+`{start}` and `{end}` are new-side line numbers and must span **exactly the
+changed lines** the entry covers — the `+` lines, plus any `-` lines falling
+between them — never the surrounding context lines and never the whole `@@`
+hunk. Step 5 hashes the diff lines this range selects, so a range that includes
+a context line on one run but not the next yields two different identities and
+silently drops a reviewer's checkmark. When an entry covers several changed
+regions in one file, use the first changed line as `{start}` and the last as
+`{end}`.
+
+### Per-item identity comment
+
+The trailing `pr-human-guide:item` comment is a placeholder. Emit it on every
+item; restate the same `path` and line range you used in the label, unquoted and
+without whitespace inside a value. Do **not** compute a hash and do **not** write
+a `pr-human-guide:id` comment — Step 5's `marker-helper.py` replaces each
+placeholder with `<!-- pr-human-guide:id HASH -->`, where the hash is derived from
+the anchored diff content, and uses it to restore any box a reviewer had checked
+whose content is unchanged. A placeholder it cannot resolve is removed and that
+item renders unchecked, so a wrong `path=` costs a reviewer's checkmark but
+corrupts nothing.
+
+The identity also folds in the item's enclosing category heading, which the
+helper reads from the `###` line specifically. A deeper `####` subheading
+between a category and its items is ignored and leaves every identity unchanged.
+Moving a category heading off level 3 is the foot-gun: the helper stops
+recognizing it, so the items below it inherit whichever `###` heading came
+before — or none at all — which changes every identity under that category and
+silently resets those checkmarks. Keep category headings at exactly level 3.
+
+**Render the block fresh on every run, re-runs included.** Build each entry from
+the current diff and emit the `:item` placeholder again. Never copy the previous
+block out of the PR body, and never write a `:id` comment yourself — a re-posted
+block drops the placeholders the next run needs, so every identity becomes
+unknowable and every check resets. Preservation is Step 5's job; reproducing it
+by hand defeats it. Rendered `- [x]` marks are not a shortcut either: Step 5
+unchecks every box it receives before applying preservation, so a check survives
+only by matching an identity in the previous block.
+
+This is unrelated to the `#diff-{ANCHOR}` fragment above: that anchor hashes the
+file *path* (GitHub's own scheme) and never changes when the file's content does.
 
 ## With flagged items
 
@@ -47,13 +89,13 @@ Keep both in sync if you change this template.
 > This is not a complete review checklist — it highlights where your attention matters most.
 
 ### Security
-- [ ] [`src/auth/middleware.ts` (L42-67)](link) — New token validation logic
+- [ ] [`src/auth/middleware.ts` (L42-67)](link) — New token validation logic <!-- pr-human-guide:item lines=42-67 path=src/auth/middleware.ts -->
 
 ### Config / Infrastructure
-- [ ] [`deploy/terraform/iam.tf` (L12-18)](link) — IAM role permissions widened
+- [ ] [`deploy/terraform/iam.tf` (L12-18)](link) — IAM role permissions widened <!-- pr-human-guide:item lines=12-18 path=deploy/terraform/iam.tf -->
 
 ### Novel Patterns
-- [ ] [`src/cache/redis.ts`](link) — First use of Redis in this codebase; no existing caching pattern to reference
+- [ ] [`src/cache/redis.ts`](link) — First use of Redis in this codebase; no existing caching pattern to reference <!-- pr-human-guide:item path=src/cache/redis.ts -->
 
 <!-- /pr-human-guide -->
 ```
