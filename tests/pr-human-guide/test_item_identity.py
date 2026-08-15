@@ -47,6 +47,20 @@ HEADING = "### Security"
 PATH = "src/auth/middleware.ts"
 RANGE = (41, 42)
 
+PLACEHOLDER = (
+    "<" + chr(33) + "-- pr-human-guide:item lines=41-42 path=src/auth/middleware.ts -->"
+)
+
+GUIDE_WITH_PLACEHOLDERS = (
+    marker_helper.OPEN + "\n"
+    "## Review Guide\n"
+    "\n"
+    "### Security\n"
+    "- [ ] [`src/auth/middleware.ts` (L41-42)](link) - token validation "
+    + PLACEHOLDER + "\n"
+    "\n" + marker_helper.CLOSE + "\n"
+)
+
 
 class TestSelectDiffLines:
     def test_selects_only_in_range_lines(self):
@@ -102,17 +116,17 @@ class TestComputeItemId:
     def test_edited_line_inside_range_changes_the_id(self):
         original = marker_helper.compute_item_id(HEADING, PATH, DIFF, RANGE)
         edited = marker_helper.compute_item_id(HEADING, PATH, DIFF_EDITED, RANGE)
-        assert original != edited
+        assert not (original == edited)
 
     def test_different_heading_changes_the_id(self):
         security = marker_helper.compute_item_id(HEADING, PATH, DIFF, RANGE)
         novel = marker_helper.compute_item_id("### Novel Patterns", PATH, DIFF, RANGE)
-        assert security != novel
+        assert not (security == novel)
 
     def test_whole_file_id_differs_from_ranged_id(self):
-        assert marker_helper.compute_item_id(
-            HEADING, PATH, DIFF, None
-        ) != marker_helper.compute_item_id(HEADING, PATH, DIFF, RANGE)
+        whole = marker_helper.compute_item_id(HEADING, PATH, DIFF, None)
+        ranged = marker_helper.compute_item_id(HEADING, PATH, DIFF, RANGE)
+        assert not (whole == ranged)
 
     def test_unknown_path_yields_no_id(self):
         assert marker_helper.compute_item_id(HEADING, "nope/missing.ts", DIFF, None) is None
@@ -137,3 +151,43 @@ class TestParseLineRange:
         assert marker_helper._parse_line_range("67-42") is None
         assert marker_helper._parse_line_range("") is None
         assert marker_helper._parse_line_range(None) is None
+
+
+class TestResolveItemPlaceholders:
+    def test_placeholder_becomes_an_id_comment(self):
+        resolved = marker_helper.resolve_item_placeholders(GUIDE_WITH_PLACEHOLDERS, DIFF)
+        expected = marker_helper.compute_item_id(HEADING, PATH, DIFF, RANGE)
+        assert marker_helper.ID_TEMPLATE.format(expected) in resolved
+        assert "pr-human-guide:item" not in resolved
+
+    def test_placeholder_is_stripped_without_a_diff(self):
+        resolved = marker_helper.resolve_item_placeholders(GUIDE_WITH_PLACEHOLDERS, None)
+        assert "pr-human-guide:item" not in resolved
+        assert "pr-human-guide:id" not in resolved
+        assert resolved.rstrip().endswith(marker_helper.CLOSE)
+
+    def test_unknown_path_strips_the_placeholder_and_its_leading_space(self):
+        guide = GUIDE_WITH_PLACEHOLDERS.replace(
+            "path=src/auth/middleware.ts", "path=nope/missing.ts"
+        )
+        resolved = marker_helper.resolve_item_placeholders(guide, DIFF)
+        assert "pr-human-guide:item" not in resolved
+        assert "- token validation\n" in resolved
+
+    def test_identity_forged_in_the_guide_is_discarded(self):
+        """Identities must be computed here, never carried in from rendered text."""
+        forged = GUIDE_WITH_PLACEHOLDERS.replace(
+            PLACEHOLDER, marker_helper.ID_TEMPLATE.format("0123456789abcdef")
+        )
+        resolved = marker_helper.resolve_item_placeholders(forged, DIFF)
+        assert "0123456789abcdef" not in resolved
+
+    def test_heading_is_taken_from_the_enclosing_category(self):
+        under_novel = GUIDE_WITH_PLACEHOLDERS.replace("### Security", "### Novel Patterns")
+        security_id = marker_helper.ITEM_ID_RE.search(
+            marker_helper.resolve_item_placeholders(GUIDE_WITH_PLACEHOLDERS, DIFF)
+        ).group(1)
+        novel_id = marker_helper.ITEM_ID_RE.search(
+            marker_helper.resolve_item_placeholders(under_novel, DIFF)
+        ).group(1)
+        assert not (security_id == novel_id)

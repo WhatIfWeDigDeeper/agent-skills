@@ -139,3 +139,141 @@ class TestIncompleteMarkers:
         result = update_body(body, new_guide)
         assert result.endswith(new_guide)
         assert "- appended" in result
+
+
+ITEM_A = (
+    "- [ ] [`src/auth/middleware.ts` (L41-42)](link) - token validation "
+    + "<" + chr(33) + "-- pr-human-guide:item lines=41-42 path=src/auth/middleware.ts -->"
+)
+ITEM_B = (
+    "- [ ] [`docs/readme.md`](link) - docs rewritten "
+    + "<" + chr(33) + "-- pr-human-guide:item path=docs/readme.md -->"
+)
+
+GUIDE = (
+    OPEN + "\n"
+    "## Review Guide\n"
+    "\n"
+    "### Security\n"
+    + ITEM_A + "\n"
+    "\n"
+    "### Novel Patterns\n"
+    + ITEM_B + "\n"
+    "\n" + CLOSE + "\n"
+)
+
+DIFF_V1 = """diff --git a/src/auth/middleware.ts b/src/auth/middleware.ts
+--- a/src/auth/middleware.ts
++++ b/src/auth/middleware.ts
+@@ -40,4 +40,5 @@
+   const header = req.headers.authorization;
+-  const token = header;
++  const token = header?.split(' ')[1];
++  verify(token, SECRET);
+   return next();
+ }
+diff --git a/docs/readme.md b/docs/readme.md
+--- a/docs/readme.md
++++ b/docs/readme.md
+@@ -1,2 +1,3 @@
+ # Title
++A new line.
+ Body.
+"""
+
+# docs/readme.md rewritten; src/auth/middleware.ts identical but renumbered.
+DIFF_V2 = DIFF_V1.replace("+A new line.", "+A different line.").replace(
+    "@@ -40,4 +40,5 @@", "@@ -60,4 +60,5 @@"
+)
+
+
+def _tick(body: str, needle: str) -> str:
+    """Tick the checkbox on the line containing `needle`, as GitHub's UI would."""
+    out = []
+    for line in body.splitlines(keepends=True):
+        if needle in line:
+            line = line.replace("- [ ]", "- [x]", 1)
+        out.append(line)
+    return "".join(out)
+
+
+class TestCheckedStatePreservation:
+    def test_unchanged_item_stays_checked(self):
+        first = update_body("Body.", GUIDE, DIFF_V1)
+        ticked = _tick(first, "middleware.ts")
+        second = update_body(ticked, GUIDE, DIFF_V1)
+        assert "- [x] [`src/auth/middleware.ts`" in second
+
+    def test_check_survives_renumbering(self):
+        """Content identical, line numbers shifted by an unrelated insertion."""
+        first = update_body("Body.", GUIDE, DIFF_V1)
+        ticked = _tick(first, "middleware.ts")
+        renumbered = GUIDE.replace("lines=41-42", "lines=61-62").replace(
+            "(L41-42)", "(L61-62)"
+        )
+        second = update_body(ticked, renumbered, DIFF_V2)
+        assert "- [x] [`src/auth/middleware.ts`" in second
+
+    def test_rewritten_item_resets(self):
+        first = update_body("Body.", GUIDE, DIFF_V1)
+        ticked = _tick(first, "readme.md")
+        second = update_body(ticked, GUIDE, DIFF_V2)
+        assert "- [ ] [`docs/readme.md`" in second
+
+    def test_uppercase_x_is_preserved(self):
+        first = update_body("Body.", GUIDE, DIFF_V1)
+        ticked = first.replace("- [ ] [`src/auth", "- [X] [`src/auth", 1)
+        second = update_body(ticked, GUIDE, DIFF_V1)
+        assert "- [x] [`src/auth/middleware.ts`" in second
+
+    def test_indented_item_round_trips_its_indentation(self):
+        indented_guide = GUIDE.replace(ITEM_A, "  " + ITEM_A)
+        first = update_body("Body.", indented_guide, DIFF_V1)
+        ticked = _tick(first, "middleware.ts")
+        second = update_body(ticked, indented_guide, DIFF_V1)
+        assert "\n  - [x] [`src/auth/middleware.ts`" in second
+
+    def test_block_without_ids_resets(self):
+        """A block written by an older skill version carries no identities."""
+        legacy = (
+            "Body.\n\n" + OPEN + "\n"
+            "## Review Guide\n\n"
+            "### Security\n"
+            "- [x] [`src/auth/middleware.ts` (L41-42)](link) - token validation\n\n"
+            + CLOSE + "\n"
+        )
+        second = update_body(legacy, GUIDE, DIFF_V1)
+        assert "- [x]" not in second
+
+    def test_checked_ids_outside_the_block_are_ignored(self):
+        first = update_body("Body.", GUIDE, DIFF_V1)
+        item_id = marker_helper.ITEM_ID_RE.search(first).group(1)
+        smuggled = (
+            "- [x] pretend item "
+            + marker_helper.ID_TEMPLATE.format(item_id)
+            + "\n\n"
+            + first
+        )
+        second = update_body(smuggled, GUIDE, DIFF_V1)
+        block = second[second.index(OPEN):]
+        assert "- [x]" not in block
+
+    def test_malformed_ids_are_ignored(self):
+        block = "- [x] item " + "<" + chr(33) + "-- pr-human-guide:id NOTHEX -->"
+        assert marker_helper.collect_checked_ids(block) == set()
+
+    def test_collection_is_capped(self):
+        lines = [
+            "- [x] item " + marker_helper.ID_TEMPLATE.format(f"{n:016x}")
+            for n in range(600)
+        ]
+        assert len(marker_helper.collect_checked_ids("\n".join(lines))) == 500
+
+    def test_placeholders_never_survive_without_a_diff(self):
+        result = update_body("Body.", GUIDE)
+        assert "pr-human-guide:item" not in result
+        assert "pr-human-guide:id" not in result
+
+    def test_two_argument_call_still_works(self):
+        """Backward compatibility: --diff-file is optional at every layer."""
+        assert update_body("", GUIDE).startswith(OPEN)
