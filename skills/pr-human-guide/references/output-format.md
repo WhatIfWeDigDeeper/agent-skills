@@ -21,10 +21,26 @@ LINK="https://github.com/${OWNER}/${REPO_NAME}/pull/${pr_number}/files#diff-${AN
 Format each entry as:
 
 ```
-- [ ] [`path/to/file` (L{start}-{end})](link) — one-line reason
+- [ ] [`path/to/file` (L{start}-{end})](link) — one-line reason <!-- pr-human-guide:item lines={start}-{end} path=path/to/file -->
 ```
 
-Omit the line range if changes are spread across the whole file.
+Omit the line range if changes are spread across the whole file — from the label
+**and** from the placeholder (`<!-- pr-human-guide:item path=path/to/file -->`).
+
+### Per-item identity comment
+
+The trailing `pr-human-guide:item` comment is a placeholder. Emit it on every
+item; restate the same `path` and line range you used in the label, unquoted and
+without whitespace inside a value. Do **not** compute a hash and do **not** write
+a `pr-human-guide:id` comment — Step 5's `marker-helper.py` replaces each
+placeholder with `<!-- pr-human-guide:id HASH -->`, where the hash is derived from
+the anchored diff content, and uses it to restore any box a reviewer had checked
+whose content is unchanged. A placeholder it cannot resolve is removed and that
+item renders unchecked, so a wrong `path=` costs a reviewer's checkmark but
+corrupts nothing.
+
+This is unrelated to the `#diff-{ANCHOR}` fragment above: that anchor hashes the
+file *path* (GitHub's own scheme) and never changes when the file's content does.
 
 ## With flagged items
 
@@ -47,13 +63,13 @@ Keep both in sync if you change this template.
 > This is not a complete review checklist — it highlights where your attention matters most.
 
 ### Security
-- [ ] [`src/auth/middleware.ts` (L42-67)](link) — New token validation logic
+- [ ] [`src/auth/middleware.ts` (L42-67)](link) — New token validation logic <!-- pr-human-guide:item lines=42-67 path=src/auth/middleware.ts -->
 
 ### Config / Infrastructure
-- [ ] [`deploy/terraform/iam.tf` (L12-18)](link) — IAM role permissions widened
+- [ ] [`deploy/terraform/iam.tf` (L12-18)](link) — IAM role permissions widened <!-- pr-human-guide:item lines=12-18 path=deploy/terraform/iam.tf -->
 
 ### Novel Patterns
-- [ ] [`src/cache/redis.ts`](link) — First use of Redis in this codebase; no existing caching pattern to reference
+- [ ] [`src/cache/redis.ts`](link) — First use of Redis in this codebase; no existing caching pattern to reference <!-- pr-human-guide:item path=src/cache/redis.ts -->
 
 <!-- /pr-human-guide -->
 ```

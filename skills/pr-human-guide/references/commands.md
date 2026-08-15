@@ -67,11 +67,20 @@ Run after Step 1 has resolved `pr_number`. The changed-file list and the full
 diff both feed the Step 3 category analysis.
 
 ```bash
+# Step 5 re-derives this same path to give marker-helper.py the diff, which is
+# what lets a reviewer's checked items survive the re-run. Keep the two
+# spellings identical.
+DIFF_FILE="${TMPDIR:-/private/tmp}/pr-human-guide-diff-${pr_number}.diff"
 gh pr diff "${pr_number}" --name-only
-gh pr diff "${pr_number}"
+gh pr diff "${pr_number}" > "$DIFF_FILE" || {
+  echo "Could not fetch the diff for PR #${pr_number} with 'gh pr diff'." >&2
+  exit 1
+}
+cat "$DIFF_FILE"
 ```
 
-Store the full diff for analysis. Store the file list separately.
+Store the full diff for analysis. Store the file list separately. The saved
+`$DIFF_FILE` is consumed again by Step 5 and removed by its cleanup trap.
 
 ## Write the guide into the PR body (Step 5)
 
@@ -99,9 +108,15 @@ every install layout:
 ```bash
 # GUIDE_FILE was written above by your file-writing tool — not via the shell.
 GUIDE_FILE="${TMPDIR:-/private/tmp}/pr-human-guide-guide-${pr_number}.md"
+# Written by Step 2; re-derived here because shell variables do not survive
+# between tool calls. marker-helper tolerates it being missing or empty — it
+# warns and every item renders unchecked, which is the pre-0.16 behavior.
+DIFF_FILE="${TMPDIR:-/private/tmp}/pr-human-guide-diff-${pr_number}.diff"
 BODY_FILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-body-XXXXXX")
 OUT_FILE=$(mktemp "${TMPDIR:-/private/tmp}/pr-human-guide-out-XXXXXX")
-trap 'rm -f "$BODY_FILE" "$OUT_FILE" "$GUIDE_FILE"' EXIT INT TERM
+# One EXIT trap per shell — a second `trap ... EXIT` replaces this one and leaks
+# the files it covered. Add new temp paths here rather than in another trap.
+trap 'rm -f "$BODY_FILE" "$OUT_FILE" "$GUIDE_FILE" "$DIFF_FILE"' EXIT INT TERM
 printf '%s' "$pr_body" > "$BODY_FILE"
 # Confirm the file-writing tool actually populated the guide. A missing file
 # crashes marker-helper (caught by the OUT_FILE check below), but an empty one
@@ -117,9 +132,13 @@ printf '%s' "$pr_body" > "$BODY_FILE"
 SKILL_DIR="${SKILL_DIR:-<absolute path of this skill's base directory, the parent of references/>}"
 HELPER="$SKILL_DIR/references/marker-helper.py"
 [ -f "$HELPER" ] || { echo "marker-helper.py not found at $HELPER. Set SKILL_DIR to this skill's base directory and retry." >&2; exit 1; }
+# --diff-file is what enables checked-state preservation. If it is missing or
+# empty the helper warns on stderr and every item renders unchecked — pass it
+# unconditionally rather than building the argument list conditionally.
 python3 "$HELPER" \
   --body-file "$BODY_FILE" \
   --guide-file "$GUIDE_FILE" \
+  --diff-file "$DIFF_FILE" \
   --out "$OUT_FILE"
 # A crashed marker-helper leaves the mktemp'd OUT_FILE empty; guard so the edit
 # below does not run on it.
@@ -132,7 +151,7 @@ if grep -qF '<\!-- pr-human-guide' "$OUT_FILE" || grep -qF '<\!-- /pr-human-guid
   exit 1
 fi
 gh pr edit "${pr_number}" --body-file "$OUT_FILE"
-# Trap fires on shell exit and removes BODY_FILE/OUT_FILE/GUIDE_FILE.
+# Trap fires on shell exit and removes BODY_FILE/OUT_FILE/GUIDE_FILE/DIFF_FILE.
 ```
 
 See [`skills/pr-human-guide/references/marker-helper.py`](marker-helper.py) for

@@ -48,6 +48,21 @@ class TestHelperPathResolution:
         assert '[ -f "$HELPER" ]' in text
         assert text.index('[ -f "$HELPER" ]') < text.index('python3 "$HELPER"')
 
+    def test_helper_is_passed_the_diff_file(self):
+        """Preservation is inert unless Step 5 hands the helper the diff."""
+        text = COMMANDS_MD.read_text()
+        assert '--diff-file "$DIFF_FILE"' in text
+        assert (
+            'DIFF_FILE="${TMPDIR:-/private/tmp}/pr-human-guide-diff-${pr_number}.diff"'
+            in text
+        )
+
+    def test_single_exit_trap_covers_the_diff_file(self):
+        """A second trap would silently replace the first and leak temp files."""
+        text = COMMANDS_MD.read_text()
+        assert text.count("trap 'rm -f") == 1
+        assert 'rm -f "$BODY_FILE" "$OUT_FILE" "$GUIDE_FILE" "$DIFF_FILE"' in text
+
     def test_skill_dir_placeholder_disambiguates_from_references_dir(self):
         """`HELPER` appends `references/`, so SKILL_DIR must be its parent.
 

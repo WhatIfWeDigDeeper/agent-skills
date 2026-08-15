@@ -259,7 +259,7 @@ class TestCheckedStatePreservation:
         assert "- [x]" not in block
 
     def test_malformed_ids_are_ignored(self):
-        block = "- [x] item " + "<" + chr(33) + "-- pr-human-guide:id NOTHEX -->"
+        block = "- [x] item " + "<" + chr(33) + "-- pr-human-guide:id NOT_HEX -->"
         assert marker_helper.collect_checked_ids(block) == set()
 
     def test_collection_is_capped(self):

@@ -13,7 +13,7 @@ return before + guide + after
 
 The new `guide` is rendered fresh by Step 4, and every item in it is rendered
 `- [ ]`. So every box a human reviewer ticked is wiped. `SKILL.md`'s Notes section
-documents this as intended behaviour:
+documents this as intended behavior:
 
 > **Idempotency**: Any `- [x]` items checked by reviewers are reset to `- [ ]` on re-run — checked state is not preserved.
 
@@ -159,7 +159,7 @@ use.
 Missing placeholder, unparsable placeholder, `path` absent from the diff, no
 previous block, an id not present in the previous block, a block written by an
 older skill version, any content change — every one of these falls through to
-`- [ ]`. Today's behaviour is the failure mode, so a bug anywhere in this path
+`- [ ]`. Today's behavior is the failure mode, so a bug anywhere in this path
 degrades to the status quo rather than misleading a reviewer.
 
 Any `pr-human-guide:id` comment already present in the freshly rendered guide is

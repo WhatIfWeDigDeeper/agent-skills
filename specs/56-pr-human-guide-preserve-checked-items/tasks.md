@@ -43,7 +43,7 @@
   - Module constants `ITEM_PLACEHOLDER_RE`, `ITEM_ID_RE`, `ID_TEMPLATE`, `HUNK_HEADER_RE`.
   - Task 2 consumes all of these.
 
-- [ ] **Step 1: Confirm no version bump already exists on this branch**
+- [x] **Step 1: Confirm no version bump already exists on this branch**
 
 ```bash
 git fetch origin && git diff origin/main -- skills/pr-human-guide/SKILL.md | rg '^\+  version:'
@@ -51,7 +51,7 @@ git fetch origin && git diff origin/main -- skills/pr-human-guide/SKILL.md | rg 
 
 Expected: no output. If it prints a line, the bump already landed — skip Step 8.
 
-- [ ] **Step 2: Write the failing identity tests**
+- [x] **Step 2: Write the failing identity tests**
 
 Create `tests/pr-human-guide/test_item_identity.py`:
 
@@ -197,7 +197,7 @@ class TestParseLineRange:
         assert marker_helper._parse_line_range(None) is None
 ```
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 ```bash
 uv run --with pytest pytest tests/pr-human-guide/test_item_identity.py -v
@@ -205,7 +205,7 @@ uv run --with pytest pytest tests/pr-human-guide/test_item_identity.py -v
 
 Expected: FAIL — `AttributeError: module 'marker_helper_identity' has no attribute '_select_diff_lines'`.
 
-- [ ] **Step 4: Add the imports and constants to `marker-helper.py`**
+- [x] **Step 4: Add the imports and constants to `marker-helper.py`**
 
 Replace the `import argparse` / `import re` block and the two marker constants with:
 
@@ -229,7 +229,7 @@ ID_TEMPLATE = "<" + chr(33) + "-- pr-human-guide:id {} -->"
 HUNK_HEADER_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 ```
 
-- [ ] **Step 5: Add the diff-selection helpers**
+- [x] **Step 5: Add the diff-selection helpers**
 
 Insert immediately after `_find_replacement_bounds` and before `update_body`:
 
@@ -340,7 +340,7 @@ def compute_item_id(
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 ```bash
 uv run --with pytest pytest tests/pr-human-guide/test_item_identity.py -v
@@ -350,7 +350,7 @@ Expected: PASS (all classes). If `test_selects_only_in_range_lines` fails, print
 `marker_helper._select_diff_lines(DIFF, PATH, None)` and check the cursor
 arithmetic against the hunk-header comment in the test file.
 
-- [ ] **Step 7: Update the module docstring**
+- [x] **Step 7: Update the module docstring**
 
 Replace the `Usage:` line and add a sentence, so the docstring matches the CLI Task 2 ships:
 
@@ -375,12 +375,12 @@ otherwise corrupt them during edits or copies in an interactive shell.
 """
 ```
 
-- [ ] **Step 8: Bump the skill version**
+- [x] **Step 8: Bump the skill version**
 
 In `skills/pr-human-guide/SKILL.md` frontmatter: `version: "0.15"` → `version: "0.16"`.
 This is the **only** bump in the PR.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add tests/pr-human-guide/test_item_identity.py skills/pr-human-guide/references/marker-helper.py skills/pr-human-guide/SKILL.md
@@ -406,7 +406,7 @@ git commit -m "feat(pr-human-guide): compute diff-anchored identities for guide 
   - `update_body(body: str, guide: str, diff_text: str | None = None) -> str`
   - CLI flag `--diff-file` (optional). Task 3 wires `commands.md` to pass it.
 
-- [ ] **Step 1: Write the failing placeholder-resolution tests**
+- [x] **Step 1: Write the failing placeholder-resolution tests**
 
 Append to `tests/pr-human-guide/test_item_identity.py`:
 
@@ -463,7 +463,7 @@ class TestResolveItemPlaceholders:
         assert security_id != novel_id
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 ```bash
 uv run --with pytest pytest tests/pr-human-guide/test_item_identity.py::TestResolveItemPlaceholders -v
@@ -471,7 +471,7 @@ uv run --with pytest pytest tests/pr-human-guide/test_item_identity.py::TestReso
 
 Expected: FAIL — `AttributeError: … has no attribute 'resolve_item_placeholders'`.
 
-- [ ] **Step 3: Implement resolution and preservation**
+- [x] **Step 3: Implement resolution and preservation**
 
 Insert after `compute_item_id` in `marker-helper.py`:
 
@@ -583,7 +583,7 @@ def update_body(body: str, guide: str, diff_text: str | None = None) -> str:
     return body.rstrip("\n") + "\n\n" + guide
 ```
 
-- [ ] **Step 4: Add the `--diff-file` CLI flag**
+- [x] **Step 4: Add the `--diff-file` CLI flag**
 
 In `main()`, after the `--out` argument:
 
@@ -621,7 +621,7 @@ and replace the `result = update_body(body, guide)` line with:
     result = update_body(body, guide, diff_text)
 ```
 
-- [ ] **Step 5: Run the resolution tests to verify they pass**
+- [x] **Step 5: Run the resolution tests to verify they pass**
 
 ```bash
 uv run --with pytest pytest tests/pr-human-guide/test_item_identity.py -v
@@ -629,7 +629,7 @@ uv run --with pytest pytest tests/pr-human-guide/test_item_identity.py -v
 
 Expected: PASS.
 
-- [ ] **Step 6: Write the failing preservation tests**
+- [x] **Step 6: Write the failing preservation tests**
 
 Append to `tests/pr-human-guide/test_marker_helper.py`. It already imports the
 shipped helper as `marker_helper`; reuse that.
@@ -748,7 +748,7 @@ class TestCheckedStatePreservation:
         assert "- [x]" not in block
 
     def test_malformed_ids_are_ignored(self):
-        block = "- [x] item " + "<" + chr(33) + "-- pr-human-guide:id NOTHEX -->"
+        block = "- [x] item " + "<" + chr(33) + "-- pr-human-guide:id NOT_HEX -->"
         assert marker_helper.collect_checked_ids(block) == set()
 
     def test_collection_is_capped(self):
@@ -768,7 +768,7 @@ class TestCheckedStatePreservation:
         assert marker_helper.update_body("", GUIDE).startswith(marker_helper.OPEN)
 ```
 
-- [ ] **Step 7: Run them to verify they pass**
+- [x] **Step 7: Run them to verify they pass**
 
 ```bash
 uv run --with pytest pytest tests/pr-human-guide/ -v
@@ -777,7 +777,7 @@ uv run --with pytest pytest tests/pr-human-guide/ -v
 Expected: PASS, including the pre-existing `TestAppend` / `TestReplace` /
 `TestStrayMarkerStripping` / `TestCRLFAnchoring` / `TestIncompleteMarkers` classes.
 
-- [ ] **Step 8: Record the design decision in `conftest.py`**
+- [x] **Step 8: Record the design decision in `conftest.py`**
 
 Add above `_select_guide_bounds`:
 
@@ -788,7 +788,7 @@ Add above `_select_guide_bounds`:
 # skills/pr-human-guide/references/marker-helper.py directly instead.
 ```
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add skills/pr-human-guide/references/marker-helper.py tests/pr-human-guide/
@@ -808,7 +808,7 @@ git commit -m "feat(pr-human-guide): preserve checked items whose anchored conte
 - Consumes: the `--diff-file` flag and the placeholder grammar from Tasks 1–2.
 - Produces: the rendered placeholder contract Step 4 follows, and the `DIFF_FILE` shell contract Step 5 follows.
 
-- [ ] **Step 1: Write the failing text assertions**
+- [x] **Step 1: Write the failing text assertions**
 
 Append to `tests/pr-human-guide/test_helper_path_resolution.py` (inside the class
 that already reads `COMMANDS_MD`, matching its existing style):
@@ -827,7 +827,7 @@ that already reads `COMMANDS_MD`, matching its existing style):
         assert 'trap \'rm -f "$BODY_FILE" "$OUT_FILE" "$GUIDE_FILE" "$DIFF_FILE"\'' in text
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 ```bash
 uv run --with pytest pytest tests/pr-human-guide/test_helper_path_resolution.py -v
@@ -835,7 +835,7 @@ uv run --with pytest pytest tests/pr-human-guide/test_helper_path_resolution.py 
 
 Expected: FAIL on both new tests with `AssertionError`.
 
-- [ ] **Step 3: Save the diff in Step 2 of `commands.md`**
+- [x] **Step 3: Save the diff in Step 2 of `commands.md`**
 
 Replace the fenced block under "## Gather the diff (Step 2)" and the sentence
 after it:
@@ -858,7 +858,7 @@ Store the full diff for analysis. Store the file list separately. The saved
 `$DIFF_FILE` is consumed again by Step 5 and removed by its cleanup trap.
 ````
 
-- [ ] **Step 4: Pass `--diff-file` in Step 5 of `commands.md`**
+- [x] **Step 4: Pass `--diff-file` in Step 5 of `commands.md`**
 
 Three edits inside the Step 5 bash block:
 
@@ -867,19 +867,24 @@ Add after the `GUIDE_FILE=` assignment:
 ```bash
 # Written by Step 2; re-derived here because shell variables do not survive
 # between tool calls. marker-helper tolerates it being missing or empty — it
-# warns and every item renders unchecked, which is the pre-0.16 behaviour.
+# warns and every item renders unchecked, which is the pre-0.16 behavior.
 DIFF_FILE="${TMPDIR:-/private/tmp}/pr-human-guide-diff-${pr_number}.diff"
 ```
 
 Extend the existing trap (do **not** add a second one):
 
 ```bash
+# One EXIT trap per shell — a second `trap ... EXIT` replaces this one and leaks
+# the files it covered. Add new temp paths here rather than in another trap.
 trap 'rm -f "$BODY_FILE" "$OUT_FILE" "$GUIDE_FILE" "$DIFF_FILE"' EXIT INT TERM
 ```
 
 Extend the helper invocation:
 
 ```bash
+# --diff-file is what enables checked-state preservation. If it is missing or
+# empty the helper warns on stderr and every item renders unchecked — pass it
+# unconditionally rather than building the argument list conditionally.
 python3 "$HELPER" \
   --body-file "$BODY_FILE" \
   --guide-file "$GUIDE_FILE" \
@@ -890,7 +895,7 @@ python3 "$HELPER" \
 Also update the trailing comment `# Trap fires on shell exit and removes
 BODY_FILE/OUT_FILE/GUIDE_FILE.` to include `DIFF_FILE`.
 
-- [ ] **Step 5: Add the placeholder to the entry template in `output-format.md`**
+- [x] **Step 5: Add the placeholder to the entry template in `output-format.md`**
 
 Replace the "Format each entry as:" block and the line under it:
 
@@ -920,7 +925,7 @@ This is unrelated to the `#diff-{ANCHOR}` fragment above: that anchor hashes the
 file *path* (GitHub's own scheme) and never changes when the file's content does.
 ````
 
-- [ ] **Step 6: Add placeholders to the with-items example in `output-format.md`**
+- [x] **Step 6: Add placeholders to the with-items example in `output-format.md`**
 
 In the ```markdown example block, extend the three item lines:
 
@@ -938,7 +943,7 @@ In the ```markdown example block, extend the three item lines:
 Leave the `## Review Guide` line, the marker lines, and the "no flagged items"
 block exactly as they are.
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [x] **Step 7: Run the tests to verify they pass**
 
 ```bash
 uv run --with pytest pytest tests/pr-human-guide/ -v
@@ -946,7 +951,7 @@ uv run --with pytest pytest tests/pr-human-guide/ -v
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add skills/pr-human-guide/references/ tests/pr-human-guide/test_helper_path_resolution.py
@@ -1054,7 +1059,7 @@ and include that file in the commit.
 - Modify: `README.md`
 
 **Interfaces:**
-- Consumes: the shipped behaviour from Tasks 1–4.
+- Consumes: the shipped behavior from Tasks 1–4.
 - Produces: recorded runs for eval 15 in both configurations.
 
 - [ ] **Step 1: Add eval 15 to `evals.json`**
@@ -1237,7 +1242,7 @@ git push -u origin HEAD
 
 - [ ] **Step 6: Open the PR**
 
-Body must state that it closes #221, summarise the content-keyed rule, and note
+Body must state that it closes #221, summarize the content-keyed rule, and note
 the eval-15 result. Then, per repo convention, run `/pr-comments {pr_number}`
 immediately after the push — without asking.
 
