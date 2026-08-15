@@ -4,10 +4,11 @@
 - `claude-sonnet-4-6` — full 8-eval suite × 2 configurations on 2026-04-28 (spec 28). Analyzer: **Sonnet 4.6**.
 - `claude-opus-4-7` — full 8-eval suite × 2 configurations on 2026-04-28 (spec 28). Analyzer: **Sonnet 4.6** (chosen up front for analyzer-uniformity, following the spec 27 precedent).
 - `claude-opus-4-8` — partial set: 6 evals (9–14) × 2 configurations on Opus 4.8 (evals 9–12 on 2026-06-28, spec 48; evals 13–14 on 2026-07-04, spec 50). Analyzer: **Opus 4.8** (graded inline by the controller). Evals 9–12 cover the two impact-risk Novel Patterns signals (sweeping cross-cutting refactor, high-fanout core helper edit), a negative rename guardrail, and the Selectivity Threshold; evals 13–14 cover the refined operative-skill-source exemption (a positive trust-boundary case in a `skills/**/references/*.md` file, and a negative pure-wording case). See the v0.13 and v0.14 subsections under Known Eval Limitations.
+- `claude-opus-5` — partial set: 1 eval (15) × 2 configurations on 2026-08-15 (spec 56). Analyzer: **Opus 5** (graded inline by the controller). Covers checked-state preservation across a re-run: one item whose anchored content is unchanged must stay ticked, one whose content was rewritten must reset. See the v0.16 subsection under Known Eval Limitations.
 
-**Evals**: 8 evals × 2 configurations × 2 models = **32 canonical runs** (the full-suite headline), plus **12 partial-set runs** (evals 9–14 × 2 configurations on Opus 4.8, specs 48+50) = 44 runs total, all `run_number == 1`.
+**Evals**: 8 evals × 2 configurations × 2 models = **32 canonical runs** (the full-suite headline), plus **12 partial-set runs** (evals 9–14 × 2 configurations on Opus 4.8, specs 48+50) and **2 partial-set runs** (eval 15 × 2 configurations on Opus 5, spec 56) = 46 runs total, all `run_number == 1`.
 
-**Skill version**: full-suite rows under v0.7; the spec-48 partial set (evals 9–12) under v0.13; the spec-50 additions (evals 13–14) under v0.14. The previous Sonnet runs at v0.1 (16 entries) were removed in spec 28 Phase 1 so both full-suite models share an apples-to-apples skill version; git history retains the prior shape. `benchmark.json` `metadata.skill_version` stays `"0.7"` (the version of the recorded full-suite runs); the partial sets are version-noted here and in the v0.13 / v0.14 subsections.
+**Skill version**: full-suite rows under v0.7; the spec-48 partial set (evals 9–12) under v0.13; the spec-50 additions (evals 13–14) under v0.14; the spec-56 addition (eval 15) under v0.16. The previous Sonnet runs at v0.1 (16 entries) were removed in spec 28 Phase 1 so both full-suite models share an apples-to-apples skill version; git history retains the prior shape. `benchmark.json` `metadata.skill_version` is `"0.16"` as of spec 56 — the earlier `"0.7"` pin (rationalized as "the version of the recorded full-suite runs") is drift from the written rule in `evals/CLAUDE.md`, which requires advancing it whenever runs are added. Each partial set remains version-noted here and in its own subsection, which is where per-set versions are authoritative.
 
 ## Summary
 
@@ -113,6 +114,39 @@ Per-eval pass/fail (Opus 4.8):
 | 14 | skill-doc-wording-exempt | **3/3 (100%)** | 0/3 (0%) |
 
 Both discriminate (≥1 assertion fails without_skill). Eval 13 is the positive case: it proves the refined rule flags an operative `.md` trust-boundary change. Note that on the strong Opus 4.8 baseline the `flags-the-boundary` assertion did **not** discriminate — the baseline also caught the boundary in a free-form guide — so eval 13's measured discriminators are `uses-html-markers` and `includes-diff-link` (baseline produced neither). Eval 14 is the negative guardrail: a pure wording tweak to a `SKILL.md` plus a `specs/**` doc and a cspell entry must stay exempt; the baseline over-flagged the cspell `prewarm` wordlist entry and emitted no bounded no-areas message, so all three assertions discriminate.
+
+### v0.16 — Opus 5 coverage for checked-state preservation (spec 56)
+
+Through v0.15 the skill reset every `- [x]` on re-run, documented as intended. In repos that re-run the skill after each review round that wipes reviewer progress repeatedly, including on entries whose code never changed. Spec 56 makes preservation **content-keyed**: each entry carries a `<!-- pr-human-guide:id HASH -->` comment whose hash covers the enclosing heading, the path, and the selected diff lines — but deliberately *not* the line numbers, so an insertion above a flagged range does not reset a check. One new eval (id 15) covers both branches in a single two-turn prompt, executed and graded on **claude-opus-5** only. Evals 1–14 are unchanged.
+
+Stats over the 1 new eval (15). Note the single-eval denominator: every stddev below is 0.0 by construction and carries no information.
+
+| Metric | with-skill | without-skill | Delta |
+|--------|------------|---------------|-------|
+| Pass rate | **100%** ±0% | 67% ±0% | **+33%** |
+| Min / Max | 100% / 100% | 67% / 67% | |
+| Time (s) | 311.3 ±0.0 | 197.5 ±0.0 | +113.8 |
+| Tokens (input + output) | 13,650 ±0 | 10,305 ±0 | +3,345 |
+| Cache tokens (creation + reads) | 3,704,428 ±0 | 979,588 ±0 | +2,724,840 |
+
+This set drives `run_summary_by_model["claude-opus-5"]` only; the top-level `run_summary` remains the Opus 4.7 full suite, and the README's headline Eval Δ is unchanged.
+
+Per-eval pass/fail (Opus 5):
+
+| # | Eval | With | Without |
+|---|------|------|---------|
+| 15 | preserves-checked-unchanged-items | **3/3 (100%)** | 2/3 (67%) |
+
+**Discriminates**, on `rewritten-item-resets` only. The other two assertions pass in both configurations, for different reasons worth recording:
+
+- `unchanged-item-stays-checked` passes without_skill **by accident**. The baseline's turn 1 used plain bullets with no checkboxes at all; in turn 2 it converted the guide to a checklist and re-ticked from its own reading of which prose items were still open. It happened to land the auth entry ticked. This assertion alone does not discriminate on a strong model, and a future run should not be read as a regression if it flips.
+- `no-placeholder-leaks` passes without_skill **vacuously** — the baseline invents its own marker syntax and so cannot leak a placeholder it never renders. It is a guard against the skill's own Step 5 failing to resolve, not a baseline comparison.
+
+Honest framing of the delta: the behavior this eval pins is largely the *skill's own* prior behavior. v0.15 reset every box unconditionally; a general assistant was never bound by that rule and is free to carry ticks across on semantic judgment, which is what the baseline did. What the baseline cannot do is distinguish *unchanged* from *rewritten* content — it kept the `iam.tf` tick while asserting in prose that "the new commits did not change what they ask," when the policy line had in fact been widened to add `s3:DeleteObject`. That is the misleading failure mode the feature exists to prevent, and it is what `rewritten-item-resets` catches. The mechanism's finer guarantees — that an id survives renumbering, that a forged id cannot preserve a check, that an uppercase `- [X]` from the GitHub UI round-trips — are pinned by unit tests in `tests/pr-human-guide/test_item_identity.py` rather than by this eval.
+
+Two earlier fixture revisions were discarded before recording. The first narrated the answer in the prompt (turn 2 stated outright which change did not alter the auth code), so the baseline scored 3/3 without needing content-keyed identity. The second anchored its reset case on `docs/setup.md`; documentation prose is correctly never flagged under the Selectivity Threshold, so a correct with_skill run produced no entry for the reset assertion to bind to, and the reviewer ticked only one of two boxes, making the reset assertion trivially true for every agent. The recorded fixture ticks **both** entries and anchors the reset case on `deploy/terraform/iam.tf` (Config / Infrastructure): an agent that copies the previous block through keeps both ticks and fails the reset case; one that re-renders from scratch resets both and fails the preserve case. Each revision was replayed through the shipped `marker-helper.py` to confirm it was winnable before executors were spawned.
+
+A third attempt at the with_skill run was discarded for contamination: the executor ran a recursive `grep` across `evals/`, which returned eval 15's `expected_output` naming exactly which entry must stay checked and which must reset. The recorded run adds an explicit read fence over `evals/`, `specs/`, and `tests/`. The without_skill run was verified uncontaminated by the same transcript check and was not re-run.
 
 ### Non-discriminating evals on Sonnet 4.6
 
@@ -221,3 +255,7 @@ PR introduces worker threads with module-level shared mutable state. Both with-s
 ### Eval 14 — `skill-doc-wording-exempt`
 
 (Opus 4.8 only, spec 50.) Negative guardrail for the refined rule. PR makes only a prose/wording tweak to a `SKILL.md`, plus a `specs/**` design-doc edit and a `cspell.config.yaml` wordlist addition (`prewarm`) — no new boundary or pattern. The refined rule must still emit the bounded no-areas body: pure wording on operative source, spec docs, and cspell entries all stay exempt. With-skill (3/3) flagged nothing, emitted "No areas requiring special human review attention were identified." inside canonical markers. Without-skill (0/3) over-flagged the cspell `prewarm` entry as the change to verify, produced a free-form "Reviewer's guide" with no bounded no-areas message and no canonical markers — failing all three assertions. **Discriminates on:** does-not-flag-skill-doc, the bounded no-areas message, and marker format. Confirms the refined rule does not over-flag pure wording, spec docs, or cspell entries.
+
+### Eval 15 — `preserves-checked-unchanged-items`
+
+(Opus 5 only, spec 56.) Two-turn case for content-keyed checked-state preservation. Turn 1 flags two entries on PR #77: `src/auth/middleware.ts` (Security) and `deploy/terraform/iam.tf` (Config / Infrastructure). The reviewer then ticks **both**. Turn 2 supplies a diff in which a 19-line license header pushes the auth hunk from L41-42 to L61-62 while leaving its content byte-identical, and the `iam.tf` policy line — same path, same hunk header, same line number — is rewritten to add `s3:DeleteObject`. Neither fact is stated in the prompt; the agent must derive both by comparing the two diffs. With-skill (3/3) re-rendered the block fresh, and the helper resolved the auth entry to the same identity as turn 1 (`d1edb1ec63e7a848`, unchanged across the renumbering) so the tick carried across, while `iam.tf` resolved to a new identity (`fbfeeb0fd315a433` → `6298faeab8494d27`) and reset to unchecked. Both `###` headings were identical across turns, so the reset is attributable to content rather than heading drift. Without-skill (2/3) kept the `iam.tf` entry ticked, reasoning in prose that "the new commits did not change what they ask" — a stale checkmark on content that had in fact been widened. **Discriminates on:** `rewritten-item-resets` only; see the v0.16 subsection above for why the other two assertions pass in both configurations.

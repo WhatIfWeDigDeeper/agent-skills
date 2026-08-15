@@ -1085,7 +1085,7 @@ and include that file in the commit.
 - Consumes: the shipped behavior from Tasks 1–4.
 - Produces: recorded runs for eval 15 in both configurations.
 
-- [ ] **Step 1: Add eval 15 to `evals.json`**
+- [x] **Step 1: Add eval 15 to `evals.json`**
 
 Two-turn by design: turn 1 writes the guide, turn 2 asks for a refresh after the
 reviewer has ticked a box. This avoids pinning a hash value into the fixture — the
@@ -1095,9 +1095,9 @@ executor's own turn-1 output supplies the identities.
 {
   "id": 15,
   "name": "preserves-checked-unchanged-items",
-  "prompt": "Can you add a review guide to the description of PR #77 so reviewers know where to look?\n\nPR #77 — 'Harden auth and refresh the setup docs'\nURL: https://github.com/owner/repo/pull/77\n\nThe current PR description is:\n```\nHardens token handling and refreshes the setup docs.\n```\n\nThe diff:\n\n```diff\ndiff --git a/src/auth/middleware.ts b/src/auth/middleware.ts\nindex 1111111..2222222 100644\n--- a/src/auth/middleware.ts\n+++ b/src/auth/middleware.ts\n@@ -40,4 +40,5 @@ export function auth(req, res, next) {\n   const header = req.headers.authorization;\n-  const token = header;\n+  const token = header?.split(' ')[1];\n+  verify(token, SECRET);\n   return next();\n }\ndiff --git a/docs/setup.md b/docs/setup.md\nindex 3333333..4444444 100644\n--- a/docs/setup.md\n+++ b/docs/setup.md\n@@ -1,2 +1,3 @@\n # Setup\n+Run `npm install` before starting the dev server.\n Then open http://localhost:3000.\n```",
-  "followup_prompt": "Thanks — I've reviewed the auth middleware entry and ticked its checkbox in the description. Nothing else is ticked.\n\nNew commits just landed. `docs/setup.md` was rewritten, and a 20-line license header was added at the top of `src/auth/middleware.ts`, which pushed the auth change further down the file but did not alter it. Here's the current diff — please refresh the review guide.\n\n```diff\ndiff --git a/src/auth/middleware.ts b/src/auth/middleware.ts\nindex 1111111..5555555 100644\n--- a/src/auth/middleware.ts\n+++ b/src/auth/middleware.ts\n@@ -1,0 +1,20 @@\n+/*\n+ * Copyright (c) 2026 Example Corp.\n+ * Licensed under the MIT License.\n+ */\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n@@ -40,4 +60,5 @@ export function auth(req, res, next) {\n   const header = req.headers.authorization;\n-  const token = header;\n+  const token = header?.split(' ')[1];\n+  verify(token, SECRET);\n   return next();\n }\ndiff --git a/docs/setup.md b/docs/setup.md\nindex 3333333..6666666 100644\n--- a/docs/setup.md\n+++ b/docs/setup.md\n@@ -1,2 +1,4 @@\n # Setup\n+Install dependencies with `pnpm install`.\n+Copy `.env.example` to `.env` before starting.\n Then open http://localhost:3000.\n```",
-  "expected_output": "On the second turn the agent should replace the existing guide block rather than append a second one, and should carry the reviewer's checkbox across for the auth middleware entry — its anchored content is byte-identical and only its line numbers moved. The docs/setup.md entry, whose content was rewritten, must render unchecked. The posted description must contain no unresolved pr-human-guide:item placeholder text.",
+  "prompt": "Can you add a review guide to the description of PR #77 so reviewers know where to look?\n\nPR #77 — 'Harden auth and widen the deploy role'\nURL: https://github.com/owner/repo/pull/77\n\nThe current PR description is:\n```\nHardens token handling and updates the deploy role policy.\n```\n\nThe diff:\n\n```diff\ndiff --git a/src/auth/middleware.ts b/src/auth/middleware.ts\nindex 1111111..2222222 100644\n--- a/src/auth/middleware.ts\n+++ b/src/auth/middleware.ts\n@@ -40,4 +40,5 @@ export function auth(req, res, next) {\n   const header = req.headers.authorization;\n-  const token = header;\n+  const token = header?.split(' ')[1];\n+  verify(token, SECRET);\n   return next();\n }\ndiff --git a/deploy/terraform/iam.tf b/deploy/terraform/iam.tf\nindex 3333333..4444444 100644\n--- a/deploy/terraform/iam.tf\n+++ b/deploy/terraform/iam.tf\n@@ -12,4 +12,4 @@ resource \"aws_iam_role_policy\" \"app\" {\n   policy = jsonencode({\n-    Action = [\"s3:GetObject\"]\n+    Action = [\"s3:GetObject\", \"s3:PutObject\"]\n   })\n }\n```",
+  "followup_prompt": "Thanks — I went through both entries and ticked both checkboxes in the description.\n\nNew commits just landed. Here's the current diff — please refresh the review guide.\n\n```diff\ndiff --git a/src/auth/middleware.ts b/src/auth/middleware.ts\nindex 1111111..5555555 100644\n--- a/src/auth/middleware.ts\n+++ b/src/auth/middleware.ts\n@@ -1,0 +1,19 @@\n+/*\n+ * Copyright (c) 2026 Example Corp.\n+ * Licensed under the MIT License.\n+ */\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n@@ -40,4 +60,5 @@ export function auth(req, res, next) {\n   const header = req.headers.authorization;\n-  const token = header;\n+  const token = header?.split(' ')[1];\n+  verify(token, SECRET);\n   return next();\n }\ndiff --git a/deploy/terraform/iam.tf b/deploy/terraform/iam.tf\nindex 3333333..6666666 100644\n--- a/deploy/terraform/iam.tf\n+++ b/deploy/terraform/iam.tf\n@@ -12,4 +12,4 @@ resource \"aws_iam_role_policy\" \"app\" {\n   policy = jsonencode({\n-    Action = [\"s3:GetObject\"]\n+    Action = [\"s3:GetObject\", \"s3:PutObject\", \"s3:DeleteObject\"]\n   })\n }\n```",
+  "expected_output": "On the second turn the agent should replace the existing guide block rather than append a second one. The reviewer had ticked both entries. The src/auth/middleware.ts entry must stay checked — its anchored content is byte-identical and only its line numbers moved, pushed down by a new license header. The deploy/terraform/iam.tf entry must reset to unchecked — its path, hunk header, and changed line number are all unchanged, but the line's content was rewritten to widen the action list again. Neither fact is stated in the prompt; the agent has to derive both by comparing the two diffs. An agent that copies the previous block through keeps both ticks and fails the reset case; one that re-renders from scratch resets both and fails the preserve case. The posted description must contain no unresolved pr-human-guide:item placeholder text.",
   "assertions": [
     {
       "id": "unchanged-item-stays-checked",
@@ -1105,7 +1105,7 @@ executor's own turn-1 output supplies the identities.
     },
     {
       "id": "rewritten-item-resets",
-      "text": "In the refreshed PR description, the docs/setup.md entry is unchecked ('- [ ]') because its content was rewritten"
+      "text": "In the refreshed PR description, the deploy/terraform/iam.tf entry is unchecked ('- [ ]') even though the reviewer had ticked it, because its content was rewritten"
     },
     {
       "id": "no-placeholder-leaks",
@@ -1124,7 +1124,7 @@ python3 -c 'import json; d=json.load(open("evals/pr-human-guide/evals.json")); p
 
 Expected: `15 15`.
 
-- [ ] **Step 2: Run the `with_skill` configuration**
+- [x] **Step 2: Run the `with_skill` configuration**
 
 Spawn an executor subagent with `mode: "auto"`. Prompt it to `mktemp -d` a
 workspace under `${TMPDIR:-/private/tmp}`, `cd` in, and work only there. Give it
@@ -1134,20 +1134,20 @@ final PR body verbatim. Tell it to read `skills/pr-human-guide/SKILL.md` and its
 `references/` and follow them directly — and **not** to call the `Skill` tool.
 Pass **no** assertion text.
 
-- [ ] **Step 3: Run the `without_skill` configuration**
+- [x] **Step 3: Run the `without_skill` configuration**
 
 Same prompts and workspace rules, minus the skill: forbid reading anything under
 `skills/pr-human-guide/`, and again forbid the `Skill` tool. Pass **no** assertion
 text.
 
-- [ ] **Step 4: Grade both transcripts**
+- [x] **Step 4: Grade both transcripts**
 
 Spawn a grader subagent per configuration with the **full assertion text strings**
 from Step 1 pasted into the prompt. Require `grading.json` shaped
 `{"summary": {"passed", "failed", "total", "pass_rate"}, "expectations": [{"text", "passed", "evidence"}]}`
 with repo-relative evidence paths and quoted transcript excerpts.
 
-- [ ] **Step 5: Check per-branch discrimination**
+- [x] **Step 5: Check per-branch discrimination**
 
 Read both gradings before recording anything. Requirement: eval 15 must have at
 least one assertion failing `without_skill`.
@@ -1159,7 +1159,34 @@ If **both** branch assertions pass `without_skill`, the prompt is too easy for
 copy-through: strengthen it (e.g. require the reason text to reflect the new
 `docs/setup.md` content) and re-run — do **not** re-grade.
 
-- [ ] **Step 6: Record the runs in `benchmark.json`**
+**This fired, and the first fixture turned out to have three separate flaws** —
+found by running it, not by reading it. The baseline scored 3/3, but not by
+copy-through:
+
+1. **The prompt narrated the answer.** Turn 2 said the license header "pushed the
+   auth change further down the file but did not alter it" and that
+   `docs/setup.md` "was rewritten". An agent told which item is unchanged does
+   not need content-keyed identity to tick the right box. Removed.
+2. **The reset item was outside the six categories.** `docs/setup.md` is
+   documentation prose, so a correct `with_skill` run never flags it — the reset
+   assertion had no entry to bind to. Replaced with `deploy/terraform/iam.tf`,
+   which Config / Infrastructure flags squarely (it is the category's own example
+   in `output-format.md`).
+3. **The reset assertion was vacuous.** The reviewer ticked only the auth entry,
+   so "the other entry is unchecked" was trivially true for every agent — that,
+   not copy-through, is what the baseline was passing. The reviewer now ticks
+   **both** entries.
+
+The rebuilt fixture holds `deploy/terraform/iam.tf` at the same path, the same
+hunk header, and the same changed line (13) across both turns, differing only in
+the line's content — the case path-, range-, and text-keyed matching all get
+wrong. An agent that copies the previous block through keeps both ticks and fails
+the reset assertion; one that re-renders from scratch resets both and fails the
+preserve assertion. Only content-keyed identity passes both. Verified against the
+shipped helper before re-running: the auth id is stable across turns while the
+iam.tf id changes. The two earlier run pairs were discarded, not recorded.
+
+- [x] **Step 6: Record the runs in `benchmark.json`**
 
 Append two run entries (`eval_id: 15`, `eval_name: "preserves-checked-unchanged-items"`,
 `run_number: 1`, one per configuration) with `expectations` from the gradings and
@@ -1182,7 +1209,7 @@ jq '[.runs[] | .expectations[] | select((. | keys) != ["evidence","passed","text
 
 Expected: no output from the first, `0` from the second.
 
-- [ ] **Step 7: Update `benchmark.md`**
+- [x] **Step 7: Update `benchmark.md`**
 
 Four edits: a Summary-table row for eval 15; a `### Eval 15 — \`preserves-checked-unchanged-items\``
 section; the "N of M" token-denominator sentence (find the sentence beginning
@@ -1190,7 +1217,7 @@ section; the "N of M" token-denominator sentence (find the sentence beginning
 "Known Eval Limitations" recording the two-turn design, the model the runs used,
 and the weak-discriminator note from Step 5.
 
-- [ ] **Step 8: Update `README.md`**
+- [x] **Step 8: Update `README.md`**
 
 Update the `pr-human-guide` row's `Eval Δ` column and the **Eval cost** bullet in
 its Skill Notes section to match the recomputed `run_summary`.
@@ -1215,7 +1242,7 @@ git commit -m "test(pr-human-guide): add eval 15 for checked-state preservation"
 - Consumes: everything from Tasks 1–5.
 - Produces: a pushed branch and a PR.
 
-- [ ] **Step 1: Refresh the security baseline**
+- [x] **Step 1: Refresh the security baseline**
 
 ```bash
 bash evals/security/scan.sh --update-baselines --confirm
@@ -1230,7 +1257,7 @@ finding beyond the pinned `W011` appeared:
 git diff evals/security/pr-human-guide.baseline.json
 ```
 
-- [ ] **Step 2: Run the full test suite**
+- [x] **Step 2: Run the full test suite**
 
 ```bash
 uv run --with pytest pytest tests/ -v
@@ -1238,7 +1265,7 @@ uv run --with pytest pytest tests/ -v
 
 Expected: PASS. Sandbox restrictions must be lifted.
 
-- [ ] **Step 3: Spell-check every changed markdown file**
+- [x] **Step 3: Spell-check every changed markdown file**
 
 ```bash
 git diff --name-only origin/main | rg '\.md$' | xargs npx cspell

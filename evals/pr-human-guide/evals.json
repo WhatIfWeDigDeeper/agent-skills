@@ -316,6 +316,27 @@
         "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide --> (not alternative formats)"
       }
     ]
+  },
+  {
+    "id": 15,
+    "name": "preserves-checked-unchanged-items",
+    "prompt": "Can you add a review guide to the description of PR #77 so reviewers know where to look?\n\nPR #77 — 'Harden auth and widen the deploy role'\nURL: https://github.com/owner/repo/pull/77\n\nThe current PR description is:\n```\nHardens token handling and updates the deploy role policy.\n```\n\nThe diff:\n\n```diff\ndiff --git a/src/auth/middleware.ts b/src/auth/middleware.ts\nindex 1111111..2222222 100644\n--- a/src/auth/middleware.ts\n+++ b/src/auth/middleware.ts\n@@ -40,4 +40,5 @@ export function auth(req, res, next) {\n   const header = req.headers.authorization;\n-  const token = header;\n+  const token = header?.split(' ')[1];\n+  verify(token, SECRET);\n   return next();\n }\ndiff --git a/deploy/terraform/iam.tf b/deploy/terraform/iam.tf\nindex 3333333..4444444 100644\n--- a/deploy/terraform/iam.tf\n+++ b/deploy/terraform/iam.tf\n@@ -12,4 +12,4 @@ resource \"aws_iam_role_policy\" \"app\" {\n   policy = jsonencode({\n-    Action = [\"s3:GetObject\"]\n+    Action = [\"s3:GetObject\", \"s3:PutObject\"]\n   })\n }\n```",
+    "followup_prompt": "Thanks — I went through both entries and ticked both checkboxes in the description.\n\nNew commits just landed. Here's the current diff — please refresh the review guide.\n\n```diff\ndiff --git a/src/auth/middleware.ts b/src/auth/middleware.ts\nindex 1111111..5555555 100644\n--- a/src/auth/middleware.ts\n+++ b/src/auth/middleware.ts\n@@ -1,0 +1,19 @@\n+/*\n+ * Copyright (c) 2026 Example Corp.\n+ * Licensed under the MIT License.\n+ */\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n+\n@@ -40,4 +60,5 @@ export function auth(req, res, next) {\n   const header = req.headers.authorization;\n-  const token = header;\n+  const token = header?.split(' ')[1];\n+  verify(token, SECRET);\n   return next();\n }\ndiff --git a/deploy/terraform/iam.tf b/deploy/terraform/iam.tf\nindex 3333333..6666666 100644\n--- a/deploy/terraform/iam.tf\n+++ b/deploy/terraform/iam.tf\n@@ -12,4 +12,4 @@ resource \"aws_iam_role_policy\" \"app\" {\n   policy = jsonencode({\n-    Action = [\"s3:GetObject\"]\n+    Action = [\"s3:GetObject\", \"s3:PutObject\", \"s3:DeleteObject\"]\n   })\n }\n```",
+    "expected_output": "On the second turn the agent should replace the existing guide block rather than append a second one. The reviewer had ticked both entries. The src/auth/middleware.ts entry must stay checked — its anchored content is byte-identical and only its line numbers moved, pushed down by a new license header. The deploy/terraform/iam.tf entry must reset to unchecked — its path, hunk header, and changed line number are all unchanged, but the line's content was rewritten to widen the action list again. Neither fact is stated in the prompt; the agent has to derive both by comparing the two diffs. An agent that copies the previous block through keeps both ticks and fails the reset case; one that re-renders from scratch resets both and fails the preserve case. The posted description must contain no unresolved pr-human-guide:item placeholder text.",
+    "assertions": [
+      {
+        "id": "unchanged-item-stays-checked",
+        "text": "In the refreshed PR description, the src/auth/middleware.ts entry is still checked ('- [x]') even though its line numbers shifted"
+      },
+      {
+        "id": "rewritten-item-resets",
+        "text": "In the refreshed PR description, the deploy/terraform/iam.tf entry is unchecked ('- [ ]') even though the reviewer had ticked it, because its content was rewritten"
+      },
+      {
+        "id": "no-placeholder-leaks",
+        "text": "The refreshed PR description contains no literal 'pr-human-guide:item' placeholder text"
+      }
+    ]
   }
   ]
 }
