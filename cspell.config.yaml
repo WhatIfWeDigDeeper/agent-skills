@@ -74,6 +74,7 @@ words:
   - inspectable
   - isdigit
   - isoformat
+  - jsonencode
   - keepends
   - lockfiles
   - lookarounds
