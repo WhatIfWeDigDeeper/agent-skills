@@ -191,3 +191,26 @@ class TestResolveItemPlaceholders:
             marker_helper.resolve_item_placeholders(under_novel, DIFF)
         ).group(1)
         assert not (security_id == novel_id)
+
+
+class TestRenderingContract:
+    """The model's half of the two-phase identity, pinned in output-format.md.
+
+    Both rules are load-bearing and no unit test can catch a violation: a drifted
+    line range or a re-posted previous block still parses, it just silently loses
+    a reviewer's checkmark (or, worse, keeps a stale one).
+    """
+
+    OUTPUT_FORMAT_MD = (
+        REPO_ROOT / "skills" / "pr-human-guide" / "references" / "output-format.md"
+    )
+
+    def test_range_is_pinned_to_the_changed_lines(self):
+        text = self.OUTPUT_FORMAT_MD.read_text()
+        assert "must span **exactly the\nchanged lines**" in text
+        assert "never the whole `@@`\nhunk" in text
+
+    def test_rerun_must_rerender_rather_than_repost(self):
+        text = self.OUTPUT_FORMAT_MD.read_text()
+        assert "**Render the block fresh on every run, re-runs included.**" in text
+        assert "Never copy the previous" in text

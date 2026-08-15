@@ -27,6 +27,15 @@ Format each entry as:
 Omit the line range if changes are spread across the whole file — from the label
 **and** from the placeholder (`<!-- pr-human-guide:item path=path/to/file -->`).
 
+`{start}` and `{end}` are new-side line numbers and must span **exactly the
+changed lines** the entry covers — the `+` lines, plus any `-` lines falling
+between them — never the surrounding context lines and never the whole `@@`
+hunk. Step 5 hashes the diff lines this range selects, so a range that includes
+a context line on one run but not the next yields two different identities and
+silently drops a reviewer's checkmark. When an entry covers several changed
+regions in one file, use the first changed line as `{start}` and the last as
+`{end}`.
+
 ### Per-item identity comment
 
 The trailing `pr-human-guide:item` comment is a placeholder. Emit it on every
@@ -38,6 +47,13 @@ the anchored diff content, and uses it to restore any box a reviewer had checked
 whose content is unchanged. A placeholder it cannot resolve is removed and that
 item renders unchecked, so a wrong `path=` costs a reviewer's checkmark but
 corrupts nothing.
+
+**Render the block fresh on every run, re-runs included.** Build each entry from
+the current diff and emit the `:item` placeholder again. Never copy the previous
+block out of the PR body, and never write a `:id` comment yourself — a re-posted
+block carries its old `- [x]` marks through verbatim, including on items whose
+code has since been rewritten, and drops the placeholders the next run needs.
+Preservation is Step 5's job; reproducing it by hand defeats it.
 
 This is unrelated to the `#diff-{ANCHOR}` fragment above: that anchor hashes the
 file *path* (GitHub's own scheme) and never changes when the file's content does.

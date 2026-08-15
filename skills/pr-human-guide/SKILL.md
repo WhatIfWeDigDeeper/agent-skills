@@ -167,7 +167,10 @@ replace it idempotently. Omit any category with no flagged items; if no category
 produced any item, emit the bounded "no areas" body so a future re-run still has
 an anchor. Emit the per-item `<!-- pr-human-guide:item … -->` placeholder that
 `output-format.md` specifies on every entry — restate the path and line range,
-never a hash; Step 5 resolves it.
+never a hash; Step 5 resolves it. Range the entry on exactly the changed lines,
+and render the block fresh from the current diff on every run rather than
+re-posting the previous one from the PR body — both are what let a reviewer's
+checkmark survive.
 
 ### 5. Append or replace the review guide in the PR description
 
