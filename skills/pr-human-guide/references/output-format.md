@@ -48,6 +48,12 @@ whose content is unchanged. A placeholder it cannot resolve is removed and that
 item renders unchecked, so a wrong `path=` costs a reviewer's checkmark but
 corrupts nothing.
 
+The identity also folds in the item's enclosing category heading, and the helper
+reads that from the `###` line specifically. Keep category headings at exactly
+level 3: promoting one to `##`, or introducing a `####` subheading between a
+category and its items, detaches the items from the heading the helper matches
+and silently resets every checkmark under it.
+
 **Render the block fresh on every run, re-runs included.** Build each entry from
 the current diff and emit the `:item` placeholder again. Never copy the previous
 block out of the PR body, and never write a `:id` comment yourself — a re-posted

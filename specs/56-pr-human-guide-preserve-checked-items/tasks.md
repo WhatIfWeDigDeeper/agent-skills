@@ -1296,7 +1296,7 @@ Body must state that it closes #221, summarize the content-keyed rule, and note
 the eval-15 result. Then, per repo convention, run `/pr-comments {pr_number}`
 immediately after the push — without asking.
 
-- [ ] **Step 7: Dogfood on this PR**
+- [x] **Step 7: Dogfood on this PR**
 
 Run `/pr-human-guide` on the new PR, tick a box in the GitHub UI, push a commit
 that edits one flagged range, re-run, and confirm the ticked item survived while

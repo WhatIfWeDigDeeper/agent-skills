@@ -86,6 +86,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 `evals/security/` pins per-skill `snyk-agent-scan` output so CI catches *new* findings without forcing pre-existing ones to be fixed first. See `evals/security/CLAUDE.md` for directory rules.
 
 - **Refresh the baseline in the same PR as a security-relevant skill change.** Run `bash evals/security/scan.sh --update-baselines --confirm` and commit the updated `evals/security/<skill>.baseline.json`. Drifted baselines silently mask future regressions.
+- **`scan.sh --update-baselines` rewrites every baseline, not just the skill you changed.** The scanner is non-deterministic, so unrelated baselines come back with findings dropped or severities lowered. `git checkout --` the ones your PR does not touch, and keep each pin at the **worst** observed severity — `scan.sh` treats an escalation as a regression, so pinning a lower severity fails CI on the next flap.
 - The shared `## Security model` section template lives at `specs/36-snyk-scan-baseline/template.md` — mirror it into the SKILL.md of any skill that ingests untrusted content, placed immediately above the first ingestion step.
 - **Pin doc-example tool invocations to the same version as the CI-pinned counterpart** (e.g., `uvx snyk-agent-scan==0.5.1` rather than `@latest`) when CI compares output against a baseline. `@latest` drifts from CI.
 
