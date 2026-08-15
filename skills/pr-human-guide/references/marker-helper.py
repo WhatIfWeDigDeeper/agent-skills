@@ -31,7 +31,10 @@ CLOSE = "<" + chr(33) + "-- /pr-human-guide -->"
 # it to an ':id' identity comment. If that template changes, update these patterns
 # — otherwise every item loses its identity and every reviewer's checked box
 # resets on every re-run, silently.
-ITEM_PLACEHOLDER_RE = re.compile("<" + chr(33) + r"-- pr-human-guide:item\s+([^>]*?)-->")
+# `\s*`, not `\s+`: an attribute-less `:item-->` must still be recognized so the
+# final sub() strips it. Requiring whitespace would leave the raw marker in the
+# posted body instead of resetting the item, which is the safe fallback.
+ITEM_PLACEHOLDER_RE = re.compile("<" + chr(33) + r"-- pr-human-guide:item\s*([^>]*?)-->")
 ITEM_ID_RE = re.compile("<" + chr(33) + r"-- pr-human-guide:id ([0-9a-f]{16}) -->")
 ID_TEMPLATE = "<" + chr(33) + "-- pr-human-guide:id {} -->"
 HUNK_HEADER_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")

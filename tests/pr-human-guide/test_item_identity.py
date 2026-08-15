@@ -182,6 +182,19 @@ class TestResolveItemPlaceholders:
         resolved = marker_helper.resolve_item_placeholders(forged, DIFF)
         assert "0123456789abcdef" not in resolved
 
+    def test_malformed_placeholder_is_still_stripped(self):
+        """A placeholder that carries no attributes must not survive into the body.
+
+        Everything unresolvable resets; leaking the raw marker instead would put
+        skill-internal syntax in the posted description. Reported by Copilot on
+        PR #235.
+        """
+        malformed = "<" + chr(33) + "-- pr-human-guide:item-->"
+        guide = GUIDE_WITH_PLACEHOLDERS.replace(PLACEHOLDER, malformed)
+        resolved = marker_helper.resolve_item_placeholders(guide, DIFF)
+        assert "pr-human-guide:item" not in resolved
+        assert "pr-human-guide:id" not in resolved
+
     def test_non_category_heading_does_not_change_the_id(self):
         """Only the `### Category` line keys the identity.
 
