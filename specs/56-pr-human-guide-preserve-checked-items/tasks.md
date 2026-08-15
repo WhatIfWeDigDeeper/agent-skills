@@ -969,7 +969,7 @@ git commit -m "feat(pr-human-guide): render item placeholders and feed the diff 
 - Consumes: everything from Tasks 1–3.
 - Produces: no code interface. This is the documented contract reviewers read.
 
-- [ ] **Step 1: Add the Security-model bullet**
+- [x] **Step 1: Add the Security-model bullet**
 
 Insert after the "Body written via file, not argv" bullet, before the "Residual
 risks:" paragraph:
@@ -985,7 +985,7 @@ risks:" paragraph:
   PR body can already type `- [x]` (Step 5).
 ```
 
-- [ ] **Step 2: Note the saved diff in Step 2**
+- [x] **Step 2: Note the saved diff in Step 2**
 
 Append to the Step 2 paragraph, after "capture the full diff and the changed-file
 list separately":
@@ -995,7 +995,7 @@ list separately":
 `marker-helper.py` for checked-state preservation.
 ```
 
-- [ ] **Step 3: Note the placeholder in Step 4**
+- [x] **Step 3: Note the placeholder in Step 4**
 
 Append a sentence to the paragraph that begins "**You must now execute
 [`references/output-format.md`](references/output-format.md)**":
@@ -1006,7 +1006,7 @@ Emit the per-item `<!-- pr-human-guide:item … -->` placeholder that
 never a hash; Step 5 resolves it.
 ```
 
-- [ ] **Step 4: Note preservation in Step 5**
+- [x] **Step 4: Note preservation in Step 5**
 
 Append to the Step 5 paragraph, after "guards against empty/corrupted output, and
 posts via `gh pr edit --body-file`":
@@ -1016,7 +1016,7 @@ The helper also resolves each item placeholder to a content hash and restores an
 box a reviewer had checked whose anchored content is unchanged.
 ```
 
-- [ ] **Step 5: Rewrite the Notes bullet**
+- [x] **Step 5: Rewrite the Notes bullet**
 
 Replace the single Notes bullet with:
 
@@ -1029,7 +1029,7 @@ Replace the single Notes bullet with:
   be recomputed, and every item in a block written before v0.16.
 ```
 
-- [ ] **Step 6: Verify no second version bump crept in**
+- [x] **Step 6: Verify no second version bump crept in**
 
 ```bash
 git diff origin/main -- skills/pr-human-guide/SKILL.md | rg '^\+  version:'
@@ -1037,7 +1037,7 @@ git diff origin/main -- skills/pr-human-guide/SKILL.md | rg '^\+  version:'
 
 Expected: exactly one line, `+  version: "0.16"`.
 
-- [ ] **Step 7: Spell-check and commit**
+- [x] **Step 7: Spell-check and commit**
 
 ```bash
 npx cspell skills/pr-human-guide/SKILL.md skills/pr-human-guide/references/output-format.md skills/pr-human-guide/references/commands.md specs/56-pr-human-guide-preserve-checked-items/plan.md specs/56-pr-human-guide-preserve-checked-items/tasks.md
