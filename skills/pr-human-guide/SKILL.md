@@ -13,7 +13,7 @@ compatibility: Requires git, gh, jq, python3; sha256sum (Linux) or shasum (macOS
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.15"
+  version: "0.16"
 ---
 
 # PR Human Guide

@@ -2,10 +2,16 @@
 """Replace or append a pr-human-guide block in a PR body.
 
 Usage:
-    python3 marker-helper.py --body-file FILE --guide-file FILE --out FILE
+    python3 marker-helper.py --body-file FILE --guide-file FILE --out FILE \\
+        [--diff-file FILE]
 
 Reads the current PR body from --body-file, the new guide block from
 --guide-file, writes the updated body to --out.
+
+--diff-file is optional and enables checked-state preservation: item placeholders
+in the guide are resolved to content hashes computed from the diff, and an item
+checked in the previous block stays checked when its hash is unchanged. Without
+it, placeholders are stripped and every item renders unchecked.
 
 Marker constants use chr(33) for '!' so the OPEN/CLOSE strings are not
 present as literal tokens in the source — zsh history expansion would
@@ -13,10 +19,22 @@ otherwise corrupt them during edits or copies in an interactive shell.
 """
 
 import argparse
+import hashlib
 import re
+import sys
 
 OPEN = "<" + chr(33) + "-- pr-human-guide -->"
 CLOSE = "<" + chr(33) + "-- /pr-human-guide -->"
+
+# Lockstep with skills/pr-human-guide/references/output-format.md: Step 4 renders
+# each item with a trailing ':item' placeholder comment, and this helper rewrites
+# it to an ':id' identity comment. If that template changes, update these patterns
+# — otherwise every item loses its identity and every reviewer's checked box
+# resets on every re-run, silently.
+ITEM_PLACEHOLDER_RE = re.compile("<" + chr(33) + r"-- pr-human-guide:item\s+([^>]*?)-->")
+ITEM_ID_RE = re.compile("<" + chr(33) + r"-- pr-human-guide:id ([0-9a-f]{16}) -->")
+ID_TEMPLATE = "<" + chr(33) + "-- pr-human-guide:id {} -->"
+HUNK_HEADER_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
 def _find_replacement_bounds(body: str) -> tuple[int, int] | None:
@@ -53,6 +71,112 @@ def _find_replacement_bounds(body: str) -> tuple[int, int] | None:
     if complete:
         return complete[-1]
     return None
+
+
+def _strip_diff_path(raw: str) -> str | None:
+    """Return the repo-relative path from the value of a '+++ ' diff header."""
+    raw = raw.split("\t", 1)[0].strip()
+    if not raw or raw == "/dev/null":
+        return None
+    if raw.startswith("b/"):
+        raw = raw[2:]
+    return raw
+
+
+def _parse_line_range(raw: str | None) -> tuple[int, int] | None:
+    """Parse a 'lines=42-67' (or 'lines=42') value; None if absent or malformed."""
+    if not raw:
+        return None
+    text = raw.strip()
+    match = re.fullmatch(r"(\d+)-(\d+)", text)
+    if match:
+        start, end = int(match.group(1)), int(match.group(2))
+        return (start, end) if start <= end else None
+    match = re.fullmatch(r"(\d+)", text)
+    if match:
+        value = int(match.group(1))
+        return (value, value)
+    return None
+
+
+def _in_range(cursor: int, line_range: tuple[int, int] | None) -> bool:
+    if line_range is None:
+        return True
+    return line_range[0] <= cursor <= line_range[1]
+
+
+def _select_diff_lines(
+    diff_text: str, path: str, line_range: tuple[int, int] | None
+) -> list[str]:
+    """Return `path`'s diff body lines whose new-side position falls in range.
+
+    Hunk bodies are consumed by decrementing the old/new line counts declared in
+    the '@@' header rather than by guessing where a hunk ends, so a body line that
+    happens to begin '+++ ' or '--- ' parses as content, not as a file header.
+    Deletions are kept when the cursor is in range even though they do not advance
+    it — a pure deletion inside a flagged range must change the item's identity.
+    """
+    selected: list[str] = []
+    current: str | None = None
+    old_left = new_left = 0
+    cursor = 0
+
+    for line in diff_text.splitlines():
+        if old_left > 0 or new_left > 0:
+            if line.startswith("\\"):  # '\ No newline at end of file'
+                continue
+            if line.startswith("-"):
+                old_left -= 1
+                if current == path and _in_range(cursor, line_range):
+                    selected.append(line)
+                continue
+            if line.startswith("+"):
+                new_left -= 1
+                if current == path and _in_range(cursor, line_range):
+                    selected.append(line)
+                cursor += 1
+                continue
+            if line.startswith(" ") or line == "":
+                old_left -= 1
+                new_left -= 1
+                if current == path and _in_range(cursor, line_range):
+                    selected.append(line)
+                cursor += 1
+                continue
+            # Malformed body — abandon the hunk and re-read this line as a header.
+            old_left = new_left = 0
+
+        match = HUNK_HEADER_RE.match(line)
+        if match:
+            old_left = int(match.group(2)) if match.group(2) is not None else 1
+            new_left = int(match.group(4)) if match.group(4) is not None else 1
+            cursor = int(match.group(3))
+            continue
+        if line.startswith("+++ "):
+            current = _strip_diff_path(line[4:])
+
+    return selected
+
+
+def compute_item_id(
+    heading: str,
+    path: str | None,
+    diff_text: str | None,
+    line_range: tuple[int, int] | None = None,
+) -> str | None:
+    """Return a stable 16-hex identity for a guide item, or None if unknowable.
+
+    Keyed on the enclosing category heading, the file path, and the anchored diff
+    lines — deliberately NOT on the line numbers, so an unrelated insertion above
+    the range does not reset a reviewer's check.
+    """
+    if not path or not diff_text:
+        return None
+    selected = _select_diff_lines(diff_text, path, line_range)
+    if not selected:
+        return None
+    payload = "\n".join([heading or "", path, *selected])
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
 def update_body(body: str, guide: str) -> str:
