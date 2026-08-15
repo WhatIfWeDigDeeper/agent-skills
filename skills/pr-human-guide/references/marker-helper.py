@@ -187,6 +187,7 @@ CHECKED_ITEM_RE = re.compile(
     + "<" + chr(33) + r"-- pr-human-guide:id ([0-9a-f]{16}) -->"
 )
 UNCHECKED_BOX_RE = re.compile(r"^(\s*[-*+]\s+\[)\s(\])")
+CHECKED_BOX_RE = re.compile(r"^(\s*[-*+]\s+\[)[xX](\])", re.MULTILINE)
 # Exactly the `### Category` line output-format.md emits -- not `##` (the block's
 # own "## Review Guide") and not a deeper `####`. Matching any heading level would
 # fold a non-category subheading into the identity, resetting a reviewer's check
@@ -254,6 +255,17 @@ def collect_checked_ids(block: str, limit: int = 500) -> set[str]:
     return found
 
 
+def reset_checkboxes(guide: str) -> str:
+    """Return the guide with every checkbox unchecked.
+
+    Step 4 is told to render items unchecked, but that is a documented rule the
+    helper cannot verify. Normalizing here makes an id match from the previous
+    canonical block the *only* way an item comes out checked, so a rendered
+    `- [x]` cannot outlive a content change or an unknowable identity.
+    """
+    return CHECKED_BOX_RE.sub(r"\1 \2", guide)
+
+
 def apply_checked(guide: str, checked: set[str]) -> str:
     """Re-check items whose identity was checked in the previous block."""
     if not checked:
@@ -270,11 +282,12 @@ def apply_checked(guide: str, checked: set[str]) -> str:
 def update_body(body: str, guide: str, diff_text: str | None = None) -> str:
     """Return body with the guide block replaced or appended.
 
-    Placeholders are resolved on both paths — the append path included, or a
-    first run would post raw placeholders into the PR body.
+    Placeholders are resolved and rendered checkboxes reset on both paths — the
+    append path included, or a first run would post raw placeholders, or a check
+    the helper never verified, into the PR body.
     """
     bounds = _find_replacement_bounds(body)
-    guide = resolve_item_placeholders(guide, diff_text)
+    guide = reset_checkboxes(resolve_item_placeholders(guide, diff_text))
     if bounds is not None:
         start, end = bounds
         guide = apply_checked(guide, collect_checked_ids(body[start:end]))

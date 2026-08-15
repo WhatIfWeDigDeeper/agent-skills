@@ -63,7 +63,10 @@ Mitigations in place:
   matching `^[0-9a-f]{16}$` from `- [x]` lines (capped at 500), and carries across a
   single boolean per hash; no text from the untrusted body reaches the new guide.
   Hashes are recomputed by the helper from the `gh pr diff` output, never read from
-  the body, so a forged identity cannot make a check survive a content change.
+  the body, so a forged identity cannot make a check survive a content change. The
+  helper also unchecks every box in the rendered guide before applying preservation,
+  so an id match against the previous block is the only way an item comes out
+  checked — a `- [x]` that reached the guide by any other route does not survive.
   Preservation grants no capability a body editor lacks — anyone able to edit the
   PR body can already type `- [x]` (Step 5).
 

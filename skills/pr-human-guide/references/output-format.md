@@ -59,9 +59,11 @@ silently resets those checkmarks. Keep category headings at exactly level 3.
 **Render the block fresh on every run, re-runs included.** Build each entry from
 the current diff and emit the `:item` placeholder again. Never copy the previous
 block out of the PR body, and never write a `:id` comment yourself — a re-posted
-block carries its old `- [x]` marks through verbatim, including on items whose
-code has since been rewritten, and drops the placeholders the next run needs.
-Preservation is Step 5's job; reproducing it by hand defeats it.
+block drops the placeholders the next run needs, so every identity becomes
+unknowable and every check resets. Preservation is Step 5's job; reproducing it
+by hand defeats it. Rendered `- [x]` marks are not a shortcut either: Step 5
+unchecks every box it receives before applying preservation, so a check survives
+only by matching an identity in the previous block.
 
 This is unrelated to the `#diff-{ANCHOR}` fragment above: that anchor hashes the
 file *path* (GitHub's own scheme) and never changes when the file's content does.

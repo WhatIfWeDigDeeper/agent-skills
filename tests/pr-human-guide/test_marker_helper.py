@@ -277,3 +277,39 @@ class TestCheckedStatePreservation:
     def test_two_argument_call_still_works(self):
         """Backward compatibility: --diff-file is optional at every layer."""
         assert update_body("", GUIDE).startswith(OPEN)
+
+
+class TestRenderedChecksAreNotTrusted:
+    """An id match from the previous block is the ONLY way an item ends up checked.
+
+    Step 4 is told to render every item unchecked, but that is a documented rule,
+    not an enforced one. If a re-render ever copies the previous block forward, a
+    `- [x]` would otherwise ride into the new guide unverified — surviving exactly
+    where the contract says everything unknown resets.
+    """
+
+    CHECKED_GUIDE = GUIDE.replace("- [ ]", "- [x]")
+
+    def test_rendered_check_resets_when_the_identity_is_unknowable(self):
+        """No diff means no id can be computed, so nothing may stay checked."""
+        result = update_body("Body.", self.CHECKED_GUIDE)
+        assert "- [x]" not in result
+
+    def test_rendered_check_resets_on_the_append_path(self):
+        """No previous block exists, so there is nothing to preserve from."""
+        result = update_body("Body.", self.CHECKED_GUIDE, DIFF_V1)
+        assert "- [x]" not in result
+
+    def test_rendered_check_resets_when_the_content_changed(self):
+        """readme.md was rewritten; a rendered check must not paper over that."""
+        first = update_body("Body.", GUIDE, DIFF_V1)
+        second = update_body(first, self.CHECKED_GUIDE, DIFF_V2)
+        assert "- [ ] [`docs/readme.md`" in second
+
+    def test_a_genuine_previous_check_still_wins(self):
+        """Normalization must not break preservation for an unchanged item."""
+        first = update_body("Body.", GUIDE, DIFF_V1)
+        ticked = _tick(first, "middleware.ts")
+        second = update_body(ticked, self.CHECKED_GUIDE, DIFF_V1)
+        assert "- [x] [`src/auth/middleware.ts`" in second
+        assert "- [ ] [`docs/readme.md`" in second
