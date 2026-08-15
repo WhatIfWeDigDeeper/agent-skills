@@ -19,6 +19,8 @@ words:
   - blockquotes
   - blockquoting
   - bunx
+  - checkmark
+  - checkmarks
   - cmdline
   - codegen
   - codemod
@@ -125,6 +127,7 @@ words:
   - reinvocation
   - repoll
   - repolls
+  - repost
   - rerequest
   - rescan
   - rewordings

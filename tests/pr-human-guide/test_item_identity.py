@@ -213,6 +213,22 @@ class TestResolveItemPlaceholders:
         ).group(1)
         assert plain_id == sub_id
 
+    def test_promoting_a_category_off_level_three_changes_the_id(self):
+        """The other half of the contract output-format.md states.
+
+        A `####` subheading is ignored, but a category promoted to `##` stops
+        being recognized at all, so its items inherit whichever `###` heading
+        came before — none, here — and every identity under it changes.
+        """
+        promoted = GUIDE_WITH_PLACEHOLDERS.replace("### Security", "## Security")
+        plain_id = marker_helper.ITEM_ID_RE.search(
+            marker_helper.resolve_item_placeholders(GUIDE_WITH_PLACEHOLDERS, DIFF)
+        ).group(1)
+        promoted_id = marker_helper.ITEM_ID_RE.search(
+            marker_helper.resolve_item_placeholders(promoted, DIFF)
+        ).group(1)
+        assert not (plain_id == promoted_id)
+
     def test_heading_is_taken_from_the_enclosing_category(self):
         under_novel = GUIDE_WITH_PLACEHOLDERS.replace("### Security", "### Novel Patterns")
         security_id = marker_helper.ITEM_ID_RE.search(
