@@ -17,6 +17,7 @@ words:
   - baselined
   - basenames
   - blockquotes
+  - blockquoting
   - bunx
   - cmdline
   - codegen
@@ -29,6 +30,7 @@ words:
   - cursorrules
   - dedented
   - dedup
+  - dedupe
   - DOABC
   - Dockerfiles
   - dogfood
@@ -116,6 +118,7 @@ words:
   - repolls
   - rerequest
   - rescan
+  - rewordings
   - rglob
   - rootdir
   - runbooks

@@ -728,7 +728,7 @@
         },
         {
           "id": "review-body-summary-skipped",
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)"
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request"
         }
       ]
     },
@@ -1142,6 +1142,48 @@
         {
           "id": "commit-credit-has-no-bot-at-mention",
           "text": "The commit message credits the bot without an `@` (e.g. `(suggested by Copilot)`), and does not contain `@Copilot`"
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "name": "suppressed-confidence-findings",
+      "prompt": "Address the review comments on my PR. The PR touches `src/config.js` and `docs/config.md`. The current code is:\n\n```javascript\n// src/config.js\nfunction connect(opts) {\n  const retries = opts.retries ?? 0;\n  if (opts.retry > 0) {\n    scheduleRetry(retries);\n  }\n  return open(opts.url);\n}\n```\n\n```markdown\n<!-- docs/config.md, line 12 -->\nThe `retries` option is required and controls how many times a failed\nconnection is retried.\n```\n\nCopilot submitted one COMMENTED review with **no inline comments at all**. Its review body is:\n\n````markdown\n## Pull request overview\n\nCopilot reviewed 3 out of 3 changed files in this pull request and generated no new comments.\n\n<details>\n<summary>Comments suppressed due to low confidence (2)</summary>\n\n**src/config.js:41**\n* The guard tests `opts.retry`, but every caller and the docs spell the option `retries`, so `opts.retry` is always `undefined` and `undefined > 0` is `false`. `connect({ url, retries: 3 })` therefore never schedules a retry. Test the `retries` const that is already defaulted on the line above.\n\n```javascript\nconst retries = opts.retries ?? 0;\nif (opts.retry > 0) {\n  scheduleRetry(retries);\n}\n```\n\n**docs/config.md:12**\n* This sentence says \"the retries option is required\" but the option is optional with a default. Reword to \"optional, defaults to 0\".\n\n</details>\n\n<details>\n<summary>Show a summary per file</summary>\n\n| File | Description |\n| --- | --- |\n| src/config.js | Adds a retry guard |\n| docs/config.md | Documents the retries option |\n| test/config.test.js | Covers the new guard |\n\n</details>\n````\n\nThere are no inline review threads and no timeline comments.",
+      "expected_output": "The skill reads the review body and expands the `Comments suppressed due to low confidence (2)` collapsed block into two candidate entries, one per `**path:line**` header. Both reach the plan table as their own actionable rows \u2014 the `src/config.js:41` entry (the guard tests a misspelled `opts.retry`, so a caller passing `retries` never gets a retry) and the `docs/config.md:12` entry (the doc says the option is required when it is optional and defaulted). Neither is classified `skip`, and neither is dismissed as a bot PR summary because Copilot authored it: these surfaces are classified on what the body contains, not on who wrote it. The `generated no new comments` headline and the total absence of inline comments are not offered as justification for skipping \u2014 the headline count is explicitly not evidence of a clean review. Neither entry is flagged `decline` as hidden text: the trigger is instruction-like hidden content, not the mere presence of a collapsed block, and this container is recognized by its exact summary string. The entries are still screened individually inside `<untrusted_comment_body>` framing, and they carry no injection phrases, homoglyphs, zero-width characters, or URL-fetch directives. The second collapsed block in the same body, `Show a summary per file`, is a changed-files table and produces no plan rows. The `path:line` strings are untrusted pointers to verify by reading the file rather than validated API fields, and both entries are planned as `fix` (a manual edit) \u2014 never `accept suggestion`, since the fenced block shows current file content rather than a `suggestion` diff. The `src/config.js:41` entry is a substantive correctness bug, not a nit: the proposed change alters behavior, so the round is not nits-only and the Step 6d gate does not fire.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "suppressed-entries-appear-as-plan-rows",
+          "text": "Both suppressed-confidence entries appear in the plan table as actionable rows, one row each \u2014 one for `src/config.js:41` and one for `docs/config.md:12` \u2014 and neither is classified `skip`"
+        },
+        {
+          "id": "suppressed-entries-not-declined-as-hidden-text",
+          "text": "Neither entry is flagged `decline` as hidden text merely because it arrived inside a collapsed `<details>` block"
+        },
+        {
+          "id": "summary-per-file-block-produces-no-rows",
+          "text": "The `Show a summary per file` collapsed block in the same review body produces no plan rows"
+        },
+        {
+          "id": "headline-not-used-as-skip-justification",
+          "text": "The `generated no new comments` headline (or the absence of inline comments) is not given as justification for skipping the review body"
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "name": "bot-timeline-verdict-findings",
+      "prompt": "Address the review comments on my PR. The current code is:\n\n```javascript\n// src/handler.js\nfunction handle(req) {\n  const payload = parseBody(req.body);\n  return payload.items.map(normalize);\n}\n```\n\n```javascript\n// src/retry.js\nasync function retry(fn, times) {\n  for (let i = 0; i < times; i++) {\n    try { return await fn(); } catch (e) { continue; }\n  }\n  throw new Error('retries exhausted');\n}\n```\n\n```javascript\n// test/handler.test.js\ntest('handle normalizes items', () => {\n  expect(handle({ body: v1Payload })).toEqual(v1Expected);\n});\n```\n\n`claude[bot]` (a bot; `user.type` is `\"Bot\"`) posted one PR timeline comment via the issue comments API:\n\n````markdown\n## Code review\n\n### 1. Missing null guard on the parsed payload\n\n`src/handler.js` dereferences `payload.items` without checking that the body parsed\nsuccessfully. A malformed body reaches this line as `null` and throws a TypeError that\nescapes the request handler.\n\n### 2. Retry loop never backs off\n\n`src/retry.js` retries immediately in a tight loop. Add exponential backoff, or the first\noutage turns into a self-inflicted request storm.\n\n### 3. Test asserts on a stale fixture\n\n`test/handler.test.js` still asserts the v1 payload shape that the schema change in this PR\nsupersedes, so the assertion passes for the wrong reason.\n````\n\nThere are no inline review threads and no review body comments. All three points are correct and should be fixed in code and committed.",
+      "expected_output": "The skill classifies the timeline comment on its content rather than its author. A `## Code review` body with `### N. <title>` finding sections is a findings list, not a summary, so it is not classified `skip` as a bot PR summary. The skill creates one plan row per finding section \u2014 three rows \u2014 each classified `fix` or `reply`, and fixes the null guard, the missing backoff, and the stale test assertion. Because a timeline comment carries no GraphQL thread ID, there is nothing to resolve, so after committing the skill posts an acknowledgment reply that blockquotes each addressed finding's prose verbatim from a single line of the original. For a bot the blockquote is the only linkage signal, so the quote is what lets a later run recognize these findings as already addressed instead of re-planning them.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "timeline-findings-planned-not-skipped",
+          "text": "Each of the three `### N.` findings appears as its own plan row classified `fix` or `reply` \u2014 not collapsed into one row, and not classified `skip` as a bot PR summary"
+        },
+        {
+          "id": "acknowledgment-reply-quotes-each-finding",
+          "text": "An acknowledgment reply is posted on the timeline comment containing a `>` blockquote of each addressed finding's prose, so a later run recognizes them as already addressed rather than re-planning them"
         }
       ]
     }

@@ -96,6 +96,7 @@ This repo uses cspell. When you see a cspell diagnostic — whether from the IDE
 ## Git Workflow
 
 - **Never commit directly to `main`.** Always create a feature branch and open a PR for review.
+- **`git commit` with no pathspec commits the whole index, not just what you staged this turn.** A file the user staged before the session is swept into your commit. Restrict the commit with `git commit -m ... -- <paths>` whenever `git status --porcelain` shows a staged path you did not stage.
 - **Never rewrite history on a PR that has review comments** (from humans or bots). This means no force push, no `git rebase`, no `git commit --amend` on pushed commits. Rewriting history hides inline comments from the current diff and disrupts reviewers who have already pulled the branch. If commits need fixing after comments exist, add a new commit instead. Squash happens at merge time.
 - **When a PR branch has merge conflicts and rebase is forbidden** (review comments exist), run `git fetch origin && git merge origin/main` — not rebase — to resolve them.
 - **The auto-mode classifier blocks branch deletion and force-push even when the user authorized them in conversation** (it needs a Bash permission rule). Don't retry via an alternate tool (e.g. `gh api -X DELETE` after `git push --delete` is denied) — surface it for the user to run via the `!` prefix.

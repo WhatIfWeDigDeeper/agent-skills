@@ -3,11 +3,11 @@
 **Models tested**:
 - `claude-sonnet-4-6` — primary suite 2026-03-29; spec 15 update 2026-04-03; eval 10 v1.24 re-run 2026-04-07; evals 37–38 v1.28 run 2026-04-12. Analyzer: Sonnet 4.6.
 - `claude-opus-4-7` — full 38-eval suite × 2 configurations on 2026-04-24 (spec 26). Analyzer: **Sonnet 4.6** (deviation from spec — Opus 4.7 hit the rate-limit mid-grading; Sonnet was used to grade all 76 transcripts uniformly for analyzer-model consistency).
-- `claude-sonnet-5` — eval 41 only × 2 configurations on 2026-07-13 (spec 52). Analyzer: Sonnet 5. A single-eval track, not a suite: the retired Sonnet 4.6 and Opus 4.7 executors can no longer be pinned, so eval 41 could not be appended to either existing track.
+- `claude-sonnet-5` — evals 41–43 only × 2 configurations (eval 41 on 2026-07-13 for spec 52; evals 42–43 on 2026-08-11 for spec 55). Analyzer: Sonnet 5. A three-eval track, not a suite: the retired Sonnet 4.6 and Opus 4.7 executors can no longer be pinned, so these evals could not be appended to either existing track.
 
-**Evals**: 38 dual-model evals (the canonical subset, evals 1–38) × 2 configurations × 2 models = **152 canonical runs**, plus 13 Sonnet-only regression run entries across 6 evals (12, 14, 20, 22, 23, 24, all with `run_number > 1`), plus 4 Sonnet 4.6-only runs for the two nits-only-gate evals (39, 40 × 2 configurations; spec 47), plus 2 Sonnet 5-only runs for the bot-mention eval (41 × 2 configurations; spec 52). Total: 171 entries in `runs[]`. Evals 39–40 were run on Sonnet 4.6 only and eval 41 on Sonnet 5 only, so the Opus aggregates below still cover evals 1–38 and the Sonnet 4.6 aggregates cover evals 1–40.
+**Evals**: 38 dual-model evals (the canonical subset, evals 1–38) × 2 configurations × 2 models = **152 canonical runs**, plus 13 Sonnet-only regression run entries across 6 evals (12, 14, 20, 22, 23, 24, all with `run_number > 1`), plus 4 Sonnet 4.6-only runs for the two nits-only-gate evals (39, 40 × 2 configurations; spec 47), plus 6 Sonnet 5-only runs for the three bot-surface evals (41 × 2 configurations, spec 52; 42–43 × 2 configurations, spec 55). Total: 175 entries in `runs[]`. Evals 39–40 were run on Sonnet 4.6 only and evals 41–43 on Sonnet 5 only, so the Opus aggregates below still cover evals 1–38 and the Sonnet 4.6 aggregates cover evals 1–40.
 
-**Skill version**: v1.51 (current). Sonnet 4.6 runs for evals 1–38 were produced under v1.21/v1.24/v1.28 as noted above; Opus runs were produced under v1.36; the two nits-only-gate evals (39, 40) were produced under v1.48; eval 41 was produced under v1.51. Only eval 41 has been run at v1.51 — the other 40 evals' recorded results predate it.
+**Skill version**: v1.52 (current). Sonnet 4.6 runs for evals 1–38 were produced under v1.21/v1.24/v1.28 as noted above; Opus runs were produced under v1.36; the two nits-only-gate evals (39, 40) were produced under v1.48; eval 41 was produced under v1.51; evals 42–43 under v1.52. Only evals 42–43 have been run at v1.52 — the other 41 evals' recorded results predate it.
 
 > **Pending refresh — `without_skill` arm redefinition (spec 46).** The numbers below are the v1.36 run. The spec-46 refresh (deferred; not yet executed) **redefines the `without_skill` arm**: instead of the *true no-skill* baseline used here (a general assistant with no SKILL.md — Opus 59.9% pass, delta **+39 pts**), the refresh will measure `without_skill` as the **pre-edit v-current snapshot** of the skill (the v1.46 snapshot captured in task 0.3; re-create it in a scratchpad dir at refresh time). Because both arms of the refresh then run essentially the same skill — differing only by spec-46's small edits (Step 13 consolidation, `--auto 42` doc reduction, the edited-after-reply skip exception) — the refreshed delta is expected to be **near zero by design**. That near-zero delta measures *this pass's marginal change to an already-strong skill*, **not a regression** against the +39 pt true-baseline value. When the refresh lands, replace this note with the new run's Summary and keep the +39 pt true-baseline figure cited explicitly so the two measurements are not conflated.
 
@@ -33,17 +33,20 @@ Sonnet time and token statistics are computed only over primary runs (`run_numbe
 
 Opus per-run time and token measurements are `null` because subagent usage data was visible only in the runtime's per-task completion notifications and was not captured at the parent level. Observed wall-clock ranges from those notifications: with_skill ~115s and ~60–100k tokens per run; without_skill ~45s and ~28–68k tokens per run. The pass-rate aggregates remain fully reliable.
 
-### `claude-sonnet-5` — eval 41 only
+### `claude-sonnet-5` — evals 41–43 only
 
 | Metric | With Skill | Without Skill | Delta |
 |--------|------------|---------------|-------|
-| Pass Rate | **100%** (5/5) | 40% (2/5) | **+60%** |
-| Time | 228.0s | 155.5s | +72.6s |
-| Tokens | 9,685 | 12,446 | −2,761 |
+| Pass Rate | **100%** | 38% | **+62%** |
+| Time | 284.3s ± 58.9 | 112.7s ± 46.0 | +171.6s |
+| Tokens | 12,309 ± 9,462 | 8,870 ± 3,888 | +3,439 |
+| Cache tokens | 3,210,864 ± 900,504 | 913,159 ± 371,553 | +2,297,705 |
 
-**This is one eval, not a suite — do not compare its delta to the two above.** N = 1 per configuration, so `stddev` is `null` throughout (sample stddev is undefined at N = 1) and min = max = mean. It exists as a separate track only because eval 41 was added at v1.51 (spec 52), by which point the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned; it is excluded from the top-level `run_summary` and from both full-suite by-model blocks. The Sonnet 4.6 token denominators quoted above are therefore unchanged by eval 41's arrival.
+Pass rate is the **mean of the three per-eval rates**, the convention `benchmark.json`'s `run_summary` uses throughout this file: eval 41 **100%** (5/5) vs 40% (2/5), eval 42 **100%** (4/4) vs 75% (3/4), eval 43 **100%** (2/2) vs 0% (0/2). Aggregating by raw assertion count instead would put the baseline at 5/11 = 45% and the delta at +55%. The two aggregations coincide at N = 1 (which is why eval 41's original `40% (2/5)` row was self-consistent) and diverge at N = 3 — do not mix them.
 
-The negative token delta is a measurement artifact, not a saving: `tokens` counts input + output only, and the with-skill run served nearly all of its input from cache (62 uncached input tokens against 2,459,308 cache tokens, versus 1,296,190 for the baseline). Reading SKILL.md and its ten reference files makes the skill run *more* expensive, not less — the input + output metric simply cannot see cached input.
+**This is a three-eval track, not a suite — do not compare its delta to the two above.** N = 3 per configuration. It exists as a separate track only because evals 41–43 were added at v1.51/v1.52 (specs 52 and 55), by which point the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned; it is excluded from the top-level `run_summary` and from both full-suite by-model blocks. The Sonnet 4.6 token denominators quoted above are therefore unchanged by these evals' arrival.
+
+`cache_tokens` is recorded only for this track — the Sonnet 4.6 and Opus 4.7 runs predate the split and have no cache measurements. It is tracked separately from `tokens` because cache reads bill at 0.1× and cache creation at 1.25–2×; folding them into `tokens` would inflate the headline by two orders of magnitude without proportional cost. The `tokens` column counts input + output only, which is why it can run *lower* with the skill (eval 41: −2,761; eval 43: −4,996) even though the skill run is strictly more expensive — reading SKILL.md and its reference files moves nearly all input into cache, where the input + output metric cannot see it. The cache-token delta (+2.3M) is the honest measure of that cost.
 
 The skill improves correctness on Sonnet 4.6 by **+63 percentage points** (37% → 100%) and on Opus 4.7 by **+39 percentage points** (60% → 99%). The Opus baseline is materially stronger than Sonnet's, so the marginal value of the skill on Opus is smaller — this matches the prediction in `specs/26-pr-comments-dual-model-benchmark/plan.md` and is consistent with the pattern observed when the `learn` skill was benchmarked on Opus 4.7 (spec 25). Of the 38 evals run on both models, 9 are non-discriminating on Opus 4.7 (delta = 0); on Sonnet 4.6 — which additionally ran evals 39–40, 40 total — only 1 is non-discriminating (eval 38; eval 40 is partially discriminating, not non-discriminating). See **Known Eval Limitations** below.
 
@@ -95,7 +98,7 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 | 40 | mixed-round-no-nit-gate | **4/4 (100%)** | 3/4 (75%) | N/A | N/A |
 | 41 | bot-credit-no-at-mention | N/A | N/A | N/A | N/A |
 
-Evals 39–40 (spec 47) were run on Sonnet 4.6 only; Opus 4.7 runs are a pending follow-up, hence `N/A` in the Opus columns. Eval 41 (spec 52) ran on neither model — it was added after both were retired — so it is `N/A` in all four columns; its Sonnet 5 result (**5/5** with-skill vs **2/5** without-skill) is in the `claude-sonnet-5` summary above.
+Evals 39–40 (spec 47) were run on Sonnet 4.6 only; Opus 4.7 runs are a pending follow-up, hence `N/A` in the Opus columns. Evals 41 (spec 52) and 42–43 (spec 55) ran on neither model — they were added after both were retired — so they are `N/A` in all four columns; their Sonnet 5 results (eval 41 **5/5** vs **2/5**, eval 42 **4/4** vs **3/4**, eval 43 **2/2** vs **0/2**) are in the `claude-sonnet-5` summary above.
 
 ## Known Eval Limitations
 
@@ -329,6 +332,28 @@ Tests the gate's negative branch: a round with at least one non-nit actionable c
 Tests spec 52: nothing posted to GitHub may carry a live `@`-mention of a bot, because GitHub reads `@copilot` in a PR comment as a *command* and dispatches a coding agent rather than crediting one. The skill refers to Copilot by the bare handle `Copilot`, keeps `@alice` for the human (on the flat timeline the `@` is her only notification), keeps the `>` blockquote on the bot reply — which, with the `@` gone, is that reply's sole linkage signal for the Step 2c dedup — and credits the commit as `(suggested by Copilot)` / `(suggested by @alice)`. Discriminating on Sonnet 5 (+60%): with_skill 5/5, without_skill 2/5. Assertions 2, 3 and 4 differentiate; the baseline replies in generic prose with no handle, no blockquote and no `@alice`, leaving nothing to link either reply back to its originating comment.
 
 The no-`@`-mention assertion itself passes in both configurations, but only *vacuously* without the skill — that baseline referenced no commenter at all. An earlier variant of this scenario did produce a literal `@Copilot` in the baseline reply, reproducing the production incident that motivated the spec. Treat that assertion as guarding a real, intermittently-reproducing hazard, not as a non-discriminating assertion.
+
+### Eval 42 — `suppressed-confidence-findings`
+**Prompt**: A Copilot review body whose headline reads "reviewed 3 out of 3 changed files ... and generated no new comments", carrying a collapsed `Comments suppressed due to low confidence (2)` block with two `**path:line**` entries and a second `Show a summary per file` block. No inline comments at all.
+
+Tests spec 55 / issue #220: findings that arrive only inside a suppressed-confidence block must reach the plan table instead of being discarded as a "bot PR summary". Discriminating on Sonnet 5 (+25%): with_skill 4/4, without_skill 3/4.
+
+Only `suppressed-entries-appear-as-plan-rows` differentiates — the baseline fixed both findings correctly but produced no plan table, so nothing was classified. **Two of the baseline's three passes are vacuous** and should not be read as baseline competence: it has no screening step, so nothing could be flagged `decline` as hidden text, and it produced no plan rows at all, so the `Show a summary per file` block could not over-extract into any. The fourth assertion is a genuine baseline pass — it independently reasoned past the `generated no new comments` headline rather than treating it as a clean review.
+
+**Fixture design is load-bearing.** Entry 1 must be a substantive correctness bug or the eval tests the wrong machinery. An earlier draft claimed `if (opts.retries > 0)` skips the retry on the default path and proposed `(opts.retries ?? 0) > 0` — but those two guards evaluate identically for every input, making the proposed change behavior-preserving. The with-skill run correctly falsified that claim by writing and running a probe, tagged both entries `nit`, and the all-nit round tripped the Step 6d nits-only gate and halted awaiting `fix-all` / `skip-all` / `issue-all` / `select`. That is correct skill behavior, but it exercises the verification and gate paths rather than the extraction path the eval exists to test. The shipped fixture uses a real defect instead: the guard tests `opts.retry` while callers and docs spell it `retries`, so `connect({url, retries: 3})` never schedules a retry.
+
+**The fixture carries the legacy container summary** (`Comments suppressed due to low confidence (2)`), because it is a verbatim PR #218 payload; Copilot renamed the container to `Suppressed comments (N)` on 2026-07-31. The eval measures classification — surface the entries instead of skipping them — which is the same on either wording, and `references/bot-review-surfaces.md` lists both. Equivalence of the two summary strings is asserted at the unit level (`test_current_copilot_summary_string_is_recognized`, `test_both_container_summaries_extract_identically`), not by this eval.
+
+That aborted round is itself live confirmation of the design prediction in `specs/55-pr-comments-bot-review-surfaces/plan.md`: extraction makes Step 6d fire routinely, because a suppressed-confidence round whose entries are all behavior-preserving now halts auto mode rather than fixing silently. This is why `nit-gate.md`'s former "review bodies are rarely actionable nits" premise had to be rewritten.
+
+### Eval 43 — `bot-timeline-verdict-findings`
+**Prompt**: `claude[bot]` posts a `## Code review` PR timeline comment with three `### N.` finding sections (missing null guard, retry loop with no backoff, test asserting a stale fixture). No inline threads, no review body comments.
+
+Tests the second half of issue #220: a bot verdict on the issue-comments endpoint is structurally indistinguishable from the "bot PR summary" the old skip rule named, yet carries real findings. Fully discriminating on Sonnet 5 (+100%): with_skill 2/2, without_skill 0/2.
+
+Both assertions differentiate, and the baseline's failure is purely in the process layer — it fixed all three findings correctly on the merits. It produced no plan rows, and its reply is a bold numbered summary with no `>` blockquote. Since a bot's `{commenter_ref}` carries no `@`, the blockquote is the *only* linkage signal available; without it nothing ties the reply to the originating comment, so a later run re-plans all three findings. That is precisely the re-planning loop issue #220 describes, reproduced in the baseline.
+
+The with-skill reply quotes one verbatim single-line run per finding. That constraint is load-bearing rather than stylistic: `is_already_addressed` is a plain substring test with no newline tolerance, so a quote spanning a line break, or reworded, would fail to match and the loop would not terminate. All three quotes were confirmed to appear verbatim in the source comment.
 
 ## Notes
 

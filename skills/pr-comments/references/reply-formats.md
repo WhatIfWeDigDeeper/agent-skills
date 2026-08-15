@@ -20,6 +20,23 @@ human, a bare handle with no `@` for a bot. The rule, the bot test, and the
 per-surface notes live in **`references/commenter-ref.md`**; read it before
 filling in any template here.
 
+## Quoting the excerpt — verbatim, single line
+
+**This binds every `>` quote in this file** — nit replies, review-body (Step 2b),
+timeline (Step 2c), and fix acknowledgments alike.
+
+**Each `>` line must be a verbatim run of characters copied from a single line of
+the original body** — never paraphrase, summarize, or reflow it. The linkage
+match is a plain substring test with no newline tolerance, so a quote that
+rewords the excerpt, or joins two source lines (prose onto a following code
+fence, or two wrapped lines of the same bullet), matches nothing. The comment
+then reads as unaddressed and re-surfaces on every later run — and for a **bot**,
+whose `{commenter_ref}` carries no `@`, the quote is the only linkage signal
+there is, so a non-verbatim quote leaves no linkage at all.
+
+Pick a short, distinctive line rather than a long one: one line that exists
+verbatim in the source beats a faithful-looking rewrite of the whole paragraph.
+
 ## Nit replies (Step 6d nits-only gate)
 
 When the Step 6d gate resolves a nit by **skipping** or **deferring to an
@@ -33,8 +50,10 @@ Both templates below open with `{commenter_ref}` and a `>` quote. On a
 review-body or timeline reply that wrapper is **mandatory**: the quote is what
 links the reply back to the originating comment, and for a **bot** commenter —
 whose `{commenter_ref}` carries no `@` — it is the *only* linkage signal there
-is. Drop it and the nit re-surfaces as unaddressed on every subsequent run. (For
-a human, the `@` also notifies them.) On an *inline* reply the thread itself
+is. Quote it verbatim from a single source line, per
+"Quoting the excerpt — verbatim, single line" above: drop the quote, or
+reword it, and the nit re-surfaces as unaddressed on every subsequent run.
+(For a human, the `@` also notifies them.) On an *inline* reply the thread itself
 carries the link, so the wrapper is redundant but harmless — keep it for
 consistency. When the nit came from an inline comment, its review thread is left
 **open** (not resolved); review-body and timeline comments have no thread to
@@ -82,15 +101,55 @@ gh api repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies \
 
 ## Review body comment (Step 2b)
 
-Use the issue comments endpoint (replies go to the PR timeline):
+Use the issue comments endpoint (replies go to the PR timeline). **The reply body
+must start with `{commenter_ref}` and include a `>` quote of the relevant
+excerpt** — a review body has no thread, so the quote is what links the reply to
+it and what the Step 2b linkage dedup keys on next run. For a bot commenter,
+whose `{commenter_ref}` carries no `@`-mention by design, the quote is the only
+linkage signal there is. Never drop it, and quote it verbatim from a single
+source line, per "Quoting the excerpt — verbatim, single line" above — a
+paraphrased quote links no better than a missing one.
+
+Required format:
+```
+{commenter_ref}
+> [relevant excerpt from their comment]
+
+[Your response]
+
+---
+🤖 Generated with [AssistantName](url)
+```
 
 ```bash
 gh api repos/{owner}/{repo}/issues/{pr_number}/comments \
   --method POST \
-  --field 'body=[Your reply]
+  --field 'body={commenter_ref}
+> [relevant excerpt]
+
+[Your response]
 
 ---
 🤖 Generated with [AssistantName](url)'
+```
+
+## Fix acknowledgment (review body / timeline)
+
+A `fix` on these surfaces has no thread to resolve, so this reply is the only
+record that the entry was handled. One blockquote per entry covered.
+
+Every `>` line here follows "Quoting the excerpt — verbatim, single line" above.
+
+```
+{commenter_ref}
+> [entry 1 excerpt]
+
+> [entry 2 excerpt]
+
+Both findings were valid and are fixed in <short sha>.
+
+---
+🤖 Generated with [AssistantName](url)
 ```
 
 ## Timeline comment (Step 2c)
@@ -105,7 +164,9 @@ for **any** commenter — the reply loses the context linking it to their commen
 The `>` quote is also what the Step 2c linkage dedup keys on to mark the comment
 `skip` on the next run; for a bot commenter, whose `{commenter_ref}` carries no
 `@`-mention by design, **the quote is the only linkage signal there is**. Never
-drop it.
+drop it, and quote it verbatim from a single source line, per
+"Quoting the excerpt — verbatim, single line" above — a paraphrased quote
+links no better than a missing one.
 
 Required format:
 ```

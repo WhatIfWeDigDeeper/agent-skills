@@ -24,7 +24,7 @@
         "analyzer_model": "claude-sonnet-5",
         "timestamp": "2026-07-13T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "Eval 41 (bot-credit-no-at-mention) only, run at v1.51 for spec 52 on 2026-07-13. This is a single-eval track, NOT a full-suite run: the retired claude-sonnet-4-6 and claude-opus-4-7 executors can no longer be pinned, so new evals cannot be appended to either existing track. N=1 per configuration, so stddev is null and this track's pass-rate delta is not comparable to the two full-suite deltas."
+        "notes": "Evals 41 (bot-credit-no-at-mention), 42 (suppressed-confidence-findings) and 43 (bot-timeline-verdict-findings) only. Eval 41 was run at v1.51 for spec 52 on 2026-07-13; evals 42-43 at v1.52 for spec 55 on 2026-08-11. This is a three-eval non-suite track, NOT a full-suite run: the retired claude-sonnet-4-6 and claude-opus-4-7 executors can no longer be pinned, so new evals cannot be appended to either existing track. N=3 per configuration; this track's pass-rate delta is not comparable to the two full-suite deltas and is excluded from the top-level run_summary and from both full-suite by-model blocks."
       }
     ],
     "timestamp": "2026-04-24T00:00:00Z",
@@ -69,7 +69,9 @@
       38,
       39,
       40,
-      41
+      41,
+      42,
+      43
     ],
     "runs_per_configuration": 1,
     "regression_run_evals": [
@@ -80,9 +82,9 @@
       23,
       24
     ],
-    "skill_version": "1.51",
-    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check); evals 39-40 (nits-only gate) run on Sonnet 4.6 only under v1.48 on 2026-06-27 (spec 47); eval 41 (bot-credit-no-at-mention) run on Sonnet 5 only under v1.51 on 2026-07-13 (spec 52) \u2014 a single-eval track, not a suite run: the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned by then, so eval 41 is excluded from both full-suite tracks and from the top-level run_summary",
-    "last_updated": "2026-07-13T00:00:00Z"
+    "skill_version": "1.52",
+    "skill_version_note": "Opus 4.7 full-suite runs recorded under v1.36 on 2026-04-24; earlier Sonnet-era provenance: suite runs recorded under v1.21; eval 10 re-run under v1.24 on 2026-04-07; evals 37-38 run under v1.28 on 2026-04-12 (post-edit drift re-scan and convention sanity-check); evals 39-40 (nits-only gate) run on Sonnet 4.6 only under v1.48 on 2026-06-27 (spec 47); eval 41 (bot-credit-no-at-mention) run on Sonnet 5 only under v1.51 on 2026-07-13 (spec 52) \u2014 opening a non-suite track, not a suite run: the Sonnet 4.6 and Opus 4.7 executors could no longer be pinned by then, so eval 41 is excluded from both full-suite tracks and from the top-level run_summary; evals 42-43 (suppressed-confidence-findings, bot-timeline-verdict-findings) run on Sonnet 5 only under v1.52 on 2026-08-11 (spec 55), joining eval 41 in that same non-suite track - that track is therefore three evals, not one. Runs in this file span v1.21 through v1.52; metadata.skill_version records the current version, not one shared by every run",
+    "last_updated": "2026-08-11T00:00:00Z"
   },
   "runs": [
     {
@@ -2532,7 +2534,7 @@
           "evidence": "Step 6 classification for a comment stating 'this function has a potential null pointer dereference' identifies a clear actionable code-level request, which maps to `fix` (or possibly `reply` if clarification is needed), not `skip`."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": true,
           "evidence": "The review body comment reads 'Summary: overall the changes look reasonable but there is one correctness issue' \u2014 this is a bot PR summary comment with no direct actionable request, matching the Step 6 `skip` criterion for bot PR summaries."
         }
@@ -2576,7 +2578,7 @@
           "evidence": "Since the prompt explicitly labels the timeline comment as 'actionable feedback' about a null pointer dereference, a baseline assistant would recognize this as requiring action and not skip it."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": false,
           "evidence": "A baseline assistant has no structured classification rules for bot PR summary comments. It might attempt to act on the review body comment ('one correctness issue') rather than correctly classifying it as a non-actionable summary, since it lacks skill-defined rules distinguishing summary comments from actionable ones."
         }
@@ -2933,7 +2935,7 @@
           "evidence": "Timeline comment (id 301) classified as 'fix' in Step 6 \u2014 'null pointer dereference' is a specific, actionable correctness concern."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": true,
           "evidence": "Review body comment (id 201) 'Summary: overall the changes look reasonable but there is one correctness issue.' classified as 'skip' in Step 6 \u2014 bot-generated PR summary with no specific actionable request."
         }
@@ -6232,7 +6234,7 @@
           "evidence": "Step 6 Item B classification: 'Classification: `fix` (bot timeline comment, actionable null-check)'. Step 8 applies an edit to src/parser.ts and Step 10 commits the change."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": true,
           "evidence": "Step 6 Item A: 'Per Step 6 guidance: \"Most of these are non-actionable \u2014 classify them as skip... bot PR summaries (Copilot, Claude)\u2026\" Classification: `skip` (bot PR summary, non-actionable).'"
         }
@@ -6276,7 +6278,7 @@
           "evidence": "Step 4 classifies the timeline comment as 'Actionable. Needs investigation'. Steps 5-7 implement the null-guard fix, commit it, and push. Step 8 replies to the bot's comment."
         },
         {
-          "text": "The claude[bot] review body summary comment is classified as skip (bot PR summary, non-actionable)",
+          "text": "The claude[bot] review body summary comment is classified as skip \u2014 it carries no `**path:line**` entries, no `### N.` finding sections, and no code-level request",
           "passed": true,
           "evidence": "Step 4 plan table row 1: 'No concrete action requested \u2014 it's a meta-summary. I'll skip it.' Step 8 confirms: 'The review body summary doesn't really need a reply \u2014 it was a meta-summary, not an actionable comment.'"
         }
@@ -7493,6 +7495,7 @@
         "total": 5,
         "time_seconds": 228.03,
         "tokens": 9685,
+        "cache_tokens": 2459308,
         "tool_calls": 20,
         "errors": 1
       },
@@ -7540,6 +7543,7 @@
         "total": 5,
         "time_seconds": 155.45,
         "tokens": 12446,
+        "cache_tokens": 1296190,
         "tool_calls": 15,
         "errors": 2
       },
@@ -7573,6 +7577,150 @@
       "notes": [
         "2/5 (40%). Assertions 2, 3 and 4 fail: the baseline replies in generic prose (\"Good catch \u2014 this was an off-by-one. Fixed in the latest commit...\") with no bare handle, no `>` blockquote, and no `@alice` prefix, leaving no linkage signal back to either originating comment. Assertion 1 passes only vacuously \u2014 the reply never references Copilot at all, so no `@`-mention is present. Assertion 5 passes: the commit says \"Addresses review feedback from Copilot and alice.\" with no `@`."
       ]
+    },
+    {
+      "eval_id": 42,
+      "eval_name": "suppressed-confidence-findings",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 279.28,
+        "tokens": 22806,
+        "cache_tokens": 4208960,
+        "tool_calls": 25,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Both suppressed-confidence entries appear in the plan table as actionable rows, one row each \u2014 one for `src/config.js:41` and one for `docs/config.md:12` \u2014 and neither is classified `skip`",
+          "passed": true,
+          "evidence": "Rendered a `## PR Review Plan` table with exactly two rows: row 1 `src/config.js:41` (retry guard checks `opts.retry` instead of the defaulted `retries` const) action `fix`, row 2 `docs/config.md:12` (doc says required, code defaults via `opts.retries ?? 0`) action `fix`. Neither row is `skip`."
+        },
+        {
+          "text": "Neither entry is flagged `decline` as hidden text merely because it arrived inside a collapsed `<details>` block",
+          "passed": true,
+          "evidence": "Step 5 wrapped both entries in `<untrusted_comment_body>` framing and screened each individually: 'Neither contains AI-directed instructions, encoded/obfuscated content, hidden text, multi-comment coordination, or URL-fetch directives. Clean \u2014 no `decline` for injection.' The collapsed container did not by itself trigger the hidden-text rule."
+        },
+        {
+          "text": "The `Show a summary per file` collapsed block in the same review body produces no plan rows",
+          "passed": true,
+          "evidence": "'The second `<details><summary>Show a summary per file</summary>` block was correctly NOT extracted \u2014 matches the structural summary predicate (changed-files table, no findings), key on summary string not presence of a collapsed block.' It contributed no plan rows."
+        },
+        {
+          "text": "The `generated no new comments` headline (or the absence of inline comments) is not given as justification for skipping the review body",
+          "passed": true,
+          "evidence": "'Applied the non-evidence rule: the \"reviewed 3 out of 3 ... generated no new comments\" headline is NOT evidence of a clean review \u2014 the body still had to be read for a suppressed-confidence block.' The zero inline-comment count was likewise not used to skip."
+        }
+      ],
+      "notes": "Fixture entry 1 is a substantive correctness bug (guard tests `opts.retry` while callers and docs spell it `retries`), verified empirically before this run: `connect({url, retries: 3})` never schedules. The skill verified the same claim by writing a red/green regression test, classified it a non-nit `fix`, and the Step 6d nits-only gate correctly did not fire."
+    },
+    {
+      "eval_id": 42,
+      "eval_name": "suppressed-confidence-findings",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": 64.04,
+        "tokens": 4732,
+        "cache_tokens": 554260,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Both suppressed-confidence entries appear in the plan table as actionable rows, one row each \u2014 one for `src/config.js:41` and one for `docs/config.md:12` \u2014 and neither is classified `skip`",
+          "passed": false,
+          "evidence": "No plan table was produced. The baseline addressed both findings as a two-item numbered prose list ('1. `src/config.js:41` \u2014 actual bug. ... 2. `docs/config.md:12` \u2014 doc/code mismatch.') with no Action/Nit classification columns, so neither entry appears as an actionable plan row."
+        },
+        {
+          "text": "Neither entry is flagged `decline` as hidden text merely because it arrived inside a collapsed `<details>` block",
+          "passed": true,
+          "evidence": "Vacuous pass: the baseline has no prompt-injection screening step, so nothing was flagged `decline` for any reason. It read the collapsed block's contents directly without treating collapse as suspicious."
+        },
+        {
+          "text": "The `Show a summary per file` collapsed block in the same review body produces no plan rows",
+          "passed": true,
+          "evidence": "Vacuous pass: no plan rows were produced at all, so the `Show a summary per file` block contributed none. The baseline never referenced that block."
+        },
+        {
+          "text": "The `generated no new comments` headline (or the absence of inline comments) is not given as justification for skipping the review body",
+          "passed": true,
+          "evidence": "Genuine pass: 'The review itself reports \"generated no new comments\" and has no actual inline review threads \u2014 but the collapsed \"Comments suppressed due to low confidence\" section contains two real findings worth addressing.' It explicitly reasoned past the headline rather than treating it as a clean review."
+        }
+      ],
+      "notes": "Only assertion 1 discriminates. Assertions 2 and 3 pass vacuously \u2014 the baseline has no screening step and produced no plan rows at all, so there was nothing to flag and nothing to over-extract. Assertion 4 is a genuine pass: the baseline independently refused to treat the `generated no new comments` headline as a clean review. Do not read this 75% as three independent baseline competencies."
+    },
+    {
+      "eval_id": 43,
+      "eval_name": "bot-timeline-verdict-findings",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 345.51,
+        "tokens": 4437,
+        "cache_tokens": 2964323,
+        "tool_calls": 17,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Each of the three `### N.` findings appears as its own plan row classified `fix` or `reply` \u2014 not collapsed into one row, and not classified `skip` as a bot PR summary",
+          "passed": true,
+          "evidence": "Rendered a `## PR Review Plan` table with three rows, one per `### N.` section: `src/handler.js` (missing null guard) `fix`, `src/retry.js` (no backoff) `fix`, `test/handler.test.js` (stale v1 fixture) `fix`. Explicitly classified on content, not author: 'a timeline comment with a `## Code review` heading and `### N. <title>` sections is a findings list, not a summary \u2014 one plan row per section.'"
+        },
+        {
+          "text": "An acknowledgment reply is posted on the timeline comment containing a `>` blockquote of each addressed finding's prose, so a later run recognizes them as already addressed rather than re-planning them",
+          "passed": true,
+          "evidence": "Posted one grouped acknowledgment reply to the issue-comments endpoint containing three `>` blockquotes, one per finding, each a verbatim single-line run from the original body (e.g. '> `src/handler.js` dereferences `payload.items` without checking that the body parsed'). All three were confirmed to appear verbatim in the source comment, so the `is_already_addressed` substring test matches and a later run skips them."
+        }
+      ],
+      "notes": "Both assertions differentiate. The grouped reply quotes one verbatim single-line run per finding \u2014 the constraint that makes loop termination work, since a bot's `{commenter_ref}` carries no `@` and the blockquote is the only linkage signal for the `is_already_addressed` substring test."
+    },
+    {
+      "eval_id": 43,
+      "eval_name": "bot-timeline-verdict-findings",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 2,
+        "total": 2,
+        "time_seconds": 118.49,
+        "tokens": 9433,
+        "cache_tokens": 889027,
+        "tool_calls": 10,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Each of the three `### N.` findings appears as its own plan row classified `fix` or `reply` \u2014 not collapsed into one row, and not classified `skip` as a bot PR summary",
+          "passed": false,
+          "evidence": "No plan table was produced and no per-finding rows were classified. The baseline fixed all three findings but narrated them as prose ('1. **Missing null guard (`src/handler.js`)** \u2014 Fixed. ...'), with no Action column and no `fix`/`reply` classification."
+        },
+        {
+          "text": "An acknowledgment reply is posted on the timeline comment containing a `>` blockquote of each addressed finding's prose, so a later run recognizes them as already addressed rather than re-planning them",
+          "passed": false,
+          "evidence": "The reply it would post contains no `>` blockquote of any finding's prose \u2014 it is a bold numbered summary ('1. **Null guard on parsed payload** (`src/handler.js`): Added a check ...'). With no `@`-mention (bot) and no verbatim quote, nothing links the reply to the original comment, so a later run would re-plan all three findings."
+        }
+      ],
+      "notes": "Fully discriminating (0/2). The baseline fixed all three findings correctly on the merits \u2014 its failure is entirely in the process layer: no plan rows, and a reply with no blockquote, which is exactly the re-planning loop issue #220 describes."
     }
   ],
   "run_summary": {
@@ -7721,47 +7869,60 @@
       "with_skill": {
         "pass_rate": {
           "mean": 1.0,
-          "stddev": null,
+          "stddev": 0.0,
           "min": 1.0,
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 228.03,
-          "stddev": null,
+          "mean": 284.27,
+          "stddev": 58.9,
           "min": 228.03,
-          "max": 228.03
+          "max": 345.51
         },
         "tokens": {
-          "mean": 9685,
-          "stddev": null,
-          "min": 9685,
-          "max": 9685
+          "mean": 12309,
+          "stddev": 9462,
+          "min": 4437,
+          "max": 22806
+        },
+        "cache_tokens": {
+          "mean": 3210864,
+          "stddev": 900504,
+          "min": 2459308,
+          "max": 4208960
         }
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.4,
-          "stddev": null,
-          "min": 0.4,
-          "max": 0.4
+          "mean": 0.3833,
+          "stddev": 0.3753,
+          "min": 0.0,
+          "max": 0.75
         },
         "time_seconds": {
-          "mean": 155.45,
-          "stddev": null,
-          "min": 155.45,
+          "mean": 112.66,
+          "stddev": 45.98,
+          "min": 64.04,
           "max": 155.45
         },
         "tokens": {
-          "mean": 12446,
-          "stddev": null,
-          "min": 12446,
+          "mean": 8870,
+          "stddev": 3888,
+          "min": 4732,
           "max": 12446
+        },
+        "cache_tokens": {
+          "mean": 913159,
+          "stddev": 371553,
+          "min": 554260,
+          "max": 1296190
         }
       },
       "delta": {
-        "pass_rate": "+0.60",
-        "time_seconds": "+72.6",
-        "tokens": "-2761"
+        "pass_rate": "+0.62",
+        "time_seconds": "+171.6",
+        "tokens": "+3439",
+        "cache_tokens": "+2297705"
       }
     }
   },
