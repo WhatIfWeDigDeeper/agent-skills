@@ -1282,7 +1282,7 @@ rg -n '^- \[ \] \*\*Step' specs/56-pr-human-guide-preserve-checked-items/tasks.m
 
 Expected: no output.
 
-- [ ] **Step 5: Commit and push**
+- [x] **Step 5: Commit and push**
 
 ```bash
 git add evals/security/pr-human-guide.baseline.json cspell.config.yaml specs/56-pr-human-guide-preserve-checked-items/
@@ -1290,7 +1290,7 @@ git commit -m "chore(pr-human-guide): refresh security baseline for v0.16" -- ev
 git push -u origin HEAD
 ```
 
-- [ ] **Step 6: Open the PR**
+- [x] **Step 6: Open the PR**
 
 Body must state that it closes #221, summarize the content-keyed rule, and note
 the eval-15 result. Then, per repo convention, run `/pr-comments {pr_number}`
