@@ -1222,7 +1222,7 @@ and the weak-discriminator note from Step 5.
 Update the `pr-human-guide` row's `Eval Δ` column and the **Eval cost** bullet in
 its Skill Notes section to match the recomputed `run_summary`.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add evals/pr-human-guide/ README.md
@@ -1274,7 +1274,7 @@ git diff --name-only origin/main | rg '\.md$' | xargs npx cspell
 Add flagged terms to `cspell.config.yaml` in alphabetical position. Do not pipe
 cspell output through `grep -v` — an npm cache EPERM would be swallowed.
 
-- [ ] **Step 4: Confirm every task checkbox in this file is ticked**
+- [x] **Step 4: Confirm every task checkbox in this file is ticked**
 
 ```bash
 rg -n '^- \[ \] \*\*Step' specs/56-pr-human-guide-preserve-checked-items/tasks.md
