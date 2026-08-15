@@ -182,6 +182,24 @@ class TestResolveItemPlaceholders:
         resolved = marker_helper.resolve_item_placeholders(forged, DIFF)
         assert "0123456789abcdef" not in resolved
 
+    def test_non_category_heading_does_not_change_the_id(self):
+        """Only the `### Category` line keys the identity.
+
+        A deeper subheading between the category and the item is not a category
+        change, so it must not reset a reviewer's check. Reported by Copilot on
+        PR #235.
+        """
+        with_subheading = GUIDE_WITH_PLACEHOLDERS.replace(
+            "### Security\n", "### Security\n\n#### Token handling\n"
+        )
+        plain_id = marker_helper.ITEM_ID_RE.search(
+            marker_helper.resolve_item_placeholders(GUIDE_WITH_PLACEHOLDERS, DIFF)
+        ).group(1)
+        sub_id = marker_helper.ITEM_ID_RE.search(
+            marker_helper.resolve_item_placeholders(with_subheading, DIFF)
+        ).group(1)
+        assert plain_id == sub_id
+
     def test_heading_is_taken_from_the_enclosing_category(self):
         under_novel = GUIDE_WITH_PLACEHOLDERS.replace("### Security", "### Novel Patterns")
         security_id = marker_helper.ITEM_ID_RE.search(

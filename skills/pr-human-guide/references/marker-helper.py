@@ -184,6 +184,11 @@ CHECKED_ITEM_RE = re.compile(
     + "<" + chr(33) + r"-- pr-human-guide:id ([0-9a-f]{16}) -->"
 )
 UNCHECKED_BOX_RE = re.compile(r"^(\s*[-*+]\s+\[)\s(\])")
+# Exactly the `### Category` line output-format.md emits -- not `##` (the block's
+# own "## Review Guide") and not a deeper `####`. Matching any heading level would
+# fold a non-category subheading into the identity, resetting a reviewer's check
+# on an item whose category never changed.
+CATEGORY_HEADING_RE = re.compile(r"^###\s+\S")
 
 
 def _parse_item_attrs(raw: str) -> dict[str, str]:
@@ -210,7 +215,7 @@ def resolve_item_placeholders(guide: str, diff_text: str | None = None) -> str:
 
     for line in guide.splitlines(keepends=True):
         stripped = line.lstrip()
-        if stripped.startswith("#"):
+        if CATEGORY_HEADING_RE.match(stripped):
             heading = stripped.strip()
         match = ITEM_PLACEHOLDER_RE.search(line)
         if match:
