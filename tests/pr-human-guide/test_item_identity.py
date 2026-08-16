@@ -123,6 +123,14 @@ class TestComputeItemId:
         novel = marker_helper.compute_item_id("### Novel Patterns", PATH, DIFF, RANGE)
         assert not (security == novel)
 
+    def test_documentation_drift_heading_is_a_distinct_category(self):
+        security = marker_helper.compute_item_id(HEADING, PATH, DIFF, RANGE)
+        drift = marker_helper.compute_item_id(
+            "### Documentation Drift", PATH, DIFF, RANGE
+        )
+        assert drift is not None
+        assert not (security == drift)
+
     def test_whole_file_id_differs_from_ranged_id(self):
         whole = marker_helper.compute_item_id(HEADING, PATH, DIFF, None)
         ranged = marker_helper.compute_item_id(HEADING, PATH, DIFF, RANGE)

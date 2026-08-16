@@ -337,6 +337,54 @@
         "text": "The refreshed PR description contains no literal 'pr-human-guide:item' placeholder text"
       }
     ]
+  },
+  {
+    "id": 16,
+    "name": "documentation-drift-stale-flag",
+    "prompt": "Can you prep PR #260 for review — add a guide to the description so reviewers know where to focus?\n\nPR #260 — 'Rename --force to --overwrite in the export CLI'\nURL: https://github.com/owner/repo/pull/260\nCurrent PR description: 'Renames the export CLI --force flag to --overwrite to say what it actually does. Handler updated to match.'\n\nThe repository's `README.md` is not touched by this PR. Representative excerpt of its Usage section:\n\n## Usage\n\n    export-tool run --out ./dist --force\n\nFlags:\n- `--out` — output directory\n- `--quiet` — suppress progress output\n- `--force` — overwrite existing output files\n- `--format` — output format (json or csv)\n\n```diff\ndiff --git a/src/cli.py b/src/cli.py\nindex aaaaaaa..bbbbbbb 100644\n--- a/src/cli.py\n+++ b/src/cli.py\n@@ -40,14 +40,14 @@ def build_parser():\n     parser.add_argument(\"--out\", help=\"Output directory\")\n     parser.add_argument(\"--quiet\", action=\"store_true\", help=\"Suppress progress output\")\n     parser.add_argument(\n-        \"--force\",\n+        \"--overwrite\",\n         action=\"store_true\",\n         help=\"Overwrite existing output files\",\n     )\n     parser.add_argument(\"--format\", choices=[\"json\", \"csv\"], default=\"json\")\n     return parser\n \n \n def run_export(args, out_path):\n-    if args.force or not out_path.exists():\n+    if args.overwrite or not out_path.exists():\n         write_output(out_path)\n```",
+    "expected_output": "The agent flags the src/cli.py flag rename under a documentation-staleness category (Documentation Drift): README.md — which this PR does not touch — still documents --force in its Usage section, so the rename leaves the doc stale. The entry anchors to the changed src/cli.py lines from the diff (the untouched README.md cannot be anchored) and the reason names README.md. The guide is appended to the PR description wrapped in the canonical <!-- pr-human-guide --> / <!-- /pr-human-guide --> markers.",
+    "assertions": [
+      {
+        "id": "flags-stale-doc",
+        "text": "The guide flags the CLI flag rename with a reason stating that --force is still documented in README.md, which this PR does not update"
+      },
+      {
+        "id": "anchors-to-code-lines",
+        "text": "The flagged entry anchors to the changed src/cli.py lines from the diff, not to README.md (which is not in the diff)"
+      },
+      {
+        "id": "uses-exact-markers",
+        "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->"
+      },
+      {
+        "id": "updates-pr-description",
+        "text": "The guide is written into the PR description, not just output in chat"
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "name": "documentation-drift-updated-in-diff",
+    "prompt": "Can you prep PR #262 for review — add a guide to the description so reviewers know where to focus?\n\nPR #262 — 'Rename --force to --overwrite (docs included) plus internal cleanup'\nURL: https://github.com/owner/repo/pull/262\nCurrent PR description: 'Renames the export CLI --force flag to --overwrite, updates the README Usage section to match, and renames an internal batch helper for clarity.'\n\nThe repository's only documentation file is `README.md`, which is updated in this PR (see diff).\n\n```diff\ndiff --git a/src/cli.py b/src/cli.py\nindex aaaaaaa..bbbbbbb 100644\n--- a/src/cli.py\n+++ b/src/cli.py\n@@ -40,14 +40,14 @@ def build_parser():\n     parser.add_argument(\"--out\", help=\"Output directory\")\n     parser.add_argument(\"--quiet\", action=\"store_true\", help=\"Suppress progress output\")\n     parser.add_argument(\n-        \"--force\",\n+        \"--overwrite\",\n         action=\"store_true\",\n         help=\"Overwrite existing output files\",\n     )\n     parser.add_argument(\"--format\", choices=[\"json\", \"csv\"], default=\"json\")\n     return parser\n \n \n def run_export(args, out_path):\n-    if args.force or not out_path.exists():\n+    if args.overwrite or not out_path.exists():\n         write_output(out_path)\ndiff --git a/README.md b/README.md\nindex ccccccc..ddddddd 100644\n--- a/README.md\n+++ b/README.md\n@@ -12,7 +12,7 @@ Flags:\n - `--out` — output directory\n - `--quiet` — suppress progress output\n-- `--force` — overwrite existing output files\n+- `--overwrite` — overwrite existing output files\n - `--format` — output format (json or csv)\ndiff --git a/src/exporter.py b/src/exporter.py\nindex eeeeeee..fffffff 100644\n--- a/src/exporter.py\n+++ b/src/exporter.py\n@@ -55,9 +55,9 @@ class Exporter:\n-    def _write_batch(self, records):\n+    def _flush_batch(self, records):\n         for record in records:\n             self.sink.append(record)\n \n     def close(self):\n-        self._write_batch(self.pending)\n+        self._flush_batch(self.pending)\n         self.sink.flush()\n```",
+    "expected_output": "The agent flags nothing. Documentation staleness does not fire on the --force rename because README.md is updated in the same diff, and does not fire on the internal _write_batch -> _flush_batch rename because no documentation file names it. The README.md edit itself is documentation prose and stays exempt. Both renames are mechanical single-token substitutions, so no other category fires. The agent updates the PR description with the bounded 'no areas requiring special human review' body wrapped in the canonical markers.",
+    "assertions": [
+      {
+        "id": "no-doc-drift-flag",
+        "text": "The guide does NOT flag documentation staleness for the --force rename, because README.md is updated in the same diff"
+      },
+      {
+        "id": "no-flag-for-unmentioned-name",
+        "text": "The guide does NOT flag the internal _write_batch to _flush_batch rename (the name appears in no documentation file)"
+      },
+      {
+        "id": "outputs-no-areas-message",
+        "text": "The body contains the message indicating no areas requiring special human review attention were identified"
+      },
+      {
+        "id": "uses-exact-markers",
+        "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->"
+      }
+    ]
   }
   ]
 }

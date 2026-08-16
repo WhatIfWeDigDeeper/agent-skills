@@ -2,7 +2,7 @@
   "metadata": {
     "skill_name": "pr-human-guide",
     "skill_path": "skills/pr-human-guide",
-    "skill_version": "0.16",
+    "skill_version": "0.17",
     "executor_model": "claude-opus-4-7",
     "analyzer_model": "claude-sonnet-4-6",
     "models_tested": [
@@ -44,7 +44,15 @@
         "skill_version": "0.16",
         "timestamp": "2026-08-15T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "Spec 56 checked-state preservation: 1 new eval (15) x 2 configurations = 2 runs on SKILL.md v0.16, all run_number == 1. Run only on claude-opus-5, in its own run_summary_by_model bucket; the historical Sonnet 4.6 / Opus 4.7 / Opus 4.8 rows are left unchanged, as is the top-level run_summary (the Opus 4.7 full suite). Grading performed inline by the controller (claude-opus-5) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). Because this bucket holds a single eval per configuration, its stddev values are 0.0 by construction and carry no information. Unlike the earlier partial sets, metadata.skill_version is advanced to 0.16: evals/CLAUDE.md requires it when adding runs and names this file's prior '0.7' as known drift rather than a convention to copy. Two earlier attempts at this eval were discarded before recording \u2014 the first narrated the answer in the prompt, the second anchored its reset case on a documentation file the Selectivity Threshold correctly never flags. A third with_skill attempt was discarded after the executor's recursive grep across evals/ returned eval 15's expected_output; the re-run added an explicit read fence and is the one recorded here. The without_skill run was verified uncontaminated by the same check."
+        "notes": "Spec 56 checked-state preservation: 1 new eval (15) x 2 configurations = 2 runs on SKILL.md v0.16, all run_number == 1. Run only on claude-opus-5, in its own run_summary_by_model bucket; the historical Sonnet 4.6 / Opus 4.7 / Opus 4.8 rows are left unchanged, as is the top-level run_summary (the Opus 4.7 full suite). Grading performed inline by the controller (claude-opus-5) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). Because this set holds a single eval per configuration, the stddev values in its benchmark.md table are 0.0 by construction and carry no information; spec 57 later added evals 16-17 to the same run_summary_by_model bucket, which now aggregates evals 15-17. Unlike the earlier partial sets, metadata.skill_version is advanced to 0.16: evals/CLAUDE.md requires it when adding runs and names this file's prior '0.7' as known drift rather than a convention to copy. Two earlier attempts at this eval were discarded before recording \u2014 the first narrated the answer in the prompt, the second anchored its reset case on a documentation file the Selectivity Threshold correctly never flags. A third with_skill attempt was discarded after the executor's recursive grep across evals/ returned eval 15's expected_output; the re-run added an explicit read fence and is the one recorded here. The without_skill run was verified uncontaminated by the same check."
+      },
+      {
+        "executor_model": "claude-opus-5",
+        "analyzer_model": "claude-opus-5",
+        "skill_version": "0.17",
+        "timestamp": "2026-08-16T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "Spec 57 Documentation Drift: 2 new evals (16-17) x 2 configurations = 4 runs on SKILL.md v0.17, all run_number == 1. Eval 16 is the positive case (a CLI flag rename that leaves an untouched README.md stale); eval 17 is the negative (the same rename with README.md updated in the same diff, plus an internal helper rename no documentation names). Run only on claude-opus-5, folding into the run_summary_by_model['claude-opus-5'] set (now evals 15-17); the Sonnet 4.6 / Opus 4.7 / Opus 4.8 rows and the top-level run_summary (the Opus 4.7 full suite) are unchanged. Grading performed by dedicated grader subagents (claude-opus-5) against the assertion text in evals.json. Per-run time_seconds/tokens/cache_tokens/tool_calls/errors extracted from the executor subagent JSONL transcripts via evals/scripts/extract_subagent_usage.py (tokens = input + output; cache_tokens = creation + reads, kept separate). With evals 16-17 folded in, the Opus 5 bucket has 3 evals per configuration, so its stddev values are now informative."
       }
     ],
     "timestamp": "2026-04-28T00:00:00Z",
@@ -63,7 +71,9 @@
       12,
       13,
       14,
-      15
+      15,
+      16,
+      17
     ],
     "runs_per_configuration": 1
   },
@@ -72,7 +82,8 @@
     "Per-run stats are aggregated from the per-agent JSONL transcripts. time_seconds = max-minus-min event timestamp. tokens = input_tokens + output_tokens summed across all assistant turns (matches the repo's learn / pr-comments / peer-review convention \u2014 the 'new work' that drives full-rate billing). cache_tokens = cache_creation_input_tokens + cache_read_input_tokens summed similarly; this is tracked separately because cache reads (0.1x rate) dominate the volume but not the cost. tool_calls = count of tool_use content blocks. errors = count of tool_result blocks with is_error: true.",
     "Sonnet with_skill runs were re-spawned to correct an executor-model mismatch: the first batch hit transient 529 errors at spawn time, was resumed via SendMessage, and the resume path inherited the parent's claude-opus-4-7 instead of the original claude-sonnet-4-6 model. The re-spawns ran cleanly on Sonnet 4.6, verified by inspecting message.model in each agent's JSONL.",
     "Two Sonnet without_skill runs (evals 5 and 8) initially invoked the pr-human-guide skill via the Skill tool despite the SKILL.md/references read prohibition; those runs were re-spawned with explicit Skill-tool prohibition added to the executor prompt, and only the clean re-runs are recorded.",
-    "Evals 9-12 (executor claude-opus-4-8, SKILL.md v0.13, spec 48) are a partial coverage set, not part of the v0.7 full-suite headline delta. Per-eval discrimination holds: eval 9 with/without = 4/4 vs 2/4; eval 10 = 3/3 vs 1/3; eval 11 = 4/4 vs 3/4; eval 12 = 4/4 vs 1/4. Eval 11 is weakly discriminating (baseline flags the high-fanout helper, broad impact, and behavior change on its own; only the canonical-marker assertion fails). Eval 12 (selectivity) is the strongest new discriminator: the baseline emitted a guide entry for all five changed files, including asking to verify a test stub. No skill defect surfaced, so no version bump accompanies these runs. See run_summary_by_model['claude-opus-4-8'] for the new-set aggregate (with_skill pass_rate 1.00 vs without_skill 0.46, delta +0.54)."
+    "Evals 9-12 (executor claude-opus-4-8, SKILL.md v0.13, spec 48) are a partial coverage set, not part of the v0.7 full-suite headline delta. Per-eval discrimination holds: eval 9 with/without = 4/4 vs 2/4; eval 10 = 3/3 vs 1/3; eval 11 = 4/4 vs 3/4; eval 12 = 4/4 vs 1/4. Eval 11 is weakly discriminating (baseline flags the high-fanout helper, broad impact, and behavior change on its own; only the canonical-marker assertion fails). Eval 12 (selectivity) is the strongest new discriminator: the baseline emitted a guide entry for all five changed files, including asking to verify a test stub. No skill defect surfaced, so no version bump accompanies these runs. See run_summary_by_model['claude-opus-4-8'], which now aggregates the evals 9-14 set (with_skill pass_rate 1.00 vs without_skill 0.3889, delta +0.61).",
+    "Evals 16-17 (executor claude-opus-5, SKILL.md v0.17, spec 57) add Documentation Drift coverage and are a partial set, not part of the v0.7 full-suite headline delta. Per-eval discrimination holds: eval 16 with/without = 4/4 vs 2/4; eval 17 = 4/4 vs 1/4. Eval 16's flags-stale-doc assertion passed without_skill \u2014 the prompt carries a README.md Usage excerpt, so the Opus 5 baseline noticed the --force mismatch on its own \u2014 leaving anchors-to-code-lines and uses-exact-markers as eval 16's discriminators. Eval 17 discriminates on no-flag-for-unmentioned-name, outputs-no-areas-message, and uses-exact-markers: the baseline flagged the private _write_batch -> _flush_batch rename that no documentation file names, and emitted a 'Needs a decision' section instead of the bounded no-areas body. run_summary_by_model['claude-opus-5'] now aggregates the evals 15-17 set (with_skill pass_rate 1.00 vs without_skill 0.4722, delta +0.53)."
   ],
   "runs": [
     {
@@ -1978,6 +1989,176 @@
           "evidence": "Baseline invented its own '<!-- review-guide:start -->' / '<!-- review-guide:end -->' markers and never emitted the skill's placeholder syntax, so the assertion passes vacuously \u2014 it cannot leak a placeholder it never renders."
         }
       ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "documentation-drift-stale-flag",
+      "executor_model": "claude-opus-5",
+      "analyzer_model": "claude-opus-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 267.21,
+        "tokens": 10842,
+        "cache_tokens": 2357718,
+        "tool_calls": 18,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The guide flags the CLI flag rename with a reason stating that --force is still documented in README.md, which this PR does not update",
+          "passed": true,
+          "evidence": "Guide item reads: \"Renames the `--force` flag to `--overwrite`; `README.md` still documents `--force` in its Usage example and flag list and is not updated in this PR\", filed under the \"### Documentation Drift\" heading."
+        },
+        {
+          "text": "The flagged entry anchors to the changed src/cli.py lines from the diff, not to README.md (which is not in the diff)",
+          "passed": true,
+          "evidence": "Entry link text is \"[`src/cli.py` (L43-52)](.../pull/260/files#diff-f48b6fbb...)\". Verified against the prompt's diff: the only changed file is src/cli.py and hunk \"@@ -40,14 +40,14 @@\" spans new-side lines 40-53, placing \"+ \\\"--overwrite\\\",\" at 43 and \"+ if args.overwrite\" at 52. README.md appears only in the reason text, never as the anchor."
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "passed": true,
+          "evidence": "Rendered description opens the block with \"<!-- pr-human-guide -->\" and closes with \"<!-- /pr-human-guide -->\"; report also records the guard \"grep -qF '<\\!-- pr-human-guide' out.md\" finding nothing, confirming no zsh-corrupted marker."
+        },
+        {
+          "text": "The guide is written into the PR description, not just output in chat",
+          "passed": true,
+          "evidence": "The block between the FINAL PR DESCRIPTION markers is the original body (\"Renames the export CLI --force flag to --overwrite...\") followed by the full marker-wrapped Review Guide, produced by running marker-helper.py's append path over body.md; the chat summary is a separate section."
+        }
+      ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "documentation-drift-stale-flag",
+      "executor_model": "claude-opus-5",
+      "analyzer_model": "claude-opus-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 202.75,
+        "tokens": 5346,
+        "cache_tokens": 1130597,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The guide flags the CLI flag rename with a reason stating that --force is still documented in README.md, which this PR does not update",
+          "passed": true,
+          "evidence": "Guide section 1 is titled \"Documentation drift \u2014 `README.md` is stale (not in this PR)\" and states \"`README.md` still documents the old flag in two separate places, and neither is touched here\", listing the Usage example and the flag-list bullet."
+        },
+        {
+          "text": "The flagged entry anchors to the changed src/cli.py lines from the diff, not to README.md (which is not in the diff)",
+          "passed": false,
+          "evidence": "The documentation-drift entry has no line anchoring at all: it quotes README content (\"the Usage example: `export-tool run --out ./dist --force`\") and gives no line reference into src/cli.py. The preamble's \"The code change is two lines in `src/cli.py`\" is a bare file mention outside the flagged entry, not a line anchor."
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "passed": false,
+          "evidence": "Neither pr-human-guide HTML comment marker appears anywhere in the rendered description; the guide is delimited only by a `---` rule and a `## Review guide` heading, ending with the `### Safe to skim` subsection."
+        },
+        {
+          "text": "The guide is written into the PR description, not just output in chat",
+          "passed": true,
+          "evidence": "The rendered final PR description (between the BEGIN/END markers) contains the full \"## Review guide\" section, separate from the later chat-facing summary; step 7 says \"the complete body is rendered below instead of being applied with `gh pr edit`\" because the PR is unreachable offline."
+        }
+      ],
+      "notes": [
+        "On the Opus 5 baseline the flags-stale-doc assertion did NOT discriminate: the eval prompt carries a README.md Usage excerpt, so the baseline noticed the --force mismatch unaided and led its guide with it. Eval 16's measured discriminators are anchors-to-code-lines (the baseline quoted README prose and gave no line anchor into src/cli.py) and uses-exact-markers."
+      ]
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "documentation-drift-updated-in-diff",
+      "executor_model": "claude-opus-5",
+      "analyzer_model": "claude-opus-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 240.33,
+        "tokens": 11140,
+        "cache_tokens": 2316428,
+        "tool_calls": 18,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The guide does NOT flag documentation staleness for the --force rename, because README.md is updated in the same diff",
+          "passed": true,
+          "evidence": "Analysis table row for src/cli.py / Documentation Drift: \"**Not flagged.** ... The repository's only documentation file is `README.md`, and it **is** modified in this diff \u2014 so the search set is empty and there is no literal-name hit to flag.\" The rendered description contains no Documentation Drift entry."
+        },
+        {
+          "text": "The guide does NOT flag the internal _write_batch to _flush_batch rename (the name appears in no documentation file)",
+          "passed": true,
+          "evidence": "Analysis table row for src/exporter.py: \"`_write_batch` \u2192 `_flush_batch` is a private, purely internal identifier renamed at its definition and its single call site in `close()`. ... **Not flagged.**\" The rendered description lists zero items."
+        },
+        {
+          "text": "The body contains the message indicating no areas requiring special human review attention were identified",
+          "passed": true,
+          "evidence": "Final PR description contains: \"No areas requiring special human review attention were identified.\""
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "passed": true,
+          "evidence": "Rendered description between the BEGIN/END markers opens with \"<!-- pr-human-guide -->\" and closes with \"<!-- /pr-human-guide -->\", both exact and uncorrupted."
+        }
+      ]
+    },
+    {
+      "eval_id": 17,
+      "eval_name": "documentation-drift-updated-in-diff",
+      "executor_model": "claude-opus-5",
+      "analyzer_model": "claude-opus-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.25,
+        "passed": 1,
+        "failed": 3,
+        "total": 4,
+        "time_seconds": 124.41,
+        "tokens": 3112,
+        "cache_tokens": 488958,
+        "tool_calls": 3,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The guide does NOT flag documentation staleness for the --force rename, because README.md is updated in the same diff",
+          "passed": true,
+          "evidence": "Under 'Verified clean in the diff \u2014 no action needed': '**Documentation is in sync.** `README.md` is the repository's only documentation file, and its Usage flag list is updated to `--overwrite` in this same PR. No doc drift to chase.'"
+        },
+        {
+          "text": "The guide does NOT flag the internal _write_batch to _flush_batch rename (the name appears in no documentation file)",
+          "passed": false,
+          "evidence": "A dedicated bullet under 'Please check outside this diff' flags the rename: '**`_flush_batch` blast radius** \u2014 `src/exporter.py`. The leading underscore makes this low risk, but if `Exporter` is exported as a library class, a downstream subclass overriding `_write_batch` would silently stop being called.'"
+        },
+        {
+          "text": "The body contains the message indicating no areas requiring special human review attention were identified",
+          "passed": false,
+          "evidence": "No such statement; the guide instead opens a 'Needs a decision' section: '**Breaking CLI change with no deprecation path** \u2014 `src/cli.py`. ... **Is a hard break acceptable under this project's versioning policy...?**'"
+        },
+        {
+          "text": "The PR description update uses the exact markers <!-- pr-human-guide --> and <!-- /pr-human-guide -->",
+          "passed": false,
+          "evidence": "Neither marker appears anywhere between the BEGIN/END FINAL PR DESCRIPTION delimiters; the guide is delimited only by a '---' rule and a '## Review guide' heading."
+        }
+      ],
+      "notes": [
+        "Discriminates on no-flag-for-unmentioned-name, outputs-no-areas-message, and uses-exact-markers. The baseline flagged the private _write_batch -> _flush_batch rename that no documentation file names, and opened a 'Needs a decision' section instead of the bounded no-areas body. It did correctly decline to flag documentation staleness for the --force rename, so no-doc-drift-flag does not discriminate."
+      ]
     }
   ],
   "run_summary_by_model": {
@@ -2170,55 +2351,55 @@
           "max": 1.0
         },
         "time_seconds": {
-          "mean": 311.28,
-          "stddev": 0.0,
-          "min": 311.28,
+          "mean": 272.94,
+          "stddev": 35.8204,
+          "min": 240.33,
           "max": 311.28
         },
         "tokens": {
-          "mean": 13650,
-          "stddev": 0.0,
-          "min": 13650,
+          "mean": 11877.3333,
+          "stddev": 1542.3882,
+          "min": 10842,
           "max": 13650
         },
         "cache_tokens": {
-          "mean": 3704428,
-          "stddev": 0.0,
-          "min": 3704428,
+          "mean": 2792858,
+          "stddev": 789712.6786,
+          "min": 2316428,
           "max": 3704428
         }
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.6667,
-          "stddev": 0.0,
-          "min": 0.6667,
+          "mean": 0.4722,
+          "stddev": 0.2097,
+          "min": 0.25,
           "max": 0.6667
         },
         "time_seconds": {
-          "mean": 197.5,
-          "stddev": 0.0,
-          "min": 197.5,
-          "max": 197.5
+          "mean": 174.8867,
+          "stddev": 43.7928,
+          "min": 124.41,
+          "max": 202.75
         },
         "tokens": {
-          "mean": 10305,
-          "stddev": 0.0,
-          "min": 10305,
+          "mean": 6254.3333,
+          "stddev": 3681.5234,
+          "min": 3112,
           "max": 10305
         },
         "cache_tokens": {
-          "mean": 979588,
-          "stddev": 0.0,
-          "min": 979588,
-          "max": 979588
+          "mean": 866381,
+          "stddev": 335465.3786,
+          "min": 488958,
+          "max": 1130597
         }
       },
       "delta": {
-        "pass_rate": "+0.33",
-        "time_seconds": "+113.8",
-        "tokens": "+3345",
-        "cache_tokens": "+2724840"
+        "pass_rate": "+0.53",
+        "time_seconds": "+98.1",
+        "tokens": "+5623",
+        "cache_tokens": "+1926477"
       }
     }
   },

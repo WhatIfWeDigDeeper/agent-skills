@@ -122,6 +122,7 @@ words:
   - pyproject
   - PYSEC
   - pytest
+  - pyyaml
   - REAUDIT
   - reimplementation
   - reinvocation

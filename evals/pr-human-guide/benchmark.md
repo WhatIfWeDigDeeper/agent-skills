@@ -4,11 +4,11 @@
 - `claude-sonnet-4-6` — full 8-eval suite × 2 configurations on 2026-04-28 (spec 28). Analyzer: **Sonnet 4.6**.
 - `claude-opus-4-7` — full 8-eval suite × 2 configurations on 2026-04-28 (spec 28). Analyzer: **Sonnet 4.6** (chosen up front for analyzer-uniformity, following the spec 27 precedent).
 - `claude-opus-4-8` — partial set: 6 evals (9–14) × 2 configurations on Opus 4.8 (evals 9–12 on 2026-06-28, spec 48; evals 13–14 on 2026-07-04, spec 50). Analyzer: **Opus 4.8** (graded inline by the controller). Evals 9–12 cover the two impact-risk Novel Patterns signals (sweeping cross-cutting refactor, high-fanout core helper edit), a negative rename guardrail, and the Selectivity Threshold; evals 13–14 cover the refined operative-skill-source exemption (a positive trust-boundary case in a `skills/**/references/*.md` file, and a negative pure-wording case). See the v0.13 and v0.14 subsections under Known Eval Limitations.
-- `claude-opus-5` — partial set: 1 eval (15) × 2 configurations on 2026-08-15 (spec 56). Analyzer: **Opus 5** (graded inline by the controller). Covers checked-state preservation across a re-run: one item whose anchored content is unchanged must stay ticked, one whose content was rewritten must reset. See the v0.16 subsection under Known Eval Limitations.
+- `claude-opus-5` — partial set: 3 evals (15–17) × 2 configurations (eval 15 on 2026-08-15, spec 56; evals 16–17 on 2026-08-16, spec 57). Analyzer: **Opus 5** (eval 15 graded inline by the controller; evals 16–17 by dedicated grader subagents). Eval 15 covers checked-state preservation across a re-run: one item whose anchored content is unchanged must stay ticked, one whose content was rewritten must reset. Evals 16–17 cover Documentation Drift, one per branch: a rename that leaves an untouched `README.md` stale, and the same rename with the doc updated in the same diff. See the v0.16 and v0.17 subsections under Known Eval Limitations.
 
-**Evals**: 8 evals × 2 configurations × 2 models = **32 canonical runs** (the full-suite headline), plus **12 partial-set runs** (evals 9–14 × 2 configurations on Opus 4.8, specs 48+50) and **2 partial-set runs** (eval 15 × 2 configurations on Opus 5, spec 56) = 46 runs total, all `run_number == 1`.
+**Evals**: 8 evals × 2 configurations × 2 models = **32 canonical runs** (the full-suite headline), plus **12 partial-set runs** (evals 9–14 × 2 configurations on Opus 4.8, specs 48+50) and **6 partial-set runs** (evals 15–17 × 2 configurations on Opus 5, specs 56+57) = 50 runs total, all `run_number == 1`.
 
-**Skill version**: full-suite rows under v0.7; the spec-48 partial set (evals 9–12) under v0.13; the spec-50 additions (evals 13–14) under v0.14; the spec-56 addition (eval 15) under v0.16. The previous Sonnet runs at v0.1 (16 entries) were removed in spec 28 Phase 1 so both full-suite models share an apples-to-apples skill version; git history retains the prior shape. `benchmark.json` `metadata.skill_version` is `"0.16"` as of spec 56 — the earlier `"0.7"` pin (rationalized as "the version of the recorded full-suite runs") is drift from the written rule in `evals/CLAUDE.md`, which requires advancing it whenever runs are added. Each partial set remains version-noted here and in its own subsection, which is where per-set versions are authoritative.
+**Skill version**: full-suite rows under v0.7; the spec-48 partial set (evals 9–12) under v0.13; the spec-50 additions (evals 13–14) under v0.14; the spec-56 addition (eval 15) under v0.16; the spec-57 additions (evals 16–17) under v0.17. The previous Sonnet runs at v0.1 (16 entries) were removed in spec 28 Phase 1 so both full-suite models share an apples-to-apples skill version; git history retains the prior shape. `benchmark.json` `metadata.skill_version` is `"0.17"` as of spec 57 — the earlier `"0.7"` pin (rationalized as "the version of the recorded full-suite runs") is drift from the written rule in `evals/CLAUDE.md`, which requires advancing it whenever runs are added. Each partial set remains version-noted here and in its own subsection, which is where per-set versions are authoritative.
 
 ## Summary
 
@@ -129,7 +129,7 @@ Stats over the 1 new eval (15). Note the single-eval denominator: every stddev b
 | Tokens (input + output) | 13,650 ±0 | 10,305 ±0 | +3,345 |
 | Cache tokens (creation + reads) | 3,704,428 ±0 | 979,588 ±0 | +2,724,840 |
 
-This set drives `run_summary_by_model["claude-opus-5"]` only; the top-level `run_summary` remains the Opus 4.7 full suite, and the README's headline Eval Δ is unchanged.
+This set fed `run_summary_by_model["claude-opus-5"]` on its own when recorded; spec 57 added evals 16–17 to that bucket, which now aggregates evals 15–17 (see the v0.17 subsection). The top-level `run_summary` remains the Opus 4.7 full suite, and the README's headline Eval Δ is unchanged.
 
 Per-eval pass/fail (Opus 5):
 
@@ -147,6 +147,33 @@ Honest framing of the delta: the behavior this eval pins is largely the *skill's
 Two earlier fixture revisions were discarded before recording. The first narrated the answer in the prompt (turn 2 stated outright which change did not alter the auth code), so the baseline scored 3/3 without needing content-keyed identity. The second anchored its reset case on `docs/setup.md`; documentation prose is correctly never flagged under the Selectivity Threshold, so a correct with_skill run produced no entry for the reset assertion to bind to, and the reviewer ticked only one of two boxes, making the reset assertion trivially true for every agent. The recorded fixture ticks **both** entries and anchors the reset case on `deploy/terraform/iam.tf` (Config / Infrastructure): an agent that copies the previous block through keeps both ticks and fails the reset case; one that re-renders from scratch resets both and fails the preserve case. Each revision was replayed through the shipped `marker-helper.py` to confirm it was winnable before executors were spawned.
 
 A third attempt at the with_skill run was discarded for contamination: the executor ran a recursive `grep` across `evals/`, which returned eval 15's `expected_output` naming exactly which entry must stay checked and which must reset. The recorded run adds an explicit read fence over `evals/`, `specs/`, and `tests/`. The without_skill run was verified uncontaminated by the same transcript check and was not re-run.
+
+### v0.17 — Opus 5 coverage for Documentation Drift (spec 57)
+
+v0.16 had no category for the case where a code change renames or removes something that documentation outside the diff still names. Spec 57 adds a **Documentation Drift** category: when a diff renames or removes a flag, config key, or public symbol, the skill searches documentation the diff does **not** touch for the old literal name and flags the code change when a doc still carries it — anchored to the changed code lines, since the untouched doc has no diff to link. Two new evals (ids 16–17), one per branch of the conditional, executed and graded on **claude-opus-5** only. Evals 1–15 are unchanged.
+
+Stats over the 2 new evals (16–17), sample stddev (N−1):
+
+| Metric | with-skill | without-skill | Delta |
+|--------|------------|---------------|-------|
+| Pass rate | **100%** ±0% | 38% ±18% | **+63%** |
+| Min / Max | 100% / 100% | 25% / 50% | |
+| Time (s) | 253.8 ±19.0 | 163.6 ±55.4 | +90.2 |
+| Tokens (input + output) | 10,991 ±211 | 4,229 ±1,580 | +6,762 |
+| Cache tokens (creation + reads) | 2,337,073 ±29,196 | 809,778 ±453,707 | +1,527,296 |
+
+Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means. The combined Opus 5 set is now evals 15–17 — that 3-eval aggregate drives `run_summary_by_model["claude-opus-5"]` (pass rate 100% with-skill vs 47% baseline, +0.53) and the README's Opus 5 Eval-cost bullet. The top-level `run_summary` remains the Opus 4.7 full suite.
+
+Per-eval pass/fail (Opus 5):
+
+| # | Eval | With | Without |
+|---|------|------|---------|
+| 16 | documentation-drift-stale-flag | **4/4 (100%)** | 2/4 (50%) |
+| 17 | documentation-drift-updated-in-diff | **4/4 (100%)** | 1/4 (25%) |
+
+Both discriminate (≥1 assertion fails without_skill), but not evenly, and the split is worth stating plainly. On eval 16 the assertion that tests the drift *detection* itself — `flags-stale-doc` — did **not** discriminate: the eval prompt supplies a `README.md` Usage excerpt, so the strong Opus 5 baseline noticed the `--force` mismatch unaided and led its guide with it. Eval 16's measured discriminators are `anchors-to-code-lines` (the baseline quoted README prose and gave no line anchor into `src/cli.py`, so a reviewer has nothing to click through to) and `uses-exact-markers`. The feature-level discriminator across the pair is really eval 17's `no-flag-for-unmentioned-name`: the baseline flagged the private `_write_batch` → `_flush_batch` rename that no documentation file names, which is exactly the over-flagging the negative branch guards against. Eval 17 also discriminates on `outputs-no-areas-message` (the baseline opened a "Needs a decision" section instead of the bounded body) and `uses-exact-markers`.
+
+A note on the positive fixture: embedding the README excerpt in the prompt is what makes the eval winnable offline — there is no repository to grep — but it also hands the baseline the comparison for free. A fixture that required the agent to *find* the stale doc would discriminate harder on `flags-stale-doc`; it would also require a real checkout, which this suite's prompt-only fixtures do not provide.
 
 ### Non-discriminating evals on Sonnet 4.6
 
@@ -183,7 +210,7 @@ The extraction logic is generalized in [`evals/scripts/extract_subagent_usage.py
 
 ### Preserved grading artifacts
 
-Eight `grading-*.json` files alongside this `benchmark.md` capture grader judgment calls worth preserving (the other 32 grading runs were mechanical pass/fail on literal-marker checks):
+Ten `grading-*.json` files alongside this `benchmark.md` capture grader judgment calls worth preserving (the other 40 grading runs were mechanical pass/fail on literal-marker checks):
 
 - `grading-{sonnet,opus}-without-eval-5.json` — judgment: does the **absence** of any review-guide construct count as the body containing the "no areas requiring special human review" message? Both gradings rule "no" — the body must literally contain that message.
 - `grading-{sonnet,opus}-without-eval-8.json` — judgment: does discussion of `worker_threads` framed as a lifecycle/error-handling concern count as flagging it as "the new use of worker threads"? Both gradings rule "no" — the flag must explicitly call it out as a new concurrency primitive.
@@ -191,8 +218,10 @@ Eight `grading-*.json` files alongside this `benchmark.md` capture grader judgme
 - `grading-opus-4-8-without-eval-9.json` (spec 48) — judgment: does a free-form numbered "Reviewer Guide" that treats the change as an aggregate refactor satisfy "flags this change under Novel Patterns"? Rules "no" — the change must be categorized under Novel Patterns (the baseline's content was strong but uncategorized and used non-canonical markers).
 - `grading-opus-4-8-without-eval-10.json` (spec 48) — judgment: does a populated "Reviewer Guide" with low-effort confirmation items satisfy the "no areas requiring special human review" message? Rules "no" — the bounded empty-guide body must be emitted, not a populated guide (parallels the eval-5 calls).
 - `grading-opus-4-8-without-eval-12.json` (spec 48) — judgment: does listing routine files (lockfile bump, README, formatting reflow, test stub) under a "skim only" section count as flagging them? Rules "yes, it flags them" — the skill's selectivity behavior omits them entirely, so the omit-* and is-selective assertions fail.
+- `grading-opus-4-8-without-eval-13.json` (spec 50) — judgment: does elevating the `references/bot-polling.md` allow-list edit as a security concern in a free-form "Reviewer's guide" satisfy "flags the operative-markdown change under Security or Novel Patterns"? Rules "yes" — the strong Opus 4.8 baseline caught the trust boundary unaided, so `flags-the-boundary` does not discriminate on this model; marker format and diff-link do.
+- `grading-opus-4-8-without-eval-14.json` (spec 50) — judgment: does naming the `cspell.config.yaml` `prewarm` wordlist entry as the change to verify count as flagging it? Rules "yes, it flags it" — the refined rule exempts cspell entries, so the does-not-flag assertion fails alongside the bounded no-areas message and marker format.
 
-The remaining 32 grading runs are not committed; the benchmark.json `expectations` array carries each one's verdict and evidence inline.
+The remaining 40 grading runs are not committed; the benchmark.json `expectations` array carries each one's verdict and evidence inline.
 
 ### Sonnet with_skill model-mismatch incident (recovered)
 
@@ -259,3 +288,11 @@ PR introduces worker threads with module-level shared mutable state. Both with-s
 ### Eval 15 — `preserves-checked-unchanged-items`
 
 (Opus 5 only, spec 56.) Two-turn case for content-keyed checked-state preservation. Turn 1 flags two entries on PR #77: `src/auth/middleware.ts` (Security) and `deploy/terraform/iam.tf` (Config / Infrastructure). The reviewer then ticks **both**. Turn 2 supplies a diff in which a 19-line license header pushes the auth hunk from L41-42 to L61-62 while leaving its content byte-identical, and the `iam.tf` policy line — same path, same hunk header, same line number — is rewritten to add `s3:DeleteObject`. Neither fact is stated in the prompt; the agent must derive both by comparing the two diffs. With-skill (3/3) re-rendered the block fresh, and the helper resolved the auth entry to the same identity as turn 1 (`d1edb1ec63e7a848`, unchanged across the renumbering) so the tick carried across, while `iam.tf` resolved to a new identity (`fbfeeb0fd315a433` → `6298faeab8494d27`) and reset to unchecked. Both `###` headings were identical across turns, so the reset is attributable to content rather than heading drift. Without-skill (2/3) kept the `iam.tf` entry ticked, reasoning in prose that "the new commits did not change what they ask" — a stale checkmark on content that had in fact been widened. **Discriminates on:** `rewritten-item-resets` only; see the v0.16 subsection above for why the other two assertions pass in both configurations.
+
+### Eval 16 — `documentation-drift-stale-flag`
+
+(Opus 5 only, spec 57.) Positive case for Documentation Drift. PR #260 renames the export CLI's `--force` flag to `--overwrite` in `src/cli.py` — two lines, argument definition and handler — and touches nothing else. The prompt includes an excerpt of the repository's `README.md` Usage section, which the PR does not modify and which still documents `--force` in both the example invocation and the flag list. With-skill (4/4) filed one entry under `### Documentation Drift` whose reason names the untouched `README.md`, anchored it to the changed `src/cli.py` lines (L43-52) rather than to the README — which has no diff to link — and wrote the guide into the PR description inside the canonical `<!-- pr-human-guide -->` markers. Without-skill (2/4) also caught the staleness, and named both stale README locations, so `flags-stale-doc` did **not** discriminate on this baseline; it gave no line anchor at all (quoting README prose instead, with a bare "the code change is two lines in `src/cli.py`" in the preamble) and used a `---` rule plus a `## Review guide` heading in place of the markers. **Discriminates on:** `anchors-to-code-lines` and `uses-exact-markers` (not `flags-stale-doc` on Opus 5, though that assertion exercises the new category and would discriminate against the pre-change skill).
+
+### Eval 17 — `documentation-drift-updated-in-diff`
+
+(Opus 5 only, spec 57.) Negative guardrail for Documentation Drift, covering both ways the category must *not* fire. PR #262 makes the same `--force` → `--overwrite` rename but updates `README.md`'s flag list in the same diff, and additionally renames a private helper `_write_batch` → `_flush_batch` at its definition and its single call site — a name no documentation file mentions. Neither rename should produce an entry: the first because the doc search set is empty once the only doc file is in the diff, the second because there is no doc naming the old symbol; the README edit itself is documentation prose and stays exempt, and both renames are mechanical single-token substitutions that fire no other category. With-skill (4/4) flagged nothing, reasoned both exclusions explicitly, and emitted "No areas requiring special human review attention were identified." inside canonical markers. Without-skill (1/4) agreed that documentation was in sync but then flagged the private-helper rename under "Please check outside this diff" (speculating about downstream subclasses overriding `_write_batch`) and opened a "Needs a decision" section on the breaking CLI change instead of the bounded no-areas body, with no markers. **Discriminates on:** `no-flag-for-unmentioned-name`, `outputs-no-areas-message`, and `uses-exact-markers`. This is the pair's strongest evidence for the feature: the drift rule is only useful if it stays quiet when nothing documents the old name.
