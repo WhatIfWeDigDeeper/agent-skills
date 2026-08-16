@@ -10,7 +10,7 @@ description: >-
   "prep this for review", "what should reviewers look at?", or "add a
   review guide".
 license: MIT
-compatibility: Requires git, gh, jq, python3; sha256sum (Linux) or shasum (macOS)
+compatibility: Requires git, gh, jq, python3, rg (ripgrep); sha256sum (Linux) or shasum (macOS)
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
