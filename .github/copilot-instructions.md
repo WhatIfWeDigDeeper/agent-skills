@@ -197,7 +197,7 @@ When the user's request matches a skill's trigger phrases, read the skill file a
 
 | Skill | File | Trigger phrases |
 |-------|------|-----------------|
-| peer-review | `skills/peer-review/SKILL.md` | "peer review", "fresh review", "another set of eyes", "sanity check", "quick review before I push", "review with Copilot/Codex" |
+| peer-review | `skills/peer-review/SKILL.md` | "peer review", "fresh review", "another set of eyes", "sanity check", "quick review before I push", "review with Copilot", "review using Codex" |
 | pr-human-guide | `skills/pr-human-guide/SKILL.md` | "review guide", "human review guide", "prep for review", "flag for review", "flag for human review", "add review guide" |
 
 **Do NOT trigger** `peer-review` on bare "review" phrases like "review my changes" or "review PR N" — those route to `code-review`.
