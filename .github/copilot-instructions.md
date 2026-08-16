@@ -152,7 +152,7 @@ TOKEN=$(gh auth token) && git -c "url.https://x:${TOKEN}@github.com/.insteadOf=h
 ```
 
 - `git push` denied as "pushing to main": branch is tracking `origin/main` (or upstream misconfigured); use `git push -u origin HEAD` to push and set the correct upstream.
-- **`git push -u` in sandbox logs `could not write config file .git/config: Operation not permitted` but still pushes and sets tracking** — don't retry; verify via the `-> origin/<branch>` push line.
+- **Sandboxed git may log `could not write/lock config file .git/config` yet succeed** (`push -u` pushes and sets tracking; `branch -D` deletes) — don't retry; verify via the command's success line.
 - `gh api --paginate --jq` applies `--jq` per page. To deduplicate across all pages, collect pages first with `jq -s`.
 - When passing shell variables into `jq`, use `jq --arg name "$value"` instead of shell string interpolation inside the filter.
 - `rg` alternation uses bare `|`, not `\|`.
