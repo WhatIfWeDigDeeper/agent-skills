@@ -182,7 +182,7 @@ the skill.
 
 ### Steps
 
-- [ ] **Step 4.1:** Append eval 16, exactly this object (JSON shown expanded;
+- [x] **Step 4.1:** Append eval 16, exactly this object (JSON shown expanded;
   the `prompt` is one string joined with `\n`):
 
   ````json
@@ -212,7 +212,7 @@ the skill.
   }
   ````
 
-- [ ] **Step 4.2:** Append eval 17, exactly this object:
+- [x] **Step 4.2:** Append eval 17, exactly this object:
 
   ````json
   {
@@ -241,10 +241,10 @@ the skill.
   }
   ````
 
-- [ ] **Step 4.3:** Validate:
+- [x] **Step 4.3:** Validate:
   `python3 -c "import json; e=json.load(open('evals/pr-human-guide/evals.json')); assert [x['id'] for x in e['evals']] == list(range(1,18))"`
 
-- [ ] **Step 4.4:** Commit:
+- [x] **Step 4.4:** Commit:
   `git commit -m "eval(pr-human-guide): documentation-drift positive/negative evals 16-17" -- evals/pr-human-guide/evals.json`
 
 ---
