@@ -371,7 +371,7 @@ Per `evals/CLAUDE.md` (read it in full before this task).
 - [x] **Step 8.4:** Commit spec files if not already committed:
   `git add specs/57-pr-human-guide-documentation-drift && git commit -m "spec: pr-human-guide Documentation Drift category (spec 57)" -- specs/57-pr-human-guide-documentation-drift`
 
-- [ ] **Step 8.5:** Push (`git push -u origin HEAD`) and open the PR
+- [x] **Step 8.5:** Push (`git push -u origin HEAD`) and open the PR
   (`gh pr create`) with the eval deltas in the body; note the frozen Eval Δ
   headline decision. Then immediately run `/pr-comments {pr_number}` per repo
   workflow; when iterations complete, run `/pr-human-guide` on the PR before
