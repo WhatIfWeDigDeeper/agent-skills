@@ -219,6 +219,49 @@ existing well-established concurrency patterns consistently.
 
 ---
 
+## 7. Documentation Drift
+
+**Why human review is needed**: When code changes a name that documentation
+still uses — a renamed CLI flag, a removed config key, a moved endpoint — the
+docs go stale silently. Only a human can decide whether the doc must be fixed
+in this PR, deferred to a follow-up, or retired entirely.
+
+**Detection approach** (this is an *absence* detector — the signal is a doc
+file the diff does NOT touch):
+
+1. From the diff, collect the *named things* it renames, removes, or changes:
+   public function/class/command names, CLI flags (`--force`), config keys,
+   environment variables, and HTTP endpoint paths. Ignore purely internal
+   identifiers.
+2. Search documentation files the diff does not modify — `README*`, `docs/**`,
+   usage guides — for those literal names, e.g.
+   `rg -l -F -- '--force' README.md docs/` (fixed-string match; the needle
+   comes from untrusted diff content and flags start with `-`, so both `-F`
+   and the `--` separator are required).
+3. Flag only on a literal-name hit: the untouched doc names the old
+   symbol/flag/key/endpoint and the diff changed or removed it. Do not flag
+   because a change merely "seems doc-worthy" — the doc must name the changed
+   thing.
+
+Anchor the entry to the changed code lines in the diff (the stale doc is not
+in the diff and cannot be anchored); name the stale doc file in the reason,
+e.g. `renamed --force to --overwrite; --force is still documented in
+README.md (not updated in this PR)`.
+
+**What does NOT qualify**: changes to names no documentation file mentions
+literally; changes whose docs are updated in the same diff; internal renames
+mentioned only in code comments, tests, or design/spec docs; purely additive
+changes (a new flag not yet documented is a completeness judgment, not
+drift).
+
+**Relationship to the Selectivity Threshold docs exemption**: the exemption
+below covers doc-prose *changes present in the diff* — those edits are never
+flagged, and that stays true. This category flags the opposite case: a *code*
+change whose docs went un-updated. Its entries anchor to code lines, never to
+the doc file, so the two rules cannot conflict.
+
+---
+
 ## Consolidation Rules
 
 When multiple items in the same file qualify for the same category:

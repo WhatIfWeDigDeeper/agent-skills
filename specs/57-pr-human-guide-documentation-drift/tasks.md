@@ -18,7 +18,7 @@
 
 ### Steps
 
-- [ ] **Step 1.1:** Find the `---` separator that follows the
+- [x] **Step 1.1:** Find the `---` separator that follows the
   `## 6. Concurrency / State` section's "What does NOT qualify" paragraph and
   precedes `## Consolidation Rules`. Insert after that `---` (keeping a `---`
   between §7 and `## Consolidation Rules`), verbatim:
@@ -66,15 +66,15 @@
   the doc file, so the two rules cannot conflict.
   ```
 
-- [ ] **Step 1.2:** Do NOT touch `## Consolidation Rules`, the
+- [x] **Step 1.2:** Do NOT touch `## Consolidation Rules`, the
   `## Selectivity Threshold` paragraph/disjuncts, or the exceptions list.
   Verify: `git diff skills/pr-human-guide/references/categories.md` shows only
   the inserted block.
 
-- [ ] **Step 1.3:** `npx cspell skills/pr-human-guide/references/categories.md`
+- [x] **Step 1.3:** `npx cspell skills/pr-human-guide/references/categories.md`
   — add any flagged terms to `cspell.config.yaml` alphabetically.
 
-- [ ] **Step 1.4:** Commit:
+- [x] **Step 1.4:** Commit:
   `git add skills/pr-human-guide/references/categories.md && git commit -m "feat(pr-human-guide): add Documentation Drift category" -- skills/pr-human-guide/references/categories.md`
 
 ---
