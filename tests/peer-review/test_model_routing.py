@@ -6,13 +6,9 @@ import pytest
 
 from conftest import cli_output_parse_format, route_model
 
-_CLI_INVOCATIONS = (
-    Path(__file__).resolve().parents[2]
-    / "skills"
-    / "peer-review"
-    / "references"
-    / "cli-invocations.md"
-)
+_SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "peer-review"
+_SKILL = _SKILL_DIR / "SKILL.md"
+_CLI_INVOCATIONS = _SKILL_DIR / "references" / "cli-invocations.md"
 
 
 class TestSelfAndClaudeRouting:
@@ -86,27 +82,11 @@ class TestCodexRouting:
         assert result["submodel"] == "gpt-4o"
 
 
-class TestGeminiRouting:
-    """--model gemini routes to the gemini binary."""
-
-    def test_gemini_routes_to_gemini(self):
-        result = route_model("gemini")
-        assert result["route"] == "gemini"
-        assert result["binary"] == "gemini"
-        assert result["submodel"] is None
-
-    def test_gemini_with_submodel(self):
-        result = route_model("gemini:gemini-2.0-flash")
-        assert result["route"] == "gemini"
-        assert result["binary"] == "gemini"
-        assert result["submodel"] == "gemini-2.0-flash"
-
-
 class TestExternalCliOutputParseFormat:
     """All external CLIs are parsed via the prose path per cli-invocations.md Step 4e.
 
     Regression guard for issue #181: Step 3 sends copilot the same prose template
-    (severity-grouped findings ending in `NO FINDINGS`) as codex/gemini, and Step
+    (severity-grouped findings ending in `NO FINDINGS`) as codex, and Step
     4d invokes copilot without requesting JSON — so copilot output must be parsed
     as prose, not JSON. A JSON-parse path for copilot would always fall through to
     the raw-output fallback.
@@ -119,11 +99,8 @@ class TestExternalCliOutputParseFormat:
     def test_codex_parses_as_prose(self):
         assert cli_output_parse_format("codex") == "prose"
 
-    def test_gemini_parses_as_prose(self):
-        assert cli_output_parse_format("gemini") == "prose"
-
     def test_all_external_clis_share_one_parse_path(self):
-        formats = {cli_output_parse_format(m) for m in ("copilot", "codex", "gemini")}
+        formats = {cli_output_parse_format(m) for m in ("copilot", "codex")}
         assert formats == {"prose"}, "external CLIs must share a single prose parse path"
 
     def test_internal_path_has_no_external_parse(self):
@@ -143,8 +120,8 @@ class TestExternalCliOutputParseFormat:
         assert "suggested_fix" not in lowered
         assert "output is json" not in lowered
 
-    def test_reference_file_states_copilot_parsed_like_codex_gemini(self):
-        """Step 4e must state copilot is parsed identically to codex/gemini as prose."""
+    def test_reference_file_states_copilot_parsed_like_codex(self):
+        """Step 4e must state copilot is parsed identically to codex as prose."""
         text = _CLI_INVOCATIONS.read_text().lower()
         assert "copilot" in text
         assert "markdown or plain text" in text
@@ -160,3 +137,31 @@ class TestUnsupportedModel:
     def test_unknown_prefix_with_submodel_raises(self):
         with pytest.raises(ValueError, match="Unsupported --model value"):
             route_model("gpt-4o:latest")
+
+
+class TestGeminiRemoved:
+    """Gemini is no longer a supported route.
+
+    Google discontinued the Gemini CLI (`@google/gemini-cli`) in favor of the
+    Antigravity IDE, so `--model gemini` was removed rather than left pointing at
+    an unmaintained binary. It must now fall through to the standard
+    unsupported-model error, not route to a `gemini` binary.
+    """
+
+    @pytest.mark.parametrize("model", ["gemini", "gemini:gemini-2.0-flash", "GEMINI"])
+    def test_gemini_raises_unsupported(self, model):
+        with pytest.raises(ValueError, match="Unsupported --model value"):
+            route_model(model)
+
+    def test_error_message_does_not_advertise_gemini(self):
+        with pytest.raises(ValueError) as exc_info:
+            route_model("gemini")
+        message = str(exc_info.value)
+        assert "gemini[:submodel]" not in message
+        for supported in ("self (default)", "claude-*", "copilot[:submodel]", "codex[:submodel]"):
+            assert supported in message
+
+    def test_skill_and_reference_files_do_not_mention_gemini(self):
+        """No gemini invocation form or install hint may survive in the skill."""
+        assert "gemini" not in _SKILL.read_text().lower()
+        assert "gemini" not in _CLI_INVOCATIONS.read_text().lower()

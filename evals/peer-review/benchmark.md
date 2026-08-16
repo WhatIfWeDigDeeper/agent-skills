@@ -1,12 +1,15 @@
 # peer-review Benchmark Results
 
 **Models tested**:
-- `claude-sonnet-4-6` — primary suite 2026-04-09 (28 evals × 2 configurations = 56 runs, eval 26 nulled on both sides due to without_skill contamination). Analyzer: Sonnet 4.6.
-- `claude-opus-4-7` — full 28-eval suite × 2 configurations on 2026-04-25 (spec 27). Analyzer: **Sonnet 4.6** (Opus subagent rate-limit risk; Sonnet used to grade all 56 transcripts uniformly for analyzer-model consistency, following the spec 26 precedent).
+- `claude-sonnet-4-6` — primary suite 2026-04-09. Analyzer: Sonnet 4.6.
+- `claude-opus-4-7` — full suite on 2026-04-25 (spec 27). Analyzer: **Sonnet 4.6** (Opus subagent rate-limit risk; Sonnet used to grade all transcripts uniformly for analyzer-model consistency, following the spec 26 precedent).
+- `claude-sonnet-5` / `claude-opus-5` — targeted 3-eval re-run on 2026-08-16 (spec 58, Gemini CLI removal). **Excluded from all aggregates** — see *v1.15 re-run cohort* below.
 
-**Evals**: 28 evals × 2 configurations × 2 models = **112 canonical runs**, all `run_number == 1`. Eval 26 (unsupported-model-error) is nulled on both Sonnet sides (executor read SKILL.md from filesystem); Opus ran cleanly on eval 26 — Opus paired-eval count is 28 vs Sonnet 27.
+**Evals**: 27 evals. The aggregate corpus is 24 paired evals × 2 configurations × 2 models = **96 runs** feeding `run_summary`, plus 12 nulled 4-6/4-7 runs (evals 9, 16, 26) and 12 excluded v1.15 cohort runs, for **120 entries** in `runs[]`. All `run_number == 1`.
 
-**Skill version**: v1.7. Sonnet runs were produced under v1.6 (current as of 2026-04-09); Opus runs under v1.7.
+Three exclusions apply to the 24-eval aggregate. Eval 26 (`unsupported-model-error`) was contaminated on Sonnet 4.6 (that executor read SKILL.md from the filesystem). Evals 9, 16, and 26 all changed semantics in v1.15 when the Gemini CLI route was removed, so their 4-6/4-7 result fields and expectation verdicts are nulled. Eval 10 (`gemini-no-findings`) was deleted outright; IDs are **not** renumbered, so the sequence gaps at 10.
+
+**Skill version**: v1.7. Sonnet 4.6 runs were produced under v1.6 (current as of 2026-04-09); Opus 4.7 runs under v1.7. The v1.15 cohort does not move `metadata.skill_version` because it feeds no aggregate.
 
 ## Summary
 
@@ -14,25 +17,39 @@
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | 98% ± 6% | 71% ± 33% | **+26%** |
+| Pass rate | 97% ± 7% | 73% ± 34% | **+24%** |
 | Min / Max | 80% / 100% | 0% / 100% | |
 | Time (s) | ~39.7 ± 36.3 | ~44.7 ± 66.4 | -5.0 |
 | Tokens | ~27,046 ± 7,954 | ~26,357 ± 14,885 | +688 |
 
-Sonnet pass-rate delta is computed over 27 paired evals (eval 26 excluded from both sides due to contamination). Sonnet time/token statistics are computed over 7 of 27 primary runs per configuration (14 of 54 paired runs total) — evals 1, 3, 4, 11, 12, 13, 14 have real measurements; the other 20 evals have null measurements (simulated transcripts or excluded as stale pre-v1.3 data). Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
+Sonnet pass-rate delta is computed over 24 paired evals (evals 9, 16, 26 nulled; eval 10 deleted). Sonnet time/token statistics are computed over 7 of 24 primary runs per configuration (14 of 48 paired runs total) — evals 1, 3, 4, 11, 12, 13, 14 have real measurements; the other 17 evals have null measurements (simulated transcripts or excluded as stale pre-v1.3 data). Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
 ### `claude-opus-4-7`
 
 | Metric | with-skill | without-skill | Delta |
 |--------|-----------|---------------|-------|
-| Pass rate | 93.0% ± 13.0% | 59.0% ± 30.0% | **+34%** |
+| Pass rate | 92.0% ± 13.0% | 59.0% ± 32.0% | **+33%** |
 | Min / Max | 60% / 100% | 0% / 100% | |
 | Time (s) | N/A | N/A | — |
 | Tokens | N/A | N/A | — |
 
-Opus per-run time and token measurements are `null` because subagent usage data was visible only in the runtime's per-task completion notifications and was not captured at the parent level. Observed wall-clock ranges from those notifications: with_skill ~30–50s and ~37–48k tokens per run; without_skill ~10–25s and ~24–28k tokens per run. The pass-rate aggregates remain fully reliable. Opus pass-rate delta is computed over 28 paired evals (eval 26 included — Opus baseline correctly resisted reading SKILL.md when prompted to handle an unsupported model value). Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
+Opus per-run time and token measurements are `null` because subagent usage data was visible only in the runtime's per-task completion notifications and was not captured at the parent level. Observed wall-clock ranges from those notifications: with_skill ~30–50s and ~37–48k tokens per run; without_skill ~10–25s and ~24–28k tokens per run. The pass-rate aggregates remain fully reliable. Opus pass-rate delta is computed over the same 24 paired evals as Sonnet — eval 26 ran cleanly on Opus (the baseline correctly resisted reading SKILL.md), but it is nulled alongside evals 9 and 16 for the v1.15 semantic change, so both models now aggregate over an identical eval set. Summary-table Delta values are computed from unrounded means, so they may differ slightly from subtracting the displayed rounded means.
 
-The skill improves correctness on Sonnet 4.6 by **+26 percentage points** (71% → 98%) and on Opus 4.7 by **+34 percentage points** (59% → 93%). Opus's headline delta is *larger* than Sonnet's despite Opus's stronger baseline — the pattern that drives this is detailed in the per-eval discussion below: 11 evals are newly discriminating or strengthened on Opus where Sonnet's baseline was either coincidentally hitting skill-defined phrasing (so the assertion mistakenly passed) or was harness-masked (eval 1). 2 evals collapsed on Opus (13, 21) where the base model has internalized skill behaviors. 8 evals are non-discriminating on Opus 4.7. See **Known Eval Limitations** below.
+The skill improves correctness on Sonnet 4.6 by **+24 percentage points** (73% → 97%) and on Opus 4.7 by **+33 percentage points** (59% → 92%). Opus's headline delta is *larger* than Sonnet's despite Opus's stronger baseline — the pattern that drives this is detailed in the per-eval discussion below: 10 of the 24 paired evals are newly discriminating or strengthened on Opus — 8 newly discriminating (1, 6, 12, 18, 22, 23, 24, 25), where Sonnet's baseline was either coincidentally hitting skill-defined phrasing (so the assertion mistakenly passed) or was harness-masked (eval 1), plus 2 (2, 28) that discriminate on both models but with a larger Opus delta. 2 evals collapsed on Opus (13, 21) where the base model has internalized skill behaviors. 8 of the 24 paired evals are non-discriminating on Opus 4.7. See **Known Eval Limitations** below.
+
+### v1.15 re-run cohort (`claude-sonnet-5` / `claude-opus-5`)
+
+Removing the Gemini CLI route changed the semantics of evals 9, 16, and 26, so their 4-6/4-7 measurements were nulled rather than carried forward. The 4-6/4-7 models are no longer spawnable, so the re-runs were recorded as a separate cohort:
+
+| Eval | Sonnet 5 With | Sonnet 5 Without | Opus 5 With | Opus 5 Without |
+|---|---|---|---|---|
+| 9 `gemini-model-removed` | **4/4 (100%)** | 2/4 (50%) | **4/4 (100%)** | 3/4 (75%) |
+| 16 `triage-all-skipped` | **3/3 (100%)** | 2/3 (67%) | **3/3 (100%)** | 2/3 (67%) |
+| 26 `unsupported-model-error` | **3/3 (100%)** | 2/3 (67%) | **3/3 (100%)** | 2/3 (67%) |
+
+These 12 runs are **excluded from `run_summary` and `run_summary_by_model`**: a 3-eval sample is too small to aggregate, mixing it into a v1.6/v1.7 corpus would misattribute the untouched runs, and every `without_skill` run is contaminated (below).
+
+**Known contamination channel — the skill description.** Every `without_skill` run in this cohort named `copilot` and `codex` as the supported external CLIs without reading SKILL.md. The leak is the skill's own frontmatter description, which the harness injects into every subagent's system prompt via the available-skills listing ("routes to external LLM CLIs (Copilot, Codex)"). This is a *different* channel from the eval-26 Sonnet 4.6 contamination, which was a filesystem SKILL.md read — fencing the executor out of SKILL.md does not close it. It affects eval 9 most, because the repurposed eval asks precisely what the description states, and eval 26 next. The bias raises the *baseline*, so these deltas are lower bounds rather than inflated claims. The authoritative regression guard for the Gemini removal is the deterministic `TestGeminiRemoved` class in `tests/peer-review/test_model_routing.py`, not eval 9.
 
 ## Per-Eval Results
 
@@ -48,14 +65,13 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 | 6 | copilot-empty-findings | **2/2 (100%)** | **2/2 (100%)** | **2/2 (100%)** | 1/2 (50%) |
 | 7 | copilot-malformed-json | **2/2 (100%)** | 1/2 (50%) | **2/2 (100%)** | 1/2 (50%) |
 | 8 | codex-not-found | **3/3 (100%)** | 2/3 (67%) | **3/3 (100%)** | 2/3 (67%) |
-| 9 | gemini-not-found | **3/3 (100%)** | 2/3 (67%) | **3/3 (100%)** | 2/3 (67%) |
-| 10 | gemini-no-findings | **3/3 (100%)** | 2/3 (67%) | **3/3 (100%)** | 1/3 (33%) |
+| 9 | gemini-model-removed | N/A | N/A | N/A | N/A |
 | 11 | staged-empty-warning | **3/3 (100%)** | **3/3 (100%)** | **3/3 (100%)** | **3/3 (100%)** |
 | 12 | pr-target-context | **5/5 (100%)** | **5/5 (100%)** | 4/5 (80%) | 3/5 (60%) |
 | 13 | focus-option | **3/3 (100%)** | 1/3 (33%) | 2/3 (67%) | 2/3 (67%) |
 | 14 | apply-skip | **2/2 (100%)** | **2/2 (100%)** | **2/2 (100%)** | **2/2 (100%)** |
 | 15 | triage-skips-false-positive | **3/3 (100%)** | 0/3 (0%) | **3/3 (100%)** | 0/3 (0%) |
-| 16 | triage-all-skipped | **3/3 (100%)** | 1/3 (33%) | **3/3 (100%)** | 2/3 (67%) |
+| 16 | triage-all-skipped | N/A | N/A | N/A | N/A |
 | 17 | triage-not-on-self-path | **3/3 (100%)** | **3/3 (100%)** | **3/3 (100%)** | **3/3 (100%)** |
 | 18 | triage-user-includes-skipped | **2/2 (100%)** | **2/2 (100%)** | **2/2 (100%)** | 1/2 (50%) |
 | 19 | rescan-offered-after-apply | **3/3 (100%)** | 1/3 (33%) | **3/3 (100%)** | 1/3 (33%) |
@@ -65,7 +81,7 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 | 23 | staged-explicit-bypasses-detection | **3/3 (100%)** | **3/3 (100%)** | **3/3 (100%)** | 2/3 (67%) |
 | 24 | rescan-y-response | **4/4 (100%)** | **4/4 (100%)** | 3/4 (75%) | 2/4 (50%) |
 | 25 | pr-url-output | **4/4 (100%)** | **4/4 (100%)** | **4/4 (100%)** | 2/4 (50%) |
-| 26 | unsupported-model-error | N/A | N/A | **3/3 (100%)** | 2/3 (67%) |
+| 26 | unsupported-model-error | N/A | N/A | N/A | N/A |
 | 27 | branch-not-found-error | **3/3 (100%)** | **3/3 (100%)** | **3/3 (100%)** | **3/3 (100%)** |
 | 28 | submodel-splitting | **3/3 (100%)** | 2/3 (67%) | 2/3 (67%) | 1/3 (33%) |
 
@@ -73,7 +89,7 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 
 ### Non-discriminating evals on Opus 4.7
 
-Of the 28 evals, 8 are non-discriminating on Opus 4.7 (with-skill = without-skill pass rate). These are candidates for future purpose-refresh work analogous to spec 25's `learn` refresh — the base model has internalized enough of the skill's behaviors that the assertions no longer differentiate.
+Of the 24 paired evals, 8 are non-discriminating on Opus 4.7 (with-skill = without-skill pass rate). Evals 9, 16, and 26 are not in either bucket — their 4.6/4.7 results are nulled. These are candidates for future purpose-refresh work analogous to spec 25's `learn` refresh — the base model has internalized enough of the skill's behaviors that the assertions no longer differentiate.
 
 Non-discriminating on Opus 4.7:
 - Eval 3 (`argument-conflict-error`)
@@ -99,11 +115,11 @@ Eval-executor subagents cannot spawn sub-subagents (Agent tool unavailable). For
 
 ### Eval 26 contamination handling
 
-Eval 26 (unsupported-model-error) was contaminated on Sonnet 4.6 — the without_skill executor read `skills/peer-review/SKILL.md` from the filesystem and reproduced the skill-defined error message. Both Sonnet sides are nulled in `runs[]` and excluded from Sonnet's `run_summary_by_model` aggregates (Sonnet paired-eval count = 27). On Opus 4.7, the without_skill executor correctly resisted reading SKILL.md when given an explicit prohibition prompt; eval 26 ran cleanly on Opus (Opus paired-eval count = 28).
+Eval 26 (unsupported-model-error) was contaminated on Sonnet 4.6 — the without_skill executor read `skills/peer-review/SKILL.md` from the filesystem and reproduced the skill-defined error message. On Opus 4.7, the without_skill executor correctly resisted reading SKILL.md when given the same prohibition prompt, so eval 26 ran cleanly there. Both sides on both models are now nulled anyway: v1.15 narrowed the eval's expected supported-values list, so all four 4-6/4-7 runs describe an eval that no longer exists. Paired-eval count is 24 on both models. A *third*, distinct contamination channel showed up in the v1.15 re-run — the skill description in the available-skills listing — which no SKILL.md fence can close; see the *v1.15 re-run cohort* section.
 
 ### Sparse Sonnet 4.6 time/token coverage
 
-Sonnet primary-run time and token statistics are computed over 7 of 27 paired primary runs (evals 1, 3, 4, 11, 12, 13, 14 — real-execution evals). The other 20 paired evals use simulated transcripts or were excluded as stale pre-v1.3 data; their measurements are null.
+Sonnet primary-run time and token statistics are computed over 7 of 24 paired primary runs (evals 1, 3, 4, 11, 12, 13, 14 — real-execution evals). The other 17 paired evals use simulated transcripts or were excluded as stale pre-v1.3 data; their measurements are null.
 
 ### Opus 4.7 time/token measurement gap
 
@@ -195,25 +211,19 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 **Discriminating** (+0.33 delta). The specific install hint `npm install -g @openai/codex` is skill-defined and fails without-skill. Detecting the missing binary and stopping without showing findings are natural behaviors that pass in both configurations.
 
-### Eval 9 — `gemini-not-found`
-**Scenario**: `/peer-review --staged --model gemini` when the `gemini` binary is absent.
+### Eval 9 — `gemini-model-removed`
+**Scenario**: `/peer-review --staged --model gemini` after v1.15 removed the Gemini CLI route. Tests that `gemini` now falls through to the standard unsupported-model error, with no binary probe and no npm install hint.
 
-| Configuration | Sonnet 4.6 | Opus 4.7 |
-|---------------|-----------|----------|
-| with-skill    | **3/3 (100%)** | **3/3 (100%)** |
-| without-skill    | 2/3 (67%) | 2/3 (67%) |
+Repurposed in v1.15 from `gemini-not-found`, which tested the opposite behavior (detect the missing `gemini` binary and print `npm install -g @google/gemini-cli`). The 4-6/4-7 measurements are nulled; results below are from the v1.15 Sonnet 5 / Opus 5 cohort.
 
-**Discriminating** (+0.33 delta). Mirrors eval 8 — specific install hint `npm install -g @google/gemini-cli` is skill-defined and fails without-skill.
+| Configuration | Sonnet 4.6 | Opus 4.7 | Sonnet 5 | Opus 5 |
+|---------------|-----------|----------|----------|--------|
+| with-skill    | N/A | N/A | **4/4 (100%)** | **4/4 (100%)** |
+| without-skill    | N/A | N/A | 2/4 (50%) | 3/4 (75%) |
 
-### Eval 10 — `gemini-no-findings`
-**Scenario**: `/peer-review --staged --model gemini` with a fixture gemini response returning exactly `NO FINDINGS`.
+**Contaminated baseline — read the delta as a lower bound, not as evidence of skill value.** Both `without_skill` agents named `copilot` and `codex` without reading SKILL.md, taking them from the skill description in the available-skills listing (see *v1.15 re-run cohort* above). Both baselines fail the supported-options assertion only because they omit `self` and `claude-*`, which the description also omits — a description-completeness artifact, not a skill-vs-baseline difference. The Sonnet 5 baseline additionally went on to review the diff instead of exiting; the Opus 5 baseline stopped, which is the whole of its 75%-vs-50% edge. The real regression guard for this removal is `TestGeminiRemoved` in `tests/peer-review/test_model_routing.py`.
 
-| Configuration | Sonnet 4.6 | Opus 4.7 |
-|---------------|-----------|----------|
-| with-skill    | **3/3 (100%)** | **3/3 (100%)** |
-| without-skill    | 2/3 (67%) | 1/3 (33%) |
-
-**Discriminating** (Sonnet +0.33; Opus +0.67). The `## Peer Review —` header format is skill-defined and fails without-skill. Outputting "No issues found." and omitting the apply prompt pass in both configurations as natural behaviors.
+Eval 10 (`gemini-no-findings`) was deleted in v1.15 — its coverage (the `## Peer Review —` header format on an empty-findings CLI response) duplicates eval 6 (`copilot-empty-findings`). IDs are not renumbered, so the sequence gaps at 10.
 
 ### Eval 11 — `staged-empty-warning`
 **Scenario**: `/peer-review --staged` when `git diff --staged` returns empty output.
@@ -268,14 +278,16 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 **Discriminating** (+1.0 delta). All 3 assertions fail without-skill: no "Triage filtered" section, no formal recommended/skipped separation, and no S-prefix apply prompt. With-skill correctly applies triage classification, presents Finding 2 in the filtered section (S1), and uses the triage form of the apply prompt.
 
 ### Eval 16 — `triage-all-skipped`
-**Scenario**: `/peer-review --model gemini` with 2 findings. Both are low-confidence style opinions; triage subagent classifies both as skip.
+**Scenario**: `/peer-review --model copilot` with 2 findings. Both are low-confidence style opinions; triage subagent classifies both as skip.
 
-| Configuration | Sonnet 4.6 | Opus 4.7 |
-|---------------|-----------|----------|
-| with-skill    | **3/3 (100%)** | **3/3 (100%)** |
-| without-skill    | 1/3 (33%) | 2/3 (67%) |
+Re-pointed in v1.15 from `--model gemini` to `--model copilot` — gemini was only the vehicle for reaching the triage path, and copilot matches the simulated-CLI pattern already used by evals 5, 6, 7, 15, and 28. The 4-6/4-7 measurements are nulled; results below are from the v1.15 Sonnet 5 / Opus 5 cohort. Consequence: copilot now carries triage coverage for evals 15 **and** 16, and the codex triage path is intentionally uncovered.
 
-**Discriminating** (Sonnet +0.67; Opus +0.33). without-skill still offered an apply prompt ("Would you like me to apply either of these anyway?") and did not output "No issues recommended." — the all-skipped path and its specific phrasing are skill-defined. The triage summary content appeared in prose (satisfying assertion 3 loosely), but the required phrase and suppressed apply prompt both fail.
+| Configuration | Sonnet 4.6 | Opus 4.7 | Sonnet 5 | Opus 5 |
+|---------------|-----------|----------|----------|--------|
+| with-skill    | N/A | N/A | **3/3 (100%)** | **3/3 (100%)** |
+| without-skill    | N/A | N/A | 2/3 (67%) | 2/3 (67%) |
+
+**Discriminating** (+0.33 on both Sonnet 5 and Opus 5). Neither baseline emitted the literal "No issues recommended." — the all-skipped path and its specific phrasing are skill-defined. Both baselines did suppress the apply prompt and did produce a per-finding skip summary in prose, so only the literal-phrase assertion fails. The graders flagged mild contamination here (both baselines reproduce the skill's triage/skip vocabulary), but the discriminating assertion is a literal string the description never mentions.
 
 ### Eval 17 — `triage-not-on-self-path`
 **Scenario**: `/peer-review --staged` (default `self` model) with 2 findings from the internal reviewer instance.
@@ -370,12 +382,14 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 ### Eval 26 — `unsupported-model-error`
 **Scenario**: `/peer-review --staged --model gpt-4o` — unsupported model value. Tests that the skill errors with a specific message listing supported options.
 
-| Configuration | Sonnet 4.6 | Opus 4.7 |
-|---------------|-----------|----------|
-| with-skill    | N/A | **3/3 (100%)** |
-| without-skill    | N/A | 2/3 (67%) |
+Narrowed in v1.15: the expected supported-values list dropped `gemini`, so the 4-6/4-7 measurements are nulled. Results below are from the v1.15 Sonnet 5 / Opus 5 cohort.
 
-**On Sonnet 4.6: excluded from aggregates (contaminated run); on Opus 4.7: discriminating (+0.33)**. The Sonnet without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message. Both Sonnet sides are nulled in benchmark.json and excluded from Sonnet's run_summary mean/stddev/delta calculations. On Opus 4.7, the without_skill executor correctly resisted reading SKILL.md when given an explicit prohibition prompt — the eval ran cleanly and Opus discriminates at +0.33 (3/3 with-skill vs 2/3 without-skill). The specific phrasing ("Unsupported --model value: …. Supported external CLIs: copilot, codex, gemini.") is now confirmed skill-defined and discriminating on Opus: the Opus baseline declined to invent a specific list of supported model values without skill knowledge, failing assertion 2 (which requires self/claude-*/copilot/codex/gemini explicitly listed).
+| Configuration | Sonnet 4.6 | Opus 4.7 | Sonnet 5 | Opus 5 |
+|---------------|-----------|----------|----------|--------|
+| with-skill    | N/A | N/A | **3/3 (100%)** | **3/3 (100%)** |
+| without-skill    | N/A | N/A | 2/3 (67%) | 2/3 (67%) |
+
+**Discriminating** (+0.33 on both Sonnet 5 and Opus 5), **with a contaminated baseline**. The specific phrasing ("Unsupported --model value: …. Supported external CLIs: copilot, codex.") is skill-defined, and both baselines fail assertion 2 — but only narrowly: each named `copilot` and `codex` correctly from the skill description in the available-skills listing and failed solely on the missing `self` / `claude-*` entries. Historically this eval was nulled on Sonnet 4.6 for a *different* contamination — that executor read `skills/peer-review/SKILL.md` from the filesystem — while Opus 4.7 ran cleanly; both are now superseded by the v1.15 re-run.
 
 ### Eval 27 — `branch-not-found-error`
 **Scenario**: `/peer-review --branch feature/does-not-exist` when the branch doesn't exist. Tests that the skill errors and lists available branches.
@@ -405,18 +419,20 @@ The subagent assertion also fails for with-skill (harness constraint), so net de
 
 - **Agent tool in eval context**: eval executor subagents cannot spawn further subagents (Agent tool unavailable). For evals 1, 2, and 4, the "spawns subagent" assertion fails in both configurations for this reason. In production use, the skill correctly delegates to a fresh subagent.
 - **Eval 3 redesign note**: Previously tested "no staged changes → warn and exit" (non-discriminating). Redesigned to test argument conflict (`--staged` + path → error). Also non-discriminating on both models — conflict detection is simple enough that a capable baseline handles it correctly.
-- **Simulated-transcript fixtures**: evals 5–10 and 15–28 embed fixture CLI/triage/branch/reviewer outputs in the eval prompt rather than calling real external systems. The fixture design is the same on both models.
+- **Simulated-transcript fixtures**: evals 5–9 and 15–28 embed fixture CLI/triage/branch/reviewer outputs in the eval prompt rather than calling real external systems. The fixture design is the same on both models.
+- **v1.15 — Gemini CLI route removed (spec 58)**: Google discontinued `@google/gemini-cli` in favor of the Antigravity IDE, so `--model gemini` was removed rather than left to rot; it now falls through to the standard `Unsupported --model value:` error. Eval impact: eval 10 (`gemini-no-findings`) deleted as duplicative of eval 6; eval 9 repurposed from `gemini-not-found` to `gemini-model-removed` as the regression pin; eval 16 re-pointed from `--model gemini` to `--model copilot`; eval 26's supported-values list narrowed. All three surviving evals had their 4-6/4-7 results nulled and were re-run on a Sonnet 5 / Opus 5 cohort that is excluded from every aggregate. Headline deltas moved from +26%/+34% to **+24% (Sonnet 4.6) / +33% (Opus 4.7)** over 24 paired evals — the change is entirely composition (which evals are counted), not a behavior regression. The deterministic guard for the removal is `TestGeminiRemoved` in `tests/peer-review/test_model_routing.py`.
 - **v1.13 — no-behavior-change size refactor (702 → 381 lines, -46%)**: spec 45 split the four heaviest branch-specific blocks (secret-scan mechanics, prompt templates, external-CLI invocations, output templates) into `skills/peer-review/references/` behind imperative handoffs. The full suite was **not** re-benchmarked — per `evals/CLAUDE.md`, structural refactors that move logic to reference files run only a targeted parity check. Parity was validated deterministically: every moved block (secret-scan bash, copilot/codex/gemini invocations + cleanup, both prompt bodies, the 4e parse + severity table) is **byte-identical** to the `origin/main` snapshot, and all 175 peer-review unit tests pass unchanged. No `benchmark.json` run entries were added and `metadata.skill_version` is unchanged (validation-only).
 
 ### Sonnet 4.6
 
-- **Time/token measurements**: 7 of 27 paired evals (1, 3, 4, 11, 12, 13, 14) have non-null measurements (executor subagents ran the full skill workflow). All other evals are null — most for the simulated-transcript reason above; eval 2 measurements were excluded as stale pre-v1.3 data.
+- **Time/token measurements**: 7 of 24 paired evals (1, 3, 4, 11, 12, 13, 14) have non-null measurements (executor subagents ran the full skill workflow). All other evals are null — most for the simulated-transcript reason above; eval 2 measurements were excluded as stale pre-v1.3 data.
+- **Discriminating evals**: 10 of the 24 paired evals discriminate on Sonnet 4.6 (2, 4, 5, 7, 8, 13, 15, 19, 21, 28).
 - **Eval 6 (`copilot-empty-findings`)**: non-discriminating on Sonnet — both configurations naturally output "No issues found." for an empty findings array.
 - **Delta from adding evals 11–14**: adding 4 mostly non-discriminating evals (11, 12, 14) plus one discriminating eval (13) reduced the headline delta from +31% to +27%.
 - **Delta from adding evals 15–20**: adding 3 discriminating evals (15, 16, 19) and 3 non-discriminating evals (17, 18, 20) restores and exceeds the headline delta: +27% → +31%. Evals 17, 18, 20 are non-discriminating by design — they serve as regression guards or verify intuitive behaviors that pass without skill knowledge.
 - **Delta from v1.3 spec-mode removal (eval 2 re-scope)**: eval 2 renamed and criteria inverted; historical pass/fail data and measurements excluded from aggregates pending re-run. Headline delta shifts from +31% to +30% (pass rate means recomputed excluding eval 2; stale time/token measurements also excluded).
 - **Delta from v1.4 evals (evals 2, 21, 22, 23)**: eval 2 re-run confirms +0.40 delta. Eval 21 (both-staged-and-unstaged-prompt) adds +0.67 delta. Evals 22 and 23 are non-discriminating, diluting the headline delta from +30% to +29%.
-- **Delta from v1.5 evals (evals 24–28)**: eval 28 (submodel-splitting) discriminates at +0.33. Evals 24, 25, 27 are non-discriminating. Eval 26 is contaminated (without_skill run contaminated; both with_skill and without_skill results nulled and excluded from aggregates to keep paired-eval counts consistent). Delta computed over 27 paired evals, diluting headline from +29% to +26%.
+- **Delta from v1.5 evals (evals 24–28)**: eval 28 (submodel-splitting) discriminates at +0.33. Evals 24, 25, 27 are non-discriminating. Eval 26 is contaminated (without_skill run contaminated; both with_skill and without_skill results nulled and excluded from aggregates to keep paired-eval counts consistent). Delta was computed over 27 paired evals at the time, diluting headline from +29% to +26%; v1.15 later nulled evals 9 and 16 as well and deleted eval 10, moving the Sonnet headline to +24% over 24 paired evals.
 
 ### Opus 4.7
 
