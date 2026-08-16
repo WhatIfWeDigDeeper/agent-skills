@@ -336,19 +336,20 @@ Per `evals/CLAUDE.md` (read it in full before this task).
 
 ### Steps
 
-- [ ] **Step 7.1:** Run `bash evals/security/scan.sh` (pin per its docs). If
-  pr-human-guide findings are unchanged vs baseline → check this task off,
-  nothing to commit.
+- [x] **Step 7.1:** Run `bash evals/security/scan.sh` (pin `snyk-agent-scan==0.5.1`
+  per `scan.sh`'s `SCANNER_PKG`). Result: exit 0, no regressions across all
+  four flagged skills. pr-human-guide: baseline 1 finding (W011, high) vs
+  scanned 1 finding (W011, medium) — same finding ID, only a severity
+  de-escalation (improvement, not a change requiring a baseline update per the
+  "keep pin at worst observed severity" rule). Findings unchanged vs baseline
+  → task condition met, nothing to commit.
 
-- [ ] **Step 7.2 (only if changed):**
-  `bash evals/security/scan.sh --update-baselines --confirm`; then
-  `git checkout --` every baseline except
-  `evals/security/pr-human-guide.baseline.json`; verify kept pins are at worst
-  observed severity. Do NOT commit the pre-existing local modification to
-  `evals/security/pr-comments.baseline.json`.
+- [x] **Step 7.2 (only if changed):** Skipped — findings were unchanged (see
+  7.1), so this step is a no-op per the task's own condition. No
+  `--update-baselines` run was needed.
 
-- [ ] **Step 7.3 (only if changed):** Commit:
-  `git commit -m "chore(security): refresh pr-human-guide baseline" -- evals/security/pr-human-guide.baseline.json`
+- [x] **Step 7.3 (only if changed):** Skipped — no commit needed since
+  `pr-human-guide.baseline.json` was not modified.
 
 ---
 
@@ -356,18 +357,18 @@ Per `evals/CLAUDE.md` (read it in full before this task).
 
 ### Steps
 
-- [ ] **Step 8.1:** `uv run --with pytest pytest tests/` (sandbox lifted) → all
+- [x] **Step 8.1:** `uv run --with pytest pytest tests/` (sandbox lifted) → all
   pass.
 
-- [ ] **Step 8.2:** `rg -n 'six categories|six review categories' skills/pr-human-guide/`
+- [x] **Step 8.2:** `rg -n 'six categories|six review categories' skills/pr-human-guide/`
   → no matches; `.claude/skills/pr-human-guide` symlink resolves
   (`ls -l .claude/skills/pr-human-guide`).
 
-- [ ] **Step 8.3:** Confirm exactly one version bump:
+- [x] **Step 8.3:** Confirm exactly one version bump:
   `git fetch origin && git diff origin/main -- skills/pr-human-guide/SKILL.md | rg '^\+  version:'`
   → exactly one line (`0.17`).
 
-- [ ] **Step 8.4:** Commit spec files if not already committed:
+- [x] **Step 8.4:** Commit spec files if not already committed:
   `git add specs/57-pr-human-guide-documentation-drift && git commit -m "spec: pr-human-guide Documentation Drift category (spec 57)" -- specs/57-pr-human-guide-documentation-drift`
 
 - [ ] **Step 8.5:** Push (`git push -u origin HEAD`) and open the PR
