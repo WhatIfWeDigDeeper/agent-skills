@@ -150,7 +150,7 @@ Regression guard only (marker-helper already accepts any `###` heading).
 
 ### Steps
 
-- [ ] **Step 3.1:** In `class TestComputeItemId`, after
+- [x] **Step 3.1:** In `class TestComputeItemId`, after
   `test_different_heading_changes_the_id`, add:
 
   ```python
@@ -163,11 +163,11 @@ Regression guard only (marker-helper already accepts any `###` heading).
       assert not (security == drift)
   ```
 
-- [ ] **Step 3.2:** Run
+- [x] **Step 3.2:** Run
   `uv run --with pytest pytest tests/pr-human-guide/test_item_identity.py -v`
   (sandbox lifted) → all pass.
 
-- [ ] **Step 3.3:** Commit:
+- [x] **Step 3.3:** Commit:
   `git commit -m "test(pr-human-guide): Documentation Drift heading identity fixture" -- tests/pr-human-guide/test_item_identity.py`
 
 ---
