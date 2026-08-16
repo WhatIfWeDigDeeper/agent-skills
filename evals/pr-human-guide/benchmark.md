@@ -210,7 +210,7 @@ The extraction logic is generalized in [`evals/scripts/extract_subagent_usage.py
 
 ### Preserved grading artifacts
 
-Eight `grading-*.json` files alongside this `benchmark.md` capture grader judgment calls worth preserving (the other 42 grading runs were mechanical pass/fail on literal-marker checks):
+Ten `grading-*.json` files alongside this `benchmark.md` capture grader judgment calls worth preserving (the other 40 grading runs were mechanical pass/fail on literal-marker checks):
 
 - `grading-{sonnet,opus}-without-eval-5.json` — judgment: does the **absence** of any review-guide construct count as the body containing the "no areas requiring special human review" message? Both gradings rule "no" — the body must literally contain that message.
 - `grading-{sonnet,opus}-without-eval-8.json` — judgment: does discussion of `worker_threads` framed as a lifecycle/error-handling concern count as flagging it as "the new use of worker threads"? Both gradings rule "no" — the flag must explicitly call it out as a new concurrency primitive.
@@ -218,8 +218,10 @@ Eight `grading-*.json` files alongside this `benchmark.md` capture grader judgme
 - `grading-opus-4-8-without-eval-9.json` (spec 48) — judgment: does a free-form numbered "Reviewer Guide" that treats the change as an aggregate refactor satisfy "flags this change under Novel Patterns"? Rules "no" — the change must be categorized under Novel Patterns (the baseline's content was strong but uncategorized and used non-canonical markers).
 - `grading-opus-4-8-without-eval-10.json` (spec 48) — judgment: does a populated "Reviewer Guide" with low-effort confirmation items satisfy the "no areas requiring special human review" message? Rules "no" — the bounded empty-guide body must be emitted, not a populated guide (parallels the eval-5 calls).
 - `grading-opus-4-8-without-eval-12.json` (spec 48) — judgment: does listing routine files (lockfile bump, README, formatting reflow, test stub) under a "skim only" section count as flagging them? Rules "yes, it flags them" — the skill's selectivity behavior omits them entirely, so the omit-* and is-selective assertions fail.
+- `grading-opus-4-8-without-eval-13.json` (spec 50) — judgment: does elevating the `references/bot-polling.md` allow-list edit as a security concern in a free-form "Reviewer's guide" satisfy "flags the operative-markdown change under Security or Novel Patterns"? Rules "yes" — the strong Opus 4.8 baseline caught the trust boundary unaided, so `flags-the-boundary` does not discriminate on this model; marker format and diff-link do.
+- `grading-opus-4-8-without-eval-14.json` (spec 50) — judgment: does naming the `cspell.config.yaml` `prewarm` wordlist entry as the change to verify count as flagging it? Rules "yes, it flags it" — the refined rule exempts cspell entries, so the does-not-flag assertion fails alongside the bounded no-areas message and marker format.
 
-The remaining 42 grading runs are not committed; the benchmark.json `expectations` array carries each one's verdict and evidence inline.
+The remaining 40 grading runs are not committed; the benchmark.json `expectations` array carries each one's verdict and evidence inline.
 
 ### Sonnet with_skill model-mismatch incident (recovered)
 
