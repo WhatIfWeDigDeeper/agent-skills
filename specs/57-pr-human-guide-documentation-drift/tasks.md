@@ -303,21 +303,21 @@ Per `evals/CLAUDE.md` (read it in full before this task).
 
 ### Steps
 
-- [ ] **Step 6.1:** Skills-table pr-human-guide row: in the description cell,
+- [x] **Step 6.1:** Skills-table pr-human-guide row: in the description cell,
   change "novel patterns, and concurrency" → "novel patterns, concurrency,
   and documentation drift". Leave the `Eval Δ` cell unchanged.
 
-- [ ] **Step 6.2:** In `### pr-human-guide` notes: extend the concern-type
+- [x] **Step 6.2:** In `### pr-human-guide` notes: extend the concern-type
   list "(Security, Config/Infrastructure, New Dependencies, Data Model
   Changes, Novel Patterns, Concurrency/State)" with ", Documentation Drift".
 
-- [ ] **Step 6.3:** After the "**Novel pattern detection**" bullet, add:
+- [x] **Step 6.3:** After the "**Novel pattern detection**" bullet, add:
 
   ```
   - **Documentation drift detection** flags code changes that rename or remove something documentation still names — searching docs the diff does not touch for the old flag/key/symbol — so reviewers can decide whether the doc must be fixed in the same PR.
   ```
 
-- [ ] **Step 6.4:** In the **Eval cost** list, widen the **Opus 5** sub-bullet
+- [x] **Step 6.4:** In the **Eval cost** list, widen the **Opus 5** sub-bullet
   coverage from "(coverage eval 15 — checked-state preservation across a
   re-run)" to also name evals 16–17 (documentation drift positive/negative),
   and recompute its seconds/tokens/pass-rate figures from the updated
@@ -325,7 +325,7 @@ Per `evals/CLAUDE.md` (read it in full before this task).
   "Single-eval set, so the figure carries no variance estimate" sentence and
   report the new stddev-backed figures).
 
-- [ ] **Step 6.5:** `npx cspell README.md`. Commit:
+- [x] **Step 6.5:** `npx cspell README.md`. Commit:
   `git commit -m "docs: README updates for pr-human-guide Documentation Drift" -- README.md`
 
 ---
