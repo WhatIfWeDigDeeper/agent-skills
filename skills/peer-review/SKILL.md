@@ -199,7 +199,7 @@ Pass the completed prompt (template + collected content) to a fresh instance of 
 
 **If `model` starts with `claude-`:**
 
-The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. In Claude Code, spawn a subagent with the specified model. Other assistants use their own equivalent mechanism. **If the current assistant cannot select the requested `claude-*` model, treat it as unsupported and stop:** "Unsupported --model value: [value]. Supported values: self (default), claude-* (explicit Claude model), copilot[:submodel], codex[:submodel]."
+The assistant processes the review using that specific Claude model via its own model selection mechanism — internal path, no triage. In Claude Code, spawn a subagent with the specified model. Other assistants use their own equivalent mechanism. **If the current assistant cannot select the requested `claude-*` model, treat it as unsupported and stop:** "Unsupported --model value: [value]. Supported values: self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel]."
 
 The reviewer's only job is to return findings. It must not modify any files.
 

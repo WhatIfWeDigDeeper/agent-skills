@@ -165,3 +165,39 @@ class TestGeminiRemoved:
         """No gemini invocation form or install hint may survive in the skill."""
         assert "gemini" not in _SKILL.read_text().lower()
         assert "gemini" not in _CLI_INVOCATIONS.read_text().lower()
+
+
+class TestUnsupportedModelMessageConsistency:
+    """Both copies of the error string in SKILL.md must agree with each other and the oracle.
+
+    SKILL.md emits the message from two branches — the `claude-*` path (the
+    assistant cannot select the requested model) and the external-CLI prefix
+    check. A reader hitting one branch and a test asserting on the other must
+    see the same supported-values list, so the two copies and `route_model`'s
+    ValueError are pinned together here.
+    """
+
+    _SUPPORTED = (
+        "Supported values: self (default), "
+        "claude-* (if your assistant supports model selection), "
+        "copilot[:submodel], codex[:submodel]."
+    )
+
+    def _skill_message_lines(self):
+        return [
+            line
+            for line in _SKILL.read_text().splitlines()
+            if "Unsupported --model value" in line
+        ]
+
+    def test_skill_has_exactly_two_copies(self):
+        assert len(self._skill_message_lines()) == 2
+
+    def test_both_skill_copies_use_the_same_supported_values(self):
+        for line in self._skill_message_lines():
+            assert self._SUPPORTED in line
+
+    def test_skill_copies_match_the_route_model_oracle(self):
+        with pytest.raises(ValueError) as exc_info:
+            route_model("llama")
+        assert self._SUPPORTED in str(exc_info.value)
