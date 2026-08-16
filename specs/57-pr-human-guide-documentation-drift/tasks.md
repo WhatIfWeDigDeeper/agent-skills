@@ -257,17 +257,17 @@ Per `evals/CLAUDE.md` (read it in full before this task).
 
 ### Steps
 
-- [ ] **Step 5.1:** For each eval × configuration (16/17 × with_skill/
+- [x] **Step 5.1:** For each eval × configuration (16/17 × with_skill/
   without_skill), spawn an executor subagent on **claude-opus-5** with
   `mode: "auto"` in a fresh `mktemp -d` workspace containing the fixture repo
   state; with_skill executors get the skill content, without_skill get none;
   executors never call the Skill tool and never read `evals/`. Assertions go
   to the analyzer (claude-opus-5) only.
 
-- [ ] **Step 5.2:** Grade each run against the assertions; record
+- [x] **Step 5.2:** Grade each run against the assertions; record
   `{text, passed, evidence}` per expectation.
 
-- [ ] **Step 5.3:** Append the 4 run records to `benchmark.json` `runs` via
+- [x] **Step 5.3:** Append the 4 run records to `benchmark.json` `runs` via
   Python (`ensure_ascii=True`, `indent=2`); schema:
   `{eval_id, eval_name, executor_model: "claude-opus-5", analyzer_model:
   "claude-opus-5", configuration, run_number: 1, result: {pass_rate, passed,
@@ -275,24 +275,24 @@ Per `evals/CLAUDE.md` (read it in full before this task).
   expectations, notes}` — use `null` (not 0) for unrecorded stats. Pull
   per-subagent time/tokens/tool_calls from the subagent JSONL transcripts.
 
-- [ ] **Step 5.4:** Update `metadata.evals_run` += [16, 17];
+- [x] **Step 5.4:** Update `metadata.evals_run` += [16, 17];
   `metadata.skill_version` → "0.17". Recompute `run_summary` and
   `run_summary_by_model["claude-opus-5"]` (sample stddev N−1; signed 2-decimal
   deltas from unrounded means).
 
-- [ ] **Step 5.5:** Discrimination check: each eval has ≥1 assertion passing
+- [x] **Step 5.5:** Discrimination check: each eval has ≥1 assertion passing
   with_skill and failing without_skill. If eval 16 fails this (baseline
   noticed the in-prompt excerpt and matched format too), note it in the run's
   `notes` and revise the fixture before re-running.
 
-- [ ] **Step 5.6:** `benchmark.md`: add evals 16/17 rows to the summary table;
+- [x] **Step 5.6:** `benchmark.md`: add evals 16/17 rows to the summary table;
   add per-eval sections (fixture + discriminators); find the "Token
   statistics" sentence with the "N of M" denominator and update 15 → 17
   per-configuration, 30 → 34 combined.
 
-- [ ] **Step 5.7:** Validate JSON; `npx cspell evals/pr-human-guide/benchmark.md`.
+- [x] **Step 5.7:** Validate JSON; `npx cspell evals/pr-human-guide/benchmark.md`.
 
-- [ ] **Step 5.8:** Commit:
+- [x] **Step 5.8:** Commit:
   `git commit -m "eval(pr-human-guide): benchmark runs for evals 16-17" -- evals/pr-human-guide/benchmark.json evals/pr-human-guide/benchmark.md`
 
 ---
