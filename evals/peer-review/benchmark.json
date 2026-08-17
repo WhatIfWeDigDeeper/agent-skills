@@ -4094,7 +4094,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4136,7 +4136,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4179,7 +4179,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4221,7 +4221,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4264,7 +4264,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4301,7 +4301,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4339,7 +4339,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4376,7 +4376,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4414,7 +4414,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4451,7 +4451,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4489,7 +4489,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
@@ -4526,7 +4526,7 @@
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": null
+        "errors": 0
       },
       "expectations": [
         {
