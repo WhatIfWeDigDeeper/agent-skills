@@ -76,7 +76,7 @@
     "Eval 3 (argument-conflict-error) is non-discriminating: both configurations correctly detect the mutually exclusive target conflict and output the error without running a review.",
     "Eval 1 is zero-delta on Sonnet 4.6 (0.80/0.80) due to harness constraint masking the subagent-spawning differentiator; Opus 4.7 discriminates at +0.60 (0.80/0.20) where the harness constraint did not mask the differentiator.",
     "Evals 5-9 test Phase II multi-LLM routing (eval 10, gemini-no-findings, was deleted in v1.15 when the Gemini CLI route was removed; its coverage duplicated eval 6). Eval 6 (copilot-empty-findings) is non-discriminating on Sonnet 4.6 (empty findings -> 'No issues found.' is natural default behavior); on Opus 4.7, eval 6 became discriminating at +0.50 (without_skill paraphrased rather than emitting the literal phrase). Evals 5, 7, 8 discriminate on Sonnet 4.6. Eval 9 was repurposed in v1.15 from gemini-not-found to gemini-model-removed and re-run on the Sonnet 5 / Opus 5 cohort; its 4.6/4.7 measurements are nulled.",
-    "Evals 5-9 use simulated transcripts (fixture responses embedded in prompts); time_seconds and tokens are null for these runs.",
+    "Evals 5-8 use simulated transcripts (fixture responses embedded in prompts); time_seconds and tokens are null for these runs.",
     "Evals 11-14 added in v1.1 review pass. Eval 13 (focus-option) discriminates on Sonnet 4.6 (+0.67 delta): the skill-defined focus line format and apply prompt both fail without_skill. Eval 13 collapsed to non-discriminating on Opus 4.7 (0.67/0.67) \u2014 base model has internalized focus-line construction (see models_tested[1].notes). Evals 11, 12, 14 are non-discriminating on Sonnet 4.6: empty-staged warning, PR metadata inclusion (when fixture data is explicit in the prompt), and skip handling are natural baseline behaviors.",
     "Evals 11-14 have real time and token measurements on Sonnet 4.6 (subagent executor ran the full workflow, not pure transcript simulation). On Opus 4.7, all evals are null \u2014 executor time/tokens are not preserved at the parent level for the Opus runs (see models_tested[1].notes).",
     "Evals 15-20 added in v1.2 for triage layer and post-apply re-scan. All use simulated fixtures; time_seconds and tokens are null.",
@@ -730,7 +730,7 @@
         "pass_rate": null,
         "passed": null,
         "failed": null,
-        "total": 3,
+        "total": 4,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
@@ -772,7 +772,7 @@
         "pass_rate": null,
         "passed": null,
         "failed": null,
-        "total": 3,
+        "total": 4,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
@@ -2407,9 +2407,9 @@
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.6,
-        "passed": 3,
-        "failed": 2,
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
         "total": 5,
         "time_seconds": null,
         "tokens": null,
@@ -2750,7 +2750,7 @@
         "pass_rate": null,
         "passed": null,
         "failed": null,
-        "total": 3,
+        "total": 4,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
@@ -2792,7 +2792,7 @@
         "pass_rate": null,
         "passed": null,
         "failed": null,
-        "total": 3,
+        "total": 4,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
@@ -4554,9 +4554,9 @@
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.92,
-        "stddev": 0.13,
-        "min": 0.6,
+        "mean": 0.91,
+        "stddev": 0.16,
+        "min": 0.4,
         "max": 1.0
       },
       "time_seconds": {
@@ -4593,7 +4593,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.33",
+      "pass_rate": "+0.32",
       "time_seconds": null,
       "tokens": null
     }
@@ -4649,9 +4649,9 @@
     "claude-opus-4-7": {
       "with_skill": {
         "pass_rate": {
-          "mean": 0.92,
-          "stddev": 0.13,
-          "min": 0.6,
+          "mean": 0.91,
+          "stddev": 0.16,
+          "min": 0.4,
           "max": 1.0
         },
         "time_seconds": {
@@ -4688,7 +4688,7 @@
         }
       },
       "delta": {
-        "pass_rate": "+0.33",
+        "pass_rate": "+0.32",
         "time_seconds": null,
         "tokens": null
       }

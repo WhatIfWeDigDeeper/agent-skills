@@ -1,14 +1,12 @@
 ---
 name: peer-review
 description: >-
-  Get a fresh-context review of staged changes, branches, PRs, or file sets.
-  Delegates to a fresh-context reviewer by default; routes to external LLM CLIs
-  (Copilot, Codex) when --model specifies one.
-  Use when: user says "peer review" (e.g. "peer review PR 5", "peer review staged",
-  "peer review this branch"), "fresh review", "another set of eyes", "sanity check",
-  "quick review before I push", or routes to an external model
-  ("review with Copilot", "review using Codex").
-  Do NOT trigger on bare "review" phrases (e.g. "review my changes", "review PR N",
+  Fresh-context review of staged changes, branches, PRs, or file sets.
+  Delegates to a fresh reviewer; routes to external CLIs (Copilot, Codex) via --model.
+  Use when: user says "peer review" ("peer review PR 5", "peer review staged"),
+  "fresh review", "another set of eyes", "sanity check",
+  "quick review before I push", "review with Copilot", or "review using Codex".
+  Do NOT trigger on bare "review" phrases ("review my changes", "review PR N",
   "review staged") — those route to code-review.
 license: MIT
 compatibility: Requires git; requires GitHub CLI (gh) for PR targets
@@ -91,7 +89,7 @@ Residual risks:
 
 ### Why W007, W011, and W012 still appear
 
-Local scanners (e.g. `snyk-agent-scan`) flag this skill heuristically — based on the *presence* of certain patterns, not on absence of mitigation — with up to three findings: `W011` (untrusted external command output ingested via `gh pr view` / `gh pr diff`), `W012` (external-CLI handoff to copilot/codex), and `W007` (insecure credential handling — the review templates quote a short phrase anchor from the supplied diff, and the self/claude path can consume and return unredacted diff content, so reviewer output may surface secret values verbatim). The current SKILL.md mitigates the underlying risks via the **Untrusted-content boundary markers**, **Stdin transport for codex**, the **pre-flight secret scan** (Step 4b, which detects secret patterns and requires explicit `y` confirmation before the prompt is sent to an external CLI — it redacts only the displayed match, not the transmitted prompt), and **Argument validation** items above (allowlisted regex on `--pr` / `--branch` arguments before any command runs). The findings are pinned in `evals/security/peer-review.baseline.json` so CI gates on regressions, not the existing baseline. Removing the flags would require removing the PR-target and diff-review features themselves, not adding hardening.
+Local scanners (e.g. `snyk-agent-scan`) flag this skill heuristically — based on the *presence* of certain patterns, not on absence of mitigation — with up to three findings: `W011` (untrusted external command output ingested via `gh pr view` / `gh pr diff`), `W012` (external-CLI handoff to copilot/codex), and `W007` (insecure credential handling — the review templates quote a short phrase anchor from the supplied diff, and the self/claude path can consume and return unredacted diff content, so reviewer output may surface secret values verbatim). The current SKILL.md mitigates the underlying risks via the **Untrusted-content boundary markers**, the **External-CLI triage layer** and **Context isolation for external CLIs** (which apply to both copilot and codex), the **pre-flight secret scan** (Step 4b, which detects secret patterns and requires explicit `y` confirmation before the prompt is sent to an external CLI — it redacts only the displayed match, not the transmitted prompt), and **Argument validation** items above (allowlisted regex on `--pr` / `--branch` arguments before any command runs). **Stdin transport** narrows the `W012` handoff further, but only for codex — copilot's argv exposure is a residual risk, not a mitigated one. The findings are pinned in `evals/security/peer-review.baseline.json` so CI gates on regressions, not the existing baseline. Removing the flags would require removing the PR-target and diff-review features themselves, not adding hardening.
 
 The pinned `snyk-agent-scan==0.5.1` is non-deterministic for this skill — the package pins the client, not the scanner's server-side backend model, so which subset of `{W007, W011, W012}` it emits varies between otherwise-identical runs. The baseline therefore pins the **superset** of all observed findings; a run that emits a subset reads as a cleared finding (an improvement) rather than a CI regression, while a genuinely new finding ID still trips the gate. None of the three reflects a vulnerability introduced by the v1.12 Step 4d change.
 
