@@ -89,7 +89,7 @@ Each row shows passed/total per (model, configuration). Cells in **bold** are 10
 
 ### Non-discriminating evals on Opus 4.7
 
-Of the 24 paired evals, 9 are non-discriminating on Opus 4.7 (with-skill = without-skill pass rate). Evals 9, 16, and 26 are not in either bucket — their 4.6/4.7 results are nulled. These are candidates for future purpose-refresh work analogous to spec 25's `learn` refresh — the base model has internalized enough of the skill's behaviors that the assertions no longer differentiate.
+Of the 24 paired evals, 9 are non-discriminating on Opus 4.7 (with-skill = without-skill pass rate). Evals 9, 16, and 26 are not in either bucket — their 4.6/4.7 results are nulled. These are candidates for future purpose-refresh work analogous to spec 25's `learn` refresh — the base model has internalized enough of the skill's behaviors that the assertions no longer differentiate. Eval 4 is the exception: its zero delta comes from the with-skill side falling to 40% under the harness constraint, not from a stronger baseline (see **Collapsed evals** below).
 
 Non-discriminating on Opus 4.7:
 - Eval 3 (`argument-conflict-error`)
