@@ -1,6 +1,6 @@
 # peer-review — external-CLI invocation + output normalization (Steps 4c–4e)
 
-This is the external-CLI executable path (copilot / codex / gemini). SKILL.md
+This is the external-CLI executable path (copilot / codex). SKILL.md
 Step 4c keeps the security rationale (the stdin-vs-argv explanation, the
 single-call invariant, the "Why `mktemp`" note, and the explicit-cleanup-not-`trap`
 note); SKILL.md Step 4 keeps the which-CLI dispatch table that sets `$SUBMODEL`
@@ -53,16 +53,6 @@ else
 fi
 ```
 
-For gemini (`--approval-mode plan` enables read-only mode; `-p` triggers headless mode — the current gemini CLI hangs in an interactive TUI without it; gemini *appends stdin to the `-p` prompt*, so the bulk prompt stays on stdin and only a short fixed directive is on argv; `--skip-trust` is required because the neutral `$WORKDIR` is an untrusted folder — without it gemini refuses to run headless and reverts to interactive approval):
-```bash
-CLI_RC=0
-if [ -n "$SUBMODEL" ]; then
-  REVIEW_OUTPUT=$({ cd "$WORKDIR" && gemini --approval-mode plan --skip-trust -m "$SUBMODEL" -p "Perform the diff review described in the input on stdin and return the findings now." < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
-else
-  REVIEW_OUTPUT=$({ cd "$WORKDIR" && gemini --approval-mode plan --skip-trust -p "Perform the diff review described in the input on stdin and return the findings now." < "$PROMPT_FILE"; } 2>&1) || CLI_RC=$?
-fi
-```
-
 After the CLI call returns (success or failure), clean up the temp file and the neutral working directory unconditionally — the `|| CLI_RC=$?` capture above guarantees control reaches this line even when the CLI exited non-zero:
 ```bash
 rm -f "$PROMPT_FILE"
@@ -81,7 +71,7 @@ The marker survives into Step 4e's parsing input (which is the assistant's readi
 
 ## 4e — parse output → normalized findings
 
-All three CLIs (copilot, codex, gemini) receive the same prose template from Step 3 (the severity-grouped findings list ending in `NO FINDINGS`) and are parsed identically: output is markdown or plain text. First check if output is exactly `NO FINDINGS` — if so, treat as no issues. Otherwise parse severity from lines matching patterns like `[HIGH]`, `**Critical**`, `severity: high` (case-insensitive). Extract title, file, problem, and fix from surrounding lines. If no structured severity pattern is found, present the full output as a single `major` finding.
+Both CLIs (copilot, codex) receive the same prose template from Step 3 (the severity-grouped findings list ending in `NO FINDINGS`) and are parsed identically: output is markdown or plain text. First check if output is exactly `NO FINDINGS` — if so, treat as no issues. Otherwise parse severity from lines matching patterns like `[HIGH]`, `**Critical**`, `severity: high` (case-insensitive). Extract title, file, problem, and fix from surrounding lines. If no structured severity pattern is found, present the full output as a single `major` finding.
 
 If parsing fails for any CLI: output raw text with the prefix "Could not parse structured findings; showing raw output." Then stop — this is a terminal output. Do not proceed to triage (Step 4f) or apply (Step 6); the raw text is presented directly to the user, who can re-run the skill or invoke the CLI manually if they need structured findings.
 
