@@ -3,7 +3,7 @@
     "skill_name": "peer-review",
     "skill_path": "skills/peer-review",
     "skill_version": "1.7",
-    "skill_version_note": "Multi-version provenance: Sonnet 4.6 runs (timestamp 2026-04-09) were produced under peer-review skill v1.6; Opus 4.7 runs (timestamp 2026-04-25) were produced under v1.7. Top-level skill_version reflects the latest version (v1.7) per the latest-model convention.",
+    "skill_version_note": "Multi-version provenance: Sonnet 4.6 runs (timestamp 2026-04-09) were produced under peer-review skill v1.6; Opus 4.7 runs (timestamp 2026-04-25) were produced under v1.7. Top-level skill_version stays \"1.7\" because it records the version the aggregated corpus was produced under, and every run feeding run_summary is a v1.6/v1.7 run. Evals 9, 16, and 26 were re-run at v1.15 (Gemini CLI removal) on a separate claude-sonnet-5 / claude-opus-5 cohort; those 12 runs are recorded for provenance but are excluded from all aggregates, so they do not move skill_version.",
     "executor_model": "claude-opus-4-7",
     "analyzer_model": "claude-sonnet-4-6",
     "models_tested": [
@@ -12,14 +12,28 @@
         "analyzer_model": "claude-sonnet-4-6",
         "timestamp": "2026-04-09T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "28 evals \u00d7 2 configurations = 56 runs, all run_number == 1. Eval 26 (unsupported-model-error) result fields nulled on both with_skill and without_skill sides due to without_skill contamination (executor read SKILL.md from filesystem); excluded from run_summary aggregates. Sonnet pass-rate delta computed over 27 paired evals (eval 26 excluded). Time/token coverage is sparse: 7 of 27 paired evals (14 runs across with_skill and without_skill) have non-null measurements (evals 1, 3, 4, 11, 12, 13, 14); the remaining evals use simulated transcripts or have measurements excluded as stale pre-v1.3 data."
+        "notes": "Originally 28 evals \u00d7 2 configurations = 56 runs, all run_number == 1. Eval 10 (gemini-no-findings) was deleted in v1.15 and its 2 runs removed. Eval 26 (unsupported-model-error) result fields were nulled on both sides due to without_skill contamination (that executor read SKILL.md from the filesystem \u2014 a different channel from the description leak described in notes[16]). Evals 9 and 16 were additionally nulled in v1.15 because the Gemini removal changed their semantics. Sonnet pass-rate delta is therefore computed over 24 paired evals. Time/token coverage is sparse: 7 of those 24 paired evals (14 runs across with_skill and without_skill) have non-null measurements (evals 1, 3, 4, 11, 12, 13, 14); the remaining evals use simulated transcripts or have measurements excluded as stale pre-v1.3 data."
       },
       {
         "executor_model": "claude-opus-4-7",
         "analyzer_model": "claude-sonnet-4-6",
         "timestamp": "2026-04-25T00:00:00Z",
         "runs_per_configuration": 1,
-        "notes": "Full 28-eval suite \u00d7 2 configurations on 2026-04-25, all run_number == 1 (56 Opus 4.7 runs total). Eval 26 (unsupported-model-error) ran cleanly on Opus \u2014 without_skill executor correctly resisted reading SKILL.md when prompted, so Opus paired-eval count is 28 (vs Sonnet's 27, where the without_skill agent contaminated). Analyzer model is claude-sonnet-4-6 (not Opus) for analyzer-uniformity following the spec 26 precedent. Executor time_seconds, tokens, and tool_calls are not preserved at the parent level (subagent usage data visible only in transient task-completion notifications); recorded as null per the evals/CLAUDE.md null-for-unknown rule. Eight evals are non-discriminating on Opus (3, 11, 13, 14, 17, 20, 21, 27); evals 13 and 21 collapsed from discriminating on Sonnet \u2014 base model has internalized those behaviors. Eleven evals are newly discriminating or strengthened on Opus (1, 2, 6, 10, 12, 18, 22, 23, 24, 25, 26) where Sonnet baseline either coincidentally hit skill phrasing or was harness-masked."
+        "notes": "Originally a full 28-eval suite \u00d7 2 configurations on 2026-04-25, all run_number == 1 (56 Opus 4.7 runs). Eval 10 (gemini-no-findings) was deleted in v1.15 and its 2 runs removed; evals 9, 16, and 26 were nulled because the Gemini removal changed their semantics, leaving 24 paired evals. (Eval 26 had run cleanly on Opus \u2014 the without_skill executor resisted reading SKILL.md \u2014 so it was nulled for the semantic change, not for contamination.) Analyzer model is claude-sonnet-4-6 (not Opus) for analyzer-uniformity following the spec 26 precedent. Executor time_seconds, tokens, and tool_calls are not preserved at the parent level (subagent usage data visible only in transient task-completion notifications); recorded as null per the evals/CLAUDE.md null-for-unknown rule. Nine of the surviving 24 evals are non-discriminating on Opus (3, 4, 11, 13, 14, 17, 20, 21, 27); evals 4, 13, and 21 collapsed from discriminating on Sonnet \u2014 the base model has internalized those behaviors, or (eval 4) the harness constraint masked the remaining differentiators. Ten of the surviving 24 evals are newly discriminating or strengthened on Opus: eight newly discriminating (1, 6, 12, 18, 22, 23, 24, 25) where the Sonnet baseline either coincidentally hit skill phrasing or was harness-masked, plus two (2, 28) that discriminate on both models but with a larger Opus delta. Evals 10 and 26 were also in that group before deletion and nulling respectively."
+      },
+      {
+        "executor_model": "claude-sonnet-5",
+        "analyzer_model": "claude-sonnet-5",
+        "timestamp": "2026-08-16T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "Targeted v1.15 re-run of evals 9, 16, and 26 only (3 evals \u00d7 2 configurations = 6 runs), not a suite run. These three evals changed semantics when the Gemini CLI route was removed, so their v1.6/v1.7 measurements were nulled rather than carried forward. Results: eval 9 (gemini-model-removed) 1.00/0.50, eval 16 (triage-all-skipped) 1.00/0.67, eval 26 (unsupported-model-error) 1.00/0.67. Every without_skill run is contaminated to some degree by the skill description in the available-skills listing (see notes[16]), which biases the baseline UP and therefore understates the delta. Excluded from run_summary and run_summary_by_model; the 6-run sample is too small and too contaminated to aggregate. Executor time_seconds, tokens, and tool_calls are not preserved at the parent level; recorded as null per the evals/CLAUDE.md null-for-unknown rule."
+      },
+      {
+        "executor_model": "claude-opus-5",
+        "analyzer_model": "claude-sonnet-5",
+        "timestamp": "2026-08-16T00:00:00Z",
+        "runs_per_configuration": 1,
+        "notes": "Targeted v1.15 re-run of evals 9, 16, and 26 only (3 evals \u00d7 2 configurations = 6 runs), not a suite run. Results: eval 9 (gemini-model-removed) 1.00/0.75, eval 16 (triage-all-skipped) 1.00/0.67, eval 26 (unsupported-model-error) 1.00/0.67. Opus 5 baselines score higher than Sonnet 5 baselines on eval 9 because Opus enumerated the external CLIs and declined to review, where Sonnet went on to produce a review. As with the Sonnet 5 cohort, every without_skill run is description-contaminated (see notes[16]) and excluded from all aggregates. Time/token/tool-call measurements are null (not preserved at the parent level)."
       }
     ],
     "timestamp": "2026-04-25T00:00:00Z",
@@ -33,7 +47,6 @@
       7,
       8,
       9,
-      10,
       11,
       12,
       13,
@@ -56,22 +69,23 @@
     "runs_per_configuration": 1
   },
   "notes": [
-    "Multi-model framing: the entries below describe per-eval discrimination and delta dilution observed during claude-sonnet-4-6 review passes (v1.0–v1.6) unless a note explicitly names another model. The top-level run_summary mirrors claude-opus-4-7 values, so see run_summary_by_model and benchmark.md per-model qualifiers for the Opus-specific picture (e.g. evals 1, 6, 12, 13, 21, 22, 23, 24, 25, 26 have different discrimination on Opus).",
+    "Multi-model framing: the entries below describe per-eval discrimination and delta dilution observed during claude-sonnet-4-6 review passes (v1.0-v1.6) unless a note explicitly names another model. The top-level run_summary mirrors claude-opus-4-7 values, so see run_summary_by_model and benchmark.md per-model qualifiers for the Opus-specific picture (e.g. evals 1, 4, 6, 12, 13, 18, 21, 22, 23, 24, 25 diverge between models). Both aggregates are computed over the claude-sonnet-4-6 / claude-opus-4-7 cohort ONLY; the claude-sonnet-5 / claude-opus-5 runs added in v1.15 are excluded from every aggregate (see notes[16]).",
     "Assertion 'spawns subagent' fails in both configurations for evals 1, 2, and 4 because the Agent tool is not available inside eval executor subagents. This is an eval harness constraint, not a skill defect.",
     "Eval 2 (consistency-mode-plan-tasks-mismatch) re-run in v1.4 with updated assertions (+0.40 delta): enters-consistency-mode, finds-missing-verbose-task, and apply-prompt-shown differentiate with_skill from without_skill. (Earlier version of this note referenced spec mode detection, which was removed in v1.3.)",
-    "Eval 4 (diff mode) is the secondary discriminating eval (+0.20 delta): explicit diff mode declaration differentiates, subagent assertion fails in both due to harness constraint.",
+    "Eval 4 (diff mode) is the secondary discriminating eval on Sonnet 4.6 (+0.20 delta): explicit diff mode declaration differentiates, subagent assertion fails in both due to harness constraint. On Opus 4.7 it is zero-delta (0.40/0.40) \u2014 both configurations fail the same three assertions, so nothing remains to differentiate.",
     "Eval 3 (argument-conflict-error) is non-discriminating: both configurations correctly detect the mutually exclusive target conflict and output the error without running a review.",
     "Eval 1 is zero-delta on Sonnet 4.6 (0.80/0.80) due to harness constraint masking the subagent-spawning differentiator; Opus 4.7 discriminates at +0.60 (0.80/0.20) where the harness constraint did not mask the differentiator.",
-    "Evals 5-10 test Phase II multi-LLM routing. Eval 6 (copilot-empty-findings) is non-discriminating on Sonnet 4.6 (empty findings \u2192 'No issues found.' is natural default behavior); on Opus 4.7, eval 6 became discriminating at +0.50 (without_skill paraphrased rather than emitting the literal phrase). Evals 5, 7, 8, 9, 10 all discriminate on Sonnet 4.6.",
-    "Evals 5-10 use simulated transcripts (fixture responses embedded in prompts); time_seconds and tokens are null for these runs.",
-    "Evals 11-14 added in v1.1 review pass. Eval 13 (focus-option) discriminates on Sonnet 4.6 (+0.67 delta): the skill-defined focus line format and apply prompt both fail without_skill. Eval 13 collapsed to non-discriminating on Opus 4.7 (0.67/0.67) — base model has internalized focus-line construction (see models_tested[1].notes). Evals 11, 12, 14 are non-discriminating on Sonnet 4.6: empty-staged warning, PR metadata inclusion (when fixture data is explicit in the prompt), and skip handling are natural baseline behaviors.",
-    "Evals 11-14 have real time and token measurements on Sonnet 4.6 (subagent executor ran the full workflow, not pure transcript simulation). On Opus 4.7, all evals are null — executor time/tokens are not preserved at the parent level for the Opus runs (see models_tested[1].notes).",
+    "Evals 5-9 test Phase II multi-LLM routing (eval 10, gemini-no-findings, was deleted in v1.15 when the Gemini CLI route was removed; its coverage duplicated eval 6). Eval 6 (copilot-empty-findings) is non-discriminating on Sonnet 4.6 (empty findings -> 'No issues found.' is natural default behavior); on Opus 4.7, eval 6 became discriminating at +0.50 (without_skill paraphrased rather than emitting the literal phrase). Evals 5, 7, 8 discriminate on Sonnet 4.6. Eval 9 was repurposed in v1.15 from gemini-not-found to gemini-model-removed and re-run on the Sonnet 5 / Opus 5 cohort; its 4.6/4.7 measurements are nulled.",
+    "Evals 5-8 use simulated transcripts (fixture responses embedded in prompts); time_seconds and tokens are null for these runs.",
+    "Evals 11-14 added in v1.1 review pass. Eval 13 (focus-option) discriminates on Sonnet 4.6 (+0.67 delta): the skill-defined focus line format and apply prompt both fail without_skill. Eval 13 collapsed to non-discriminating on Opus 4.7 (0.67/0.67) \u2014 base model has internalized focus-line construction (see models_tested[1].notes). Evals 11, 12, 14 are non-discriminating on Sonnet 4.6: empty-staged warning, PR metadata inclusion (when fixture data is explicit in the prompt), and skip handling are natural baseline behaviors.",
+    "Evals 11-14 have real time and token measurements on Sonnet 4.6 (subagent executor ran the full workflow, not pure transcript simulation). On Opus 4.7, all evals are null \u2014 executor time/tokens are not preserved at the parent level for the Opus runs (see models_tested[1].notes).",
     "Evals 15-20 added in v1.2 for triage layer and post-apply re-scan. All use simulated fixtures; time_seconds and tokens are null.",
-    "Evals 15 (triage-skips-false-positive) and 16 (triage-all-skipped) and 19 (rescan-offered-after-apply) are discriminating on both Sonnet 4.6 and Opus 4.7. Evals 17, 18, 20 are non-discriminating on Sonnet 4.6 (triage-not-on-self-path and rescan-not-offered-after-skip are natural baseline behaviors; triage-user-includes-skipped passes because 'S1' literal selection is intuitive). On Opus 4.7, eval 18 became discriminating at +0.50; evals 17 and 20 remain non-discriminating.",
+    "Evals 15 (triage-skips-false-positive) and 19 (rescan-offered-after-apply) are discriminating on both Sonnet 4.6 and Opus 4.7. Eval 16 (triage-all-skipped) was also discriminating on both, but its 4.6/4.7 measurements were nulled in v1.15 when its --model argument moved from gemini to copilot; it re-discriminates at +0.33 on both Sonnet 5 and Opus 5. Evals 17, 18, 20 are non-discriminating on Sonnet 4.6 (triage-not-on-self-path and rescan-not-offered-after-skip are natural baseline behaviors; triage-user-includes-skipped passes because 'S1' literal selection is intuitive). On Opus 4.7, eval 18 became discriminating at +0.50; evals 17 and 20 remain non-discriminating.",
     "Evals 2, 21, 22, 23 added/re-run in v1.4. Eval 2 (consistency-mode-plan-tasks-mismatch) re-run with v1.3-compatible assertions \u2014 discriminating on Sonnet 4.6 (+0.40 delta). Eval 21 (both-staged-and-unstaged-prompt) discriminates on Sonnet 4.6 (+0.67 delta): disambiguation prompt is entirely skill-defined. Eval 21 collapsed to non-discriminating on Opus 4.7 (1.00/1.00) \u2014 base model has internalized the disambiguation prompt (see models_tested[1].notes). Evals 22 (unstaged-only-auto-review) and 23 (staged-explicit-bypasses-detection) are non-discriminating on Sonnet 4.6: these behaviors are intuitive enough that the Sonnet baseline handles them correctly. Adding evals 22 and 23 diluted the Sonnet headline delta from +0.30 to +0.29.",
-    "Summary-table delta values are computed from unrounded means over 27 paired evals (eval 26 excluded from both sides due to contamination; with_skill=0.97778, without_skill=0.71481), so they may differ slightly from subtracting the displayed rounded means. Time/token statistics are computed only over the 7 primary runs with non-null measurements (evals 1, 3, 4, 11, 12, 13, 14); the other 20 evals have null measurements, including the eval 2 re-run and the simulated-transcript/fixture groups (evals 5-10, 15-28). Both eval 26 result entries are nulled and excluded from all aggregates so paired summary calculations stay aligned after the contaminated run.",
+    "Summary-table delta values are computed from unrounded means over 24 paired evals, so they may differ slightly from subtracting the displayed rounded means. Excluded from the pairing: eval 26 (contaminated on Sonnet 4.6 \u2014 that executor read SKILL.md), and evals 9, 16, 26 (semantics changed by the v1.15 Gemini removal, so their 4.6/4.7 results were nulled); eval 10 was deleted outright. Sonnet 4.6: with_skill=0.97500, without_skill=0.73458. Opus 4.7: with_skill=0.91208, without_skill=0.59333. Time/token statistics are computed only over the 7 primary runs with non-null measurements (evals 1, 3, 4, 11, 12, 13, 14); the other 17 paired evals have null time/token data.",
     "Evals 12 and 25 updated in v1.6 review pass: added header-model-not-literal-self assertion to both. Both evals remain non-discriminating on Sonnet 4.6 (1.0/1.0) \u2014 general assistants naturally substitute their own model identifier and never print literal 'self' since they have no knowledge of the keyword. On Opus 4.7, eval 12 became discriminating at +0.20 and eval 25 at +0.50 (Opus without_skill omitted the model token entirely on eval 12 and used a non-literal no-findings phrase on both). Eval 12 now has 5 assertions; eval 25 now has 4 assertions.",
-    "Evals 24-28 added in v1.5 review pass. Eval 28 (submodel-splitting) discriminates at +0.33 on both Sonnet 4.6 and Opus 4.7: severity normalization (medium \u2192 major) fails without_skill, matching the pattern of evals 5, 7, 8, 9, 10. Evals 24 (rescan-y-response), 25 (pr-url-output), and 27 (branch-not-found-error) are non-discriminating on Sonnet 4.6: these behaviors are intuitive enough for a capable Sonnet baseline to handle correctly. On Opus 4.7, evals 24 (+0.25) and 25 (+0.50) became discriminating; eval 27 remains non-discriminating. Eval 26 (unsupported-model-error) was contaminated on Sonnet 4.6 and excluded from the Sonnet aggregate: the Sonnet without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message format, so the specific phrasing could not be evaluated for Sonnet. Opus 4.7 ran cleanly on eval 26 (without_skill resisted reading SKILL.md when prompted) and confirmed the eval is skill-discriminating at +0.33 — see models_tested[1].notes. Adding evals 24-28 (1 discriminating, 3 non-discriminating, 1 contaminated/excluded) diluted the headline delta from +0.29 to +0.26."
+    "Evals 24-28 added in v1.5 review pass. Eval 28 (submodel-splitting) discriminates at +0.33 on both Sonnet 4.6 and Opus 4.7: severity normalization (medium \u2192 major) fails without_skill, matching the pattern of evals 5, 7, 8. Evals 24 (rescan-y-response), 25 (pr-url-output), and 27 (branch-not-found-error) are non-discriminating on Sonnet 4.6: these behaviors are intuitive enough for a capable Sonnet baseline to handle correctly. On Opus 4.7, evals 24 (+0.25) and 25 (+0.50) became discriminating; eval 27 remains non-discriminating. Eval 26 (unsupported-model-error) was contaminated on Sonnet 4.6 and excluded from the Sonnet aggregate: the Sonnet without_skill agent read the SKILL.md from the filesystem and reproduced the skill-defined error message format, so the specific phrasing could not be evaluated for Sonnet. Opus 4.7 ran cleanly on eval 26 (without_skill resisted reading SKILL.md when prompted) and confirmed the eval is skill-discriminating at +0.33 \u2014 see models_tested[1].notes. Adding evals 24-28 (1 discriminating, 3 non-discriminating, 1 contaminated/excluded) diluted the headline delta from +0.29 to +0.26.",
+    "v1.15 (Gemini CLI removal). Eval 10 (gemini-no-findings) was deleted; eval 9 was repurposed from gemini-not-found to gemini-model-removed; eval 16's vehicle changed from --model gemini to --model copilot; eval 26 dropped gemini from its supported-values list. All three surviving evals had their claude-sonnet-4-6 / claude-opus-4-7 result fields and expectation verdicts nulled and were re-run on a claude-sonnet-5 / claude-opus-5 cohort (the 4-6/4-7 models are no longer spawnable). Those 12 runs are recorded for provenance and are EXCLUDED from run_summary and run_summary_by_model, which remain scoped to the 24 paired 4-6/4-7 evals. KNOWN CONTAMINATION CHANNEL: every without_skill run in the new cohort named 'copilot' and 'codex' as the supported external CLIs without reading SKILL.md. The leak is the skill's own description, which the harness injects into every subagent's system prompt via the available-skills listing ('routes to external CLIs (Copilot, Codex) via --model'). This is distinct from the eval-26 Sonnet 4.6 contamination, which was a filesystem SKILL.md read; fencing the executor out of SKILL.md does NOT close this channel. It affects eval 9 most (the repurposed eval asks precisely what the description states) and eval 26 next. The bias raises the baseline, so the recorded deltas are lower bounds, not inflated claims. The authoritative regression guard for the Gemini removal is the deterministic TestGeminiRemoved class in tests/peer-review/test_model_routing.py, not eval 9."
   ],
   "runs": [
     {
@@ -708,150 +722,86 @@
     },
     {
       "eval_id": 9,
-      "eval_name": "gemini-not-found",
+      "eval_name": "gemini-model-removed",
       "executor_model": "claude-sonnet-4-6",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 3,
-        "failed": 0,
-        "total": 3,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
+        "total": 4,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
-          "text": "The output states that the gemini CLI was not found (error message about missing binary)",
-          "passed": true,
-          "evidence": "Step 4a: 'command -v gemini' returns empty \u2192 skill outputs 'gemini CLI not found. Install with: npm install -g @google/gemini-cli'."
+          "text": "The output states that 'gemini' is an unsupported --model value (e.g. 'Unsupported --model value: gemini')",
+          "passed": null,
+          "evidence": null
         },
         {
-          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'",
-          "passed": true,
-          "evidence": "Install hint from SKILL.md Step 4a table included in error output."
+          "text": "The error message lists the supported options: self (default), claude-* as the Claude model prefix, and the supported external CLIs copilot and codex",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "The output does NOT report checking for a gemini binary (no 'command -v gemini', no 'gemini CLI not found' message) and does NOT offer an install hint such as 'npm install -g @google/gemini-cli'",
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The skill exits without presenting findings or an apply prompt",
-          "passed": true,
-          "evidence": "Step 4a: 'If the binary is not found, output the error message and stop.' Skill stopped after error."
+          "passed": null,
+          "evidence": null
         }
       ],
       "notes": [
-        "Discriminating (+0.33 delta). Mirrors eval 8 for gemini binary."
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
       "eval_id": 9,
-      "eval_name": "gemini-not-found",
+      "eval_name": "gemini-model-removed",
       "executor_model": "claude-sonnet-4-6",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.67,
-        "passed": 2,
-        "failed": 1,
-        "total": 3,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
+        "total": 4,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
-          "text": "The output states that the gemini CLI was not found (error message about missing binary)",
-          "passed": true,
-          "evidence": "Natural default behavior reports the missing binary."
+          "text": "The output states that 'gemini' is an unsupported --model value (e.g. 'Unsupported --model value: gemini')",
+          "passed": null,
+          "evidence": null
         },
         {
-          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'",
-          "passed": false,
-          "evidence": "No knowledge of specific install command without skill \u2014 hint not produced."
+          "text": "The error message lists the supported options: self (default), claude-* as the Claude model prefix, and the supported external CLIs copilot and codex",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "The output does NOT report checking for a gemini binary (no 'command -v gemini', no 'gemini CLI not found' message) and does NOT offer an install hint such as 'npm install -g @google/gemini-cli'",
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The skill exits without presenting findings or an apply prompt",
-          "passed": true,
-          "evidence": "No findings to show; apply prompt is skill-defined and absent without skill."
+          "passed": null,
+          "evidence": null
         }
       ],
       "notes": [
-        "Specific install hint is skill-defined and fails without skill; mirrors eval 8 pattern."
-      ]
-    },
-    {
-      "eval_id": 10,
-      "eval_name": "gemini-no-findings",
-      "executor_model": "claude-sonnet-4-6",
-      "configuration": "with_skill",
-      "run_number": 1,
-      "result": {
-        "pass_rate": 1.0,
-        "passed": 3,
-        "failed": 0,
-        "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": 0
-      },
-      "expectations": [
-        {
-          "text": "The output includes the '## Peer Review \u2014' header line",
-          "passed": true,
-          "evidence": "Step 5 no-findings template outputs '## Peer Review \u2014 staged (gemini)' as header."
-        },
-        {
-          "text": "The output includes 'No issues found.' after the header",
-          "passed": true,
-          "evidence": "Step 4d: output is exactly 'NO FINDINGS' \u2192 treated as no issues. Step 5 outputs 'No issues found.' after header."
-        },
-        {
-          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
-          "passed": true,
-          "evidence": "Step 5: 'Then stop. Do not show an apply prompt.'"
-        }
-      ],
-      "notes": [
-        "Discriminating (+0.33 delta). '## Peer Review \u2014' header format is skill-defined."
-      ]
-    },
-    {
-      "eval_id": 10,
-      "eval_name": "gemini-no-findings",
-      "executor_model": "claude-sonnet-4-6",
-      "configuration": "without_skill",
-      "run_number": 1,
-      "result": {
-        "pass_rate": 0.67,
-        "passed": 2,
-        "failed": 1,
-        "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": 0
-      },
-      "expectations": [
-        {
-          "text": "The output includes the '## Peer Review \u2014' header line",
-          "passed": false,
-          "evidence": "No instruction to produce '## Peer Review \u2014' header without skill \u2014 not produced in default behavior."
-        },
-        {
-          "text": "The output includes 'No issues found.' after the header",
-          "passed": true,
-          "evidence": "Default behavior naturally says 'No issues found.' when reviewer returns 'NO FINDINGS'."
-        },
-        {
-          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
-          "passed": true,
-          "evidence": "Apply prompt is skill-defined and absent without skill."
-        }
-      ],
-      "notes": [
-        "Skill-defined header fails without skill; 'No issues found.' and absence of apply prompt pass as natural behaviors."
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -1241,34 +1191,34 @@
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 3,
-        "failed": 0,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
         "total": 3,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
           "text": "The output includes 'No issues recommended.' (the all-skipped message)",
-          "passed": true,
-          "evidence": "Output began with 'No issues recommended.' as specified by Step 5 all-skipped path."
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
-          "passed": true,
-          "evidence": "Skill stopped after triage summary per SKILL.md: 'Then stop. Do not show an apply prompt.'"
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
-          "passed": true,
-          "evidence": "Triage filtered all 2 findings: both 'Consider using const' and 'Arrow function' listed with skip reasons."
+          "passed": null,
+          "evidence": null
         }
       ],
       "notes": [
-        "Simulated fixture. All-skipped path correctly output 'No issues recommended.' + triage summary, no apply prompt."
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -1278,34 +1228,34 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.33,
-        "passed": 1,
-        "failed": 2,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
         "total": 3,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
           "text": "The output includes 'No issues recommended.' (the all-skipped message)",
-          "passed": false,
-          "evidence": "Output noted findings were stylistic preferences but did not include 'No issues recommended.'"
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
-          "passed": false,
-          "evidence": "Output included 'Would you like me to apply either of these anyway?' \u2014 an apply prompt."
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
-          "passed": true,
-          "evidence": "Both findings appeared with skip reasons in prose, satisfying this assertion loosely."
+          "passed": null,
+          "evidence": null
         }
       ],
       "notes": [
-        "Without skill, still offered apply prompt after skipped findings. 'No issues recommended.' phrase absent. 1/3 assertions pass."
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -1994,7 +1944,7 @@
         "pass_rate": null,
         "passed": null,
         "failed": null,
-        "total": null,
+        "total": 3,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
@@ -2007,7 +1957,7 @@
           "evidence": null
         },
         {
-          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)",
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex)",
           "passed": null,
           "evidence": null
         },
@@ -2018,7 +1968,7 @@
         }
       ],
       "notes": [
-        "Excluded from aggregates (contaminated run): without_skill agent read SKILL.md from the filesystem and reproduced the skill-defined error message. Both sides nulled to keep paired-eval computation consistent \u2014 run_summary is computed over 27 paired evals excluding this eval entirely."
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -2031,7 +1981,7 @@
         "pass_rate": null,
         "passed": null,
         "failed": null,
-        "total": null,
+        "total": 3,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
@@ -2044,7 +1994,7 @@
           "evidence": null
         },
         {
-          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)",
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex)",
           "passed": null,
           "evidence": null
         },
@@ -2055,7 +2005,7 @@
         }
       ],
       "notes": [
-        "CONTAMINATED: without_skill agent read SKILL.md from the filesystem, making this result unreliable as a true baseline measurement. All result fields nulled; this run is excluded from run_summary aggregates. Delta computed over 27 paired evals (eval 26 excluded from both sides)."
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -2457,9 +2407,9 @@
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.6,
-        "passed": 3,
-        "failed": 2,
+        "pass_rate": 0.4,
+        "passed": 2,
+        "failed": 3,
         "total": 5,
         "time_seconds": null,
         "tokens": null,
@@ -2792,138 +2742,86 @@
     },
     {
       "eval_id": 9,
-      "eval_name": "gemini-not-found",
+      "eval_name": "gemini-model-removed",
       "executor_model": "claude-opus-4-7",
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 3,
-        "failed": 0,
-        "total": 3,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
+        "total": 4,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
-          "text": "The output states that the gemini CLI was not found (error message about missing binary)",
-          "passed": true,
-          "evidence": "Line 1: 'gemini CLI not found. Install with: npm install -g @google/gemini-cli'"
+          "text": "The output states that 'gemini' is an unsupported --model value (e.g. 'Unsupported --model value: gemini')",
+          "passed": null,
+          "evidence": null
         },
         {
-          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'",
-          "passed": true,
-          "evidence": "Line 1 contains literal string: 'npm install -g @google/gemini-cli'"
+          "text": "The error message lists the supported options: self (default), claude-* as the Claude model prefix, and the supported external CLIs copilot and codex",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "The output does NOT report checking for a gemini binary (no 'command -v gemini', no 'gemini CLI not found' message) and does NOT offer an install hint such as 'npm install -g @google/gemini-cli'",
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The skill exits without presenting findings or an apply prompt",
-          "passed": true,
-          "evidence": "Transcript is a single error line only; no findings list or apply prompt present."
+          "passed": null,
+          "evidence": null
         }
+      ],
+      "notes": [
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
       "eval_id": 9,
-      "eval_name": "gemini-not-found",
+      "eval_name": "gemini-model-removed",
       "executor_model": "claude-opus-4-7",
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.67,
-        "passed": 2,
-        "failed": 1,
-        "total": 3,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
+        "total": 4,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
-          "text": "The output states that the gemini CLI was not found (error message about missing binary)",
-          "passed": true,
-          "evidence": "\"the `gemini` CLI isn't installed on this system, so there's no binary to invoke against your staged changes\""
+          "text": "The output states that 'gemini' is an unsupported --model value (e.g. 'Unsupported --model value: gemini')",
+          "passed": null,
+          "evidence": null
         },
         {
-          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'",
-          "passed": false,
-          "evidence": "Transcript mentions installing the gemini CLI but never includes the literal string 'npm install -g @google/gemini-cli'"
+          "text": "The error message lists the supported options: self (default), claude-* as the Claude model prefix, and the supported external CLIs copilot and codex",
+          "passed": null,
+          "evidence": null
+        },
+        {
+          "text": "The output does NOT report checking for a gemini binary (no 'command -v gemini', no 'gemini CLI not found' message) and does NOT offer an install hint such as 'npm install -g @google/gemini-cli'",
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The skill exits without presenting findings or an apply prompt",
-          "passed": true,
-          "evidence": "No findings or apply prompt appear; response only offers three alternative options (switch models, install later, skip)"
+          "passed": null,
+          "evidence": null
         }
-      ]
-    },
-    {
-      "eval_id": 10,
-      "eval_name": "gemini-no-findings",
-      "executor_model": "claude-opus-4-7",
-      "configuration": "with_skill",
-      "run_number": 1,
-      "result": {
-        "pass_rate": 1.0,
-        "passed": 3,
-        "failed": 0,
-        "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": 0
-      },
-      "expectations": [
-        {
-          "text": "The output includes the '## Peer Review \u2014' header line",
-          "passed": true,
-          "evidence": "Line 1: '## Peer Review \u2014 staged (gemini)' contains the required header prefix."
-        },
-        {
-          "text": "The output includes 'No issues found.' after the header",
-          "passed": true,
-          "evidence": "Line 3: 'No issues found.' appears immediately after the header line."
-        },
-        {
-          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
-          "passed": true,
-          "evidence": "Transcript is 3 lines; no apply prompt or [all/N/skip] format appears anywhere."
-        }
-      ]
-    },
-    {
-      "eval_id": 10,
-      "eval_name": "gemini-no-findings",
-      "executor_model": "claude-opus-4-7",
-      "configuration": "without_skill",
-      "run_number": 1,
-      "result": {
-        "pass_rate": 0.33,
-        "passed": 1,
-        "failed": 2,
-        "total": 3,
-        "time_seconds": null,
-        "tokens": null,
-        "tool_calls": null,
-        "errors": 0
-      },
-      "expectations": [
-        {
-          "text": "The output includes the '## Peer Review \u2014' header line",
-          "passed": false,
-          "evidence": "Output uses bold labels (**Reviewer:**, **Scope:**, **Result:**) but no '## Peer Review \u2014' header appears anywhere in the transcript."
-        },
-        {
-          "text": "The output includes 'No issues found.' after the header",
-          "passed": false,
-          "evidence": "Output says 'No findings \u2014 Gemini reported no issues with the staged diff.' but the exact string 'No issues found.' is absent."
-        },
-        {
-          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown",
-          "passed": true,
-          "evidence": "No apply prompt or [all/N/skip] pattern appears anywhere in the transcript."
-        }
+      ],
+      "notes": [
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -3283,31 +3181,34 @@
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 3,
-        "failed": 0,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
         "total": 3,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
           "text": "The output includes 'No issues recommended.' (the all-skipped message)",
-          "passed": true,
-          "evidence": "Line 3: 'No issues recommended.' appears verbatim."
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
-          "passed": true,
-          "evidence": "No apply prompt of any form appears in the 8-line transcript."
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
-          "passed": true,
-          "evidence": "Lines 5-7: triage block lists 'Consider using const instead of let' and 'Arrow function could use implicit return' with reasons."
+          "passed": null,
+          "evidence": null
         }
+      ],
+      "notes": [
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -3317,31 +3218,34 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.67,
-        "passed": 2,
-        "failed": 1,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
         "total": 3,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
           "text": "The output includes 'No issues recommended.' (the all-skipped message)",
-          "passed": false,
-          "evidence": "Transcript says 'nothing here that needs a code change' but the literal string 'No issues recommended.' does not appear anywhere in the output."
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
-          "passed": true,
-          "evidence": "No apply prompt, 'Apply all recommended', 'Apply all, select by number', or [all/N/skip] appears anywhere in the transcript."
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
-          "passed": true,
-          "evidence": "Finding 1 (let vs const) and Finding 2 (Implicit arrow return) both appear with skip reasons: 'stylistic preference, not a correctness problem' and 'purely a brevity/style opinion'."
+          "passed": null,
+          "evidence": null
         }
+      ],
+      "notes": [
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -3973,31 +3877,34 @@
       "configuration": "with_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 1.0,
-        "passed": 3,
-        "failed": 0,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
         "total": 3,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
           "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
-          "passed": true,
-          "evidence": "Output line: 'Unsupported --model value: gpt-4o. Supported values: self (default), claude-*...'"
+          "passed": null,
+          "evidence": null
         },
         {
-          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)",
-          "passed": true,
-          "evidence": "Lists: 'self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel], gemini[:submodel]'"
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex)",
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The skill exits without presenting findings or an apply prompt",
-          "passed": true,
-          "evidence": "Transcript contains only the single error line \u2014 no findings, diff output, or apply/yes/no prompt present"
+          "passed": null,
+          "evidence": null
         }
+      ],
+      "notes": [
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -4007,31 +3914,34 @@
       "configuration": "without_skill",
       "run_number": 1,
       "result": {
-        "pass_rate": 0.67,
-        "passed": 2,
-        "failed": 1,
+        "pass_rate": null,
+        "passed": null,
+        "failed": null,
         "total": 3,
         "time_seconds": null,
         "tokens": null,
         "tool_calls": null,
-        "errors": 0
+        "errors": null
       },
       "expectations": [
         {
           "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
-          "passed": true,
-          "evidence": "Response treats gpt-4o as unsupported: 'You've flagged gpt-4o as unsupported, and I'll take that at face value'"
+          "passed": null,
+          "evidence": null
         },
         {
-          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)",
-          "passed": false,
-          "evidence": "Explicitly refuses to list supported models: 'I won't invent a supported-models list'"
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex)",
+          "passed": null,
+          "evidence": null
         },
         {
           "text": "The skill exits without presenting findings or an apply prompt",
-          "passed": true,
-          "evidence": "No findings or apply prompt presented; response only offers ways to get more info"
+          "passed": null,
+          "evidence": null
         }
+      ],
+      "notes": [
+        "Result fields and expectation verdicts nulled for v1.15 (Gemini CLI removal): this eval's semantics changed, so the recorded claude-sonnet-4-6 / claude-opus-4-7 measurements no longer describe the eval that exists. Excluded from all run_summary aggregates. See the claude-sonnet-5 / claude-opus-5 cohort entries for current results."
       ]
     },
     {
@@ -4169,14 +4079,484 @@
           "evidence": "Closing line: 'Want me to apply the suggested fix, or leave it for you to handle?' \u2014 no all/N/skip prompt"
         }
       ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "gemini-model-removed",
+      "executor_model": "claude-opus-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that 'gemini' is an unsupported --model value (e.g. 'Unsupported --model value: gemini')",
+          "passed": true,
+          "evidence": "'Unsupported --model value: gemini.'"
+        },
+        {
+          "text": "The error message lists the supported options: self (default), claude-* as the Claude model prefix, and the supported external CLIs copilot and codex",
+          "passed": true,
+          "evidence": "'Supported values: self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel].'"
+        },
+        {
+          "text": "The output does NOT report checking for a gemini binary (no 'command -v gemini', no 'gemini CLI not found' message) and does NOT offer an install hint such as 'npm install -g @google/gemini-cli'",
+          "passed": true,
+          "evidence": "No mention of 'command -v gemini', 'gemini CLI not found', or any npm install hint anywhere in the output or tool list."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Output is only the two-sentence error; no findings section and no apply prompt."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16]."
+      ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "gemini-model-removed",
+      "executor_model": "claude-opus-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.75,
+        "passed": 3,
+        "failed": 1,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that 'gemini' is an unsupported --model value (e.g. 'Unsupported --model value: gemini')",
+          "passed": true,
+          "evidence": "'`--model gemini` isn't a supported value for `/peer-review`, so I stopped before running anything.'"
+        },
+        {
+          "text": "The error message lists the supported options: self (default), claude-* as the Claude model prefix, and the supported external CLIs copilot and codex",
+          "passed": false,
+          "evidence": "Lists only 'copilot - GitHub Copilot CLI' and 'codex - Codex CLI'. No 'self' and no 'claude-*' prefix in the supported-values list (the default is only mentioned later as a suggested command)."
+        },
+        {
+          "text": "The output does NOT report checking for a gemini binary (no 'command -v gemini', no 'gemini CLI not found' message) and does NOT offer an install hint such as 'npm install -g @google/gemini-cli'",
+          "passed": true,
+          "evidence": "No 'command -v gemini' check reported and no install hint offered."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "'I did not review your staged changes - the run aborted on the bad flag value.' No apply prompt."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16].",
+        "Baseline contamination (does not change the recorded verdicts): Partial contamination: without reading SKILL.md the agent names the exact external CLI routes 'copilot' and 'codex' and describes the default as a fresh-context reviewer, matching the skill's real routing. It does not know the 'self'/'claude-*' portion of the list. Leak channel is the skill DESCRIPTION carried in the available-skills listing injected into every subagent's system prompt \u2014 not a SKILL.md read. Prohibiting SKILL.md reads does not close it."
+      ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "gemini-model-removed",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that 'gemini' is an unsupported --model value (e.g. 'Unsupported --model value: gemini')",
+          "passed": true,
+          "evidence": "'Unsupported --model value: gemini.'"
+        },
+        {
+          "text": "The error message lists the supported options: self (default), claude-* as the Claude model prefix, and the supported external CLIs copilot and codex",
+          "passed": true,
+          "evidence": "'Supported values: self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel].'"
+        },
+        {
+          "text": "The output does NOT report checking for a gemini binary (no 'command -v gemini', no 'gemini CLI not found' message) and does NOT offer an install hint such as 'npm install -g @google/gemini-cli'",
+          "passed": true,
+          "evidence": "No binary probe and no install hint; tools used are workspace setup plus reading SKILL.md."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Output is only the error line; no findings and no apply prompt."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16]."
+      ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "gemini-model-removed",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that 'gemini' is an unsupported --model value (e.g. 'Unsupported --model value: gemini')",
+          "passed": true,
+          "evidence": "'external-model routing is built for `copilot` and `codex`; `gemini` isn't one of the recognized targets' (hedged with 'I don't have the peer-review skill loaded', but the unsupported verdict is stated)."
+        },
+        {
+          "text": "The error message lists the supported options: self (default), claude-* as the Claude model prefix, and the supported external CLIs copilot and codex",
+          "passed": false,
+          "evidence": "Names only 'copilot' and 'codex'; no 'self' (default) and no 'claude-*' prefix."
+        },
+        {
+          "text": "The output does NOT report checking for a gemini binary (no 'command -v gemini', no 'gemini CLI not found' message) and does NOT offer an install hint such as 'npm install -g @google/gemini-cli'",
+          "passed": true,
+          "evidence": "'I won't attempt to shell out to a `gemini` command'; no binary check reported and no install hint."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": false,
+          "evidence": "Did not exit - it produced a review instead: 'Review: Minimal, correct addition ... Minor optional suggestions: add JSDoc/type notes ... and add a unit test'."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16].",
+        "Baseline contamination (does not change the recorded verdicts): Partial contamination: explicitly disclaims having the skill loaded ('from what I know of it') yet still names the correct external CLI routes copilot and codex. Missing the self/claude-* portion. Leak channel is the skill DESCRIPTION carried in the available-skills listing injected into every subagent's system prompt \u2014 not a SKILL.md read. Prohibiting SKILL.md reads does not close it."
+      ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "triage-all-skipped",
+      "executor_model": "claude-opus-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues recommended.' (the all-skipped message)",
+          "passed": true,
+          "evidence": "'No issues recommended.'"
+        },
+        {
+          "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
+          "passed": true,
+          "evidence": "No 'Apply all recommended' or 'Apply all, select by number' text appears."
+        },
+        {
+          "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
+          "passed": true,
+          "evidence": "'Triage filtered all 2 findings:' followed by 'Consider using const instead of let - stylistic preference, not an error' and 'Arrow function could use implicit return - speculative opinion about arrow function style; no correctness issue'."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16]."
+      ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "triage-all-skipped",
+      "executor_model": "claude-opus-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues recommended.' (the all-skipped message)",
+          "passed": false,
+          "evidence": "The all-skipped phrase is absent; the output instead says '**Result: 0 actionable findings.** Nothing was changed.'"
+        },
+        {
+          "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
+          "passed": true,
+          "evidence": "No apply prompt string present."
+        },
+        {
+          "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
+          "passed": true,
+          "evidence": "Table plus 'Details' section: both findings listed with '*Skipped:* stylistic preference, not an error' and '*Skipped:* speculative opinion about arrow-function style; no correctness issue'."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16].",
+        "Baseline contamination (does not change the recorded verdicts): Mild contamination: without reading SKILL.md the agent reproduces the skill's triage-and-skip framing (per-finding 'Skipped' verdicts and a 0-actionable result). No supported-value list is involved in this eval. Leak channel is the skill DESCRIPTION carried in the available-skills listing injected into every subagent's system prompt \u2014 not a SKILL.md read. Prohibiting SKILL.md reads does not close it."
+      ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "triage-all-skipped",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues recommended.' (the all-skipped message)",
+          "passed": true,
+          "evidence": "'No issues recommended.'"
+        },
+        {
+          "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
+          "passed": true,
+          "evidence": "No apply prompt string present."
+        },
+        {
+          "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
+          "passed": true,
+          "evidence": "'Triage filtered all 2 findings:' listing both the const/let and arrow-function findings with skip reasons."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16]."
+      ]
+    },
+    {
+      "eval_id": 16,
+      "eval_name": "triage-all-skipped",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output includes 'No issues recommended.' (the all-skipped message)",
+          "passed": false,
+          "evidence": "The all-skipped phrase is absent; the output says 'No actionable issues to address.' and '**Result: 0 of 2 findings survived triage.**'"
+        },
+        {
+          "text": "No apply prompt is shown ('Apply all recommended' or 'Apply all, select by number' must NOT appear in the output)",
+          "passed": true,
+          "evidence": "No apply prompt string present."
+        },
+        {
+          "text": "The output includes a triage summary listing all skipped findings with their reasons (both 'Consider using const' and 'Arrow function' findings appear with skip reasons)",
+          "passed": true,
+          "evidence": "Table with 'Triage Verdict' column: '**Skipped** - stylistic preference, not an error' and '**Skipped** - speculative opinion about arrow function style; no correctness issue'."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16].",
+        "Baseline contamination (does not change the recorded verdicts): Mild contamination: reproduces the skill's triage/skip vocabulary ('survived triage', per-finding Skipped verdicts) with TOOLS_USED reported as '(none)'. No supported-value list is involved in this eval. Leak channel is the skill DESCRIPTION carried in the available-skills listing injected into every subagent's system prompt \u2014 not a SKILL.md read. Prohibiting SKILL.md reads does not close it."
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "unsupported-model-error",
+      "executor_model": "claude-opus-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
+          "passed": true,
+          "evidence": "'Unsupported --model value: gpt-4o.'"
+        },
+        {
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex)",
+          "passed": true,
+          "evidence": "'Supported values: self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel].'"
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Output is only the error line; no findings and no apply prompt."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16]."
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "unsupported-model-error",
+      "executor_model": "claude-opus-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
+          "passed": true,
+          "evidence": "'`--model gpt-4o` isn't a value `/peer-review` can route to, so I stopped before invoking anything.'"
+        },
+        {
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex)",
+          "passed": false,
+          "evidence": "Table lists only '*(omitted)*' -> fresh-context subagent reviewer, 'copilot', and 'codex'. The literal value 'self' is not named and 'claude-*' is absent; it explicitly denies a generic model passthrough."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "No review findings and no apply prompt - it shows only the staged diffstat ('calc.py | 2 ++') and offers three re-run options."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16].",
+        "Baseline contamination (does not change the recorded verdicts): Partial contamination: without reading SKILL.md the agent names the exact routes copilot (GitHub Copilot CLI) and codex (Codex CLI) and correctly describes the default as a fresh-context subagent reviewer. It lacks the 'self'/'claude-*' portion of the list. Leak channel is the skill DESCRIPTION carried in the available-skills listing injected into every subagent's system prompt \u2014 not a SKILL.md read. Prohibiting SKILL.md reads does not close it."
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "unsupported-model-error",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
+          "passed": true,
+          "evidence": "'Unsupported --model value: gpt-4o.'"
+        },
+        {
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex)",
+          "passed": true,
+          "evidence": "'Supported values: self (default), claude-* (if your assistant supports model selection), copilot[:submodel], codex[:submodel].'"
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "Output is only the error line; no findings and no apply prompt."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16]."
+      ]
+    },
+    {
+      "eval_id": 26,
+      "eval_name": "unsupported-model-error",
+      "executor_model": "claude-sonnet-5",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.67,
+        "passed": 2,
+        "failed": 1,
+        "total": 3,
+        "time_seconds": null,
+        "tokens": null,
+        "tool_calls": null,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The output states that the --model value is unsupported (e.g. 'Unsupported --model value: gpt-4o')",
+          "passed": true,
+          "evidence": "'`gpt-4o` isn't one of the supported values - there's no CLI integration for that model name.'"
+        },
+        {
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex)",
+          "passed": false,
+          "evidence": "Names only 'copilot' and 'codex'; 'self' and the 'claude-*' prefix are absent (the default is described as 'Drop --model and I'll do the review myself')."
+        },
+        {
+          "text": "The skill exits without presenting findings or an apply prompt",
+          "passed": true,
+          "evidence": "No findings and no apply prompt; it asks the user to choose between dropping --model or picking a supported one."
+        }
+      ],
+      "notes": [
+        "Re-run at peer-review v1.15 (Gemini CLI removal) on the claude-sonnet-5 / claude-opus-5 cohort. The v1.7 corpus was produced on claude-sonnet-4-6 / claude-opus-4-7, which are no longer spawnable, so these runs are recorded as a separate cohort rather than replacing the nulled 4-6/4-7 entries for this eval. Not included in run_summary or run_summary_by_model \u2014 see notes[16].",
+        "Baseline contamination (does not change the recorded verdicts): Partial contamination: names the correct external CLI routes copilot and codex despite stating 'no Skill tool call was made, and nothing under the repo was read'. Missing the self/claude-* portion. Leak channel is the skill DESCRIPTION carried in the available-skills listing injected into every subagent's system prompt \u2014 not a SKILL.md read. Prohibiting SKILL.md reads does not close it."
+      ]
     }
   ],
   "run_summary": {
     "with_skill": {
       "pass_rate": {
-        "mean": 0.93,
-        "stddev": 0.13,
-        "min": 0.6,
+        "mean": 0.91,
+        "stddev": 0.16,
+        "min": 0.4,
         "max": 1.0
       },
       "time_seconds": {
@@ -4195,7 +4575,7 @@
     "without_skill": {
       "pass_rate": {
         "mean": 0.59,
-        "stddev": 0.3,
+        "stddev": 0.32,
         "min": 0.0,
         "max": 1.0
       },
@@ -4213,7 +4593,7 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.34",
+      "pass_rate": "+0.32",
       "time_seconds": null,
       "tokens": null
     }
@@ -4222,8 +4602,8 @@
     "claude-sonnet-4-6": {
       "with_skill": {
         "pass_rate": {
-          "mean": 0.98,
-          "stddev": 0.06,
+          "mean": 0.97,
+          "stddev": 0.07,
           "min": 0.8,
           "max": 1.0
         },
@@ -4242,8 +4622,8 @@
       },
       "without_skill": {
         "pass_rate": {
-          "mean": 0.71,
-          "stddev": 0.33,
+          "mean": 0.73,
+          "stddev": 0.34,
           "min": 0.0,
           "max": 1.0
         },
@@ -4261,7 +4641,7 @@
         }
       },
       "delta": {
-        "pass_rate": "+0.26",
+        "pass_rate": "+0.24",
         "time_seconds": "-5.0",
         "tokens": "+688"
       }
@@ -4269,9 +4649,9 @@
     "claude-opus-4-7": {
       "with_skill": {
         "pass_rate": {
-          "mean": 0.93,
-          "stddev": 0.13,
-          "min": 0.6,
+          "mean": 0.91,
+          "stddev": 0.16,
+          "min": 0.4,
           "max": 1.0
         },
         "time_seconds": {
@@ -4290,7 +4670,7 @@
       "without_skill": {
         "pass_rate": {
           "mean": 0.59,
-          "stddev": 0.3,
+          "stddev": 0.32,
           "min": 0.0,
           "max": 1.0
         },
@@ -4308,7 +4688,7 @@
         }
       },
       "delta": {
-        "pass_rate": "+0.34",
+        "pass_rate": "+0.32",
         "time_seconds": null,
         "tokens": null
       }

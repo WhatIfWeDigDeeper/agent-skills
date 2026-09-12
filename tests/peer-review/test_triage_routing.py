@@ -6,11 +6,11 @@ from conftest import route_model
 def uses_triage(model: str | None) -> bool:
     """Return True if the model routes through the external CLI path (triage activates).
 
-    Triage only activates on the external CLI path (copilot, codex, gemini).
+    Triage only activates on the external CLI path (copilot, codex).
     The self/Claude path never triggers triage.
     """
     result = route_model(model)
-    return result["route"] in ("copilot", "codex", "gemini")
+    return result["route"] in ("copilot", "codex")
 
 
 def parse_triage_output(triage_output: str, finding_count: int) -> dict:
@@ -88,14 +88,11 @@ class TestTriageActivation:
     def test_codex_triggers_triage(self):
         assert uses_triage("codex") is True
 
-    def test_gemini_triggers_triage(self):
-        assert uses_triage("gemini") is True
-
     def test_copilot_with_submodel_triggers_triage(self):
         assert uses_triage("copilot:gpt-4o-mini") is True
 
-    def test_gemini_with_submodel_triggers_triage(self):
-        assert uses_triage("gemini:gemini-2.0-flash") is True
+    def test_codex_with_submodel_triggers_triage(self):
+        assert uses_triage("codex:o4") is True
 
 
 class TestTriageOutputParsing:

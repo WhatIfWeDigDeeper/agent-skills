@@ -5,7 +5,7 @@ sequenceDiagram
     participant Git as git / gh
     participant SecScan as Secret Scanner<br/>(Step 4b)
     participant Reviewer as Reviewer<br/>(self / claude-*)
-    participant CLI as External CLI<br/>(copilot/codex/gemini)
+    participant CLI as External CLI<br/>(copilot/codex)
     participant Triage as Triage Subagent<br/>(Step 4f)
 
     User->>Skill: /peer-review [target] [--model M] [--focus T]
@@ -39,7 +39,7 @@ sequenceDiagram
         alt model = self or claude-*
             Skill->>Reviewer: prompt + <untrusted_*> wrapped content
             Reviewer-->>Skill: findings (or NO FINDINGS)
-        else external CLI (copilot/codex/gemini)
+        else external CLI (copilot/codex)
             Skill->>SecScan: Step 4b — regex scan $PROMPT for secrets
             alt secret pattern hit
                 SecScan-->>User: show redacted context,<br/>prompt [y/N]
