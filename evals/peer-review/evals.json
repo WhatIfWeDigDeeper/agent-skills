@@ -195,45 +195,27 @@
     },
     {
       "id": 9,
-      "name": "gemini-not-found",
-      "prompt": "/peer-review --staged --model gemini. The gemini binary is not installed on this system \u2014 running 'command -v gemini' returns empty. Do not attempt to install it; just handle the missing binary case per the skill.",
-      "expected_output": "The skill checks for the gemini binary, finds it absent, and outputs an error message stating gemini is not found along with the install hint 'npm install -g @google/gemini-cli'. The skill exits without attempting a review or showing findings.",
-      "context": "gemini is not installed. The skill must check binary availability (Step 4a), detect the absence, and output a helpful error with the correct install hint \u2014 then stop. It must not attempt to run a review.",
+      "name": "gemini-model-removed",
+      "prompt": "/peer-review --staged --model gemini. Do not attempt to install or run any CLI \u2014 just handle the --model value per the skill.",
+      "expected_output": "The skill detects that 'gemini' is not a supported --model value and outputs the unsupported-model error listing the supported options: self (default), claude-*, copilot[:submodel], and codex[:submodel]. It exits without checking for a gemini binary, without offering an install hint, and without spawning a reviewer or presenting findings.",
+      "context": "Google discontinued the Gemini CLI (@google/gemini-cli) in favor of the Antigravity IDE, so peer-review removed the gemini route entirely. '--model gemini' must now fall through to the standard unsupported-model error path (Step 4) rather than reaching the binary-availability check (Step 4a). This is the regression pin for that removal.",
       "files": [],
       "assertions": [
         {
-          "id": "gemini-not-found-error",
-          "text": "The output states that the gemini CLI was not found (error message about missing binary)"
+          "id": "unsupported-model-error",
+          "text": "The output states that 'gemini' is an unsupported --model value (e.g. 'Unsupported --model value: gemini')"
         },
         {
-          "id": "gemini-install-hint",
-          "text": "The error message includes the install hint 'npm install -g @google/gemini-cli'"
+          "id": "supported-options-listed",
+          "text": "The error message lists the supported options: self (default), claude-* as the Claude model prefix, and the supported external CLIs copilot and codex"
+        },
+        {
+          "id": "no-gemini-binary-check",
+          "text": "The output does NOT report checking for a gemini binary (no 'command -v gemini', no 'gemini CLI not found' message) and does NOT offer an install hint such as 'npm install -g @google/gemini-cli'"
         },
         {
           "id": "exits-without-review",
           "text": "The skill exits without presenting findings or an apply prompt"
-        }
-      ]
-    },
-    {
-      "id": 10,
-      "name": "gemini-no-findings",
-      "prompt": "/peer-review --staged --model gemini. The diff content is minimal. When you attempt to call the gemini CLI, treat it as having returned the following text \u2014 do not actually run gemini: NO FINDINGS",
-      "expected_output": "The skill processes the gemini text output 'NO FINDINGS', recognizes it as the no-findings sentinel, and outputs the standard no-findings format: the ## Peer Review header followed by 'No issues found.' No apply prompt is shown.",
-      "context": "The gemini CLI returns the literal text 'NO FINDINGS' (which the review prompt instructs any reviewer to return when there are no issues). The skill must recognize this sentinel in the plain-text output path and trigger the same no-issues presentation as the copilot empty-findings path.",
-      "files": [],
-      "assertions": [
-        {
-          "id": "header-present",
-          "text": "The output includes the '## Peer Review \u2014' header line"
-        },
-        {
-          "id": "no-issues-shown",
-          "text": "The output includes 'No issues found.' after the header"
-        },
-        {
-          "id": "no-apply-prompt",
-          "text": "The apply prompt ('Apply all, select by number, or skip?') is NOT shown"
         }
       ]
     },
@@ -354,7 +336,7 @@
     {
       "id": 16,
       "name": "triage-all-skipped",
-      "prompt": "/peer-review --model gemini. Simulate: the external CLI returned 2 normalized findings. FINDING 1: Title: Consider using const instead of let, Severity: minor, File: src/index.js, Location: 'let result =', Problem: Variable is never reassigned — prefer const for clarity, Fix: Change 'let' to 'const'. FINDING 2: Title: Arrow function could use implicit return, Severity: minor, File: src/index.js, Location: 'return value;', Problem: Single-expression function body could use implicit arrow return for brevity, Fix: Remove braces and return keyword. The triage subagent (simulated) responds: FINDING 1: skip — stylistic preference, not an error; the code is correct as written\\nFINDING 2: skip — speculative opinion about arrow function style; no correctness issue.",
+      "prompt": "/peer-review --model copilot. Simulate: the external CLI returned 2 normalized findings. FINDING 1: Title: Consider using const instead of let, Severity: minor, File: src/index.js, Location: 'let result =', Problem: Variable is never reassigned — prefer const for clarity, Fix: Change 'let' to 'const'. FINDING 2: Title: Arrow function could use implicit return, Severity: minor, File: src/index.js, Location: 'return value;', Problem: Single-expression function body could use implicit arrow return for brevity, Fix: Remove braces and return keyword. The triage subagent (simulated) responds: FINDING 1: skip — stylistic preference, not an error; the code is correct as written\\nFINDING 2: skip — speculative opinion about arrow function style; no correctness issue.",
       "expected_output": "The output shows 'No issues recommended.' followed by a triage summary listing both skipped findings with their reasons. No apply prompt is shown. The skill stops after showing the triage summary.",
       "context": "Tests the all-skipped path: when triage classifies all findings as skipped, the skill outputs 'No issues recommended.' and a triage summary, then stops without showing an apply prompt.",
       "files": [],
@@ -579,8 +561,8 @@
       "id": 26,
       "name": "unsupported-model-error",
       "prompt": "/peer-review --staged --model gpt-4o. The diff content is minimal. Do not attempt to call any CLI — just handle the unsupported model value.",
-      "expected_output": "The skill detects that 'gpt-4o' does not match any supported --model value (not self, not claude-*, not copilot, not codex, not gemini). It outputs an error message stating the model is unsupported and listing the supported options including self (default), claude-*, copilot, codex, and gemini, then exits without spawning a reviewer or presenting findings.",
-      "context": "Tests the unsupported --model error path. The --model value 'gpt-4o' is not a claude-* prefix and does not match any supported external CLI (copilot, codex, gemini). The skill must error clearly with guidance on supported values.",
+      "expected_output": "The skill detects that 'gpt-4o' does not match any supported --model value (not self, not claude-*, not copilot, not codex). It outputs an error message stating the model is unsupported and listing the supported options including self (default), claude-*, copilot, and codex, then exits without spawning a reviewer or presenting findings.",
+      "context": "Tests the unsupported --model error path. The --model value 'gpt-4o' is not a claude-* prefix and does not match any supported external CLI (copilot, codex). The skill must error clearly with guidance on supported values.",
       "files": [],
       "assertions": [
         {
@@ -589,7 +571,7 @@
         },
         {
           "id": "supported-options-listed",
-          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex, gemini)"
+          "text": "The error message lists all supported options including self (default), claude-* as the Claude model prefix, and the supported external CLIs (copilot, codex)"
         },
         {
           "id": "exits-without-review",

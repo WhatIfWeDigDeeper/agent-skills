@@ -39,12 +39,10 @@ def test_secret_scan_skipped_on_internal_route(model):
         "copilot:gpt-5",
         "codex",
         "codex:o4",
-        "gemini",
-        "gemini:gemini-2.0-flash",
     ],
 )
 def test_secret_scan_required_on_external_route(model):
-    """Copilot / codex / gemini send the prompt to a third-party CLI — scan first."""
+    """Copilot / codex send the prompt to a third-party CLI — scan first."""
     assert should_run_secret_scan(model) is True
 
 

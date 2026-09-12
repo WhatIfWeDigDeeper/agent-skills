@@ -162,7 +162,7 @@ def route_model(model: str | None) -> dict:
 
     Returns:
         {
-            "route": "internal" | "copilot" | "codex" | "gemini",
+            "route": "internal" | "copilot" | "codex",
             "binary": str | None,  # CLI binary name (None for internal path)
             "submodel": str | None,  # Sub-model if specified after ':'
         }
@@ -184,13 +184,11 @@ def route_model(model: str | None) -> dict:
         return {"route": "copilot", "binary": "copilot", "submodel": submodel}
     elif prefix_lower == "codex":
         return {"route": "codex", "binary": "codex", "submodel": submodel}
-    elif prefix_lower == "gemini":
-        return {"route": "gemini", "binary": "gemini", "submodel": submodel}
 
     raise ValueError(
         f"Unsupported --model value: '{model}'. "
         "Supported values: self (default), claude-* (if your assistant supports model selection), "
-        "copilot[:submodel], codex[:submodel], gemini[:submodel]."
+        "copilot[:submodel], codex[:submodel]."
     )
 
 
@@ -232,15 +230,15 @@ _SECRET_PATTERNS_CASE_INSENSITIVE = [
 def cli_output_parse_format(model: str | None) -> str | None:
     """Determine how an external CLI's output is parsed per cli-invocations.md Step 4e.
 
-    Step 3 sends every external CLI (copilot/codex/gemini) the same prose
+    Step 3 sends every external CLI (copilot/codex) the same prose
     template — a severity-grouped findings list ending in `NO FINDINGS`. Step 4e
-    therefore parses all three identically as prose (markdown / plain text). There
+    therefore parses both identically as prose (markdown / plain text). There
     is no JSON-parse path for any CLI; a JSON contract for copilot would never
     match the prose the prompt actually requests and would always fall through to
     the raw-output fallback (issue #181).
 
     Returns:
-        "prose" for copilot/codex/gemini, None for the internal (self/claude-*)
+        "prose" for copilot/codex, None for the internal (self/claude-*)
         path which has no external-CLI output to parse.
     """
     route = route_model(model)["route"]
@@ -253,7 +251,7 @@ def should_run_secret_scan(model: str | None) -> bool:
     """SKILL.md Step 4b runs the pre-flight secret scan only on the external CLI path.
 
     Internal routes (self / claude-*) keep content inside the assistant runtime and
-    skip the scan; copilot/codex/gemini send the prompt to a third-party CLI and
+    skip the scan; copilot/codex send the prompt to a third-party CLI and
     must run the scan first.
     """
     route = route_model(model)["route"]
