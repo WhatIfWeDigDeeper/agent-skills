@@ -13,7 +13,9 @@ Generate a GitHub diff anchor for each file:
 ```bash
 # SHA-256 of the file path (cross-platform: sha256sum on Linux, shasum on macOS)
 ANCHOR=$(printf '%s' "path/to/file" | if command -v sha256sum >/dev/null 2>&1; then sha256sum; else shasum -a 256; fi | cut -d' ' -f1)
-# Full link
+# Full link — substitute the literal OWNER, REPO_NAME, and pr_number Step 1
+# printed; its shell variables are gone, and unset ones yield a link that
+# resolves nowhere without any error.
 LINK="https://github.com/${OWNER}/${REPO_NAME}/pull/${pr_number}/files#diff-${ANCHOR}"
 # Line-level anchor (right side): append R{line} to the link
 ```

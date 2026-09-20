@@ -14,7 +14,7 @@ compatibility: Requires git, gh, jq, python3, rg (ripgrep); sha256sum (Linux) or
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.17"
+  version: "0.18"
 ---
 
 # PR Human Guide
@@ -95,11 +95,13 @@ any shell call. On failure, stop with: `Invalid PR number: <value>. Must be a
 positive integer.` Use the cleaned value as `pr_number` for all later commands.
 
 Then fetch PR metadata. **You must now execute the "Fetch PR identity and repo"
-section of [`references/commands.md`](references/commands.md)** to populate
+section of [`references/commands.md`](references/commands.md)** to resolve
 `pr_number`, `pr_url`, `pr_title`, `pr_body`, `OWNER`, and `REPO_NAME` — pass
 `"${pr_number}"` when explicit, omit to auto-detect from the current branch.
 Capturing `.number` from the response resolves the auto-detect case to a concrete
-number, so Steps 2 and 5 receive a real PR ref instead of an empty `""`.
+number, so Steps 2 and 5 receive a real PR ref instead of an empty `""`. Note the
+values it prints: shell variables do not survive between tool calls, so later
+blocks take them as literals you substitute, never as inherited variables.
 
 ### 2. Gather the diff and changed file list
 
