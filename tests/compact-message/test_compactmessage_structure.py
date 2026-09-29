@@ -215,3 +215,10 @@ class TestOptionsFile:
         assert re.search(
             r"/compact-message (?!help\b|--help\b|-h\b|\?)\w", OPTIONS_MD.read_text()
         ), "options.md must show at least one focus-text invocation"
+
+    def test_focus_text_limits_match_step4_rules(self):
+        text = flat(OPTIONS_MD.read_text()).lower()
+        assert "secrets" in text and "single line" in text
+
+    def test_clear_suggestion_covers_near_empty_session(self):
+        assert "nothing worth keeping" in flat(OPTIONS_MD.read_text()).lower()
