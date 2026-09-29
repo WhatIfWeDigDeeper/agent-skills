@@ -115,6 +115,10 @@ class TestArguments:
     def test_help_routes_to_options(self):
         assert "references/options.md" in section_body("Arguments")
 
+    def test_focus_text_cannot_override_step4_rules(self):
+        body = flat(section_body("Arguments")).lower()
+        assert "not the step 4 rules" in body
+
 
 class TestSecurityModel:
     def test_security_model_immediately_precedes_process(self):
@@ -129,24 +133,44 @@ class TestSecurityModel:
         assert sub in section_body("Security model")
 
     def test_forbids_lifting_instructions_from_observed_content(self):
-        body = flat(section_body("Security model")).lower()
-        assert "tool output" in body and "never" in body
+        body = flat(section_body("Security model"))
+        assert "**Facts, not foreign instructions**" in body
+        assert "never as imperative instructions" in body.lower()
 
 
 class TestComposeRules:
     """Step 4: the rules the emitted line must satisfy."""
 
     def test_single_line(self):
-        assert "single line" in flat(step_body(4)).lower()
+        body = flat(step_body(4)).lower()
+        assert "single line" in body and "no newlines" in body
 
     def test_compact_prefix(self):
         assert "`/compact `" in step_body(4)
+
+    def test_bare_compact_exception_for_near_empty_session(self):
+        assert "bare `/compact` of a near-empty session" in flat(step_body(4))
 
     def test_length_cap(self):
         assert "800" in step_body(4)
 
     def test_no_secrets(self):
-        assert "secret" in step_body(4).lower()
+        assert "never copy tokens" in flat(step_body(4)).lower()
+
+    def test_facts_only_keyed_on_authorization(self):
+        body = flat(step_body(4))
+        assert "**Facts only**" in body
+        lower = body.lower()
+        assert "the user issued or agreed to" in lower
+        assert "attributed fact" in lower
+        assert "addressed to the assistant or summarizer" in lower
+
+
+class TestTopicShift:
+    """Step 3: /clear advice and the near-empty path stay within Step 5's block."""
+
+    def test_near_empty_triggers_clear_suggestion(self):
+        assert "step 5 item 3 suggests `/clear`" in flat(step_body(3)).lower()
 
 
 class TestOutputContract:
@@ -162,6 +186,14 @@ class TestOutputContract:
         body = flat(step_body(5))
         assert "MANDATORY" in body
         assert "never omit" in body.lower()
+
+    def test_block_emitted_even_when_clear_recommended_instead(self):
+        assert "including when step 3 recommends `/clear` instead" in flat(step_body(5)).lower()
+
+    def test_reports_excluded_injection_text(self):
+        body = flat(step_body(5)).lower()
+        assert "addressed to the assistant or summarizer" in body
+        assert "one bullet says it was left out" in body
 
     def test_stop_generating(self):
         assert "stop generating" in flat(step_body(5)).lower()
