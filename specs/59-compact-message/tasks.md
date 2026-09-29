@@ -43,5 +43,5 @@
 - [x] **5.1** `npx cspell` on every new/modified file; add new words to `cspell.config.yaml` in alphabetical order
 - [x] **5.2** `uv run --with pytest pytest tests/` — full suite, no regressions (sandbox lifted)
 - [x] **5.3** Re-read `skills/compact-message/SKILL.md` end-to-end against plan.md
-- [ ] **5.4** Manual check: in a **fresh** session (skill content is cached at session load) with the 2.3 symlink in place, run `/compact-message` and `/compact-message help` on a non-trivial conversation; confirm single line, `/compact ` prefix, concrete identifiers, rationale bullets, stop after output
+- [x] **5.4** Manual check: in a **fresh** session (skill content is cached at session load) with the 2.3 symlink in place, run `/compact-message` and `/compact-message help` on a non-trivial conversation; confirm single line, `/compact ` prefix, concrete identifiers, rationale bullets, stop after output
 - [x] **5.5** Re-read both `plan.md` and `tasks.md` end-to-end — verify consistency
