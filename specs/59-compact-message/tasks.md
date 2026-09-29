@@ -25,23 +25,23 @@
 
 ## Phase 3: CI and security baseline
 
-- [ ] **3.1** Create `.github/workflows/test-compact-message-skill.yml` from `test-learn-skill.yml`, paths `skills/compact-message/**` and `tests/compact-message/**`; drop the fixtures `upload-artifact` step (no fixtures dir)
-- [ ] **3.2** Add `compact-message` to `SKILLS` in `evals/security/scan.sh`
+- [x] **3.1** Create `.github/workflows/test-compact-message-skill.yml` from `test-learn-skill.yml`, paths `skills/compact-message/**` and `tests/compact-message/**`; drop the fixtures `upload-artifact` step (no fixtures dir)
+- [x] **3.2** Add `compact-message` to `SKILLS` in `evals/security/scan.sh`
 - [ ] **3.3** Create `evals/security/compact-message.baseline.json` — run `bash evals/security/scan.sh --update-baselines --confirm` if `SNYK_TOKEN` is available, then `git checkout --` every other baseline the run rewrote; otherwise stop and ask the user to run the scan locally — do not commit `"findings": []` without a scan, which fails CI on the first real finding when the `SNYK_TOKEN` secret is configured
 
 ---
 
 ## Phase 4: Documentation
 
-- [ ] **4.1** Add `compact-message` row to the Available Skills table in `README.md` (alphabetical; Eval Δ `—`) and a `### compact-message` Skill Notes section
-- [ ] **4.2** If any `CLAUDE.md` rule is added or changed, mirror it to `.github/copilot-instructions.md`
+- [x] **4.1** Add `compact-message` row to the Available Skills table in `README.md` (alphabetical; Eval Δ `—`) and a `### compact-message` Skill Notes section
+- [x] **4.2** If any `CLAUDE.md` rule is added or changed, mirror it to `.github/copilot-instructions.md`
 
 ---
 
 ## Phase 5: Verification
 
-- [ ] **5.1** `npx cspell` on every new/modified file; add new words to `cspell.config.yaml` in alphabetical order
-- [ ] **5.2** `uv run --with pytest pytest tests/` — full suite, no regressions (sandbox lifted)
-- [ ] **5.3** Re-read `skills/compact-message/SKILL.md` end-to-end against plan.md
+- [x] **5.1** `npx cspell` on every new/modified file; add new words to `cspell.config.yaml` in alphabetical order
+- [x] **5.2** `uv run --with pytest pytest tests/` — full suite, no regressions (sandbox lifted)
+- [x] **5.3** Re-read `skills/compact-message/SKILL.md` end-to-end against plan.md
 - [ ] **5.4** Manual check: in a **fresh** session (skill content is cached at session load) with the 2.3 symlink in place, run `/compact-message` and `/compact-message help` on a non-trivial conversation; confirm single line, `/compact ` prefix, concrete identifiers, rationale bullets, stop after output
-- [ ] **5.5** Re-read both `plan.md` and `tasks.md` end-to-end — verify consistency
+- [x] **5.5** Re-read both `plan.md` and `tasks.md` end-to-end — verify consistency
