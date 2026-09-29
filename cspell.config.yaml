@@ -118,6 +118,7 @@ words:
   - prowner
   - PRRT
   - psql
+  - pycache
   - PYEOF
   - pypi
   - pyproject

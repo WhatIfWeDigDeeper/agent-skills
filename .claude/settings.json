@@ -15,11 +15,7 @@
       "WebSearch"
     ],
     "deny": [
-      "Read(.env)",
-      "Write(.env)",
       "Edit(.env)",
-      "Read(~/.zshrc)",
-      "Write(~/.zshrc)",
       "Edit(~/.zshrc)",
       "Bash(rm -rf /)",
       "Bash(rm *-r*f* /)",
@@ -47,8 +43,6 @@
     "superpowers@claude-plugins-official": true
   },
   "env": {
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "60",
-    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "400000",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "hooks": {
@@ -106,8 +100,6 @@
         "api.githubcopilot.com",
         "api.individual.githubcopilot.com",
         "cafe.github.com",
-        "cloudcode-pa.googleapis.com",
-        "geminicli.com",
         "github.com",
         "oauth2.googleapis.com",
         "registry.npmjs.org",

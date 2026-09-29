@@ -6,6 +6,7 @@ __pycache__/
 .pnpm-store/
 node_modules/
 .agents/
+.build/
 .superpowers/
 .claude/skills/
 .claude/worktrees/
