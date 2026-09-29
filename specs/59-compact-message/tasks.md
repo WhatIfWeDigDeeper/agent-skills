@@ -27,7 +27,7 @@
 
 - [x] **3.1** Create `.github/workflows/test-compact-message-skill.yml` from `test-learn-skill.yml`, paths `skills/compact-message/**` and `tests/compact-message/**`; drop the fixtures `upload-artifact` step (no fixtures dir)
 - [x] **3.2** Add `compact-message` to `SKILLS` in `evals/security/scan.sh`
-- [ ] **3.3** Create `evals/security/compact-message.baseline.json` — run `bash evals/security/scan.sh --update-baselines --confirm` if `SNYK_TOKEN` is available, then `git checkout --` every other baseline the run rewrote; otherwise stop and ask the user to run the scan locally — do not commit `"findings": []` without a scan, which fails CI on the first real finding when the `SNYK_TOKEN` secret is configured
+- [x] **3.3** Create `evals/security/compact-message.baseline.json` — run `bash evals/security/scan.sh --update-baselines --confirm` if `SNYK_TOKEN` is available, then `git checkout --` every other baseline the run rewrote; otherwise stop and ask the user to run the scan locally — do not commit `"findings": []` without a scan, which fails CI on the first real finding when the `SNYK_TOKEN` secret is configured
 
 ---
 
