@@ -1,0 +1,8 @@
+{
+  "scanner": "snyk-agent-scan",
+  "scanner_version": "0.5.1",
+  "skill": "compact-message",
+  "skill_version": "0.1",
+  "findings": [],
+  "captured_at": "2026-09-29"
+}

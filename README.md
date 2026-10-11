@@ -6,6 +6,7 @@ Reusable skill definitions for Claude Code and other AI coding assistants. Skill
 
 | Skill&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description | Triggers | Eval&nbsp;Δ* |
 |-------------|-------------|----------|--------|
+| [compact-message](skills/compact-message/SKILL.md) | Compose a session-tailored `/compact <instructions>` line to copy and run, keeping the goal, current state, decisions, and next step while dropping finished tangents and stale tool output | "write a compact message", "what should I compact with?", "/compact-message", "/compact-message keep the eval results", "/compact-message help" | — |
 | [js-deps](skills/js-deps/SKILL.md) | Security audits and dependency updates (npm, yarn, pnpm, bun) | "audit dependencies", "update packages", "fix vulnerabilities", "/js-deps", "/js-deps typescript", "/js-deps help" | [+38%](evals/js-deps/benchmark.md) |
 | [learn](skills/learn/SKILL.md) | Extract lessons from conversations and persist to AI assistant configs (Claude, Cursor, Copilot, Gemini, etc.) and skills | "learn from this", "save this pattern", "/learn", "/learn help" | [+20% Sonnet 4.6 / +7% Opus 4.7 (evals 0-5, 7, 8); +50% Sonnet 5 / +33% Opus 5 (eval 9 only, 1 run)](evals/learn/benchmark.md) |
 | [peer-review](skills/peer-review/SKILL.md) | Fresh-context review of staged changes, branches, PRs, or file sets — returns severity-grouped findings you can apply or skip | "peer review", "peer review PR 42", "peer review staged", "review with Copilot", "review using Codex", "fresh review", "another set of eyes", "/peer-review", "/peer-review --staged", "/peer-review --pr 42", "/peer-review skills/pr-comments/" | [+24% Sonnet 4.6 / +32% Opus 4.7](evals/peer-review/benchmark.md) |
@@ -210,6 +211,14 @@ flowchart TD
     SIG -- Timeout / max iterations --> DONE
 ```
 </details>
+
+### `compact-message`
+
+- Run `/compact-message` when context is running low. It prints one `/compact <instructions>` line in a `text` block. Copy it, edit it if needed, and run it. A skill cannot run the built-in `/compact` command itself.
+- Pass focus text to steer it, e.g. `/compact-message keep the eval results, drop the CI debugging`. What you name to keep or drop always wins over inference.
+- When the latest work is unrelated to earlier work in the session, it also suggests `/clear` or a fresh session, either instead of compacting or alongside it.
+- Other assistants may name their compaction command differently; adjust the `/compact` prefix to match.
+- No evals yet (Eval Δ `—`).
 
 ## Updating Skills
 

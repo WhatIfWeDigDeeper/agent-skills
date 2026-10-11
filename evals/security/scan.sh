@@ -20,7 +20,7 @@
 set -euo pipefail
 
 SCANNER_PKG="snyk-agent-scan==0.5.1"
-SKILLS=(peer-review ship-it pr-comments pr-human-guide)
+SKILLS=(peer-review ship-it pr-comments pr-human-guide compact-message)
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BASELINE_DIR="${REPO_ROOT}/evals/security"

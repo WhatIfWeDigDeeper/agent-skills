@@ -2,8 +2,9 @@ name: security-scan
 
 # Runs the snyk-agent-scan baseline check on PRs that touch any
 # skills/**/SKILL.md or the security-scan harness itself. The harness
-# itself iterates the four currently-flagged skills (peer-review, ship-it,
-# pr-comments, pr-human-guide) — see SKILLS in evals/security/scan.sh — but
+# itself iterates the five currently-flagged skills (peer-review, ship-it,
+# pr-comments, pr-human-guide, compact-message) — see SKILLS in
+# evals/security/scan.sh — but
 # the trigger fires on every SKILL.md so a new flagged skill added later
 # only requires updating SKILLS, not this file. The script exits 1 only on
 # regressions (new findings or severity escalations); pre-existing findings
