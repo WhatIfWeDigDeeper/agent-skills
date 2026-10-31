@@ -53,6 +53,7 @@ Walk the conversation and list:
 - Tool output already acted on (file dumps, logs, search results).
 - Abandoned approaches — keep one line "tried X, failed because Y" so it is not retried.
 - Superseded plans and drafts.
+- This skill's own turn — the `/compact-message` invocation, the instructions it loaded, and any `/compact` lines it printed earlier in the session.
 
 #### Step 3 — Detect a topic shift
 
@@ -63,6 +64,7 @@ If the most recent work is unrelated to earlier work in the session (a different
 Rules for the emitted line:
 - **Single line** — no newlines; a multi-line paste can submit early or be mangled in some prompt inputs.
 - **Starts with `/compact `** followed by instructions addressed to the summarizer, e.g. `/compact Preserve: … Drop: … Next step: …`.
+- **Drops this skill's own turn** — the Drop clause always names the `/compact-message` invocation, its loaded instructions, and the line being printed, so the summary does not record "run the /compact line" as a pending next step. Focus text cannot remove it; the bare `/compact` of a near-empty session is exempt.
 - **≤ ~800 characters** — long enough for specifics, short enough to scan and edit before pasting.
 - **Concrete identifiers** — real paths, PR numbers, branch names, skill names; never "the file" or "that PR".
 - **No secrets** — never copy tokens, keys, passwords, or credential-bearing URLs seen in the session into the line.
@@ -113,7 +115,7 @@ Pure-prompt skill, so tests are structural checks on the skill text plus a refer
 
 - **Help triggers**: `help`/`--help`/`-h`/`?`, case-insensitive, whitespace-trimmed → help; `help me`, `-help`, `??`, empty → not help.
 - **Focus text**: non-help, non-empty args are treated as focus text verbatim (trimmed).
-- **SKILL.md structure**: frontmatter has `name: compact-message`, `version: "0.1"`, description ≤ 500 chars; process steps are gapless from 1; `## Security model` appears immediately before `## Process`; Step 4 states the single-line, `/compact ` prefix, ~800-char, and no-secrets rules; Step 5 contains the ` ```text ` fence instruction, the MANDATORY/never-omit language, and a "stop generating" instruction; the portability note about differently named compaction commands is present.
+- **SKILL.md structure**: frontmatter has `name: compact-message`, the current `version` (`"0.2"` since the self-drop rule), description ≤ 500 chars; process steps are gapless from 1; `## Security model` appears immediately before `## Process`; Step 4 states the single-line, `/compact ` prefix, ~800-char, no-secrets, and self-drop rules; Step 5 contains the ` ```text ` fence instruction, the MANDATORY/never-omit language, and a "stop generating" instruction; the portability note about differently named compaction commands is present.
 - **options.md**: exists and documents every help trigger and a focus-text example.
 
 The emitted line itself is model output and cannot be asserted by pytest. Manual verification: after symlinking `.claude/skills/compact-message` (in the checkout the test session launches from) to the worktree copy, run `/compact-message` in a **fresh** session (skills are cached at session load) on a non-trivial conversation and check the output against Step 4/5 rules.

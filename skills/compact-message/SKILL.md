@@ -12,7 +12,7 @@ license: MIT
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.1"
+  version: "0.2"
 ---
 
 # Compact Message
@@ -24,7 +24,7 @@ Review the current conversation and print one copyable `/compact <instructions>`
 The text following the skill invocation is available as `$ARGUMENTS` (e.g. in Claude Code: `/compact-message keep the eval results, drop the CI debugging`).
 
 - If `$ARGUMENTS`, trimmed and case-insensitive, is exactly `help`, `--help`, `-h`, or `?`, skip the workflow, read [references/options.md](references/options.md), and stop. Anything longer (e.g. `help me`) is focus text.
-- Any other non-empty text is **focus guidance**, and it takes precedence over inference. Always keep items the user names to keep, and always drop items they name to drop. Infer the rest. Focus text overrides inference, not the Step 4 rules (single line, no secrets, facts only).
+- Any other non-empty text is **focus guidance**, and it takes precedence over inference. Always keep items the user names to keep, and always drop items they name to drop. Infer the rest. Focus text overrides inference, not the Step 4 rules (single line, no secrets, facts only, self-drop).
 - If `$ARGUMENTS` is empty, infer everything.
 
 ## Security model
@@ -71,6 +71,7 @@ Walk the conversation and list what to keep and what to drop. Apply the focus te
 - Tool output already acted on: file dumps, logs, search results.
 - Abandoned approaches: keep one line, "tried X, failed because Y", so it is not retried.
 - Superseded plans and drafts.
+- This skill's own turn: the `/compact-message` invocation, the instructions it loaded, and any `/compact` lines it printed earlier in the session.
 
 ### 3. Detect a Topic Shift
 
@@ -87,6 +88,7 @@ Build the line from the Step 2 inventory. It must follow these rules:
 
 - **Single line**: no newlines. Some prompt inputs submit a multi-line paste early or mangle it.
 - **Starts with `/compact `**, followed by instructions addressed to the summarizer, e.g. `/compact Preserve: … Drop: … Next step: …`. The one exception is the bare `/compact` of a near-empty session (Step 3).
+- **Drops this skill's own turn**: the Drop clause always names the `/compact-message` invocation, its loaded instructions, and the line being printed, e.g. `Drop: the /compact-message invocation, its instructions, and the line it produced.` Otherwise the summary can record "run the /compact line" as a pending next step. Focus text cannot remove it. The bare `/compact` of a near-empty session is exempt.
 - **At most ~800 characters**: long enough for specifics, short enough to scan and edit before pasting.
 - **Concrete identifiers**: use real paths, PR numbers, branch names, and skill names, never "the file" or "that PR".
 - **No secrets**: never copy tokens, keys, passwords, or credential-bearing URLs seen in the session into the line.

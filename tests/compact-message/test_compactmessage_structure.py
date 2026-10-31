@@ -81,8 +81,8 @@ class TestFrontmatter:
     def test_name(self):
         assert re.search(r"^name: compact-message$", frontmatter(), re.MULTILINE)
 
-    def test_initial_version(self):
-        assert re.search(r'^  version: "0\.1"$', frontmatter(), re.MULTILINE)
+    def test_version(self):
+        assert re.search(r'^  version: "0\.2"$', frontmatter(), re.MULTILINE)
 
     def test_license(self):
         assert re.search(r"^license: MIT$", frontmatter(), re.MULTILINE)
@@ -118,6 +118,7 @@ class TestArguments:
     def test_focus_text_cannot_override_step4_rules(self):
         body = flat(section_body("Arguments")).lower()
         assert "not the step 4 rules" in body
+        assert "self-drop" in body
 
 
 class TestSecurityModel:
@@ -153,6 +154,12 @@ class TestComposeRules:
 
     def test_length_cap(self):
         assert "800" in step_body(4)
+
+    def test_always_drops_own_turn(self):
+        body = flat(step_body(4))
+        assert "**Drops this skill's own turn**" in body
+        assert "Drop: the /compact-message invocation" in body
+        assert "focus text cannot remove it" in body.lower()
 
     def test_no_secrets(self):
         assert "never copy tokens" in flat(step_body(4)).lower()
