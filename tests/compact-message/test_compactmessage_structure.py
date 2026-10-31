@@ -155,6 +155,11 @@ class TestComposeRules:
     def test_length_cap(self):
         assert "800" in step_body(4)
 
+    def test_inventory_drops_own_turn_and_startup_context(self):
+        body = flat(step_body(2))
+        assert "This skill's own turn" in body
+        assert "Startup context the assistant reloads after compaction" in body
+
     def test_always_drops_own_turn(self):
         body = flat(step_body(4))
         assert "**Drops this skill's own turn**" in body

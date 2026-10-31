@@ -72,6 +72,7 @@ Walk the conversation and list what to keep and what to drop. Apply the focus te
 - Abandoned approaches: keep one line, "tried X, failed because Y", so it is not retried.
 - Superseded plans and drafts.
 - This skill's own turn: the `/compact-message` invocation, the instructions it loaded, and any `/compact` lines it printed earlier in the session.
+- Startup context the assistant reloads after compaction: the environment snapshot taken at session start (e.g. git status, recent commits) and project instruction files (e.g. `CLAUDE.md`, `AGENTS.md`). Keep only state that changed during the session.
 
 ### 3. Detect a Topic Shift
 

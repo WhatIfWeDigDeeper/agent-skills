@@ -54,6 +54,7 @@ Walk the conversation and list:
 - Abandoned approaches — keep one line "tried X, failed because Y" so it is not retried.
 - Superseded plans and drafts.
 - This skill's own turn — the `/compact-message` invocation, the instructions it loaded, and any `/compact` lines it printed earlier in the session.
+- Startup context the assistant reloads after compaction — the environment snapshot taken at session start (e.g. git status, recent commits) and project instruction files (e.g. `CLAUDE.md`, `AGENTS.md`). Keep only state that changed during the session.
 
 #### Step 3 — Detect a topic shift
 
@@ -115,7 +116,7 @@ Pure-prompt skill, so tests are structural checks on the skill text plus a refer
 
 - **Help triggers**: `help`/`--help`/`-h`/`?`, case-insensitive, whitespace-trimmed → help; `help me`, `-help`, `??`, empty → not help.
 - **Focus text**: non-help, non-empty args are treated as focus text verbatim (trimmed).
-- **SKILL.md structure**: frontmatter has `name: compact-message`, the current `version` (`"0.2"` since the self-drop rule), description ≤ 500 chars; process steps are gapless from 1; `## Security model` appears immediately before `## Process`; Step 4 states the single-line, `/compact ` prefix, ~800-char, no-secrets, and self-drop rules; Step 5 contains the ` ```text ` fence instruction, the MANDATORY/never-omit language, and a "stop generating" instruction; the portability note about differently named compaction commands is present.
+- **SKILL.md structure**: frontmatter has `name: compact-message`, the current `version` (`"0.2"` since the self-drop rule), description ≤ 500 chars; process steps are gapless from 1; `## Security model` appears immediately before `## Process`; the Step 2 Drop list names the skill's own turn and reloaded startup context; Step 4 states the single-line, `/compact ` prefix, ~800-char, no-secrets, and self-drop rules; Step 5 contains the ` ```text ` fence instruction, the MANDATORY/never-omit language, and a "stop generating" instruction; the portability note about differently named compaction commands is present.
 - **options.md**: exists and documents every help trigger and a focus-text example.
 
 The emitted line itself is model output and cannot be asserted by pytest. Manual verification: after symlinking `.claude/skills/compact-message` (in the checkout the test session launches from) to the worktree copy, run `/compact-message` in a **fresh** session (skills are cached at session load) on a non-trivial conversation and check the output against Step 4/5 rules.
