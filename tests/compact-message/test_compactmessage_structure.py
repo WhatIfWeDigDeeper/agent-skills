@@ -119,6 +119,7 @@ class TestArguments:
         body = flat(section_body("Arguments")).lower()
         assert "not the step 4 rules" in body
         assert "self-drop" in body
+        assert "startup-context drop" in body
 
 
 class TestSecurityModel:
@@ -168,6 +169,16 @@ class TestComposeRules:
         assert "its whole response" in body
         assert "Task facts from the focus text stay in the Preserve clause" in body
         assert "focus text cannot remove it" in body.lower()
+
+    def test_always_drops_startup_context(self):
+        body = flat(step_body(4))
+        assert "**Drops reloaded startup context**" in body
+        assert "session-start environment snapshot" in body
+        assert "text of project instruction files" in body
+        assert "stays in the Preserve clause" in body
+
+    def test_notes_scope_drop_clause_to_summary(self):
+        assert "**The Drop clause governs the summary only**" in section_body("Notes")
 
     def test_no_secrets(self):
         assert "never copy tokens" in flat(step_body(4)).lower()
