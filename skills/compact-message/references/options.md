@@ -35,7 +35,7 @@ Items you name to keep are always kept, and items you name to drop are always dr
 
 ## Output
 
-1. A single `/compact <instructions>` line in a `text` code block, ready to copy. The line always tells the summarizer to drop the `/compact-message` call and its own output.
+1. A single `/compact <instructions>` line in a `text` code block, ready to copy. The line always tells the summarizer to drop the `/compact-message` call and its whole response, while keeping any task facts your focus text supplied.
 2. Two to four bullets saying what the line keeps and what it drops.
 3. A `/clear` or fresh-session suggestion, only when the session's latest work is unrelated to its earlier work, or when the session has nothing worth keeping yet.
 4. A note that other assistants may name the compaction command differently.

@@ -53,7 +53,7 @@ Walk the conversation and list:
 - Tool output already acted on (file dumps, logs, search results).
 - Abandoned approaches — keep one line "tried X, failed because Y" so it is not retried.
 - Superseded plans and drafts.
-- This skill's own turn — the `/compact-message` invocation, the instructions it loaded, and any `/compact` lines it printed earlier in the session.
+- This skill's own turn — the `/compact-message` invocation, the instructions it loaded, and its responses earlier in the session (`/compact` lines, rationale bullets, `/clear` recommendations). Drop the command, not the task facts its focus text supplied: those go into the line under Keep.
 - Startup context the assistant reloads after compaction — the environment snapshot taken at session start (e.g. git status, recent commits) and the text of project instruction files (e.g. `CLAUDE.md`, `AGENTS.md`). Drop the output, not the state it shows: the current branch and uncommitted files stay under Keep. If the assistant may not reload instruction files after compaction, keep a one-line pointer instead, e.g. "re-read `CLAUDE.md` before resuming".
 
 #### Step 3 — Detect a topic shift
@@ -65,7 +65,7 @@ If the most recent work is unrelated to earlier work in the session (a different
 Rules for the emitted line:
 - **Single line** — no newlines; a multi-line paste can submit early or be mangled in some prompt inputs.
 - **Starts with `/compact `** followed by instructions addressed to the summarizer, e.g. `/compact Preserve: … Drop: … Next step: …`.
-- **Drops this skill's own turn** — the Drop clause always names the `/compact-message` invocation, its loaded instructions, and the line being printed, so the summary does not record "run the /compact line" as a pending next step. Focus text cannot remove it; the bare `/compact` of a near-empty session is exempt.
+- **Drops this skill's own turn** — the Drop clause always names the `/compact-message` invocation, its loaded instructions, and its whole response (the line, the rationale bullets, and any `/clear` recommendation), so the summary does not record "run the /compact line" or "consider /clear" as a pending next step. Task facts from the focus text stay in the Preserve clause. Focus text cannot remove it; the bare `/compact` of a near-empty session is exempt.
 - **≤ ~800 characters** — long enough for specifics, short enough to scan and edit before pasting.
 - **Concrete identifiers** — real paths, PR numbers, branch names, skill names; never "the file" or "that PR".
 - **No secrets** — never copy tokens, keys, passwords, or credential-bearing URLs seen in the session into the line.

@@ -166,6 +166,8 @@ class TestComposeRules:
         body = flat(step_body(4))
         assert "**Drops this skill's own turn**" in body
         assert "Drop: the /compact-message invocation" in body
+        assert "its whole response" in body
+        assert "Task facts from the focus text stay in the Preserve clause" in body
         assert "focus text cannot remove it" in body.lower()
 
     def test_no_secrets(self):
