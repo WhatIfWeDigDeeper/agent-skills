@@ -168,14 +168,19 @@ class TestComposeRules:
         assert "Drop: the /compact-message invocation" in body
         assert "its whole response" in body
         assert "Task facts from the focus text stay in the Preserve clause" in body
-        assert "focus text cannot remove it" in body.lower()
+        assert "focus text cannot remove the drop clause itself" in body.lower()
 
     def test_always_drops_startup_context(self):
         body = flat(step_body(4))
         assert "**Drops reloaded startup context**" in body
         assert "session-start environment snapshot" in body
-        assert "text of project instruction files" in body
-        assert "stays in the Preserve clause" in body
+        assert "startup-loaded text of project instruction files" in body
+        assert "edits the session made to an instruction file" in body
+
+    def test_preserve_rules_yield_to_focus_text_drops(self):
+        body = flat(step_body(4))
+        assert body.count("unless the focus text asks to drop them") == 2
+        assert "cannot remove the Drop clause itself" in body
 
     def test_notes_scope_drop_clause_to_summary(self):
         assert "**The Drop clause governs the summary only**" in section_body("Notes")
