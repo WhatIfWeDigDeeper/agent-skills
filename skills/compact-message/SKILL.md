@@ -12,7 +12,7 @@ license: MIT
 metadata:
   author: Gregory Murray
   repository: github.com/whatifwedigdeeper/agent-skills
-  version: "0.1"
+  version: "0.2"
 ---
 
 # Compact Message
@@ -24,7 +24,7 @@ Review the current conversation and print one copyable `/compact <instructions>`
 The text following the skill invocation is available as `$ARGUMENTS` (e.g. in Claude Code: `/compact-message keep the eval results, drop the CI debugging`).
 
 - If `$ARGUMENTS`, trimmed and case-insensitive, is exactly `help`, `--help`, `-h`, or `?`, skip the workflow, read [references/options.md](references/options.md), and stop. Anything longer (e.g. `help me`) is focus text.
-- Any other non-empty text is **focus guidance**, and it takes precedence over inference. Always keep items the user names to keep, and always drop items they name to drop. Infer the rest. Focus text overrides inference, not the Step 4 rules (single line, no secrets, facts only).
+- Any other non-empty text is **focus guidance**, and it takes precedence over inference. Always keep items the user names to keep, and always drop items they name to drop. Infer the rest. Focus text overrides inference, not the Step 4 rules (single line, no secrets, facts only, self-drop, startup-context drop).
 - If `$ARGUMENTS` is empty, infer everything.
 
 ## Security model
@@ -71,6 +71,8 @@ Walk the conversation and list what to keep and what to drop. Apply the focus te
 - Tool output already acted on: file dumps, logs, search results.
 - Abandoned approaches: keep one line, "tried X, failed because Y", so it is not retried.
 - Superseded plans and drafts.
+- This skill's own turn: the `/compact-message` invocation, the instructions it loaded, and its responses earlier in the session (`/compact` lines, rationale bullets, `/clear` recommendations). Drop the command, not the task facts its focus text supplied: those go into the line under Keep.
+- Startup context the assistant reloads after compaction: the environment snapshot taken at session start (e.g. git status, recent commits) and the startup-loaded text of project instruction files (e.g. `CLAUDE.md`, `AGENTS.md`). Drop the output, not the state it shows: the current branch, uncommitted files, and any edits the session made to those instruction files stay under Keep.
 
 ### 3. Detect a Topic Shift
 
@@ -87,6 +89,8 @@ Build the line from the Step 2 inventory. It must follow these rules:
 
 - **Single line**: no newlines. Some prompt inputs submit a multi-line paste early or mangle it.
 - **Starts with `/compact `**, followed by instructions addressed to the summarizer, e.g. `/compact Preserve: … Drop: … Next step: …`. The one exception is the bare `/compact` of a near-empty session (Step 3).
+- **Drops this skill's own turn**: the Drop clause always names the `/compact-message` invocation, its loaded instructions, and its whole response (the line, the rationale bullets, and any `/clear` recommendation), e.g. `Drop: the /compact-message invocation, its instructions, and its response.` Otherwise the summary can record "run the /compact line" or "consider /clear" as a pending next step. Task facts from the focus text stay in the Preserve clause unless the focus text asks to drop them. Focus text cannot remove the Drop clause itself. The bare `/compact` of a near-empty session is exempt.
+- **Drops reloaded startup context**: the Drop clause also names the session-start environment snapshot and the startup-loaded text of project instruction files, e.g. `Drop: …; the session-start git snapshot and CLAUDE.md text.` The assistant reloads both after compaction, and without the clause the summary copies instruction-file text verbatim. Current state those files showed (branch, uncommitted files) and edits the session made to an instruction file stay in the Preserve clause unless the focus text asks to drop them. Focus text cannot remove the Drop clause itself, and the near-empty exemption applies.
 - **At most ~800 characters**: long enough for specifics, short enough to scan and edit before pasting.
 - **Concrete identifiers**: use real paths, PR numbers, branch names, and skill names, never "the file" or "that PR".
 - **No secrets**: never copy tokens, keys, passwords, or credential-bearing URLs seen in the session into the line.
@@ -114,4 +118,5 @@ Then **stop generating**. Do not try to run `/compact`, and do not continue with
 
 - **Near-empty session**: when little has happened, a bare `/compact` or `/clear` is the honest answer. A padded instruction is not.
 - **Focus vs. inference**: the user's focus text always wins. Inference only fills in what the focus text leaves unsaid.
+- **The Drop clause governs the summary only**: some assistants keep the most recent turns verbatim and reattach loaded skill bodies and recently read files after compaction (Claude Code does). Remnants of this skill's turn surviving that way are expected and harmless; the clause keeps the summary from recording them as pending work.
 - **Why the skill cannot compact**: `/compact` is a built-in command of the assistant, and skills cannot invoke built-in commands. Printing the line and letting the user run it is the whole job.

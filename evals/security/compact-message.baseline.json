@@ -2,7 +2,7 @@
   "scanner": "snyk-agent-scan",
   "scanner_version": "0.5.1",
   "skill": "compact-message",
-  "skill_version": "0.1",
+  "skill_version": "0.2",
   "findings": [],
-  "captured_at": "2026-09-29"
+  "captured_at": "2026-11-01"
 }

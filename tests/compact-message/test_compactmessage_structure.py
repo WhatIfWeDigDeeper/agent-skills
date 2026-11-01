@@ -81,8 +81,8 @@ class TestFrontmatter:
     def test_name(self):
         assert re.search(r"^name: compact-message$", frontmatter(), re.MULTILINE)
 
-    def test_initial_version(self):
-        assert re.search(r'^  version: "0\.1"$', frontmatter(), re.MULTILINE)
+    def test_version(self):
+        assert re.search(r'^  version: "0\.2"$', frontmatter(), re.MULTILINE)
 
     def test_license(self):
         assert re.search(r"^license: MIT$", frontmatter(), re.MULTILINE)
@@ -118,6 +118,8 @@ class TestArguments:
     def test_focus_text_cannot_override_step4_rules(self):
         body = flat(section_body("Arguments")).lower()
         assert "not the step 4 rules" in body
+        assert "self-drop" in body
+        assert "startup-context drop" in body
 
 
 class TestSecurityModel:
@@ -153,6 +155,35 @@ class TestComposeRules:
 
     def test_length_cap(self):
         assert "800" in step_body(4)
+
+    def test_inventory_drops_own_turn_and_startup_context(self):
+        body = flat(step_body(2))
+        assert "This skill's own turn" in body
+        assert "Startup context the assistant reloads after compaction" in body
+        assert "Drop the output, not the state it shows" in body
+
+    def test_always_drops_own_turn(self):
+        body = flat(step_body(4))
+        assert "**Drops this skill's own turn**" in body
+        assert "Drop: the /compact-message invocation" in body
+        assert "its whole response" in body
+        assert "Task facts from the focus text stay in the Preserve clause" in body
+        assert "focus text cannot remove the drop clause itself" in body.lower()
+
+    def test_always_drops_startup_context(self):
+        body = flat(step_body(4))
+        assert "**Drops reloaded startup context**" in body
+        assert "session-start environment snapshot" in body
+        assert "startup-loaded text of project instruction files" in body
+        assert "edits the session made to an instruction file" in body
+
+    def test_preserve_rules_yield_to_focus_text_drops(self):
+        body = flat(step_body(4))
+        assert body.count("unless the focus text asks to drop them") == 2
+        assert "cannot remove the Drop clause itself" in body
+
+    def test_notes_scope_drop_clause_to_summary(self):
+        assert "**The Drop clause governs the summary only**" in section_body("Notes")
 
     def test_no_secrets(self):
         assert "never copy tokens" in flat(step_body(4)).lower()
@@ -219,6 +250,11 @@ class TestOptionsFile:
     def test_focus_text_limits_match_step4_rules(self):
         text = flat(OPTIONS_MD.read_text()).lower()
         assert "secrets" in text and "single line" in text
+
+    def test_documents_required_drops_and_near_empty_exception(self):
+        text = flat(OPTIONS_MD.read_text()).lower()
+        assert "always drops this skill's turn and the reloaded startup context" in text
+        assert "bare `/compact` with no drop clause" in text
 
     def test_clear_suggestion_covers_near_empty_session(self):
         assert "nothing worth keeping" in flat(OPTIONS_MD.read_text()).lower()

@@ -27,7 +27,7 @@ A skill cannot invoke a built-in slash command such as `/compact`, so the skill'
 The text following the skill invocation is available as `$ARGUMENTS` (e.g. in Claude Code: `/compact-message keep the eval results, drop the CI debugging`).
 
 - `help`, `--help`, `-h`, `?` (case-insensitive, whitespace-trimmed; exact match only — `help me` is focus text) → read `references/options.md` and stop.
-- Any other non-empty text → **focus guidance**. It takes precedence over inference: items the user names to keep are always kept, items they name to drop are always dropped, and the rest is inferred.
+- Any other non-empty text → **focus guidance**. It takes precedence over inference: items the user names to keep are always kept, items they name to drop are always dropped, and the rest is inferred. Focus text overrides inference, not the Step 4 rules (single line, no secrets, facts only, self-drop, startup-context drop).
 - Empty → fully inferred.
 
 ### Workflow
@@ -53,6 +53,8 @@ Walk the conversation and list:
 - Tool output already acted on (file dumps, logs, search results).
 - Abandoned approaches — keep one line "tried X, failed because Y" so it is not retried.
 - Superseded plans and drafts.
+- This skill's own turn — the `/compact-message` invocation, the instructions it loaded, and its responses earlier in the session (`/compact` lines, rationale bullets, `/clear` recommendations). Drop the command, not the task facts its focus text supplied: those go into the line under Keep.
+- Startup context the assistant reloads after compaction — the environment snapshot taken at session start (e.g. git status, recent commits) and the startup-loaded text of project instruction files (e.g. `CLAUDE.md`, `AGENTS.md`). Drop the output, not the state it shows: the current branch, uncommitted files, and any edits the session made to those instruction files stay under Keep.
 
 #### Step 3 — Detect a topic shift
 
@@ -63,6 +65,8 @@ If the most recent work is unrelated to earlier work in the session (a different
 Rules for the emitted line:
 - **Single line** — no newlines; a multi-line paste can submit early or be mangled in some prompt inputs.
 - **Starts with `/compact `** followed by instructions addressed to the summarizer, e.g. `/compact Preserve: … Drop: … Next step: …`.
+- **Drops this skill's own turn** — the Drop clause always names the `/compact-message` invocation, its loaded instructions, and its whole response (the line, the rationale bullets, and any `/clear` recommendation), so the summary does not record "run the /compact line" or "consider /clear" as a pending next step. Task facts from the focus text stay in the Preserve clause unless the focus text asks to drop them. Focus text cannot remove the Drop clause itself; the bare `/compact` of a near-empty session is exempt.
+- **Drops reloaded startup context** — the Drop clause also names the session-start environment snapshot and the startup-loaded text of project instruction files, which the assistant reloads after compaction; without it the summary copies instruction-file text verbatim. Current state those showed (branch, uncommitted files) and edits the session made to an instruction file stay in the Preserve clause unless the focus text asks to drop them. Focus text cannot remove the Drop clause itself; the near-empty exemption applies.
 - **≤ ~800 characters** — long enough for specifics, short enough to scan and edit before pasting.
 - **Concrete identifiers** — real paths, PR numbers, branch names, skill names; never "the file" or "that PR".
 - **No secrets** — never copy tokens, keys, passwords, or credential-bearing URLs seen in the session into the line.
@@ -81,6 +85,7 @@ Then **stop generating**. Do not attempt to run `/compact`, and do not continue 
 
 - **Near-empty session** (nothing load-bearing yet): say so and suggest a bare `/compact` or `/clear` rather than inventing content.
 - **Focus text conflicts with inference** (user says drop something that looks load-bearing): honor the user; optionally mention the dropped item in the rationale bullets.
+- **Drop clause scope**: it shapes only the summary. Assistants that keep recent turns verbatim or reattach loaded skills and recently read files after compaction (e.g. Claude Code) may still show remnants of this skill's turn; that is expected and harmless.
 
 ### Security model
 
@@ -113,7 +118,7 @@ Pure-prompt skill, so tests are structural checks on the skill text plus a refer
 
 - **Help triggers**: `help`/`--help`/`-h`/`?`, case-insensitive, whitespace-trimmed → help; `help me`, `-help`, `??`, empty → not help.
 - **Focus text**: non-help, non-empty args are treated as focus text verbatim (trimmed).
-- **SKILL.md structure**: frontmatter has `name: compact-message`, `version: "0.1"`, description ≤ 500 chars; process steps are gapless from 1; `## Security model` appears immediately before `## Process`; Step 4 states the single-line, `/compact ` prefix, ~800-char, and no-secrets rules; Step 5 contains the ` ```text ` fence instruction, the MANDATORY/never-omit language, and a "stop generating" instruction; the portability note about differently named compaction commands is present.
+- **SKILL.md structure**: frontmatter has `name: compact-message`, the current `version` (`"0.2"` since the self-drop rule), description ≤ 500 chars; process steps are gapless from 1; `## Security model` appears immediately before `## Process`; the Step 2 Drop list names the skill's own turn and reloaded startup context; Step 4 states the single-line, `/compact ` prefix, ~800-char, no-secrets, self-drop, and startup-context-drop rules; Notes state the Drop clause governs the summary only; Step 5 contains the ` ```text ` fence instruction, the MANDATORY/never-omit language, and a "stop generating" instruction; the portability note about differently named compaction commands is present.
 - **options.md**: exists and documents every help trigger and a focus-text example.
 
 The emitted line itself is model output and cannot be asserted by pytest. Manual verification: after symlinking `.claude/skills/compact-message` (in the checkout the test session launches from) to the worktree copy, run `/compact-message` in a **fresh** session (skills are cached at session load) on a non-trivial conversation and check the output against Step 4/5 rules.
