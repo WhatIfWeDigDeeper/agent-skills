@@ -251,5 +251,10 @@ class TestOptionsFile:
         text = flat(OPTIONS_MD.read_text()).lower()
         assert "secrets" in text and "single line" in text
 
+    def test_documents_required_drops_and_near_empty_exception(self):
+        text = flat(OPTIONS_MD.read_text()).lower()
+        assert "always drops this skill's turn and the reloaded startup context" in text
+        assert "bare `/compact` with no drop clause" in text
+
     def test_clear_suggestion_covers_near_empty_session(self):
         assert "nothing worth keeping" in flat(OPTIONS_MD.read_text()).lower()

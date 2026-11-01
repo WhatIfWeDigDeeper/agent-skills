@@ -27,7 +27,7 @@ A skill cannot invoke a built-in slash command such as `/compact`, so the skill'
 The text following the skill invocation is available as `$ARGUMENTS` (e.g. in Claude Code: `/compact-message keep the eval results, drop the CI debugging`).
 
 - `help`, `--help`, `-h`, `?` (case-insensitive, whitespace-trimmed; exact match only — `help me` is focus text) → read `references/options.md` and stop.
-- Any other non-empty text → **focus guidance**. It takes precedence over inference: items the user names to keep are always kept, items they name to drop are always dropped, and the rest is inferred.
+- Any other non-empty text → **focus guidance**. It takes precedence over inference: items the user names to keep are always kept, items they name to drop are always dropped, and the rest is inferred. Focus text overrides inference, not the Step 4 rules (single line, no secrets, facts only, self-drop, startup-context drop).
 - Empty → fully inferred.
 
 ### Workflow
