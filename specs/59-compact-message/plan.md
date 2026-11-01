@@ -54,7 +54,7 @@ Walk the conversation and list:
 - Abandoned approaches — keep one line "tried X, failed because Y" so it is not retried.
 - Superseded plans and drafts.
 - This skill's own turn — the `/compact-message` invocation, the instructions it loaded, and any `/compact` lines it printed earlier in the session.
-- Startup context the assistant reloads after compaction — the environment snapshot taken at session start (e.g. git status, recent commits) and project instruction files (e.g. `CLAUDE.md`, `AGENTS.md`). Keep only state that changed during the session.
+- Startup context the assistant reloads after compaction — the environment snapshot taken at session start (e.g. git status, recent commits) and the text of project instruction files (e.g. `CLAUDE.md`, `AGENTS.md`). Drop the output, not the state it shows: the current branch and uncommitted files stay under Keep. If the assistant may not reload instruction files after compaction, keep a one-line pointer instead, e.g. "re-read `CLAUDE.md` before resuming".
 
 #### Step 3 — Detect a topic shift
 

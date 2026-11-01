@@ -159,6 +159,8 @@ class TestComposeRules:
         body = flat(step_body(2))
         assert "This skill's own turn" in body
         assert "Startup context the assistant reloads after compaction" in body
+        assert "Drop the output, not the state it shows" in body
+        assert "re-read `CLAUDE.md` before resuming" in body
 
     def test_always_drops_own_turn(self):
         body = flat(step_body(4))
